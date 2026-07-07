@@ -1,0 +1,1289 @@
+// ProTools Hub — Prisma Schema v1 (MVP)
+// Documentación de la arquitectura: docs/architecture/data-model.md
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+// ============================================================
+// ENUMERACIONES
+// ============================================================
+
+enum Plan {
+  FREE
+  PRO
+}
+
+// BILLING-001 — catálogo de planes reales (GTM-003). Plan/PlanTier conviven:
+// Plan es el campo legacy en Organization (no se toca, no se borra).
+// PlanTier es el plan real de la Subscription, la fuente de verdad de límites.
+enum PlanTier {
+  STARTER
+  PROFESSIONAL
+  BUSINESS
+  ENTERPRISE
+}
+
+enum SubscriptionStatus {
+  TRIALING   // periodo de prueba, sin tarjeta o sin cobrar todavía
+  ACTIVE     // suscripción al día
+  PAST_DUE   // un cobro ha fallado, en periodo de gracia
+  CANCELLED  // cancelada por el cliente o por impago tras agotar reintentos
+  EXPIRED    // el trial terminó sin convertirse en pago
+  BLOCKED    // bloqueo manual (abuso/fraude) — no llega nunca desde Stripe
+}
+
+enum BillingInterval {
+  MONTHLY
+  YEARLY
+}
+
+enum OrgRole {
+  OWNER    // Propietario — acceso total, puede eliminar la org
+  ADMIN    // Administrador — acceso total excepto eliminar org, gestiona equipo
+  EDITOR   // Editor — crea/edita/elimina herramientas, workflows, registros
+  MEMBER   // Alias legacy de EDITOR — mismo nivel de permisos
+  OPERATOR // Operador — solo puede ejecutar herramientas y añadir registros
+  VIEWER   // Lector — solo lectura
+}
+
+enum ToolCategory {
+  AUDIT
+  EVALUATION
+  CHECKLIST
+  CRM
+  REPORT
+  HR
+  OPERATIONS
+  FINANCE
+  CUSTOM
+}
+
+enum ToolInstanceStatus {
+  ACTIVE
+  ARCHIVED
+}
+
+enum ExecutionStatus {
+  PENDING
+  RUNNING
+  COMPLETED
+  FAILED
+  CANCELLED
+}
+
+enum ResourceStatus {
+  DRAFT      // En elaboración — no visible en marketplace
+  PUBLISHED  // Publicado y activo
+  ARCHIVED   // Archivado — oculto, solo lectura
+}
+
+enum WorkflowNodeStatus {
+  IDLE
+  QUEUED
+  RUNNING
+  COMPLETED
+  FAILED
+  CANCELLED
+  SKIPPED
+}
+
+// ============================================================
+// ORGANIZACIÓN — raíz del modelo multi-tenant
+// ============================================================
+
+model Organization {
+  id         String   @id @default(cuid())
+  clerkOrgId String?  @unique    // null si es cuenta personal
+  name       String
+  sector     String?
+  plan       Plan     @default(FREE)
+  createdAt  DateTime @default(now())
+  updatedAt  DateTime @updatedAt
+
+  // Relaciones
+  users        User[]
+  workspaces   Workspace[]
+  auditLogs    AuditLog[]
+  subscription Subscription?
+
+  @@map("organizations")
+}
+
+// ============================================================
+// BILLING — BILLING-001 SaaS Billing Foundation
+// Stripe es un proveedor; toda la lógica de negocio vive aquí.
+// ============================================================
+
+model Subscription {
+  id    String @id @default(cuid())
+  orgId String @unique
+
+  tier     PlanTier           @default(STARTER)
+  status   SubscriptionStatus @default(TRIALING)
+  interval BillingInterval    @default(MONTHLY)
+
+  // Identificadores de Stripe — null hasta que exista un Customer/Subscription real
+  stripeCustomerId     String? @unique
+  stripeSubscriptionId String? @unique
+  stripePriceId        String?
+
+  trialEndsAt        DateTime?
+  currentPeriodStart DateTime?
+  currentPeriodEnd   DateTime?
+  cancelAtPeriodEnd  Boolean   @default(false)
+  cancelledAt        DateTime?
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  organization Organization   @relation(fields: [orgId], references: [id], onDelete: Cascade)
+  events       BillingEvent[]
+
+  @@index([status])
+  @@map("subscriptions")
+}
+
+// Registro append-only de todo evento de billing — auditoría completa (Fase 8).
+model BillingEvent {
+  id             String @id @default(cuid())
+  subscriptionId String
+  orgId          String
+
+  // trial_started|checkout_completed|activated|plan_changed|payment_failed|
+  // payment_succeeded|cancel_scheduled|cancelled|reactivated|trial_expired|blocked
+  type String
+
+  fromTier   String?
+  toTier     String?
+  fromStatus String?
+  toStatus   String?
+
+  stripeEventId String? @unique // idempotencia: un webhook de Stripe nunca se procesa dos veces
+  metadata      Json?
+
+  createdAt DateTime @default(now())
+
+  subscription Subscription @relation(fields: [subscriptionId], references: [id], onDelete: Cascade)
+
+  @@index([orgId, createdAt])
+  @@map("billing_events")
+}
+
+// ============================================================
+// USUARIO — sincronizado desde Clerk vía webhook
+// ============================================================
+
+model User {
+  id        String   @id @default(cuid())
+  clerkId   String   @unique
+  email     String   @unique
+  name      String?
+  orgId     String
+  role      OrgRole  @default(MEMBER)
+  // Beta access control
+  emailType String   @default("unknown")   // personal | business | disposable | unknown
+  trialPlan String   @default("trial_personal") // trial_personal | trial_business | blocked
+  // i18n
+  locale    String   @default("en")        // en | es
+  // BETA-002 — Second Day Experience: última vez que vio Mission Control
+  lastSeenAt DateTime?
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  // Relaciones
+  org                Organization        @relation(fields: [orgId], references: [id], onDelete: Cascade)
+  toolDefinitions    ToolDefinition[]    // herramientas creadas por este usuario
+  toolInstances      ToolInstance[]      // instancias creadas por este usuario
+  toolRecords        ToolRecord[]        // registros creados por este usuario
+  toolExecutions     ToolExecution[]     // ejecuciones IA realizadas por este usuario
+  toolFavorites        ToolFavorite[]        // herramientas marcadas como favoritas
+  workflowExecutions   WorkflowExecution[]   // ejecuciones de workflows por este usuario
+  workflowsCreated     Workflow[]            @relation("WorkflowCreator") // workflows creados por este usuario
+  generationRequests   GenerationRequest[]
+  aiUsages           AIUsage[]
+  importSources      ImportSource[]
+  registrySearches   RegistrySearch[]
+  auditLogs          AuditLog[]
+  copilotConversations CopilotConversation[]
+
+  @@index([orgId])
+  @@map("users")
+}
+
+// ============================================================
+// WORKSPACE — agrupación de clientes y herramientas por área
+// ============================================================
+
+model Workspace {
+  id        String   @id @default(cuid())
+  orgId     String
+  name      String
+  slug      String
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  // Relaciones
+  org            Organization   @relation(fields: [orgId], references: [id], onDelete: Cascade)
+  clients        Client[]
+  toolInstances  ToolInstance[]
+  toolExecutions     ToolExecution[]
+  workflows          Workflow[]
+  workflowExecutions WorkflowExecution[]
+
+  // Business Memory Engine
+  companyProfile  CompanyProfile?
+  objectives      CompanyObjective[]
+  assets          CompanyAsset[]
+  processes       CompanyProcess[]
+  risks           CompanyRisk[]
+  missionSteps    MissionStep[]
+  missionIntelligence MissionIntelligence[]
+  missionTimelineEvents MissionTimelineEvent[]
+
+  // Business Copilot
+  copilotConversations CopilotConversation[]
+
+  @@unique([orgId, slug])
+  @@index([orgId])
+  @@map("workspaces")
+}
+
+// ============================================================
+// CLIENT — empresa o persona a la que se presta servicio
+// ============================================================
+
+model Client {
+  id          String   @id @default(cuid())
+  workspaceId String
+  name        String
+  email       String?
+  sector      String?
+  notes       String?
+  isArchived  Boolean  @default(false)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  // Relaciones
+  workspace     Workspace      @relation(fields: [workspaceId], references: [id], onDelete: Cascade)
+  toolInstances ToolInstance[]
+
+  @@index([workspaceId])
+  @@map("clients")
+}
+
+// ============================================================
+// TOOL DEFINITION — la herramienta como plantilla reutilizable
+// El campo `schema` almacena un ToolSchemaV1 completo (JSON)
+// ============================================================
+
+model ToolDefinition {
+  id          String       @id @default(cuid())
+  slug        String
+  name        String
+  description String
+  category    ToolCategory
+  // ToolSchemaV1 completo — validado antes de insertarse
+  schema      Json
+  isPublic    Boolean      @default(false)
+  // null = herramienta del sistema (seed)
+  orgId       String?
+  createdBy   String?
+  createdAt   DateTime     @default(now())
+  updatedAt   DateTime     @updatedAt
+
+  // Origen: official | user_ai | import | community | partner | premium
+  source      String       @default("user_ai")
+
+  // Versioning — preparación para marketplace real y publicación controlada
+  status      ResourceStatus @default(PUBLISHED)
+  version     Int            @default(1)
+
+  // Relaciones
+  creator           User?                 @relation(fields: [createdBy], references: [id], onDelete: SetNull)
+  toolInstances     ToolInstance[]
+  registryMeta      ToolRegistryMeta?
+  capabilityProfile ToolCapabilityProfile?
+  favorites         ToolFavorite[]
+  workflowNodes     WorkflowNode[]
+
+  // Un slug es único dentro de una org (null = sistema)
+  @@unique([slug, orgId])
+  @@index([category])
+  @@index([isPublic])
+  @@index([orgId])
+  @@index([source])
+  @@map("tool_definitions")
+}
+
+// ============================================================
+// TOOL INSTANCE — uso de una definición en un workspace/cliente
+// ============================================================
+
+model ToolInstance {
+  id               String             @id @default(cuid())
+  toolDefinitionId String
+  workspaceId      String
+  clientId         String?            // null = no asociado a un cliente específico
+  name             String             // puede ser diferente al nombre de la definición
+  status           ToolInstanceStatus @default(ACTIVE)
+  shareEnabled     Boolean            @default(false)
+  // token único para compartir la instancia públicamente
+  shareToken       String?            @unique
+  createdBy        String
+  createdAt        DateTime           @default(now())
+  updatedAt        DateTime           @updatedAt
+
+  // Relaciones
+  toolDefinition ToolDefinition  @relation(fields: [toolDefinitionId], references: [id], onDelete: Restrict)
+  workspace      Workspace       @relation(fields: [workspaceId], references: [id], onDelete: Cascade)
+  client         Client?         @relation(fields: [clientId], references: [id], onDelete: SetNull)
+  creator        User            @relation(fields: [createdBy], references: [id], onDelete: Restrict)
+  toolRecords        ToolRecord[]
+  toolExecutions     ToolExecution[]
+  installationConfig ToolInstallationConfig?
+
+  @@index([workspaceId, status])    // cubre queries de herramientas activas/archivadas por workspace
+  @@index([clientId])
+  @@index([toolDefinitionId])
+  @@index([shareToken])
+  @@map("tool_instances")
+}
+
+// ============================================================
+// TOOL RECORD — un registro de datos dentro de una instancia
+// El campo `data` almacena los valores del dataSchema de la herramienta
+// ============================================================
+
+model ToolRecord {
+  id             String    @id @default(cuid())
+  toolInstanceId String
+  // Mapa de fieldId → valor, tipado según el dataSchema de la herramienta
+  data           Json
+  isDeleted      Boolean   @default(false)
+  createdBy      String
+  createdAt      DateTime  @default(now())
+  updatedAt      DateTime  @updatedAt
+  deletedAt      DateTime?
+
+  // Relaciones
+  toolInstance ToolInstance @relation(fields: [toolInstanceId], references: [id], onDelete: Cascade)
+  creator      User         @relation(fields: [createdBy], references: [id], onDelete: Restrict)
+
+  @@index([toolInstanceId, isDeleted])      // cubre el 95% de queries (listado de registros activos)
+  @@index([toolInstanceId, isDeleted, createdAt]) // cubre paginación ordenada
+  @@index([createdBy])
+  @@map("tool_records")
+}
+
+// ============================================================
+// AI USAGE — registro de cada llamada real a la API de Anthropic
+// Permite control de costes, rate-limiting y auditoría por usuario/workspace/org
+// ============================================================
+
+model AIUsage {
+  id                  String   @id @default(cuid())
+  userId              String
+  orgId               String
+  workspaceId         String?
+  generationRequestId String?
+  model               String
+  promptCharacters    Int      @default(0)
+  inputTokens         Int      @default(0)
+  outputTokens        Int      @default(0)
+  totalTokens         Int      @default(0)
+  estimatedCostEUR    Float    @default(0)
+  durationMs          Int      @default(0)
+  // 'success' | 'error' | 'rate_limited' | 'timeout'
+  status              String
+  errorMessage        String?
+  attempts            Int      @default(1)
+  createdAt           DateTime @default(now())
+
+  user User @relation(fields: [userId], references: [id], onDelete: Restrict)
+
+  @@index([userId, createdAt])
+  @@index([orgId, createdAt])
+  @@index([workspaceId, createdAt])
+  @@index([status, createdAt])   // cubre checkGlobalLimit() y checkDailyCostLimit() (sin filtro user/workspace)
+  @@index([createdAt])
+  @@map("ai_usage")
+}
+
+// ============================================================
+// GENERATION REQUEST — historial de generación IA (Sprint 4+)
+// Almacena el prompt, el schema generado y métricas de uso
+// ============================================================
+
+model GenerationRequest {
+  id              String   @id @default(cuid())
+  orgId           String
+  userId          String
+  // El prompt en lenguaje natural que el usuario envió
+  naturalLanguage String
+  // El ToolSchemaV1 generado (null si falló)
+  generatedSchema Json?
+  // true = usuario aceptó y se creó la ToolDefinition
+  accepted        Boolean  @default(false)
+  toolDefinitionId String?
+  errorMessage    String?
+  tokensUsed      Int?
+  durationMs      Int?
+  createdAt       DateTime @default(now())
+
+  // Relaciones
+  user User @relation(fields: [userId], references: [id], onDelete: Restrict)
+
+  @@index([orgId])
+  @@index([userId])
+  @@map("generation_requests")
+}
+
+// ============================================================
+// IMPORT SOURCE — trazabilidad de cada importación de archivo
+// ============================================================
+
+model ImportSource {
+  id               String   @id @default(cuid())
+  orgId            String
+  userId           String
+  toolDefinitionId String?
+  format           String
+  originalName     String
+  fileSizeBytes    Int      @default(0)
+  confidence       Float    @default(0)
+  warnings         Json     @default("[]")
+  importedAt       DateTime @default(now())
+
+  user User @relation(fields: [userId], references: [id], onDelete: Restrict)
+
+  @@index([orgId])
+  @@index([userId])
+  @@index([toolDefinitionId])
+  @@map("import_sources")
+}
+
+// ============================================================
+// REGISTRY SEARCH — métricas de búsqueda antes de generar
+// Permite medir reutilización vs generación IA
+// ============================================================
+
+model RegistrySearch {
+  id               String   @id @default(cuid())
+  userId           String
+  orgId            String
+  workspaceId      String
+  prompt           String
+  resultsFound     Int      @default(0)
+  topScore         Float    @default(0)
+  // 'install' | 'fork' | 'generate' | 'dismissed' | null (sin acción aún)
+  action           String?
+  toolDefinitionId String?
+  createdAt        DateTime @default(now())
+
+  user User @relation(fields: [userId], references: [id], onDelete: Restrict)
+
+  @@index([userId])
+  @@index([orgId])
+  @@index([workspaceId])
+  @@index([action])
+  @@map("registry_searches")
+}
+
+// ============================================================
+// TOOL EXECUTION — registro de cada ejecución IA de una herramienta
+// Una ToolInstance puede tener múltiples ejecuciones independientes
+// ============================================================
+
+model ToolExecution {
+  id               String          @id @default(cuid())
+  toolInstanceId   String
+  workspaceId      String
+  userId           String
+  status           ExecutionStatus @default(PENDING)
+
+  // Input — variables que el usuario proporcionó (fieldId → valor)
+  variables        Json            @default("{}")
+
+  // AI config usada
+  model            String          @default("claude-sonnet-4-6")
+  provider         String          @default("anthropic")
+
+  // Prompts almacenados para auditoría y re-ejecución
+  systemPrompt     String?
+  userPrompt       String?
+
+  // Output
+  result           String?         // texto/markdown generado por la IA
+
+  // Telemetría
+  inputTokens      Int             @default(0)
+  outputTokens     Int             @default(0)
+  estimatedCostEUR Float           @default(0)
+  durationMs       Int             @default(0)
+  errorMessage     String?
+
+  createdAt        DateTime        @default(now())
+  updatedAt        DateTime        @updatedAt
+
+  // Relaciones
+  toolInstance ToolInstance @relation(fields: [toolInstanceId], references: [id], onDelete: Cascade)
+  workspace    Workspace    @relation(fields: [workspaceId], references: [id], onDelete: Cascade)
+  user         User         @relation(fields: [userId], references: [id], onDelete: Restrict)
+
+  @@index([toolInstanceId, createdAt])
+  @@index([workspaceId, createdAt])
+  @@index([userId])
+  @@index([status])
+  @@map("tool_executions")
+
+  // Vínculo opcional desde workflow (no duplica datos)
+  workflowNodeExecution WorkflowNodeExecution?
+}
+
+// ============================================================
+// TOOL INSTALLATION CONFIG — configuración IA por instalación
+// 1:1 con ToolInstance — permite configurar proveedor, modelo y params
+// ============================================================
+
+model ToolInstallationConfig {
+  id             String @id @default(cuid())
+  toolInstanceId String @unique
+
+  // Proveedor e modelo IA
+  provider       String  @default("anthropic")
+  model          String  @default("claude-sonnet-4-6")
+
+  // Parámetros de generación
+  temperature    Float?  // 0.0 – 1.0, null = valor por defecto del proveedor
+  topP           Float?  // 0.0 – 1.0
+  maxTokens      Int?    // null = máximo por defecto del proveedor
+
+  // Salida
+  language       String  @default("es")       // es | en | fr | …
+  outputFormat   String  @default("markdown") // markdown | plain | json
+
+  // Personalización de prompt
+  systemPromptOverride String?
+  customInstructions   String?
+
+  // Variables y capacidades por defecto (JSON arrays/objects)
+  defaultVariables    Json @default("{}")
+  enabledCapabilities Json @default("[]")
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  toolInstance ToolInstance @relation(fields: [toolInstanceId], references: [id], onDelete: Cascade)
+
+  @@map("tool_installation_configs")
+}
+
+// ============================================================
+// TOOL FAVORITE — favoritos por usuario (persistidos en DB)
+// ============================================================
+
+model ToolFavorite {
+  id               String   @id @default(cuid())
+  userId           String
+  toolDefinitionId String
+  createdAt        DateTime @default(now())
+
+  user           User           @relation(fields: [userId], references: [id], onDelete: Cascade)
+  toolDefinition ToolDefinition @relation(fields: [toolDefinitionId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, toolDefinitionId])
+  @@index([userId])
+  @@map("tool_favorites")
+}
+
+// ============================================================
+// TOOL REGISTRY META — metadatos del catálogo oficial
+// Solo para herramientas con source='official'
+// ============================================================
+
+model ToolRegistryMeta {
+  id               String         @id @default(cuid())
+  toolDefinitionId String         @unique
+  toolDefinition   ToolDefinition @relation(fields: [toolDefinitionId], references: [id], onDelete: Cascade)
+
+  // Clasificación y presentación
+  displayCategory  String
+  icon             String         @default("📋")
+  color            String         @default("#3B82F6")
+
+  // Búsqueda semántica (almacenados como JSON arrays)
+  tags             Json           @default("[]")
+  keywords         Json           @default("[]")
+  synonyms         Json           @default("[]")
+
+  // Metadatos de calidad
+  complexity       String         @default("intermediate") // simple | intermediate | advanced
+  estimatedMinutes Int            @default(30)
+
+  // Autoría
+  authorName       String         @default("ProTools Hub Team")
+  authorOrg        String         @default("ProTools Hub")
+  toolVersion      String         @default("1.0.0")
+  status           String         @default("active") // active | beta | deprecated | archived
+  tier             String         @default("official") // official | community | partner | premium
+
+  // Popularidad (preparado para marketplace)
+  installCount     Int            @default(0)
+  rating           Float?
+
+  createdAt        DateTime       @default(now())
+  updatedAt        DateTime       @updatedAt
+
+  @@map("tool_registry_meta")
+}
+
+// ============================================================
+// TOOL CAPABILITY PROFILE — capa de inteligencia IA
+// Codifica qué hace la herramienta, cuándo usarla y cómo conectarla.
+// Separado de ToolRegistryMeta (presentación) a propósito: SOLID.
+// Solo para herramientas source='official' en MVP; extensible a user tools.
+// ============================================================
+
+model ToolCapabilityProfile {
+  id               String         @id @default(cuid())
+  toolDefinitionId String         @unique
+  toolDefinition   ToolDefinition @relation(fields: [toolDefinitionId], references: [id], onDelete: Cascade)
+
+  // Contexto empresarial
+  businessDomain   String                    // BusinessDomain: strategy | hr | finance | it | marketing | quality | operations | legal | sales | admin | procurement
+  businessGoals    Json   @default("[]")     // string[] — objetivos empresariales que apoya
+  useCases         Json   @default("[]")     // string[] — casos de uso concretos
+
+  // Contrato de entrada/salida — el "tipo" de datos que fluyen entre herramientas
+  inputTypes       Json   @default("[]")     // IOType[] — qué necesita para funcionar
+  outputTypes      Json   @default("[]")     // IOType[] — qué genera como resultado
+  expectedOutput   String?                   // descripción humana del output de la IA
+
+  // Variables de ejecución
+  requiredVariables Json  @default("[]")     // string[] — claves de variable requeridas
+  optionalVariables Json  @default("[]")     // string[] — claves de variable opcionales
+
+  // Configuración IA recomendada
+  recommendedModels  Json @default("[]")     // string[] — model IDs de Anthropic
+  supportedProviders Json @default("[]")     // string[] — anthropic | openai | google
+  executionCostEUR   Float @default(0.05)    // coste estimado por ejecución
+  qualityLevel       String @default("standard") // draft | standard | professional
+  automationFriendly Boolean @default(true)  // apto para ejecución automatizada en workflows
+
+  // Grafo de relaciones (por slug — resuelto en query time)
+  dependencies     Json   @default("[]")     // string[] — herramientas que deben ejecutarse ANTES
+  relatedTools     Json   @default("[]")     // string[] — herramientas frecuentemente usadas juntas
+  alternativeTools Json   @default("[]")     // string[] — herramientas con propósito similar
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([businessDomain])
+  @@map("tool_capability_profiles")
+}
+
+// ============================================================
+// WORKFLOW — cadena orquestada de herramientas IA
+// ============================================================
+
+model Workflow {
+  id          String   @id @default(cuid())
+  workspaceId String
+  name        String
+  description String?
+  isActive    Boolean        @default(true)
+  // Versioning — default PUBLISHED para compatibilidad con workflows previos
+  // Los workflows nuevos creados via createWorkflow() se crean explícitamente como DRAFT
+  status      ResourceStatus @default(PUBLISHED)
+  version     Int            @default(1)
+  createdBy   String
+  createdAt   DateTime       @default(now())
+  updatedAt   DateTime       @updatedAt
+
+  workspace   Workspace            @relation(fields: [workspaceId], references: [id], onDelete: Cascade)
+  creator     User                 @relation("WorkflowCreator", fields: [createdBy], references: [id], onDelete: Restrict)
+  nodes       WorkflowNode[]
+  connections WorkflowConnection[]
+  variables   WorkflowVariable[]
+  executions  WorkflowExecution[]
+
+  @@index([workspaceId])
+  @@index([createdBy])
+  @@map("workflows")
+}
+
+// ============================================================
+// WORKFLOW NODE — un paso dentro del workflow
+// Referencia a ToolDefinition (no a ToolInstance — es una definición)
+// ============================================================
+
+model WorkflowNode {
+  id               String @id @default(cuid())
+  workflowId       String
+  toolDefinitionId String
+  // Nombre visible en el canvas (puede ser distinto al de la ToolDefinition)
+  label            String
+  // Posición en el canvas (React Flow)
+  positionX        Float  @default(0)
+  positionY        Float  @default(0)
+  // Mapeo de inputs: fieldId → valor estático o plantilla "{{variables.x}}" / "{{nodes.y.output}}"
+  inputMapping     Json   @default("{}") // Record<string, string>
+  // Sobreescritura de config IA para este nodo específico
+  configOverride   Json   @default("{}") // Partial<{model, provider, temperature, maxTokens}>
+  isDisabled       Boolean @default(false)
+  // Orden de ejecución (calculado automáticamente, guardado para performance)
+  executionOrder   Int    @default(0)
+  createdAt        DateTime @default(now())
+  updatedAt        DateTime @updatedAt
+
+  workflow          Workflow              @relation(fields: [workflowId], references: [id], onDelete: Cascade)
+  toolDefinition    ToolDefinition        @relation(fields: [toolDefinitionId], references: [id], onDelete: Restrict)
+  sourceConnections WorkflowConnection[]  @relation("SourceNode")
+  targetConnections WorkflowConnection[]  @relation("TargetNode")
+  nodeExecutions    WorkflowNodeExecution[]
+
+  @@index([workflowId, isDisabled, executionOrder])  // cubre carga de nodos activos ordenados en ejecución
+  @@index([toolDefinitionId])
+  @@map("workflow_nodes")
+}
+
+// ============================================================
+// WORKFLOW CONNECTION — arista entre nodos (grafo dirigido)
+// ============================================================
+
+model WorkflowConnection {
+  id           String @id @default(cuid())
+  workflowId   String
+  sourceNodeId String
+  targetNodeId String
+  // Handles opcionales para React Flow
+  sourceHandle String? @default("output")
+  targetHandle String? @default("input")
+
+  workflow   Workflow     @relation(fields: [workflowId], references: [id], onDelete: Cascade)
+  sourceNode WorkflowNode @relation("SourceNode", fields: [sourceNodeId], references: [id], onDelete: Cascade)
+  targetNode WorkflowNode @relation("TargetNode", fields: [targetNodeId], references: [id], onDelete: Cascade)
+
+  @@unique([workflowId, sourceNodeId, targetNodeId])
+  @@index([workflowId])
+  @@map("workflow_connections")
+}
+
+// ============================================================
+// WORKFLOW VARIABLE — variables globales reutilizables en todo el workflow
+// ============================================================
+
+model WorkflowVariable {
+  id          String  @id @default(cuid())
+  workflowId  String
+  key         String
+  defaultValue String  @default("")
+  description String?
+  type        String   @default("string") // string | number | boolean
+
+  workflow Workflow @relation(fields: [workflowId], references: [id], onDelete: Cascade)
+
+  @@unique([workflowId, key])
+  @@index([workflowId])
+  @@map("workflow_variables")
+}
+
+// ============================================================
+// WORKFLOW EXECUTION — una ejecución completa del workflow
+// Reutiliza ExecutionStatus (PENDING/RUNNING/COMPLETED/FAILED/CANCELLED)
+// ============================================================
+
+model WorkflowExecution {
+  id           String          @id @default(cuid())
+  workflowId   String
+  workspaceId  String
+  userId       String
+  status       ExecutionStatus @default(PENDING)
+  // Snapshot de las variables usadas en esta ejecución
+  variables    Json            @default("{}")
+  // Resultado final (output del último nodo, o resumen)
+  finalOutput  String?
+  errorMessage String?
+  startedAt    DateTime?
+  completedAt  DateTime?
+  durationMs   Int             @default(0)
+  // Coste total acumulado de todos los nodos
+  totalCostEUR Float           @default(0)
+  createdAt    DateTime        @default(now())
+  updatedAt    DateTime        @updatedAt
+
+  workflow       Workflow                @relation(fields: [workflowId], references: [id], onDelete: Cascade)
+  workspace      Workspace              @relation(fields: [workspaceId], references: [id], onDelete: Cascade)
+  user           User                   @relation(fields: [userId], references: [id], onDelete: Restrict)
+  nodeExecutions WorkflowNodeExecution[]
+  logs           WorkflowExecutionLog[]
+
+  @@index([workflowId, createdAt])
+  @@index([workspaceId, createdAt])
+  @@index([userId])
+  @@index([status])
+  @@map("workflow_executions")
+}
+
+// ============================================================
+// WORKFLOW NODE EXECUTION — estado de cada nodo en una ejecución
+// Vincula a ToolExecution (no duplica — referencia FK)
+// ============================================================
+
+model WorkflowNodeExecution {
+  id                  String             @id @default(cuid())
+  workflowExecutionId String
+  workflowNodeId      String
+  // FK a ToolExecution existente — reutiliza sin duplicar
+  toolExecutionId     String?            @unique
+  status              WorkflowNodeStatus @default(IDLE)
+  // Inputs resueltos (después de interpolar variables/outputs anteriores)
+  resolvedInputs      Json               @default("{}")
+  // Output de este nodo (texto generado por la IA)
+  output              String?
+  errorMessage        String?
+  startedAt           DateTime?
+  completedAt         DateTime?
+  durationMs          Int                @default(0)
+  inputTokens         Int                @default(0)
+  outputTokens        Int                @default(0)
+  estimatedCostEUR    Float              @default(0)
+  createdAt           DateTime           @default(now())
+
+  workflowExecution WorkflowExecution @relation(fields: [workflowExecutionId], references: [id], onDelete: Cascade)
+  workflowNode      WorkflowNode      @relation(fields: [workflowNodeId], references: [id], onDelete: Cascade)
+  toolExecution     ToolExecution?    @relation(fields: [toolExecutionId], references: [id], onDelete: SetNull)
+
+  @@unique([workflowExecutionId, workflowNodeId])
+  @@index([workflowExecutionId])
+  @@index([workflowNodeId])
+  @@map("workflow_node_executions")
+}
+
+// ============================================================
+// WORKFLOW EXECUTION LOG — log detallado por ejecución
+// ============================================================
+
+model WorkflowExecutionLog {
+  id                  String   @id @default(cuid())
+  workflowExecutionId String
+  workflowNodeId      String?  // null = log a nivel de workflow
+  level               String   @default("info") // info | warning | error | debug
+  message             String
+  metadata            Json?    // datos adicionales (tokens, model, etc.)
+  createdAt           DateTime @default(now())
+
+  workflowExecution WorkflowExecution @relation(fields: [workflowExecutionId], references: [id], onDelete: Cascade)
+
+  @@index([workflowExecutionId, createdAt])
+  @@map("workflow_execution_logs")
+}
+
+// ============================================================
+// AUDIT LOG — rastro de auditoría Enterprise
+// ============================================================
+
+model AuditLog {
+  id            String   @id @default(cuid())
+  orgId         String
+  workspaceId   String?
+  actorUserId   String?
+  action        String   // e.g. "tool.install", "workflow.create"
+  entityType    String   // e.g. "tool_instance", "workflow", "record"
+  entityId      String?
+  result        String   @default("success") // success | failure | denied
+  metadata      Json?
+  ipHint        String?
+  userAgentHint String?
+  createdAt     DateTime @default(now())
+
+  org       Organization @relation(fields: [orgId], references: [id], onDelete: Cascade)
+  actorUser User?        @relation(fields: [actorUserId], references: [id], onDelete: SetNull)
+
+  @@index([orgId, createdAt])
+  @@index([workspaceId, createdAt])
+  @@index([actorUserId, createdAt])
+  @@index([action, createdAt])
+  @@index([entityType, entityId])
+  @@map("audit_logs")
+}
+
+// ============================================================
+// BUSINESS MEMORY ENGINE — conocimiento estructurado de empresa
+// ============================================================
+
+model CompanyProfile {
+  id          String   @id @default(cuid())
+  workspaceId String   @unique
+
+  // Identificación
+  companyName String?
+  sector      String?
+  subsector   String?
+  country     String?
+  city        String?
+  website     String?
+  foundedYear Int?
+
+  // Tamaño y alcance
+  size      String   @default("unknown") // micro|small|medium|large|enterprise|unknown
+  languages Json     @default("[]")       // string[]
+  markets   Json     @default("[]")       // string[]
+
+  // Oferta
+  services  Json @default("[]")  // string[]
+  products  Json @default("[]")  // string[]
+  customers Json @default("[]")  // segmentos de clientes
+
+  // Competencia y entorno
+  competitors Json @default("[]")  // string[]
+
+  // Cumplimiento y certificaciones
+  regulations    Json @default("[]")  // string[] — GDPR, ISO9001, etc.
+  certifications Json @default("[]")  // string[] — obtenidas
+
+  // Digital y software
+  softwareUsed    Json   @default("[]")       // string[]
+  integrations    Json   @default("[]")       // string[]
+  digitalMaturity String @default("emerging") // emerging|developing|advanced|leading
+
+  // Organización interna
+  departments Json @default("[]")  // string[]
+
+  // Confianza y trazabilidad
+  confidence    Float    @default(0)    // 0.0-1.0 — cuánto sabemos de esta empresa
+  lastUpdatedBy String?                 // userId o 'system'
+  lastUpdatedAt DateTime @default(now())
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  workspace   Workspace            @relation(fields: [workspaceId], references: [id], onDelete: Cascade)
+  objectives  CompanyObjective[]
+  assets      CompanyAsset[]
+  processes   CompanyProcess[]
+  risks       CompanyRisk[]
+  memoryLogs  BusinessMemoryLog[]
+
+  @@map("company_profiles")
+}
+
+model CompanyObjective {
+  id          String   @id @default(cuid())
+  workspaceId String
+  profileId   String
+
+  canonicalGoal    String?  // CanonicalGoal slug del Intent Engine
+  label            String
+  description      String?
+  status           String   @default("active")   // active|completed|paused|cancelled
+  priority         String   @default("medium")   // low|medium|high|critical
+  progress         Int      @default(0)           // 0-100
+  dueDate          DateTime?
+  completedAt      DateTime?
+  linkedWorkflowId String?
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  profile   CompanyProfile @relation(fields: [profileId], references: [id], onDelete: Cascade)
+  workspace Workspace      @relation(fields: [workspaceId], references: [id], onDelete: Cascade)
+  steps     MissionStep[]
+  intelligence    MissionIntelligence?
+  timelineEvents  MissionTimelineEvent[]
+
+  @@index([workspaceId, status])
+  @@index([profileId])
+  @@map("company_objectives")
+}
+
+// ── MISSION INTELLIGENCE (MISSION-002) ──────────────────────────────────
+// Capa de inteligencia 1:1 sobre CompanyObjective. Separada para mantener
+// CompanyObjective pequeño y estable — esta tabla concentra todo lo
+// "inteligente": por qué importa la misión, su estado derivado, la
+// próxima acción y las recomendaciones de IA.
+
+model MissionIntelligence {
+  id          String @id @default(cuid())
+  objectiveId String @unique
+  workspaceId String
+
+  // Mission Insights (Fase 3)
+  why                 String?  // ¿Por qué existe esta misión?
+  expectedBenefit     String?  // ¿Qué beneficio aporta?
+  whatItUnlocks       String?  // ¿Qué desbloqueará al completarse?
+  departmentsAffected String?  // Departamentos afectados, separados por coma
+
+  // Business Impact (Fase 4) — escalas 1-5
+  impactScore  Int    @default(3)
+  urgencyScore Int    @default(3)
+  effortScore  Int    @default(3)
+  riskLevel    String @default("medium") // low|medium|high
+
+  // Mission State Engine (requisito 6)
+  state String @default("new") // new|ready|in_progress|waiting_user|waiting_ai|blocked|completed|archived
+
+  // Next Action (requisito 7) — siempre hay una respuesta a "¿qué hago ahora?"
+  nextActionText    String?
+  nextActionStepId  String?
+
+  // AI Recommendations (Fase 8 + requisito 5) — última tanda generada
+  aiRecommendations Json?
+  completedLearnings String?
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  objective CompanyObjective @relation(fields: [objectiveId], references: [id], onDelete: Cascade)
+  workspace Workspace        @relation(fields: [workspaceId], references: [id], onDelete: Cascade)
+
+  @@index([workspaceId, state])
+  @@map("mission_intelligence")
+}
+
+// ── MISSION TIMELINE (MISSION-002, Fase 7 simplificada) ─────────────────
+// Versión simple: solo 4 eventos. created|started|paused|completed.
+
+model MissionTimelineEvent {
+  id          String @id @default(cuid())
+  objectiveId String
+  workspaceId String
+
+  event String   // created|started|paused|completed
+  note  String?
+
+  createdAt DateTime @default(now())
+
+  objective CompanyObjective @relation(fields: [objectiveId], references: [id], onDelete: Cascade)
+  workspace Workspace        @relation(fields: [workspaceId], references: [id], onDelete: Cascade)
+
+  @@index([objectiveId, createdAt])
+  @@map("mission_timeline_events")
+}
+
+// ── MISSION EXECUTION ENGINE ────────────────────────────────────────────
+// Pasos de ejecución de cada objetivo estratégico.
+// Cada CompanyObjective puede tener N MissionSteps ordenados.
+
+model MissionStep {
+  id          String @id @default(cuid())
+  objectiveId String
+  workspaceId String
+
+  title            String
+  description      String?
+  status           String  @default("pending")  // pending|in_progress|completed|skipped|blocked
+  priority         String  @default("medium")   // low|medium|high|critical
+  responsibleActor String  @default("user")     // user|ai|shared
+  estimatedMinutes Int?
+  sortOrder        Int     @default(0)
+
+  // Herramienta recomendada / enlazada
+  recommendedCategory  String?  // AUDIT|CHECKLIST|REPORT|CRM|HR|OPERATIONS|FINANCE|CUSTOM
+  linkedToolInstanceId String?
+
+  // Resultado del paso
+  completedAt DateTime?
+  resultNote  String?
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  objective CompanyObjective @relation(fields: [objectiveId], references: [id], onDelete: Cascade)
+  workspace Workspace        @relation(fields: [workspaceId], references: [id], onDelete: Cascade)
+
+  @@index([objectiveId, sortOrder])
+  @@index([workspaceId, status])
+  @@map("mission_steps")
+}
+
+model CompanyAsset {
+  id          String   @id @default(cuid())
+  workspaceId String
+  profileId   String
+
+  type        String  // web|erp|crm|software|document|equipment|integration|other
+  name        String
+  description String?
+  url         String?
+  vendor      String?
+  status      String  @default("active")  // active|inactive|planned
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  profile   CompanyProfile @relation(fields: [profileId], references: [id], onDelete: Cascade)
+  workspace Workspace      @relation(fields: [workspaceId], references: [id], onDelete: Cascade)
+
+  @@index([workspaceId])
+  @@index([profileId, type])
+  @@map("company_assets")
+}
+
+model CompanyProcess {
+  id          String   @id @default(cuid())
+  workspaceId String
+  profileId   String
+
+  domain        String  // sales|marketing|quality|operations|hr|finance|legal|procurement|it|admin
+  name          String
+  description   String?
+  isDocumented  Boolean @default(false)
+  maturity      String  @default("informal")  // informal|documented|optimized|automated
+  toolSlugs     Json    @default("[]")         // herramientas conocidas para este proceso
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  profile   CompanyProfile @relation(fields: [profileId], references: [id], onDelete: Cascade)
+  workspace Workspace      @relation(fields: [workspaceId], references: [id], onDelete: Cascade)
+
+  @@index([workspaceId, domain])
+  @@index([profileId])
+  @@map("company_processes")
+}
+
+model CompanyRisk {
+  id          String   @id @default(cuid())
+  workspaceId String
+  profileId   String
+
+  domain      String  // same as BusinessDomain
+  level       String  @default("medium")  // low|medium|high|critical
+  title       String
+  description String?
+  detectedAt  DateTime @default(now())
+  resolvedAt  DateTime?
+  status      String   @default("open")    // open|mitigated|resolved|accepted
+  source      String   @default("manual")  // manual|tool_execution|workflow|system
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  profile   CompanyProfile @relation(fields: [profileId], references: [id], onDelete: Cascade)
+  workspace Workspace      @relation(fields: [workspaceId], references: [id], onDelete: Cascade)
+
+  @@index([workspaceId, status])
+  @@index([profileId, level])
+  @@map("company_risks")
+}
+
+model BusinessMemoryLog {
+  id          String   @id @default(cuid())
+  workspaceId String
+  profileId   String
+
+  field       String   // campo actualizado en CompanyProfile
+  oldValue    Json?
+  newValue    Json
+  source      String   // tool_execution|workflow|user|intent|system
+  sourceId    String?  // id de la ejecución o evento que disparó el cambio
+  actorUserId String?
+  confidence  Float    @default(1.0)
+
+  createdAt DateTime @default(now())
+
+  profile CompanyProfile @relation(fields: [profileId], references: [id], onDelete: Cascade)
+
+  @@index([workspaceId, createdAt])
+  @@index([profileId, createdAt])
+  @@map("business_memory_logs")
+}
+
+// ============================================================
+// BUSINESS COPILOT — estado ligero de conversación
+// ============================================================
+
+model CopilotConversation {
+  id          String   @id @default(cuid())
+  workspaceId String
+  userId      String
+
+  // Estado de la conversación (máquina de estados)
+  phase       String   @default("greeting")  // greeting|understanding|clarifying|planning|workflow_ready|done
+
+  // Objetivo actual
+  rawInput    String?            // lo que escribió el usuario
+  currentGoal String?            // objetivo extraído
+
+  // Resultados serializados de los motores
+  intentResult  Json?            // IntentResult serializado (ligero)
+  rankedPlans   Json?            // array de planes (solo summary, no steps completos)
+  selectedPlan  Json?            // plan elegido por el usuario
+
+  // Preguntas y respuestas de aclaración
+  clarifyingQuestion String?
+  collectedAnswers   Json    @default("{}")
+
+  // Workflow generado (si existe)
+  generatedWorkflowId String?
+
+  // Metadata
+  turnCount Int      @default(0)
+  closedAt  DateTime?
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  workspace Workspace @relation(fields: [workspaceId], references: [id], onDelete: Cascade)
+  user      User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([workspaceId, createdAt])
+  @@index([userId, createdAt])
+  @@map("copilot_conversations")
+}
+
+// ============================================================
+// LANDING-001 — captura de leads de la landing pública.
+// Aislado a propósito: un lead no es todavía un User ni una Organization.
+// ============================================================
+
+model Lead {
+  id      String  @id @default(cuid())
+  name    String
+  email   String
+  company String?
+  message String?
+  source  String  @default("landing") // landing|referral|... — de dónde vino
+
+  createdAt DateTime @default(now())
+
+  @@index([createdAt])
+  @@map("leads")
+}
+
+// ============================================================
+// DATA-001 — Product Intelligence Foundation
+// Tabla append-only de eventos de comportamiento de producto.
+// Complementa AIUsage, AuditLog y BillingEvent con datos de
+// comportamiento de usuario: TTFV, activation, retention.
+// ============================================================
+
+model ProductEvent {
+  id          String   @id @default(cuid())
+  orgId       String                        // siempre presente (multi-tenant)
+  userId      String?                       // null en eventos pre-auth
+  workspaceId String?                       // null si el evento es a nivel de org
+
+  // Taxonomía: dominio.entidad.acción (ej: tool.execution.first, user.signed_up)
+  event       String
+
+  // Atributos específicos — NUNCA PII (email, nombre, IP)
+  properties  Json     @default("{}")
+
+  source      String   @default("web")      // web | api | webhook | cron
+  sessionId   String?                       // id de sesión de navegador (opcional)
+
+  createdAt   DateTime @default(now())
+
+  @@index([orgId, event, createdAt])        // funnel por org y tipo de evento
+  @@index([userId, createdAt])              // journey individual de usuario
+  @@index([event, createdAt])              // frecuencia global por tipo de evento
+  @@index([createdAt])                     // queries de rango temporal
+  @@map("product_events")
+}

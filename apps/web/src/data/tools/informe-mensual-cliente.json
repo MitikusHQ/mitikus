@@ -1,0 +1,151 @@
+{
+  "id": "00000000-0000-4000-a000-000000000005",
+  "slug": "informe-mensual-cliente",
+  "name": "Informe Mensual de Cliente",
+  "description": "Genera informes mensuales estructurados para tus clientes. Documenta el trabajo realizado, KPIs, logros del período y objetivos del siguiente mes.",
+  "category": "report",
+  "version": "1",
+  "isPublic": true,
+  "createdBy": "system",
+  "permissions": {
+    "defaultMemberRole": "EDITOR",
+    "allowPublicShare": true
+  },
+  "capabilities": [
+    {
+      "type": "TABLE",
+      "instanceId": "tabla-informes",
+      "label": "Informes",
+      "isDefault": true,
+      "config": {
+        "columns": [
+          { "fieldId": "clientName", "label": "Cliente", "sortable": true },
+          { "fieldId": "period", "label": "Período", "sortable": true },
+          { "fieldId": "consultant", "label": "Consultor", "sortable": true },
+          { "fieldId": "overallStatus", "label": "Estado general", "sortable": true }
+        ],
+        "defaultSortField": "period",
+        "defaultSortDirection": "desc",
+        "pageSize": 25,
+        "showCreateButton": true
+      }
+    },
+    {
+      "type": "FORM",
+      "instanceId": "formulario-informe",
+      "label": "Redactar Informe",
+      "config": {
+        "layout": "sections",
+        "submitLabel": "Guardar informe",
+        "sections": [
+          {
+            "id": "cabecera",
+            "title": "Datos del informe",
+            "fieldIds": ["clientName", "period", "consultant", "reportDate"]
+          },
+          {
+            "id": "resumen",
+            "title": "Resumen ejecutivo",
+            "fieldIds": ["overallStatus", "executiveSummary"]
+          },
+          {
+            "id": "trabajo-realizado",
+            "title": "Trabajo realizado",
+            "fieldIds": ["completedWork", "hoursSpent"]
+          },
+          {
+            "id": "kpis",
+            "title": "KPIs y métricas",
+            "fieldIds": ["kpi1Label", "kpi1Value", "kpi2Label", "kpi2Value", "kpi3Label", "kpi3Value"]
+          },
+          {
+            "id": "logros-bloqueos",
+            "title": "Logros y bloqueos",
+            "fieldIds": ["achievements", "blockers"]
+          },
+          {
+            "id": "proximo-mes",
+            "title": "Próximo mes",
+            "fieldIds": ["nextMonthGoals", "nextMeetingDate"]
+          },
+          {
+            "id": "conclusiones",
+            "title": "Conclusiones y comentarios",
+            "fieldIds": ["conclusions", "clientFeedback"]
+          }
+        ]
+      }
+    },
+    {
+      "type": "PDF_EXPORT",
+      "instanceId": "exportar-pdf",
+      "label": "Exportar PDF",
+      "config": {
+        "includeHeader": true,
+        "includeDate": true,
+        "includeOrgName": true,
+        "scope": "single_record"
+      }
+    }
+  ],
+  "dataSchema": {
+    "fields": {
+      "clientName": { "type": "string", "label": "Nombre del cliente", "required": true, "placeholder": "Empresa ABC S.L." },
+      "period": { "type": "string", "label": "Período (mes y año)", "required": true, "placeholder": "Junio 2026" },
+      "consultant": { "type": "string", "label": "Consultor/Responsable", "required": true },
+      "reportDate": { "type": "date", "label": "Fecha del informe", "required": true },
+      "overallStatus": {
+        "type": "select",
+        "label": "Estado general del período",
+        "required": true,
+        "options": ["En verde — todo según plan", "En ámbar — algunas desviaciones", "En rojo — problemas importantes"]
+      },
+      "executiveSummary": {
+        "type": "textarea",
+        "label": "Resumen ejecutivo",
+        "required": true,
+        "placeholder": "Breve descripción del período: qué se hizo, cómo fue y qué destaca..."
+      },
+      "completedWork": {
+        "type": "textarea",
+        "label": "Trabajo realizado",
+        "required": true,
+        "placeholder": "Lista de tareas y proyectos completados durante el período..."
+      },
+      "hoursSpent": { "type": "number", "label": "Horas dedicadas", "min": 0, "placeholder": "40" },
+      "kpi1Label": { "type": "string", "label": "KPI 1 — Nombre", "placeholder": "Tráfico web" },
+      "kpi1Value": { "type": "string", "label": "KPI 1 — Valor", "placeholder": "12.500 visitas (+8%)" },
+      "kpi2Label": { "type": "string", "label": "KPI 2 — Nombre", "placeholder": "Leads generados" },
+      "kpi2Value": { "type": "string", "label": "KPI 2 — Valor", "placeholder": "34 leads" },
+      "kpi3Label": { "type": "string", "label": "KPI 3 — Nombre", "placeholder": "Conversión" },
+      "kpi3Value": { "type": "string", "label": "KPI 3 — Valor", "placeholder": "2,7%" },
+      "achievements": {
+        "type": "textarea",
+        "label": "Logros del período",
+        "placeholder": "Principales hitos conseguidos..."
+      },
+      "blockers": {
+        "type": "textarea",
+        "label": "Bloqueos o incidencias",
+        "placeholder": "Problemas encontrados y cómo se resolvieron..."
+      },
+      "nextMonthGoals": {
+        "type": "textarea",
+        "label": "Objetivos del próximo mes",
+        "required": true,
+        "placeholder": "Qué se va a hacer el próximo mes..."
+      },
+      "nextMeetingDate": { "type": "date", "label": "Fecha próxima reunión" },
+      "conclusions": {
+        "type": "textarea",
+        "label": "Conclusiones y valoración general",
+        "placeholder": "Reflexión sobre el mes y la relación con el cliente..."
+      },
+      "clientFeedback": {
+        "type": "textarea",
+        "label": "Feedback del cliente",
+        "placeholder": "Comentarios o feedback recibido del cliente..."
+      }
+    }
+  }
+}

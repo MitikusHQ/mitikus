@@ -1,0 +1,112 @@
+{
+  "id": "00000000-0000-4000-a000-000000000002",
+  "slug": "evaluacion-proveedores",
+  "name": "Evaluación de Proveedores",
+  "description": "Evalúa y compara proveedores según criterios de calidad, precio, servicio, cumplimiento y capacidad de entrega. Facilita la toma de decisiones de compra.",
+  "category": "evaluation",
+  "version": "1",
+  "isPublic": true,
+  "createdBy": "system",
+  "permissions": {
+    "defaultMemberRole": "EDITOR",
+    "allowPublicShare": false
+  },
+  "capabilities": [
+    {
+      "type": "TABLE",
+      "instanceId": "tabla-proveedores",
+      "label": "Proveedores",
+      "isDefault": true,
+      "config": {
+        "columns": [
+          { "fieldId": "supplierName", "label": "Proveedor", "sortable": true },
+          { "fieldId": "category", "label": "Categoría", "sortable": true },
+          { "fieldId": "evaluationDate", "label": "Fecha", "sortable": true },
+          { "fieldId": "evaluator", "label": "Evaluador" },
+          { "fieldId": "totalScore", "label": "Puntuación", "sortable": true },
+          { "fieldId": "recommendation", "label": "Recomendación", "sortable": true }
+        ],
+        "defaultSortField": "totalScore",
+        "defaultSortDirection": "desc",
+        "pageSize": 25,
+        "showCreateButton": true
+      }
+    },
+    {
+      "type": "FORM",
+      "instanceId": "formulario-proveedor",
+      "label": "Evaluar Proveedor",
+      "config": {
+        "layout": "sections",
+        "submitLabel": "Guardar evaluación",
+        "sections": [
+          {
+            "id": "datos-proveedor",
+            "title": "Datos del proveedor",
+            "fieldIds": ["supplierName", "category", "evaluationDate", "evaluator", "contactEmail"]
+          },
+          {
+            "id": "criterios",
+            "title": "Criterios de evaluación",
+            "fieldIds": ["score_calidad", "score_precio", "score_servicio", "score_cumplimiento", "score_entrega", "score_comunicacion"]
+          },
+          {
+            "id": "conclusion",
+            "title": "Conclusión",
+            "fieldIds": ["totalScore", "recommendation", "notes"]
+          }
+        ]
+      }
+    },
+    {
+      "type": "SCORING",
+      "instanceId": "scoring-proveedor",
+      "label": "Puntuación",
+      "config": {
+        "criteria": [
+          { "id": "calidad", "label": "Calidad del producto/servicio", "weight": 0.25, "min": 1, "max": 10 },
+          { "id": "precio", "label": "Competitividad del precio", "weight": 0.2, "min": 1, "max": 10 },
+          { "id": "servicio", "label": "Servicio postventa", "weight": 0.15, "min": 1, "max": 10 },
+          { "id": "cumplimiento", "label": "Cumplimiento normativo", "weight": 0.2, "min": 1, "max": 10 },
+          { "id": "entrega", "label": "Plazos de entrega", "weight": 0.1, "min": 1, "max": 10 },
+          { "id": "comunicacion", "label": "Comunicación y soporte", "weight": 0.1, "min": 1, "max": 10 }
+        ],
+        "thresholds": [
+          { "min": 8, "max": 10, "label": "Proveedor preferente", "color": "green" },
+          { "min": 6, "max": 7.99, "label": "Proveedor válido", "color": "yellow" },
+          { "min": 0, "max": 5.99, "label": "Proveedor no recomendado", "color": "red" }
+        ],
+        "showTotal": true,
+        "passingScore": 6
+      }
+    }
+  ],
+  "dataSchema": {
+    "fields": {
+      "supplierName": { "type": "string", "label": "Nombre del proveedor", "required": true, "placeholder": "Suministros García S.L." },
+      "category": {
+        "type": "select",
+        "label": "Categoría",
+        "required": true,
+        "options": ["Materias primas", "Servicios IT", "Logística", "Marketing", "Consultoría", "Mantenimiento", "Otro"]
+      },
+      "evaluationDate": { "type": "date", "label": "Fecha de evaluación", "required": true },
+      "evaluator": { "type": "string", "label": "Evaluador", "required": true },
+      "contactEmail": { "type": "string", "label": "Email de contacto", "placeholder": "proveedor@empresa.com" },
+      "score_calidad": { "type": "number", "label": "Calidad (1-10)", "required": true, "min": 1, "max": 10 },
+      "score_precio": { "type": "number", "label": "Precio (1-10)", "required": true, "min": 1, "max": 10 },
+      "score_servicio": { "type": "number", "label": "Servicio postventa (1-10)", "required": true, "min": 1, "max": 10 },
+      "score_cumplimiento": { "type": "number", "label": "Cumplimiento normativo (1-10)", "required": true, "min": 1, "max": 10 },
+      "score_entrega": { "type": "number", "label": "Plazos de entrega (1-10)", "required": true, "min": 1, "max": 10 },
+      "score_comunicacion": { "type": "number", "label": "Comunicación (1-10)", "required": true, "min": 1, "max": 10 },
+      "totalScore": { "type": "number", "label": "Puntuación total", "min": 0, "max": 10 },
+      "recommendation": {
+        "type": "select",
+        "label": "Recomendación final",
+        "required": true,
+        "options": ["Proveedor preferente", "Proveedor válido", "En revisión", "Descartado"]
+      },
+      "notes": { "type": "textarea", "label": "Observaciones", "placeholder": "Notas adicionales sobre el proveedor..." }
+    }
+  }
+}

@@ -1,0 +1,146 @@
+{
+  "id": "00000000-0000-4000-a000-000000000001",
+  "slug": "auditoria-empresa-general",
+  "name": "Auditoría de Empresa General",
+  "description": "Evalúa el estado general de una empresa en áreas clave: organización, procesos, tecnología, RRHH y finanzas. Genera un informe de puntuación con recomendaciones.",
+  "category": "audit",
+  "version": "1",
+  "isPublic": true,
+  "createdBy": "system",
+  "permissions": {
+    "defaultMemberRole": "EDITOR",
+    "allowPublicShare": true
+  },
+  "capabilities": [
+    {
+      "type": "TABLE",
+      "instanceId": "tabla-auditorias",
+      "label": "Auditorías",
+      "isDefault": true,
+      "config": {
+        "columns": [
+          { "fieldId": "companyName", "label": "Empresa", "sortable": true },
+          { "fieldId": "sector", "label": "Sector", "sortable": true },
+          { "fieldId": "auditDate", "label": "Fecha", "sortable": true },
+          { "fieldId": "auditorName", "label": "Auditor" },
+          { "fieldId": "totalScore", "label": "Puntuación", "sortable": true }
+        ],
+        "defaultSortField": "auditDate",
+        "defaultSortDirection": "desc",
+        "pageSize": 25,
+        "showCreateButton": true
+      }
+    },
+    {
+      "type": "FORM",
+      "instanceId": "formulario-auditoria",
+      "label": "Nueva Auditoría",
+      "config": {
+        "layout": "sections",
+        "submitLabel": "Guardar auditoría",
+        "autosave": false,
+        "sections": [
+          {
+            "id": "datos-generales",
+            "title": "Datos generales",
+            "fieldIds": ["companyName", "sector", "auditDate", "auditorName", "auditScope"]
+          },
+          {
+            "id": "evaluacion-organizacion",
+            "title": "Organización y Gestión",
+            "fieldIds": ["score_organizacion", "score_procesos", "score_comunicacion"]
+          },
+          {
+            "id": "evaluacion-rrhh",
+            "title": "Recursos Humanos",
+            "fieldIds": ["score_rrhh", "score_formacion", "score_cultura"]
+          },
+          {
+            "id": "evaluacion-tecnologia",
+            "title": "Tecnología",
+            "fieldIds": ["score_tecnologia", "score_seguridad", "score_digitalizacion"]
+          },
+          {
+            "id": "evaluacion-finanzas",
+            "title": "Finanzas",
+            "fieldIds": ["score_finanzas", "score_tesoreria", "score_rentabilidad"]
+          },
+          {
+            "id": "conclusiones",
+            "title": "Conclusiones",
+            "fieldIds": ["strengths", "improvements", "recommendations"]
+          }
+        ]
+      }
+    },
+    {
+      "type": "SCORING",
+      "instanceId": "scoring-auditoria",
+      "label": "Puntuación",
+      "config": {
+        "criteria": [
+          { "id": "organizacion", "label": "Organización y Gestión", "weight": 0.1, "min": 1, "max": 10, "category": "Organización" },
+          { "id": "procesos", "label": "Gestión de Procesos", "weight": 0.1, "min": 1, "max": 10, "category": "Organización" },
+          { "id": "comunicacion", "label": "Comunicación Interna", "weight": 0.05, "min": 1, "max": 10, "category": "Organización" },
+          { "id": "rrhh", "label": "Gestión de RRHH", "weight": 0.1, "min": 1, "max": 10, "category": "RRHH" },
+          { "id": "formacion", "label": "Formación y Desarrollo", "weight": 0.08, "min": 1, "max": 10, "category": "RRHH" },
+          { "id": "cultura", "label": "Cultura Empresarial", "weight": 0.07, "min": 1, "max": 10, "category": "RRHH" },
+          { "id": "tecnologia", "label": "Infraestructura Tecnológica", "weight": 0.1, "min": 1, "max": 10, "category": "Tecnología" },
+          { "id": "seguridad", "label": "Seguridad Informática", "weight": 0.1, "min": 1, "max": 10, "category": "Tecnología" },
+          { "id": "digitalizacion", "label": "Nivel de Digitalización", "weight": 0.1, "min": 1, "max": 10, "category": "Tecnología" },
+          { "id": "finanzas", "label": "Salud Financiera", "weight": 0.1, "min": 1, "max": 10, "category": "Finanzas" },
+          { "id": "tesoreria", "label": "Gestión de Tesorería", "weight": 0.05, "min": 1, "max": 10, "category": "Finanzas" },
+          { "id": "rentabilidad", "label": "Rentabilidad", "weight": 0.05, "min": 1, "max": 10, "category": "Finanzas" }
+        ],
+        "thresholds": [
+          { "min": 8, "max": 10, "label": "Excelente", "color": "green" },
+          { "min": 6, "max": 7.99, "label": "Aceptable", "color": "yellow" },
+          { "min": 0, "max": 5.99, "label": "Necesita mejora", "color": "red" }
+        ],
+        "showTotal": true,
+        "passingScore": 6
+      }
+    },
+    {
+      "type": "PDF_EXPORT",
+      "instanceId": "exportar-pdf",
+      "label": "Exportar PDF",
+      "config": {
+        "includeHeader": true,
+        "includeDate": true,
+        "includeOrgName": true,
+        "scope": "single_record"
+      }
+    }
+  ],
+  "dataSchema": {
+    "fields": {
+      "companyName": { "type": "string", "label": "Nombre de la empresa", "required": true, "placeholder": "Acme S.L." },
+      "sector": {
+        "type": "select",
+        "label": "Sector",
+        "required": true,
+        "options": ["Tecnología", "Manufactura", "Retail", "Servicios", "Construcción", "Hostelería", "Salud", "Educación", "Otro"]
+      },
+      "auditDate": { "type": "date", "label": "Fecha de auditoría", "required": true },
+      "auditorName": { "type": "string", "label": "Auditor responsable", "required": true },
+      "auditScope": { "type": "textarea", "label": "Alcance de la auditoría", "placeholder": "Descripción del alcance..." },
+      "score_organizacion": { "type": "number", "label": "Organización y Gestión (1-10)", "required": true, "min": 1, "max": 10 },
+      "score_procesos": { "type": "number", "label": "Gestión de Procesos (1-10)", "required": true, "min": 1, "max": 10 },
+      "score_comunicacion": { "type": "number", "label": "Comunicación Interna (1-10)", "required": true, "min": 1, "max": 10 },
+      "score_rrhh": { "type": "number", "label": "Gestión de RRHH (1-10)", "required": true, "min": 1, "max": 10 },
+      "score_formacion": { "type": "number", "label": "Formación y Desarrollo (1-10)", "required": true, "min": 1, "max": 10 },
+      "score_cultura": { "type": "number", "label": "Cultura Empresarial (1-10)", "required": true, "min": 1, "max": 10 },
+      "score_tecnologia": { "type": "number", "label": "Infraestructura Tecnológica (1-10)", "required": true, "min": 1, "max": 10 },
+      "score_seguridad": { "type": "number", "label": "Seguridad Informática (1-10)", "required": true, "min": 1, "max": 10 },
+      "score_digitalizacion": { "type": "number", "label": "Nivel de Digitalización (1-10)", "required": true, "min": 1, "max": 10 },
+      "score_finanzas": { "type": "number", "label": "Salud Financiera (1-10)", "required": true, "min": 1, "max": 10 },
+      "score_tesoreria": { "type": "number", "label": "Gestión de Tesorería (1-10)", "required": true, "min": 1, "max": 10 },
+      "score_rentabilidad": { "type": "number", "label": "Rentabilidad (1-10)", "required": true, "min": 1, "max": 10 },
+      "totalScore": { "type": "number", "label": "Puntuación total", "min": 0, "max": 10 },
+      "strengths": { "type": "textarea", "label": "Puntos fuertes identificados", "placeholder": "Describe los puntos fuertes..." },
+      "improvements": { "type": "textarea", "label": "Áreas de mejora", "placeholder": "Describe las áreas de mejora..." },
+      "recommendations": { "type": "textarea", "label": "Recomendaciones", "placeholder": "Recomendaciones concretas..." }
+    }
+  }
+}

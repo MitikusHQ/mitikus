@@ -1,0 +1,85 @@
+{
+  "id": "00000000-0000-4000-a000-000000000003",
+  "slug": "checklist-onboarding-empleado",
+  "name": "Checklist Onboarding de Empleado",
+  "description": "Gestiona el proceso de incorporación de nuevos empleados. Asegura que se completan todos los pasos: alta en sistemas, entrega de equipos, presentaciones y formación inicial.",
+  "category": "hr",
+  "version": "1",
+  "isPublic": true,
+  "createdBy": "system",
+  "permissions": {
+    "defaultMemberRole": "EDITOR",
+    "allowPublicShare": false
+  },
+  "capabilities": [
+    {
+      "type": "TABLE",
+      "instanceId": "tabla-onboardings",
+      "label": "Incorporaciones",
+      "isDefault": true,
+      "config": {
+        "columns": [
+          { "fieldId": "employeeName", "label": "Empleado", "sortable": true },
+          { "fieldId": "position", "label": "Puesto", "sortable": true },
+          { "fieldId": "department", "label": "Departamento", "sortable": true },
+          { "fieldId": "startDate", "label": "Fecha de inicio", "sortable": true },
+          { "fieldId": "supervisor", "label": "Responsable" }
+        ],
+        "defaultSortField": "startDate",
+        "defaultSortDirection": "desc",
+        "pageSize": 25,
+        "showCreateButton": true
+      }
+    },
+    {
+      "type": "CHECKLIST",
+      "instanceId": "checklist-onboarding",
+      "label": "Checklist",
+      "config": {
+        "completionType": "check",
+        "showProgress": true,
+        "categories": [
+          "Antes del primer día",
+          "Primer día",
+          "Primera semana",
+          "Primer mes"
+        ],
+        "items": [
+          { "id": "contrato-firmado", "label": "Contrato firmado y entregado", "category": "Antes del primer día", "required": true },
+          { "id": "alta-seguridad-social", "label": "Alta en Seguridad Social tramitada", "category": "Antes del primer día", "required": true },
+          { "id": "cuenta-email-creada", "label": "Cuenta de correo corporativo creada", "category": "Antes del primer día", "required": true },
+          { "id": "accesos-sistemas", "label": "Accesos a sistemas configurados", "category": "Antes del primer día", "required": true },
+          { "id": "puesto-preparado", "label": "Puesto de trabajo preparado", "category": "Antes del primer día" },
+          { "id": "equipo-entregado", "label": "Equipo informático entregado", "category": "Primer día", "required": true },
+          { "id": "presentacion-equipo", "label": "Presentación al equipo realizada", "category": "Primer día", "required": true },
+          { "id": "tour-oficina", "label": "Tour por las instalaciones", "category": "Primer día" },
+          { "id": "politicas-empresa", "label": "Políticas de empresa explicadas", "category": "Primer día", "required": true },
+          { "id": "objetivos-primer-mes", "label": "Objetivos del primer mes definidos", "category": "Primer día" },
+          { "id": "formacion-herramientas", "label": "Formación en herramientas principales", "category": "Primera semana", "required": true },
+          { "id": "reunion-supervisor", "label": "Reunión 1:1 con supervisor", "category": "Primera semana", "required": true },
+          { "id": "acceso-documentacion", "label": "Acceso a documentación interna", "category": "Primera semana" },
+          { "id": "buddy-asignado", "label": "Buddy/Mentor asignado", "category": "Primera semana" },
+          { "id": "evaluacion-30dias", "label": "Evaluación de los primeros 30 días", "category": "Primer mes", "required": true },
+          { "id": "objetivos-trimestre", "label": "Objetivos del trimestre definidos", "category": "Primer mes" },
+          { "id": "feedback-onboarding", "label": "Feedback sobre el proceso de onboarding", "category": "Primer mes" }
+        ]
+      }
+    }
+  ],
+  "dataSchema": {
+    "fields": {
+      "employeeName": { "type": "string", "label": "Nombre del empleado", "required": true, "placeholder": "María García" },
+      "position": { "type": "string", "label": "Puesto", "required": true, "placeholder": "Desarrollador Backend" },
+      "department": {
+        "type": "select",
+        "label": "Departamento",
+        "required": true,
+        "options": ["Tecnología", "Marketing", "Ventas", "Operaciones", "RRHH", "Finanzas", "Dirección", "Otro"]
+      },
+      "startDate": { "type": "date", "label": "Fecha de inicio", "required": true },
+      "supervisor": { "type": "string", "label": "Supervisor directo", "required": true },
+      "buddy": { "type": "string", "label": "Buddy/Mentor asignado" },
+      "notes": { "type": "textarea", "label": "Notas adicionales", "placeholder": "Observaciones sobre el proceso..." }
+    }
+  }
+}

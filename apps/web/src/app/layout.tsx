@@ -1,0 +1,51 @@
+import type { Metadata } from 'next'
+import { Inter } from 'next/font/google'
+import { headers } from 'next/headers'
+import { ClerkProvider } from '@clerk/nextjs'
+import { getLocale } from '@/i18n/locale'
+import { sanitizeLocale, SUGGESTED_LOCALE_HEADER } from '@/i18n/config'
+import { LocaleProvider } from '@/i18n/locale-context'
+import { LocaleBanner } from './(dashboard)/_components/LocaleBanner'
+import './globals.css'
+
+const inter = Inter({ subsets: ['latin'] })
+
+export const metadata: Metadata = {
+  title: 'MITIKUS',
+  description: 'El sistema operativo de tu empresa.',
+}
+
+export default async function RootLayout({ children }: { children: React.ReactNode }) {
+  const locale = await getLocale()
+  const headersList = await headers()
+  const rawSuggested = headersList.get(SUGGESTED_LOCALE_HEADER)
+  const suggestedLocale = rawSuggested ? sanitizeLocale(rawSuggested) : null
+
+  return (
+    <ClerkProvider
+      signInUrl="/sign-in"
+      signUpUrl="/sign-up"
+      signInFallbackRedirectUrl="/onboarding"
+      signUpFallbackRedirectUrl="/onboarding"
+    >
+      <html lang={locale} suppressHydrationWarning>
+        {/* Anti-FOUC: sets dark class before React hydrates */}
+        <head>
+          <script
+            dangerouslySetInnerHTML={{
+              __html: `(function(){try{var t=localStorage.getItem('protools-theme');var d=window.matchMedia('(prefers-color-scheme:dark)').matches;if(t==='dark'||(t===null&&d)){document.documentElement.classList.add('dark')}}catch(e){}})()`,
+            }}
+          />
+        </head>
+        <body className={inter.className} suppressHydrationWarning>
+          <LocaleProvider locale={locale}>
+            {suggestedLocale && suggestedLocale !== locale && (
+              <LocaleBanner suggestedLocale={suggestedLocale} />
+            )}
+            {children}
+          </LocaleProvider>
+        </body>
+      </html>
+    </ClerkProvider>
+  )
+}

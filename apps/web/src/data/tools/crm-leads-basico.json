@@ -1,0 +1,70 @@
+{
+  "id": "00000000-0000-4000-a000-000000000004",
+  "slug": "crm-leads-basico",
+  "name": "CRM de Leads Básico",
+  "description": "Gestiona tu pipeline de ventas. Registra leads, su estado, valor estimado y próximos pasos. Ideal para equipos comerciales pequeños o consultorías.",
+  "category": "crm",
+  "version": "1",
+  "isPublic": true,
+  "createdBy": "system",
+  "permissions": {
+    "defaultMemberRole": "EDITOR",
+    "allowPublicShare": false
+  },
+  "capabilities": [
+    {
+      "type": "TABLE",
+      "instanceId": "tabla-leads",
+      "label": "Pipeline",
+      "isDefault": true,
+      "config": {
+        "columns": [
+          { "fieldId": "contactName", "label": "Contacto", "sortable": true },
+          { "fieldId": "company", "label": "Empresa", "sortable": true },
+          { "fieldId": "stage", "label": "Etapa", "sortable": true },
+          { "fieldId": "value", "label": "Valor estimado (€)", "sortable": true },
+          { "fieldId": "source", "label": "Fuente", "sortable": true },
+          { "fieldId": "nextAction", "label": "Próxima acción" }
+        ],
+        "defaultSortField": "value",
+        "defaultSortDirection": "desc",
+        "pageSize": 50,
+        "showCreateButton": true
+      }
+    },
+    {
+      "type": "FORM",
+      "instanceId": "formulario-lead",
+      "label": "Nuevo Lead",
+      "config": {
+        "layout": "two-column",
+        "submitLabel": "Guardar lead"
+      }
+    }
+  ],
+  "dataSchema": {
+    "fields": {
+      "contactName": { "type": "string", "label": "Nombre del contacto", "required": true, "placeholder": "Pedro Martínez" },
+      "company": { "type": "string", "label": "Empresa", "required": true, "placeholder": "Innovación S.A." },
+      "email": { "type": "string", "label": "Email", "placeholder": "pedro@empresa.com" },
+      "phone": { "type": "string", "label": "Teléfono", "placeholder": "+34 612 345 678" },
+      "source": {
+        "type": "select",
+        "label": "Fuente del lead",
+        "required": true,
+        "options": ["Web", "Referido", "LinkedIn", "Evento", "Email campaña", "Llamada fría", "Otro"]
+      },
+      "stage": {
+        "type": "select",
+        "label": "Etapa del pipeline",
+        "required": true,
+        "options": ["Prospecto", "Contactado", "Reunión agendada", "Propuesta enviada", "Negociación", "Ganado", "Perdido"]
+      },
+      "value": { "type": "number", "label": "Valor estimado (€)", "min": 0, "placeholder": "5000" },
+      "probability": { "type": "number", "label": "Probabilidad de cierre (%)", "min": 0, "max": 100 },
+      "nextAction": { "type": "string", "label": "Próxima acción", "placeholder": "Enviar propuesta el viernes" },
+      "nextActionDate": { "type": "date", "label": "Fecha próxima acción" },
+      "notes": { "type": "textarea", "label": "Notas", "placeholder": "Contexto del lead, conversaciones previas..." }
+    }
+  }
+}
