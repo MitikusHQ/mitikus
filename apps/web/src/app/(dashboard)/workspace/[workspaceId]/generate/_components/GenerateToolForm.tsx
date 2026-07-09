@@ -284,9 +284,9 @@ export function GenerateToolForm({ workspaceId, locale = 'es' }: Props) {
 
       {description.trim().length >= 10 && isComplex(description) && (
         <div className="rounded-md border border-amber-200 bg-amber-50 px-3 py-2.5 text-xs text-amber-800">
-          <span className="font-semibold">This looks like a complex tool.</span>{' '}
-          It may consume more AI credits and take longer to generate.
-          Consider using "Generate simpler version" for a quick test.
+          <span className="font-semibold">Esta herramienta parece compleja.</span>{' '}
+          Puede consumir más créditos de IA y tardar más en generarse.
+          Prueba con "Generar versión simple" para una prueba rápida.
         </div>
       )}
 

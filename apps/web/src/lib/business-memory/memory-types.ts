@@ -153,6 +153,9 @@ export interface CompanyObjectiveData {
   dueDate:         string | null
   completedAt:     string | null
   linkedWorkflowId: string | null
+  // WM-001 Sprint 0
+  clientId:        string | null
+  clientName:      string | null
 }
 
 export interface CompanyAssetData {

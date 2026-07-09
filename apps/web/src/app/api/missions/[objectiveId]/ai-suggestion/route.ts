@@ -49,6 +49,8 @@ export async function POST(
     dueDate:          objective.dueDate?.toISOString() ?? null,
     completedAt:      objective.completedAt?.toISOString() ?? null,
     linkedWorkflowId: objective.linkedWorkflowId,
+    clientId:         null,
+    clientName:       null,
   }
 
   const recommendations = await generateMissionRecommendations(objectiveData, steps, 'in_progress')

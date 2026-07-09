@@ -143,7 +143,7 @@ function validateGeneratedSchema(
     return {
       ok: false,
       error: `Schema demasiado grande (${serialized.length} bytes)`,
-      userMessage: 'The generated tool did not pass validation. Try a simpler description or reduce the number of sections.',
+      userMessage: 'La herramienta generada no superó la validación. Prueba con una descripción más sencilla o reduce el número de secciones.',
     }
   }
 
@@ -155,7 +155,7 @@ function validateGeneratedSchema(
     return {
       ok: false,
       error: `Zod validation failed:\n${errorDetail}`,
-      userMessage: 'The generated tool did not pass validation. Try a simpler description or reduce the number of sections.',
+      userMessage: 'La herramienta generada no superó la validación. Prueba con una descripción más sencilla o reduce el número de secciones.',
     }
   }
 
@@ -165,7 +165,7 @@ function validateGeneratedSchema(
     return {
       ok: false,
       error: 'dataSchema.fields: debe tener al menos 1 campo',
-      userMessage: 'The generated tool did not pass validation. Try a simpler description or reduce the number of sections.',
+      userMessage: 'La herramienta generada no superó la validación. Prueba con una descripción más sencilla o reduce el número de secciones.',
     }
   }
 
@@ -176,7 +176,7 @@ function validateGeneratedSchema(
     return {
       ok: false,
       error: 'capabilities: debe incluir TABLE, FORM, CHECKLIST o SCORING',
-      userMessage: 'The generated tool did not pass validation. Try a simpler description or reduce the number of sections.',
+      userMessage: 'La herramienta generada no superó la validación. Prueba con una descripción más sencilla o reduce el número de secciones.',
     }
   }
 
@@ -411,7 +411,7 @@ export async function POST(req: NextRequest) {
 
   if (internalError || !generatedSchema) {
     return NextResponse.json(
-      { error: userFacingError ?? 'The generated tool did not pass validation. Try a simpler description or reduce the number of sections.' },
+      { error: userFacingError ?? 'La herramienta generada no superó la validación. Prueba con una descripción más sencilla o reduce el número de secciones.' },
       { status: 422 },
     )
   }

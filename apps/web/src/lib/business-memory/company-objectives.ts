@@ -18,6 +18,8 @@ function mapObjective(o: {
   dueDate: Date | null
   completedAt: Date | null
   linkedWorkflowId: string | null
+  clientId: string | null
+  client?: { name: string } | null
 }): CompanyObjectiveData {
   return {
     id:               o.id,
@@ -31,6 +33,8 @@ function mapObjective(o: {
     dueDate:          o.dueDate?.toISOString() ?? null,
     completedAt:      o.completedAt?.toISOString() ?? null,
     linkedWorkflowId: o.linkedWorkflowId,
+    clientId:         o.clientId,
+    clientName:       o.client?.name ?? null,
   }
 }
 
@@ -41,6 +45,7 @@ export async function getObjectives(
   const rows = await db.companyObjective.findMany({
     where:   { workspaceId, ...(status ? { status } : {}) },
     orderBy: [{ priority: 'asc' }, { createdAt: 'asc' }],
+    include: { client: { select: { name: true } } },
   })
   return rows.map(mapObjective)
 }
@@ -69,6 +74,7 @@ export async function createObjective(
       dueDate:         data.dueDate ?? null,
       linkedWorkflowId: data.linkedWorkflowId ?? null,
     },
+    include: { client: { select: { name: true } } },
   })
   return mapObjective(obj)
 }
@@ -91,6 +97,7 @@ export async function updateObjectiveProgress(
       completedAt:      isCompleted ? new Date() : obj.completedAt,
       ...(linkedWorkflowId ? { linkedWorkflowId } : {}),
     },
+    include: { client: { select: { name: true } } },
   })
   return mapObjective(updated)
 }
@@ -109,6 +116,7 @@ export async function upsertObjectiveByGoal(
     const updated = await db.companyObjective.update({
       where: { id: existing.id },
       data:  { linkedWorkflowId: linkedWorkflowId ?? existing.linkedWorkflowId },
+      include: { client: { select: { name: true } } },
     })
     return mapObjective(updated)
   }

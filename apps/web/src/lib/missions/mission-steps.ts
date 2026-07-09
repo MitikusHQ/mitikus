@@ -207,6 +207,8 @@ async function _syncObjectiveProgress(
         dueDate:          objectiveRow.dueDate?.toISOString() ?? null,
         completedAt:      objectiveRow.completedAt?.toISOString() ?? null,
         linkedWorkflowId: objectiveRow.linkedWorkflowId,
+        clientId:         null,
+        clientName:       null,
       }
       generateMissionRecommendations(objectiveData, steps, 'completion')
         .then((recs) => {

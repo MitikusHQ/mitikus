@@ -270,8 +270,9 @@ model Client {
   updatedAt   DateTime @updatedAt
 
   // Relaciones
-  workspace     Workspace      @relation(fields: [workspaceId], references: [id], onDelete: Cascade)
+  workspace     Workspace         @relation(fields: [workspaceId], references: [id], onDelete: Cascade)
   toolInstances ToolInstance[]
+  objectives    CompanyObjective[] // WM-001 Sprint 0
 
   @@index([workspaceId])
   @@map("clients")
@@ -988,18 +989,21 @@ model CompanyObjective {
   dueDate          DateTime?
   completedAt      DateTime?
   linkedWorkflowId String?
+  clientId         String?  @map("client_id")    // WM-001 Sprint 0 — nullable, no data loss
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 
   profile   CompanyProfile @relation(fields: [profileId], references: [id], onDelete: Cascade)
   workspace Workspace      @relation(fields: [workspaceId], references: [id], onDelete: Cascade)
+  client    Client?        @relation(fields: [clientId], references: [id], onDelete: SetNull)
   steps     MissionStep[]
   intelligence    MissionIntelligence?
   timelineEvents  MissionTimelineEvent[]
 
   @@index([workspaceId, status])
   @@index([profileId])
+  @@index([clientId])
   @@map("company_objectives")
 }
 

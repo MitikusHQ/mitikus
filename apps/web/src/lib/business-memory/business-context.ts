@@ -75,6 +75,8 @@ export async function getBusinessContext(workspaceId: string): Promise<BusinessC
       dueDate:          o.dueDate?.toISOString() ?? null,
       completedAt:      o.completedAt?.toISOString() ?? null,
       linkedWorkflowId: o.linkedWorkflowId,
+      clientId:         null,
+      clientName:       null,
     })),
     openRisks: risks.map((r) => ({
       id:          r.id,
