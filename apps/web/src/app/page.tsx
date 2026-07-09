@@ -54,6 +54,11 @@ export default async function HomePage() {
     <main className="min-h-screen bg-background">
       <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }} />
 
+      {/* ── BETA BANNER ── */}
+      <div className="w-full bg-amber-500 text-black text-center text-xs font-semibold py-2 px-4 tracking-wide">
+        Versión beta — acceso limitado
+      </div>
+
       {/* ── NAV mínima ── */}
       <header className="border-b">
         <div className="max-w-5xl mx-auto px-6 py-4 flex items-center justify-between">
