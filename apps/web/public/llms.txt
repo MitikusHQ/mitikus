@@ -1,0 +1,14 @@
+# MITIKUS
+
+> MITIKUS es una plataforma de IA para consultoras IT de 3 a 15 personas que convierte auditorías técnicas, checklists e informes para clientes en procesos guiados, reduciendo el tiempo de redacción de horas a minutos.
+
+## Páginas principales
+
+- [Inicio](https://mitikus.com/): Descripción del producto, cómo funciona, precios y formulario de demo.
+- [Iniciar sesión](https://mitikus.com/sign-in): Acceso para clientes registrados.
+
+## Producto
+
+MITIKUS automatiza la generación de informes de auditoría IT con IA. El usuario define el objetivo (auditar un cliente, hacer un checklist de seguridad), la IA genera el contenido técnico paso a paso, y el equipo revisa y entrega.
+
+Pensado para consultoras IT boutique, no para grandes departamentos IT corporativos.

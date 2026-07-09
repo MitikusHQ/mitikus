@@ -6,6 +6,7 @@ import { getLocale } from '@/i18n/locale'
 import { sanitizeLocale, SUGGESTED_LOCALE_HEADER } from '@/i18n/config'
 import { LocaleProvider } from '@/i18n/locale-context'
 import { LocaleBanner } from './(dashboard)/_components/LocaleBanner'
+import { CookieBanner } from './_components/CookieBanner'
 import './globals.css'
 
 const inter = Inter({ subsets: ['latin'] })
@@ -47,6 +48,7 @@ export default async function RootLayout({ children }: { children: React.ReactNo
             )}
             {children}
           </LocaleProvider>
+          <CookieBanner />
         </body>
       </html>
     </ClerkProvider>

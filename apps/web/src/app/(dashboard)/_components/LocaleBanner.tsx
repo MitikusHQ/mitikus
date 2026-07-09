@@ -72,7 +72,7 @@ export function LocaleBanner({ suggestedLocale, currentLocale }: LocaleBannerPro
         <button
           onClick={handleKeep}
           disabled={isPending}
-          className="text-muted-foreground hover:text-foreground disabled:opacity-50"
+          className="text-foreground/70 hover:text-foreground disabled:opacity-50"
         >
           {copy.keep}
         </button>

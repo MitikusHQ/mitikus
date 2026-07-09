@@ -202,28 +202,28 @@ export default async function HomePage() {
           <div className="grid sm:grid-cols-2 lg:grid-cols-5 gap-4">
             <PriceCard
               name="Evaluación Profesional" price="Gratis" period="15 días"
-              forWhom="Para probar con una auditoría real antes de decidir"
+              forWhom="Para probar con una auditoría real antes de decidir."
               cta="Empezar gratis" ctaHref="#demo"
             />
             <PriceCard
               name="Starter" price="39€" period="/mes"
-              forWhom="Consultores autónomos o equipos de 1-2 personas"
+              forWhom="Consultores autónomos o equipos de 1-2 personas."
               cta="Solicitar demo" ctaHref="#demo"
             />
             <PriceCard
               name="Professional" price="149€" period="/mes"
-              forWhom="Consultoras de 3 a 15 personas — vuestro tamaño"
+              forWhom="Consultoras de 3 a 15 personas — vuestro tamaño."
               cta="Solicitar demo" ctaHref="#demo"
               highlighted
             />
             <PriceCard
               name="Business" price="349€" period="/mes"
-              forWhom="Consultoras en crecimiento, varios equipos o sedes"
+              forWhom="Consultoras en crecimiento, varios equipos o sedes."
               cta="Solicitar demo" ctaHref="#demo"
             />
             <PriceCard
               name="Enterprise" price="A medida" period=""
-              forWhom="Integraciones, SSO o condiciones específicas"
+              forWhom="Integraciones, SSO o condiciones específicas."
               cta="Hablar con nosotros" ctaHref="#demo"
             />
           </div>
