@@ -4,5 +4,5 @@
   "buildCommand": "cd ../.. && npm run build",
   "installCommand": "cd ../.. && npm install",
   "ignoreCommand": "git diff HEAD^ HEAD --quiet -- apps/web/ packages/",
-  "regions": ["mad1"]
+  "regions": ["iad1"]
 }
