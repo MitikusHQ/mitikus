@@ -2,6 +2,7 @@ import { auth, currentUser } from '@clerk/nextjs/server'
 import { redirect } from 'next/navigation'
 import { db } from '@/lib/db'
 import { CreateWorkspaceForm } from './_components/CreateWorkspaceForm'
+import { SignOutButton } from '@clerk/nextjs'
 
 export default async function OnboardingPage() {
   const { userId, orgId } = await auth()
@@ -68,6 +69,13 @@ export default async function OnboardingPage() {
 
   return (
     <div className="flex min-h-screen items-center justify-center bg-background px-4">
+      <div className="absolute top-8 right-6">
+        <SignOutButton>
+          <button className="text-xs text-muted-foreground hover:text-foreground transition-colors">
+            Cerrar sesión
+          </button>
+        </SignOutButton>
+      </div>
       <div className="text-center max-w-sm w-full">
         <h1 className="text-2xl font-bold mb-2">Bienvenido a MITIKUS</h1>
         <p className="text-muted-foreground mb-2">
