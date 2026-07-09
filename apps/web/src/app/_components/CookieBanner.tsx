@@ -4,21 +4,29 @@ import { useState, useEffect } from 'react'
 
 const COOKIE_KEY = 'mitikus-cookie-consent'
 
+function getCookie(name: string) {
+  return document.cookie.split('; ').find(r => r.startsWith(name + '='))?.split('=')[1] ?? null
+}
+
+function setCookie(name: string, value: string, days = 365) {
+  const expires = new Date(Date.now() + days * 864e5).toUTCString()
+  document.cookie = `${name}=${value}; expires=${expires}; path=/; SameSite=Lax`
+}
+
 export function CookieBanner() {
   const [visible, setVisible] = useState(false)
 
   useEffect(() => {
-    const consent = localStorage.getItem(COOKIE_KEY)
-    if (!consent) setVisible(true)
+    if (!getCookie(COOKIE_KEY)) setVisible(true)
   }, [])
 
   function accept() {
-    localStorage.setItem(COOKIE_KEY, 'accepted')
+    setCookie(COOKIE_KEY, 'accepted')
     setVisible(false)
   }
 
   function reject() {
-    localStorage.setItem(COOKIE_KEY, 'rejected')
+    setCookie(COOKIE_KEY, 'rejected')
     setVisible(false)
   }
 
