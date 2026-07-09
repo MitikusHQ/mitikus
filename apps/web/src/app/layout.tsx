@@ -38,6 +38,9 @@ export default async function RootLayout({ children }: { children: React.ReactNo
           />
         </head>
         <body className={inter.className} suppressHydrationWarning>
+          <div className="w-full bg-amber-500 text-black text-center text-xs font-medium py-1.5 px-4">
+            Versión beta — acceso limitado
+          </div>
           <LocaleProvider locale={locale}>
             {suggestedLocale && suggestedLocale !== locale && (
               <LocaleBanner suggestedLocale={suggestedLocale} />
