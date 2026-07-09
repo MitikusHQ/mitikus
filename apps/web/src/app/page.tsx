@@ -264,8 +264,9 @@ export default async function HomePage() {
       </section>
 
       <footer className="border-t">
-        <div className="max-w-5xl mx-auto px-6 py-8 text-center text-xs text-muted-foreground">
-          MITIKUS — hecho para consultoras IT que ya no quieren empezar cada auditoría desde cero.
+        <div className="max-w-5xl mx-auto px-6 py-8 flex flex-col sm:flex-row items-center justify-between gap-2 text-xs text-muted-foreground">
+          <span>MITIKUS — hecho para consultoras IT que ya no quieren empezar cada auditoría desde cero.</span>
+          <span>© {new Date().getFullYear()} MITIKUS. Todos los derechos reservados.</span>
         </div>
       </footer>
     </main>
