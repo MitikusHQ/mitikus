@@ -7,9 +7,27 @@ import { setLocale, dismissLocaleBanner } from '@/app/actions/locale'
 
 interface LocaleBannerProps {
   suggestedLocale: Locale
+  currentLocale: Locale
 }
 
-export function LocaleBanner({ suggestedLocale }: LocaleBannerProps) {
+const BANNER_COPY: Record<Locale, {
+  available: (lang: string) => string
+  switchTo: (lang: string) => string
+  keep: string
+}> = {
+  en: {
+    available: (lang) => `MITIKUS is available in ${lang}.`,
+    switchTo: (lang) => `Switch to ${lang}`,
+    keep: 'Keep English',
+  },
+  es: {
+    available: (lang) => `MITIKUS está disponible en ${lang}.`,
+    switchTo: (lang) => `Cambiar a ${lang}`,
+    keep: 'Mantener Español',
+  },
+}
+
+export function LocaleBanner({ suggestedLocale, currentLocale }: LocaleBannerProps) {
   const [visible, setVisible] = useState(true)
   const [isPending, startTransition] = useTransition()
   const router = useRouter()
@@ -17,6 +35,7 @@ export function LocaleBanner({ suggestedLocale }: LocaleBannerProps) {
   if (!visible) return null
 
   const { nativeLabel, flag } = LOCALE_LABELS[suggestedLocale]
+  const copy = BANNER_COPY[currentLocale]
 
   function handleSwitch() {
     startTransition(async () => {
@@ -39,8 +58,7 @@ export function LocaleBanner({ suggestedLocale }: LocaleBannerProps) {
       className="w-full bg-primary/5 border-b border-primary/10 py-2 px-4 flex items-center justify-center gap-3 text-sm"
     >
       <span>
-        {flag} MITIKUS is available in{' '}
-        <span className="font-medium">{nativeLabel}</span>.
+        {flag} <span className="font-medium">{copy.available(nativeLabel)}</span>
       </span>
       <div className="flex items-center gap-2">
         <button
@@ -48,7 +66,7 @@ export function LocaleBanner({ suggestedLocale }: LocaleBannerProps) {
           disabled={isPending}
           className="text-primary font-medium hover:underline disabled:opacity-50"
         >
-          Switch to {nativeLabel}
+          {copy.switchTo(nativeLabel)}
         </button>
         <span className="text-muted-foreground/40">·</span>
         <button
@@ -56,7 +74,7 @@ export function LocaleBanner({ suggestedLocale }: LocaleBannerProps) {
           disabled={isPending}
           className="text-muted-foreground hover:text-foreground disabled:opacity-50"
         >
-          Keep English
+          {copy.keep}
         </button>
       </div>
     </div>
