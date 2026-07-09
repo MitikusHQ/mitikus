@@ -15,11 +15,15 @@ const isPublicRoute = createRouteMatcher([
   '/forgot-password(.*)',
   '/sso-callback(.*)',
   '/onboarding',
+  '/privacy',
   '/shared/(.*)',
+  '/sitemap.xml',
+  '/robots.txt',
+  '/llms.txt',
   '/api/health',
   '/api/webhooks/(.*)',
   '/api/onboarding/(.*)',
-  '/api/leads', // LANDING-001 — formulario de demo de la landing pública
+  '/api/leads',
 ])
 
 export default clerkMiddleware(async (auth, req) => {
