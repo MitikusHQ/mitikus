@@ -44,16 +44,15 @@ export default clerkMiddleware(async (auth, req) => {
   // Banner de sugerencia: solo si no hay cookie y el navegador/país sugiere español.
   // No escribe ninguna cookie — solo informa al layout para mostrar el banner.
   const bannerDismissed = req.cookies.get(BANNER_DISMISSED_COOKIE)?.value
-  if (!cookieLocale && !bannerDismissed) {
+  if (!bannerDismissed) {
     const acceptLanguage = req.headers.get('accept-language')
     const country =
       req.headers.get('x-vercel-ip-country') ??
       req.headers.get('cf-ipcountry') ??
       null
     const suggested = suggestLocale({ acceptLanguage, country })
-    if (suggested !== 'en') {
-      res.headers.set(SUGGESTED_LOCALE_HEADER, suggested)
-    }
+    // Emite siempre el locale detectado — el layout decide si mostrar el banner
+    res.headers.set(SUGGESTED_LOCALE_HEADER, suggested)
   }
 
   // La cookie de locale NUNCA se escribe aquí.

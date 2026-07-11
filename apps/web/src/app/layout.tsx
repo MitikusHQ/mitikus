@@ -53,7 +53,7 @@ export default async function RootLayout({ children }: { children: React.ReactNo
             Acceso limitado · Estamos en fase de pruebas con usuarios seleccionados
           </div>
           <LocaleProvider locale={locale}>
-            {suggestedLocale && suggestedLocale !== locale && (
+            {suggestedLocale && (
               <LocaleBanner suggestedLocale={suggestedLocale} currentLocale={locale} />
             )}
             {children}
