@@ -44,18 +44,32 @@ export function detectLocaleFromCountry(country: string | null): Locale | null {
 /**
  * Resuelve el locale activo para el request.
  *
- * Solo acepta elección explícita del usuario (cookie).
- * Fallback siempre "en" — nunca cambia el locale por Accept-Language ni país.
- * La detección del navegador/país es exclusiva de suggestLocale() para el banner.
+ * Prioridad:
+ * 1. Cookie (elección explícita del usuario)
+ * 2. IP del país (x-vercel-ip-country / cf-ipcountry)
+ * 3. Accept-Language del navegador
+ * 4. Fallback: 'en'
  */
-export function resolveLocale({ cookieLocale }: { cookieLocale: string | null }): Locale {
+export function resolveLocale({
+  cookieLocale,
+  acceptLanguage,
+  country,
+}: {
+  cookieLocale: string | null
+  acceptLanguage?: string | null
+  country?: string | null
+}): Locale {
   if (cookieLocale) return sanitizeLocale(cookieLocale)
-  return DEFAULT_LOCALE
+  return (
+    detectLocaleFromCountry(country ?? null) ??
+    detectLocaleFromAcceptLanguage(acceptLanguage ?? null) ??
+    'en'
+  )
 }
 
 /**
- * Locale sugerido para el banner (ignorando cookie — refleja lo que detecta el navegador).
- * Solo se usa si el usuario aún no ha elegido idioma (no hay cookie).
+ * Locale sugerido para el banner — igual que resolveLocale pero siempre
+ * refleja la detección real (ignora cookie).
  */
 export function suggestLocale({
   acceptLanguage,
@@ -65,8 +79,8 @@ export function suggestLocale({
   country: string | null
 }): Locale {
   return (
-    detectLocaleFromAcceptLanguage(acceptLanguage) ??
     detectLocaleFromCountry(country) ??
-    DEFAULT_LOCALE
+    detectLocaleFromAcceptLanguage(acceptLanguage) ??
+    'en'
   )
 }

@@ -33,10 +33,14 @@ export default clerkMiddleware(async (auth, req) => {
   }
 
   const cookieLocale = req.cookies.get(LOCALE_COOKIE)?.value ?? null
+  const acceptLanguage = req.headers.get('accept-language')
+  const country =
+    req.headers.get('x-vercel-ip-country') ??
+    req.headers.get('cf-ipcountry') ??
+    null
 
-  // Locale activo: solo desde cookie (elección explícita del usuario).
-  // Accept-Language y país NO cambian el locale automáticamente.
-  const resolvedLocale = resolveLocale({ cookieLocale })
+  // Locale activo: cookie → país IP → Accept-Language → 'en'
+  const resolvedLocale = resolveLocale({ cookieLocale, acceptLanguage, country })
 
   const res = NextResponse.next()
   res.headers.set(LOCALE_HEADER, resolvedLocale)
@@ -45,13 +49,7 @@ export default clerkMiddleware(async (auth, req) => {
   // No escribe ninguna cookie — solo informa al layout para mostrar el banner.
   const bannerDismissed = req.cookies.get(BANNER_DISMISSED_COOKIE)?.value
   if (!bannerDismissed) {
-    const acceptLanguage = req.headers.get('accept-language')
-    const country =
-      req.headers.get('x-vercel-ip-country') ??
-      req.headers.get('cf-ipcountry') ??
-      null
     const suggested = suggestLocale({ acceptLanguage, country })
-    // Emite siempre el locale detectado — el layout decide si mostrar el banner
     res.headers.set(SUGGESTED_LOCALE_HEADER, suggested)
   }
 
