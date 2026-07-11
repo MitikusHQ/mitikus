@@ -47,6 +47,7 @@ export async function PATCH(
     responsibleActor?: ResponsibleActor
     estimatedMinutes?: number
     sortOrder?:       number
+    assignedUserId?:  string | null
     recommendedCategory?:  string
     linkedToolInstanceId?: string
     resultNote?:      string

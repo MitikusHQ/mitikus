@@ -4,6 +4,7 @@ import Link from 'next/link'
 import { usePathname } from 'next/navigation'
 import { UserNav } from '@/app/(dashboard)/_components/UserNav'
 import { Icons } from './WorkspaceIcons'
+import { GlobalSearch } from './GlobalSearch'
 
 interface Props {
   workspaceId: string
@@ -120,8 +121,9 @@ export function WorkspaceTopbar({ workspaceId, workspaceName, onToggleSidebar, s
         </nav>
       </div>
 
-      {/* Right: quick actions + user */}
+      {/* Right: search + quick actions + user */}
       <div className="flex items-center gap-2 shrink-0">
+        <GlobalSearch workspaceId={workspaceId} />
         <Link
           href={`/workspace/${workspaceId}/generate`}
           className="hidden sm:flex items-center gap-1.5 h-8 px-3 rounded-md bg-primary text-primary-foreground text-xs font-medium hover:bg-primary/90 transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"

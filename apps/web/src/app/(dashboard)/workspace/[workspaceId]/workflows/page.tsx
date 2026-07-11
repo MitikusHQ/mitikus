@@ -5,6 +5,8 @@ import Link from 'next/link'
 import { listWorkflows, type WorkflowSummary } from '@/app/actions/workflows'
 import { formatCostEUR } from '@/lib/ai-cost'
 import { STATUS_LABELS, STATUS_BADGE_CLASSES, type ResourceStatusString } from '@/lib/marketplace-config'
+import { WORKFLOW_TEMPLATES } from '@/lib/workflow-templates'
+import { TemplateCard } from './_components/TemplateCard'
 
 interface Props {
   params: Promise<{ workspaceId: string }>
@@ -102,32 +104,49 @@ export default async function WorkflowsPage({ params }: Props) {
           + Nuevo Flow
         </Link>
       </div>
+      {/* Templates */}
       <div>
+        <div className="flex items-center justify-between mb-4">
+          <div>
+            <h2 className="text-base font-semibold">Templates</h2>
+            <p className="text-xs text-muted-foreground mt-0.5">Flows preconstruidos listos en un clic</p>
+          </div>
+        </div>
+        <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+          {WORKFLOW_TEMPLATES.map((t) => (
+            <TemplateCard key={t.id} template={t} workspaceId={workspaceId} />
+          ))}
+        </div>
+      </div>
+
+      {/* Mis Flows */}
+      <div>
+        <div className="flex items-center justify-between mb-4">
+          <h2 className="text-base font-semibold">
+            Mis Flows
+            {workflows.length > 0 && (
+              <span className="ml-2 text-xs font-normal text-muted-foreground">
+                {workflows.length}
+              </span>
+            )}
+          </h2>
+        </div>
         {workflows.length === 0 ? (
-          <div className="rounded-xl border border-dashed p-16 text-center bg-card">
-            <div className="text-5xl mb-5">🔗</div>
-            <h2 className="text-lg font-semibold mb-2">Sin Flows todavía</h2>
-            <p className="text-sm text-muted-foreground mb-6 max-w-md mx-auto">
-              Los Flows encadenan herramientas: el resultado de una se convierte en la entrada de la siguiente.
+          <div className="rounded-xl border border-dashed p-10 text-center bg-card">
+            <p className="text-sm text-muted-foreground">
+              Usa un template o{' '}
+              <Link href={`/workspace/${workspaceId}/workflows/new`} className="text-primary hover:underline">
+                crea un Flow desde cero
+              </Link>
+              .
             </p>
-            <Link
-              href={`/workspace/${workspaceId}/workflows/new`}
-              className="inline-flex items-center rounded-md bg-primary px-5 py-2.5 text-sm font-semibold text-primary-foreground shadow hover:bg-primary/90 transition-colors"
-            >
-              Crear primer Flow
-            </Link>
           </div>
         ) : (
-          <>
-            <p className="text-sm text-muted-foreground mb-5">
-              {workflows.length} {workflows.length === 1 ? 'Flow' : 'Flows'}
-            </p>
-            <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
-              {workflows.map((w) => (
-                <WorkflowCard key={w.id} workflow={w} workspaceId={workspaceId} />
-              ))}
-            </div>
-          </>
+          <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+            {workflows.map((w) => (
+              <WorkflowCard key={w.id} workflow={w} workspaceId={workspaceId} />
+            ))}
+          </div>
         )}
       </div>
     </div>

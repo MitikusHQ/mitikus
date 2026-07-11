@@ -92,3 +92,39 @@ export async function installTool(
 
   redirect(`/workspace/${workspaceId}/tools`)
 }
+
+export async function assignClientToInstance(
+  formData: FormData,
+): Promise<void> {
+  const { userId } = await auth()
+  if (!userId) redirect('/sign-in')
+
+  const instanceId = formData.get('instanceId')?.toString() ?? ''
+  const workspaceId = formData.get('workspaceId')?.toString() ?? ''
+  const clientId = formData.get('clientId')?.toString() || null
+
+  const user = await db.user.findUnique({
+    where: { clerkId: userId },
+    select: { id: true, orgId: true, role: true },
+  })
+  if (!user) redirect('/onboarding')
+
+  assertCan(user, 'configure_tool')
+
+  const instance = await db.toolInstance.findFirst({
+    where: { id: instanceId, workspaceId },
+  })
+  if (!instance) return
+
+  if (clientId) {
+    const client = await db.client.findFirst({ where: { id: clientId, workspaceId } })
+    if (!client) return
+  }
+
+  await db.toolInstance.update({
+    where: { id: instanceId },
+    data: { clientId },
+  })
+
+  redirect(`/workspace/${workspaceId}/tools/${instanceId}/settings`)
+}

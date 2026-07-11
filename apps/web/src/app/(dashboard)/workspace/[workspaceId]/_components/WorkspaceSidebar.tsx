@@ -31,8 +31,24 @@ export function WorkspaceSidebar({ workspaceId, workspaceName, navGroups, collap
         collapsed ? 'justify-center px-2' : 'px-4 gap-3',
       )}>
         {/* Brand mark */}
-        <div className="shrink-0 w-7 h-7 rounded-lg bg-primary flex items-center justify-center text-primary-foreground font-bold text-sm select-none">
-          P
+        <div className="shrink-0 w-7 h-7">
+          <svg viewBox="0 0 200 200" xmlns="http://www.w3.org/2000/svg" aria-label="MITIKUS" width="28" height="28">
+            <defs>
+              <linearGradient id="mg" x1="10" y1="10" x2="190" y2="190" gradientUnits="userSpaceOnUse">
+                <stop offset="0%"   stopColor="#FFD040"/>
+                <stop offset="28%"  stopColor="#FF7028"/>
+                <stop offset="50%"  stopColor="#FF2878"/>
+                <stop offset="72%"  stopColor="#8B28FF"/>
+                <stop offset="100%" stopColor="#1820B8"/>
+              </linearGradient>
+              <clipPath id="mc"><circle cx="100" cy="100" r="87"/></clipPath>
+            </defs>
+            <circle cx="100" cy="100" r="90" fill="none" stroke="url(#mg)" strokeWidth="5.5"/>
+            <g clipPath="url(#mc)">
+              <polygon points="-10,0   192,95  192,100 -10,98"  fill="url(#mg)"/>
+              <polygon points="-10,102 192,100 192,105 -10,200" fill="url(#mg)"/>
+            </g>
+          </svg>
         </div>
         {!collapsed && (
           <Link

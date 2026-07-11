@@ -11,18 +11,17 @@ import type {
   CopilotAction,
 } from '@/lib/business-copilot'
 
-interface Props {
-  workspaceId:        string
-  userId:             string
-  initialContext:     BusinessContext
-  initialSuggestions: CopilotSuggestion[]
-  initialMessage?:    string
+// ── Types ─────────────────────────────────────────────────────────
+
+interface ChatMessage {
+  role:    'user' | 'assistant'
+  text:    string
+  phase?:  CopilotPhase | null
 }
 
 interface UIState {
   conversationId: string | null
   phase:          CopilotPhase | null
-  message:        string | null
   question:       string | null
   plans:          PlanSummary[]
   suggestions:    CopilotSuggestion[]
@@ -33,10 +32,9 @@ interface UIState {
   error:          string | null
 }
 
-const INITIAL_STATE: UIState = {
+const INITIAL_UI: UIState = {
   conversationId: null,
   phase:          null,
-  message:        null,
   question:       null,
   plans:          [],
   suggestions:    [],
@@ -47,6 +45,16 @@ const INITIAL_STATE: UIState = {
   error:          null,
 }
 
+interface Props {
+  workspaceId:         string
+  userId:              string
+  initialContext:      BusinessContext
+  initialSuggestions:  CopilotSuggestion[]
+  initialMessage?:     string
+}
+
+// ── Main component ─────────────────────────────────────────────────
+
 export function CopilotInterface({
   workspaceId,
   userId,
@@ -55,12 +63,20 @@ export function CopilotInterface({
   initialMessage,
 }: Props) {
   const router = useRouter()
-  const [ui, setUi]          = useState<UIState>({ ...INITIAL_STATE, suggestions: initialSuggestions })
-  const [input, setInput]    = useState('')
+  const [ui, setUi]             = useState<UIState>({ ...INITIAL_UI, suggestions: initialSuggestions })
+  const [messages, setMessages] = useState<ChatMessage[]>([])
+  const [input, setInput]       = useState('')
   const [isPending, startTransition] = useTransition()
-  const autoSentRef = useRef(false)
+  const autoSentRef  = useRef(false)
+  const bottomRef    = useRef<HTMLDivElement>(null)
+  const textareaRef  = useRef<HTMLTextAreaElement>(null)
 
   const isLoading = ui.loading || isPending
+
+  // Scroll al último mensaje
+  useEffect(() => {
+    bottomRef.current?.scrollIntoView({ behavior: 'smooth' })
+  }, [messages, ui.loading])
 
   // Auto-start con contexto de empresa cuando viene de FirstTimeExperience
   useEffect(() => {
@@ -71,104 +87,61 @@ export function CopilotInterface({
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [])
 
+  // ── API helpers ────────────────────────────────────────────────
+
   async function startWithCompanyContext(companyDescription: string) {
+    pushUserMessage(companyDescription)
     setUi((s) => ({ ...s, loading: true, error: null }))
     try {
-      const res = await fetch('/api/copilot/start', {
-        method:  'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body:    JSON.stringify({ workspaceId, companyDescription }),
+      const res  = await fetch('/api/copilot/start', {
+        method: 'POST', headers: { 'Content-Type': 'application/json' },
+        body:   JSON.stringify({ workspaceId, companyDescription }),
       })
       const data: CopilotResponse = await res.json()
       applyResponse(data)
-      // Refrescar Server Components para que la tarjeta EMPRESA refleje el contexto guardado
       router.refresh()
     } catch {
       setUi((s) => ({ ...s, loading: false, error: 'Error de conexión.' }))
     }
   }
 
-  // ── Start session ─────────────────────────────────────────────
-
-  async function handleStart() {
+  async function doSendMessage(msg: string) {
+    if (!msg.trim() || isLoading) return
+    pushUserMessage(msg)
     setUi((s) => ({ ...s, loading: true, error: null }))
 
     try {
-      const res = await fetch('/api/copilot/start', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body:    JSON.stringify({ workspaceId }),
-      })
-      const data: CopilotResponse = await res.json()
-      applyResponse(data)
-    } catch (err) {
-      setUi((s) => ({ ...s, loading: false, error: 'Error de conexión. Intenta de nuevo.' }))
-    }
-  }
-
-  // ── Send message ──────────────────────────────────────────────
-
-  async function sendMessage(msg: string) {
-    if (!msg || isLoading) return
-
-    setUi((s) => ({ ...s, loading: true, error: null }))
-
-    try {
-      // Si no hay conversación activa, iniciar primero
       const convId = ui.conversationId ?? await (async () => {
-        const startRes  = await fetch('/api/copilot/start', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body:    JSON.stringify({ workspaceId }),
+        const r    = await fetch('/api/copilot/start', {
+          method: 'POST', headers: { 'Content-Type': 'application/json' },
+          body:   JSON.stringify({ workspaceId }),
         })
-        const startData: CopilotResponse = await startRes.json()
-        applyResponse(startData)
-        return startData.conversationId
+        const d: CopilotResponse = await r.json()
+        applyResponse(d)
+        return d.conversationId
       })()
 
       if (!convId) return
 
-      const res = await fetch('/api/copilot/message', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body:    JSON.stringify({ conversationId: convId, workspaceId, message: msg }),
+      const res  = await fetch('/api/copilot/message', {
+        method: 'POST', headers: { 'Content-Type': 'application/json' },
+        body:   JSON.stringify({ conversationId: convId, workspaceId, message: msg }),
       })
       const data: CopilotResponse = await res.json()
       applyResponse(data)
+      router.refresh()
     } catch {
       setUi((s) => ({ ...s, loading: false, error: 'Error de conexión.' }))
     }
   }
 
-  async function handleSend() {
-    const msg = input.trim()
-    if (!msg) return
-    setInput('')
-    await sendMessage(msg)
-  }
-
-  // ── Select suggestion ─────────────────────────────────────────
-
-  async function handleSuggestion(suggestion: CopilotSuggestion) {
-    const goal = suggestion.label
-    setInput(goal)
-  }
-
-  // ── Select plan ───────────────────────────────────────────────
-
   async function handleSelectPlan(planId: string) {
     if (!ui.conversationId || isLoading) return
     setUi((s) => ({ ...s, loading: true, error: null }))
-
     try {
-      const res = await fetch('/api/copilot/select-plan', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body:    JSON.stringify({
-          conversationId: ui.conversationId,
-          workspaceId,
-          planId,
-        }),
+      const res  = await fetch('/api/copilot/select-plan', {
+        method: 'POST', headers: { 'Content-Type': 'application/json' },
+        body:   JSON.stringify({ conversationId: ui.conversationId, workspaceId, planId }),
       })
       const data: CopilotResponse = await res.json()
       applyResponse(data)
@@ -177,20 +150,19 @@ export function CopilotInterface({
     }
   }
 
-  // ── Reset ─────────────────────────────────────────────────────
+  // ── State helpers ───────────────────────────────────────────────
 
-  function handleReset() {
-    setUi({ ...INITIAL_STATE, suggestions: initialSuggestions })
-    setInput('')
+  function pushUserMessage(text: string) {
+    setMessages((prev) => [...prev, { role: 'user', text }])
   }
 
-  // ── Apply response ────────────────────────────────────────────
-
   function applyResponse(data: CopilotResponse) {
+    if (data.message) {
+      setMessages((prev) => [...prev, { role: 'assistant', text: data.message!, phase: data.phase }])
+    }
     setUi({
       conversationId: data.conversationId,
       phase:          data.phase,
-      message:        data.message,
       question:       data.question,
       plans:          data.plans,
       suggestions:    data.suggestions.length > 0 ? data.suggestions : ui.suggestions,
@@ -202,7 +174,20 @@ export function CopilotInterface({
     })
   }
 
-  // ── Keyboard handler ──────────────────────────────────────────
+  function handleReset() {
+    setUi({ ...INITIAL_UI, suggestions: initialSuggestions })
+    setMessages([])
+    setInput('')
+  }
+
+  // ── Input handlers ──────────────────────────────────────────────
+
+  async function handleSend() {
+    const msg = input.trim()
+    if (!msg) return
+    setInput('')
+    await doSendMessage(msg)
+  }
 
   function handleKeyDown(e: React.KeyboardEvent<HTMLTextAreaElement>) {
     if (e.key === 'Enter' && !e.shiftKey) {
@@ -211,87 +196,146 @@ export function CopilotInterface({
     }
   }
 
-  // ── Render ─────────────────────────────────────────────────────
+  // Sugerencia → envía directamente (sin pasar por el input)
+  async function handleSuggestion(suggestion: CopilotSuggestion) {
+    await doSendMessage(suggestion.label)
+  }
 
-  const showSuggestions = !ui.phase || ui.phase === 'greeting'
-  const showPlans       = ui.plans.length > 0 && ui.phase === 'planning'
-  const showWorkflow    = ui.phase === 'workflow_ready'
+  // Opción de clarificación → envía directamente
+  async function handleClarifyOption(option: string) {
+    await doSendMessage(option)
+  }
+
+  // ── Derived display state ────────────────────────────────────────
+
+  const showInitialSuggestions = messages.length === 0 && !isLoading
+  const lastAssistantMsg = [...messages].reverse().find((m) => m.role === 'assistant')
+  const showPlans        = ui.plans.length > 0 && ui.phase === 'planning'
+  const showWorkflow     = ui.phase === 'workflow_ready'
+
+  // Parsear opciones numeradas del último mensaje de clarificación
+  const clarifyOptions: string[] = []
+  if (ui.phase === 'clarifying' && lastAssistantMsg) {
+    const lines = lastAssistantMsg.text.split('\n')
+    for (const line of lines) {
+      const m = line.match(/^(\d+[\.\)])\s+(.+)/)
+      if (m?.[2]) clarifyOptions.push(m[2].trim())
+    }
+  }
 
   return (
-    <div className="rounded-lg border bg-card flex flex-col min-h-[520px]">
+    <div className="rounded-lg border bg-card flex flex-col" style={{ minHeight: 560 }}>
 
-      {/* Response area */}
-      <div className="flex-1 p-6 space-y-6">
+      {/* ── Chat history ─────────────────────────────────────── */}
+      <div className="flex-1 overflow-y-auto p-5 space-y-5" style={{ maxHeight: 520 }}>
 
-        {/* Initial state — before conversation starts */}
-        {!ui.message && !isLoading && (
+        {/* Estado inicial — sugerencias */}
+        {showInitialSuggestions && (
           <div className="space-y-4">
             <p className="text-sm text-muted-foreground">
-              Dime en qué objetivo quieres trabajar hoy o elige una de las sugerencias. Lo convertiré en una misión con pasos claros, lista en Mission Control.
+              Dime en qué objetivo quieres trabajar hoy o elige una sugerencia. Lo convertiré en una misión con pasos claros.
             </p>
-            {ui.suggestions.length > 0 && (
-              <SuggestionsPanel
-                suggestions={ui.suggestions}
-                onSelect={handleSuggestion}
-              />
-            )}
+            <SuggestionsGrid suggestions={ui.suggestions} onSelect={handleSuggestion} />
           </div>
         )}
+
+        {/* Mensajes */}
+        {messages.map((msg, i) => (
+          <div key={i} className={msg.role === 'user' ? 'flex justify-end' : 'flex justify-start'}>
+            {msg.role === 'assistant' && (
+              <div className="w-6 h-6 rounded-full bg-primary/10 flex items-center justify-center text-primary text-[10px] font-bold shrink-0 mt-0.5 mr-2">
+                DO
+              </div>
+            )}
+            <div
+              className={`max-w-[85%] rounded-xl px-4 py-3 text-sm leading-relaxed ${
+                msg.role === 'user'
+                  ? 'bg-primary text-primary-foreground rounded-br-sm'
+                  : 'bg-muted rounded-bl-sm'
+              }`}
+            >
+              {msg.role === 'assistant'
+                ? <SimpleMarkdown text={msg.text} />
+                : msg.text
+              }
+            </div>
+          </div>
+        ))}
 
         {/* Loading */}
         {isLoading && (
-          <div className="flex items-center gap-2 text-sm text-muted-foreground">
-            <LoadingDots />
-            <span>Analizando…</span>
+          <div className="flex justify-start">
+            <div className="w-6 h-6 rounded-full bg-primary/10 flex items-center justify-center text-primary text-[10px] font-bold shrink-0 mt-0.5 mr-2">
+              DO
+            </div>
+            <div className="bg-muted rounded-xl rounded-bl-sm px-4 py-3">
+              <LoadingDots />
+            </div>
           </div>
         )}
 
-        {/* Copilot message */}
-        {ui.message && !isLoading && (
-          <div className="space-y-4">
-            <CopilotMessage message={ui.message} phase={ui.phase} />
+        {/* Opciones de clarificación */}
+        {!isLoading && ui.phase === 'clarifying' && clarifyOptions.length > 0 && (
+          <div className="flex flex-wrap gap-2 pl-8">
+            {clarifyOptions.map((opt) => (
+              <button
+                key={opt}
+                onClick={() => void handleClarifyOption(opt)}
+                className="text-xs px-3 py-1.5 rounded-full border bg-background hover:bg-muted hover:border-primary/40 transition-colors"
+              >
+                {opt}
+              </button>
+            ))}
+          </div>
+        )}
 
-            {/* Clarifying question options */}
-            {ui.phase === 'clarifying' && ui.question && (
-              <ClarifyingOptions
-                question={ui.question}
-                onSelect={(opt) => setInput(opt)}
-              />
-            )}
+        {/* Planes */}
+        {!isLoading && showPlans && (
+          <PlansPanel plans={ui.plans} onSelect={handleSelectPlan} />
+        )}
 
-            {/* Plans */}
-            {showPlans && (
-              <PlansPanel
-                plans={ui.plans}
-                onSelect={handleSelectPlan}
-              />
-            )}
+        {/* Misión creada */}
+        {!isLoading && showWorkflow && (
+          <WorkflowReadyPanel objectiveId={ui.objectiveId} workspaceId={workspaceId} />
+        )}
 
-            {/* Workflow ready */}
-            {showWorkflow && (
-              <WorkflowReadyPanel objectiveId={ui.objectiveId} workspaceId={workspaceId} />
-            )}
-
-            {/* Error */}
-            {ui.error && (
-              <p className="text-sm text-destructive">{ui.error}</p>
+        {/* Error + sugerencias de recuperación */}
+        {ui.error && !isLoading && (
+          <div className="space-y-3 pl-8">
+            <p className="text-sm text-destructive">{ui.error}</p>
+            {ui.suggestions.length > 0 && (
+              <div className="space-y-1.5">
+                <p className="text-xs text-muted-foreground font-medium">Quizás te referías a alguno de estos:</p>
+                <div className="flex flex-wrap gap-2">
+                  {ui.suggestions.map((s) => (
+                    <button
+                      key={s.id}
+                      type="button"
+                      onClick={() => void handleSuggestion(s)}
+                      className="inline-flex items-center gap-1.5 text-xs px-3 py-1.5 rounded-full border bg-background hover:bg-muted hover:border-primary/40 transition-colors"
+                    >
+                      <span>{s.icon}</span>
+                      <span>{s.label}</span>
+                    </button>
+                  ))}
+                </div>
+              </div>
             )}
           </div>
         )}
+
+        <div ref={bottomRef} />
       </div>
 
-      {/* Divider */}
-      <div className="border-t" />
-
-      {/* Input area */}
-      <div className="p-4 space-y-3">
-        {/* Suggestions chips — only when in greeting or not started */}
-        {showSuggestions && !isLoading && ui.suggestions.length > 0 && ui.message && (
+      {/* ── Input ───────────────────────────────────────────────── */}
+      <div className="border-t p-4 space-y-3">
+        {/* Chips de sugerencias contextuales (tras greeting) */}
+        {!isLoading && messages.length > 0 && ui.phase === 'greeting' && ui.suggestions.length > 0 && (
           <div className="flex flex-wrap gap-2">
             {ui.suggestions.slice(0, 3).map((s) => (
               <button
                 key={s.id}
-                onClick={() => handleSuggestion(s)}
+                onClick={() => void handleSuggestion(s)}
                 className="text-xs px-3 py-1.5 rounded-full border bg-background hover:bg-muted transition-colors"
               >
                 {s.icon} {s.label}
@@ -302,13 +346,14 @@ export function CopilotInterface({
 
         <div className="flex gap-2">
           <textarea
+            ref={textareaRef}
             value={input}
             onChange={(e) => setInput(e.target.value)}
             onKeyDown={handleKeyDown}
             placeholder={
               ui.phase === 'clarifying'
-                ? 'Responde la pregunta anterior o escribe tu respuesta…'
-                : 'Describe el objetivo de tu empresa…'
+                ? 'Responde o elige una opción arriba…'
+                : 'Describe el objetivo…'
             }
             rows={2}
             className="flex-1 resize-none rounded-md border bg-background px-3 py-2 text-sm placeholder:text-muted-foreground focus:outline-none focus:ring-1 focus:ring-ring"
@@ -322,12 +367,12 @@ export function CopilotInterface({
             >
               Enviar
             </button>
-            {ui.phase && ui.phase !== 'greeting' && (
+            {messages.length > 0 && (
               <button
                 onClick={handleReset}
                 className="px-4 py-2 rounded-md border text-sm text-muted-foreground hover:bg-muted transition-colors"
               >
-                Reiniciar
+                Nuevo
               </button>
             )}
           </div>
@@ -337,31 +382,81 @@ export function CopilotInterface({
   )
 }
 
-// ── Sub-components ────────────────────────────────────────────────
+// ── SimpleMarkdown ────────────────────────────────────────────────
+// Renderiza negrita, listas con guión/asterisco, y saltos de línea.
+// Sin dependencias externas.
 
-function CopilotMessage({ message, phase }: { message: string; phase: CopilotPhase | null }) {
+function SimpleMarkdown({ text }: { text: string }) {
+  const lines = text.split('\n')
+  const elements: React.ReactNode[] = []
+  let listItems: string[] = []
+
+  function flushList() {
+    if (listItems.length === 0) return
+    elements.push(
+      <ul key={`ul-${elements.length}`} className="list-disc list-inside space-y-0.5 my-1">
+        {listItems.map((item, i) => (
+          <li key={i}><InlineMarkdown text={item} /></li>
+        ))}
+      </ul>
+    )
+    listItems = []
+  }
+
+  for (const line of lines) {
+    const listMatch = line.match(/^[-*•]\s+(.+)/)
+    const numMatch  = line.match(/^\d+[\.\)]\s+(.+)/)
+
+    if (listMatch?.[1]) {
+      listItems.push(listMatch[1])
+    } else if (numMatch?.[1]) {
+      listItems.push(numMatch[1])
+    } else {
+      flushList()
+      if (line.trim() === '') {
+        elements.push(<br key={`br-${elements.length}`} />)
+      } else {
+        elements.push(
+          <p key={`p-${elements.length}`} className="my-0.5">
+            <InlineMarkdown text={line} />
+          </p>
+        )
+      }
+    }
+  }
+  flushList()
+
+  return <div className="space-y-0.5">{elements}</div>
+}
+
+function InlineMarkdown({ text }: { text: string }) {
+  // **bold** y *italic*
+  const parts = text.split(/(\*\*[^*]+\*\*|\*[^*]+\*)/g)
   return (
-    <div className="space-y-2">
-      <div className="flex items-center gap-2 text-xs text-muted-foreground">
-        <span className="w-5 h-5 rounded-full bg-primary/10 flex items-center justify-center text-primary font-semibold text-[10px]">
-          DO
-        </span>
-        <span>Director de Operaciones</span>
-      </div>
-      <div className="pl-7 text-sm leading-relaxed whitespace-pre-line">
-        {message}
-      </div>
-    </div>
+    <>
+      {parts.map((part, i) => {
+        if (part.startsWith('**') && part.endsWith('**')) {
+          return <strong key={i}>{part.slice(2, -2)}</strong>
+        }
+        if (part.startsWith('*') && part.endsWith('*')) {
+          return <em key={i}>{part.slice(1, -1)}</em>
+        }
+        return <span key={i}>{part}</span>
+      })}
+    </>
   )
 }
 
-function SuggestionsPanel({
+// ── SuggestionsGrid ───────────────────────────────────────────────
+
+function SuggestionsGrid({
   suggestions,
   onSelect,
 }: {
   suggestions: CopilotSuggestion[]
   onSelect: (s: CopilotSuggestion) => void
 }) {
+  if (suggestions.length === 0) return null
   return (
     <div className="space-y-2">
       <p className="text-xs text-muted-foreground font-medium uppercase tracking-wide">
@@ -372,17 +467,15 @@ function SuggestionsPanel({
           <button
             key={s.id}
             onClick={() => onSelect(s)}
-            className="w-full text-left rounded-lg border p-3 hover:bg-muted/50 transition-colors group"
+            className="w-full text-left rounded-lg border p-3 hover:bg-muted/50 hover:border-primary/40 transition-colors group"
           >
             <div className="flex items-start gap-3">
-              <span className="text-lg leading-none mt-0.5">{s.icon}</span>
+              <span className="text-lg leading-none mt-0.5 shrink-0">{s.icon}</span>
               <div>
                 <p className="text-sm font-medium group-hover:text-primary transition-colors">
                   {s.label}
                 </p>
-                <p className="text-xs text-muted-foreground mt-0.5">
-                  {s.description}
-                </p>
+                <p className="text-xs text-muted-foreground mt-0.5">{s.description}</p>
               </div>
             </div>
           </button>
@@ -392,23 +485,7 @@ function SuggestionsPanel({
   )
 }
 
-function ClarifyingOptions({
-  question,
-  onSelect,
-}: {
-  question: string
-  onSelect: (opt: string) => void
-}) {
-  return (
-    <div className="pl-7 space-y-2">
-      <p className="text-xs text-muted-foreground">Opciones rápidas:</p>
-      <div className="flex flex-wrap gap-2">
-        {/* Las opciones vienen del question pero las pasamos via message text */}
-        {/* El usuario también puede escribir libremente */}
-      </div>
-    </div>
-  )
-}
+// ── PlansPanel ────────────────────────────────────────────────────
 
 function PlansPanel({
   plans,
@@ -418,7 +495,7 @@ function PlansPanel({
   onSelect: (planId: string) => void
 }) {
   return (
-    <div className="space-y-3">
+    <div className="space-y-3 pl-8">
       <p className="text-xs text-muted-foreground font-medium uppercase tracking-wide">
         Estrategias disponibles
       </p>
@@ -432,7 +509,7 @@ function PlansPanel({
           >
             <div className="flex items-start justify-between gap-2">
               <div>
-                <div className="flex items-center gap-2">
+                <div className="flex items-center gap-2 flex-wrap">
                   <h3 className="text-sm font-semibold">{plan.label}</h3>
                   {plan.isRecommended && (
                     <span className="text-xs px-2 py-0.5 rounded-full bg-primary text-primary-foreground">
@@ -448,21 +525,20 @@ function PlansPanel({
               <span>{plan.totalTools} pasos</span>
               <span>~{plan.estimatedDays} día{plan.estimatedDays !== 1 ? 's' : ''}</span>
               <span className={`font-medium ${
-                plan.riskLevel === 'low'    ? 'text-green-600' :
-                plan.riskLevel === 'medium' ? 'text-yellow-600' : 'text-red-600'
+                plan.riskLevel === 'low'    ? 'text-green-600 dark:text-green-400' :
+                plan.riskLevel === 'medium' ? 'text-yellow-600 dark:text-yellow-400'
+                                            : 'text-red-600 dark:text-red-400'
               }`}>
                 Riesgo {plan.riskLevel === 'low' ? 'bajo' : plan.riskLevel === 'medium' ? 'medio' : 'alto'}
               </span>
               <span className="ml-auto font-semibold text-foreground">{plan.score}/100</span>
             </div>
 
-            <p className="text-xs text-muted-foreground italic leading-relaxed">
-              {plan.reasoning}
-            </p>
+            <p className="text-xs text-muted-foreground italic leading-relaxed">{plan.reasoning}</p>
 
             <button
               onClick={() => onSelect(plan.id)}
-              className="w-full mt-1 px-4 py-2 rounded-md border text-sm font-medium hover:bg-muted transition-colors"
+              className="w-full px-4 py-2 rounded-md border text-sm font-medium hover:bg-muted transition-colors"
             >
               Elegir esta estrategia
             </button>
@@ -472,6 +548,8 @@ function PlansPanel({
     </div>
   )
 }
+
+// ── WorkflowReadyPanel ────────────────────────────────────────────
 
 function WorkflowReadyPanel({
   objectiveId,
@@ -485,41 +563,45 @@ function WorkflowReadyPanel({
     : `/workspace/${workspaceId}`
 
   return (
-    <div className="rounded-lg border border-green-600/20 bg-green-50/50 dark:bg-green-950/20 p-4 space-y-3">
-      <div className="flex items-center gap-2">
-        <span className="text-green-600 text-lg">✓</span>
-        <p className="text-sm font-medium text-green-700 dark:text-green-400">
-          Misión creada con todos sus pasos
+    <div className="pl-8">
+      <div className="rounded-lg border border-green-600/20 bg-green-50/50 dark:bg-green-950/20 p-4 space-y-3">
+        <div className="flex items-center gap-2">
+          <span className="text-green-600 text-lg">✓</span>
+          <p className="text-sm font-medium text-green-700 dark:text-green-400">
+            Misión creada con todos sus pasos
+          </p>
+        </div>
+        <p className="text-xs text-muted-foreground">
+          Los pasos del plan están listos en Mission Control.
         </p>
-      </div>
-      <p className="text-xs text-muted-foreground">
-        Los pasos del plan están listos en Mission Control. Puedes ajustarlos y empezar cuando quieras.
-      </p>
-      <div className="flex items-center gap-4">
-        <a
-          href={missionUrl}
-          className="inline-flex items-center gap-1.5 text-sm font-medium text-primary hover:underline"
-        >
-          Ver la misión →
-        </a>
-        <a
-          href={`/workspace/${workspaceId}`}
-          className="inline-flex items-center gap-1.5 text-xs text-muted-foreground hover:text-foreground transition-colors"
-        >
-          Mission Control
-        </a>
+        <div className="flex items-center gap-4">
+          <a
+            href={missionUrl}
+            className="inline-flex items-center gap-1.5 text-sm font-medium text-primary hover:underline"
+          >
+            Ver la misión →
+          </a>
+          <a
+            href={`/workspace/${workspaceId}`}
+            className="text-xs text-muted-foreground hover:text-foreground transition-colors"
+          >
+            Mission Control
+          </a>
+        </div>
       </div>
     </div>
   )
 }
 
+// ── LoadingDots ───────────────────────────────────────────────────
+
 function LoadingDots() {
   return (
-    <span className="inline-flex gap-0.5">
+    <span className="inline-flex gap-1">
       {[0, 1, 2].map((i) => (
         <span
           key={i}
-          className="w-1.5 h-1.5 rounded-full bg-muted-foreground animate-bounce"
+          className="w-1.5 h-1.5 rounded-full bg-muted-foreground/50 animate-bounce"
           style={{ animationDelay: `${i * 150}ms` }}
         />
       ))}

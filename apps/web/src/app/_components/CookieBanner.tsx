@@ -13,11 +13,13 @@ function setCookie(name: string, value: string, days = 365) {
   document.cookie = `${name}=${value}; expires=${expires}; path=/; SameSite=Lax`
 }
 
-export function CookieBanner() {
-  const [visible, setVisible] = useState(false)
+export function CookieBanner({ initialShow = false }: { initialShow?: boolean }) {
+  const [visible, setVisible] = useState(initialShow)
 
   useEffect(() => {
-    if (!getCookie(COOKIE_KEY)) setVisible(true)
+    // Re-check on client in case cookie was set in a different tab
+    if (getCookie(COOKIE_KEY)) setVisible(false)
+    else setVisible(true)
   }, [])
 
   function accept() {
@@ -33,7 +35,7 @@ export function CookieBanner() {
   if (!visible) return null
 
   return (
-    <div role="region" aria-label="Consentimiento de cookies" className="fixed bottom-0 left-0 right-0 z-50 border-t bg-background/95 backdrop-blur-sm p-4 shadow-lg">
+    <div id="cookie-banner" role="region" aria-label="Consentimiento de cookies" className="fixed bottom-0 left-0 right-0 z-50 border-t bg-background/95 backdrop-blur-sm p-4 shadow-lg">
       <div className="max-w-5xl mx-auto flex flex-col sm:flex-row items-start sm:items-center gap-4">
         <p className="text-sm text-muted-foreground flex-1">
           Usamos cookies esenciales para el funcionamiento del servicio. No usamos cookies de seguimiento ni publicidad.{' '}

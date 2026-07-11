@@ -4,6 +4,9 @@ import { notFound } from 'next/navigation'
 import { validateToolSchema } from '@protools/schema'
 import { ToolSectionNav } from '../_components/ToolSectionNav'
 import { ExecutionClient } from './_components/ExecutionClient'
+import { suggestNextTools } from '@/lib/tool-intelligence'
+import { getBusinessContext } from '@/lib/business-memory'
+import { computeContextDefaults } from '@/lib/context-autofill'
 
 interface Props {
   params: Promise<{ workspaceId: string; instanceId: string }>
@@ -24,6 +27,10 @@ export default async function ToolRunPage({ params, searchParams }: Props) {
       include: { toolDefinition: true },
     }),
   ])
+
+  const nextTools = instance
+    ? await suggestNextTools(instance.toolDefinition.slug, 3).catch(() => [])
+    : []
 
   if (!workspace) notFound()
   if (!instance) notFound()
@@ -58,6 +65,13 @@ export default async function ToolRunPage({ params, searchParams }: Props) {
 
   const isReplay = !!initialValues
 
+  // Contexto de empresa para auto-relleno (solo si no es replay)
+  const contextDefaults = isReplay
+    ? {}
+    : await getBusinessContext(workspaceId)
+        .then((ctx) => computeContextDefaults(Object.keys(fields), ctx, initialValues ?? {}))
+        .catch(() => ({}))
+
   return (
     <div className="max-w-6xl mx-auto px-6 py-8">
       <div className="mb-6">
@@ -79,8 +93,10 @@ export default async function ToolRunPage({ params, searchParams }: Props) {
         toolName={instance.name}
         fields={fields}
         initialValues={initialValues}
+        contextDefaults={Object.keys(contextDefaults).length > 0 ? contextDefaults : undefined}
         fromMissionId={fromMission}
         fromStepId={fromStep}
+        nextTools={nextTools.map((t) => ({ slug: t.slug, name: t.name, reason: t.reason }))}
       />
     </div>
   )

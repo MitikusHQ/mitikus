@@ -43,6 +43,8 @@ export interface PromptInput {
   outputFormat?: string | null
   systemPromptOverride?: string | null
   customInstructions?: string | null
+  // Contexto de empresa inyectado desde BusinessContext
+  companyContextBlock?: string | null
 }
 
 const LANGUAGE_INSTRUCTIONS: Record<string, string> = {
@@ -105,6 +107,10 @@ export function buildExecutionPrompts(input: PromptInput): {
 
   const structurePart = fmtKey !== 'json' && fmtKey !== 'plain' ? STRUCTURE_INSTRUCTION : ''
 
+  const contextPart = input.companyContextBlock?.trim()
+    ? `\n\n${input.companyContextBlock.trim()}`
+    : ''
+
   const systemPrompt = `Eres un asistente profesional especializado en herramientas de negocio para MITIKUS.
 
 Herramienta activa: "${input.toolName}"
@@ -117,7 +123,7 @@ FORMATO DE RESPUESTA:
 - ${langInstruction}
 - Sé directo, profesional y accionable — cada frase debe aportar valor
 - Adapta la respuesta a los datos concretos proporcionados, no uses texto genérico
-- No incluyas disclaimers sobre ser IA — genera el contenido directamente${structurePart}${customPart}`
+- No incluyas disclaimers sobre ser IA — genera el contenido directamente${structurePart}${customPart}${contextPart}`
 
   return { systemPrompt, userPrompt }
 }

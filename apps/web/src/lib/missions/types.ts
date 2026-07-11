@@ -73,6 +73,9 @@ export interface MissionStepData {
   estimatedMinutes: number | null
   sortOrder:        number
 
+  assignedUserId:   string | null
+  assignedUserName: string | null
+
   recommendedCategory:  string | null
   linkedToolInstanceId: string | null
 
@@ -102,6 +105,7 @@ export interface UpdateStepInput {
   responsibleActor?: ResponsibleActor
   estimatedMinutes?: number
   sortOrder?:       number
+  assignedUserId?:  string | null
   recommendedCategory?:  string
   linkedToolInstanceId?: string
   resultNote?:      string

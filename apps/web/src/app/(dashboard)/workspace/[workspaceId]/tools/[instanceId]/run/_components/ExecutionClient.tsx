@@ -17,21 +17,31 @@ interface ExecutionApiResponse {
   error?: string
 }
 
+interface NextTool {
+  slug: string
+  name: string
+  reason: string
+}
+
 interface Props {
   toolInstanceId: string
   workspaceId: string
   toolName: string
   fields: DataSchema['fields']
   initialValues?: Record<string, string>
+  contextDefaults?: Record<string, string>
   fromMissionId?: string
   fromStepId?: string
+  nextTools?: NextTool[]
 }
 
 export function ExecutionClient({
-  toolInstanceId, workspaceId, toolName, fields, initialValues, fromMissionId, fromStepId,
+  toolInstanceId, workspaceId, toolName, fields, initialValues, contextDefaults, fromMissionId, fromStepId, nextTools = [],
 }: Props) {
   const router = useRouter()
-  const [values, setValues] = useState<Record<string, string>>(initialValues ?? {})
+  const [values, setValues] = useState<Record<string, string>>(
+    { ...contextDefaults, ...initialValues },
+  )
   const [execState, setExecState] = useState<ExecutionState>({ type: 'idle' })
   const [completing, setCompleting] = useState(false)
   const [completeError, setCompleteError] = useState<string | null>(null)
@@ -102,6 +112,12 @@ export function ExecutionClient({
             <p className="text-xs text-muted-foreground mt-0.5">
               Rellena los campos para personalizar el output de la IA
             </p>
+            {contextDefaults && Object.keys(contextDefaults).length > 0 && (
+              <p className="text-[11px] text-primary/70 mt-1.5 flex items-center gap-1">
+                <span>📎</span>
+                <span>Algunos campos se han rellenado desde el contexto de tu empresa</span>
+              </p>
+            )}
           </div>
           <VariableForm
             fields={fields}
@@ -109,6 +125,7 @@ export function ExecutionClient({
             onChange={setValues}
             onSubmit={handleSubmit}
             isLoading={isLoading}
+            contextFields={new Set(Object.keys(contextDefaults ?? {}))}
           />
         </div>
       </div>
@@ -142,6 +159,31 @@ export function ExecutionClient({
             >
               {completing ? 'Actualizando misión…' : 'Volver a la misión y marcar como hecho →'}
             </button>
+          </div>
+        )}
+
+        {execState.type === 'success' && nextTools.length > 0 && (
+          <div className="mt-4 rounded-xl border bg-card p-4 space-y-3">
+            <p className="text-xs font-semibold text-muted-foreground uppercase tracking-wide">
+              ¿Continuar con…?
+            </p>
+            <div className="flex flex-col gap-2">
+              {nextTools.map((t) => (
+                <a
+                  key={t.slug}
+                  href={`/tools/${t.slug}?workspaceId=${workspaceId}`}
+                  className="flex items-center justify-between gap-3 rounded-lg border px-4 py-3 hover:border-primary/50 hover:bg-primary/5 transition-colors group"
+                >
+                  <div className="min-w-0">
+                    <p className="text-sm font-medium group-hover:text-primary transition-colors truncate">
+                      {t.name}
+                    </p>
+                    <p className="text-xs text-muted-foreground truncate">{t.reason}</p>
+                  </div>
+                  <span className="text-xs text-primary shrink-0">Usar →</span>
+                </a>
+              ))}
+            </div>
           </div>
         )}
 

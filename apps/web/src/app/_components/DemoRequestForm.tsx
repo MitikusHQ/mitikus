@@ -40,7 +40,7 @@ export function DemoRequestForm() {
     <form onSubmit={handleSubmit} className="rounded-lg border bg-card p-6 space-y-4">
       <div className="grid sm:grid-cols-2 gap-4">
         <div className="space-y-1">
-          <label htmlFor="lead-name" className="text-sm font-medium">Tu nombre</label>
+          <label htmlFor="lead-name" className="text-sm font-medium">Tu nombre <span aria-hidden="true" className="text-destructive">*</span></label>
           <input
             id="lead-name" type="text" required value={name}
             onChange={(e) => setName(e.target.value)}
@@ -48,7 +48,7 @@ export function DemoRequestForm() {
           />
         </div>
         <div className="space-y-1">
-          <label htmlFor="lead-email" className="text-sm font-medium">Email de trabajo</label>
+          <label htmlFor="lead-email" className="text-sm font-medium">Email de trabajo <span aria-hidden="true" className="text-destructive">*</span></label>
           <input
             id="lead-email" type="email" required value={email}
             onChange={(e) => setEmail(e.target.value)}

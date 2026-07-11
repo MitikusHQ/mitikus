@@ -6,6 +6,7 @@ import { ResourceStatus } from '@prisma/client'
 import type { Prisma } from '@prisma/client'
 import { assertCan } from '@/lib/permissions'
 import { audit } from '@/lib/audit'
+import { WORKFLOW_TEMPLATES } from '@/lib/workflow-templates'
 
 // ── Tipos serializables (sin Date ni Prisma internals) ──────────
 
@@ -517,5 +518,89 @@ export async function duplicateWorkflowVersion(
     return { id: newWorkflow.id }
   } catch (e) {
     return { error: e instanceof Error ? e.message : 'Error al duplicar versión' }
+  }
+}
+
+// ── Templates ────────────────────────────────────────────────────
+
+export async function createWorkflowFromTemplate(
+  workspaceId: string,
+  templateId: string,
+): Promise<{ id: string } | { error: string }> {
+  try {
+    const user = await requireUser()
+    const workspace = await db.workspace.findFirst({ where: { id: workspaceId, orgId: user.orgId } })
+    if (!workspace) return { error: 'Workspace no encontrado' }
+    assertCan(user, 'create_workflow', { orgId: user.orgId, userId: user.id, workspaceId, entityType: 'workflow' })
+
+    const template = WORKFLOW_TEMPLATES.find((t) => t.id === templateId)
+    if (!template) return { error: 'Template no encontrado' }
+
+    // Resolve slugs → toolDefinitionIds (official tools only)
+    const slugs = template.nodes.map((n) => n.slug)
+    const toolDefs = await db.toolDefinition.findMany({
+      where: { slug: { in: slugs }, orgId: null },
+      select: { id: true, slug: true },
+    })
+    const slugToId = Object.fromEntries(toolDefs.map((t) => [t.slug, t.id]))
+
+    const workflow = await db.$transaction(async (tx) => {
+      const w = await tx.workflow.create({
+        data: {
+          workspaceId,
+          name: template.name,
+          description: template.description,
+          createdBy: user.id,
+          status: ResourceStatus.DRAFT,
+        },
+      })
+
+      const nodeIds: string[] = []
+      for (let i = 0; i < template.nodes.length; i++) {
+        const tn = template.nodes[i]!
+        const toolDefinitionId = slugToId[tn.slug]
+        if (!toolDefinitionId) continue
+        const node = await tx.workflowNode.create({
+          data: {
+            workflowId: w.id,
+            toolDefinitionId,
+            label: tn.label,
+            positionX: tn.positionX,
+            positionY: tn.positionY,
+            executionOrder: i,
+          },
+        })
+        nodeIds.push(node.id)
+      }
+
+      // Connect consecutive nodes
+      for (let i = 0; i < nodeIds.length - 1; i++) {
+        await tx.workflowConnection.create({
+          data: {
+            workflowId: w.id,
+            sourceNodeId: nodeIds[i]!,
+            targetNodeId: nodeIds[i + 1]!,
+            sourceHandle: 'output',
+            targetHandle: 'input',
+          },
+        })
+      }
+
+      return w
+    })
+
+    audit({
+      orgId: user.orgId,
+      workspaceId,
+      actorUserId: user.id,
+      action: 'workflow.create',
+      entityType: 'workflow',
+      entityId: workflow.id,
+      metadata: { name: template.name, templateId },
+    })
+
+    return { id: workflow.id }
+  } catch (e) {
+    return { error: e instanceof Error ? e.message : 'Error al crear el workflow' }
   }
 }

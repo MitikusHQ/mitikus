@@ -209,8 +209,9 @@ model User {
   aiUsages           AIUsage[]
   importSources      ImportSource[]
   registrySearches   RegistrySearch[]
-  auditLogs          AuditLog[]
+  auditLogs            AuditLog[]
   copilotConversations CopilotConversation[]
+  assignedSteps        MissionStep[]         @relation("StepAssignments")
 
   @@index([orgId])
   @@map("users")
@@ -1092,6 +1093,9 @@ model MissionStep {
   recommendedCategory  String?  // AUDIT|CHECKLIST|REPORT|CRM|HR|OPERATIONS|FINANCE|CUSTOM
   linkedToolInstanceId String?
 
+  // Asignación a miembro del equipo
+  assignedUserId String?
+
   // Resultado del paso
   completedAt DateTime?
   resultNote  String?
@@ -1099,11 +1103,13 @@ model MissionStep {
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 
-  objective CompanyObjective @relation(fields: [objectiveId], references: [id], onDelete: Cascade)
-  workspace Workspace        @relation(fields: [workspaceId], references: [id], onDelete: Cascade)
+  objective    CompanyObjective @relation(fields: [objectiveId], references: [id], onDelete: Cascade)
+  workspace    Workspace        @relation(fields: [workspaceId], references: [id], onDelete: Cascade)
+  assignedUser User?            @relation("StepAssignments", fields: [assignedUserId], references: [id], onDelete: SetNull)
 
   @@index([objectiveId, sortOrder])
   @@index([workspaceId, status])
+  @@index([assignedUserId])
   @@map("mission_steps")
 }
 

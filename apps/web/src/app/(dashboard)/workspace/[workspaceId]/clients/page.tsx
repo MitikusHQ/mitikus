@@ -54,7 +54,12 @@ export default async function ClientsPage({ params }: Props) {
             {clients.map((client) => (
               <div key={client.id} className="px-5 py-4 flex items-center justify-between">
                 <div className="space-y-0.5 min-w-0">
-                  <p className="font-medium text-sm">{client.name}</p>
+                  <Link
+                    href={`/workspace/${workspaceId}/clients/${client.id}`}
+                    className="font-medium text-sm hover:text-primary transition-colors"
+                  >
+                    {client.name}
+                  </Link>
                   <div className="flex items-center gap-2 text-xs text-muted-foreground">
                     {client.email && <span>{client.email}</span>}
                     {client.email && client.sector && <span>·</span>}
@@ -62,6 +67,12 @@ export default async function ClientsPage({ params }: Props) {
                   </div>
                 </div>
                 <div className="flex items-center gap-4 shrink-0 ml-4">
+                  <Link
+                    href={`/workspace/${workspaceId}/clients/${client.id}`}
+                    className="text-xs text-muted-foreground hover:text-foreground transition-colors"
+                  >
+                    Ver expediente
+                  </Link>
                   <Link
                     href={`/workspace/${workspaceId}/clients/${client.id}/edit`}
                     className="text-xs text-primary hover:underline"

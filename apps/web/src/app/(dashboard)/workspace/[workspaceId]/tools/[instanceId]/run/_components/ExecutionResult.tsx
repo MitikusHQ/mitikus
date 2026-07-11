@@ -3,6 +3,7 @@
 import { cn } from '@/lib/utils'
 import { formatCostEUR } from '@/lib/ai-cost'
 import { AIResponseRenderer } from '@/components/ai-response'
+import { ExportButtons } from './ExportButtons'
 
 interface IdleState { type: 'idle' }
 interface LoadingState { type: 'loading' }
@@ -79,11 +80,14 @@ export function ExecutionResult({ state, toolName }: Props) {
   // state.type === 'success'
   return (
     <div className="flex flex-col gap-4">
-      <div className="flex items-center flex-wrap gap-1.5">
-        <MetaChip label="Modelo" value={state.model} />
-        <MetaChip label="Tokens" value={`${state.inputTokens + state.outputTokens}`} />
-        <MetaChip label="Coste" value={formatCostEUR(state.estimatedCostEUR)} />
-        <MetaChip label="Tiempo" value={`${(state.durationMs / 1000).toFixed(1)}s`} />
+      <div className="flex items-center justify-between flex-wrap gap-2">
+        <div className="flex items-center flex-wrap gap-1.5">
+          <MetaChip label="Modelo" value={state.model} />
+          <MetaChip label="Tokens" value={`${state.inputTokens + state.outputTokens}`} />
+          <MetaChip label="Coste" value={formatCostEUR(state.estimatedCostEUR)} />
+          <MetaChip label="Tiempo" value={`${(state.durationMs / 1000).toFixed(1)}s`} />
+        </div>
+        <ExportButtons result={state.result} toolName={toolName} />
       </div>
       <AIResponseRenderer result={state.result} />
     </div>

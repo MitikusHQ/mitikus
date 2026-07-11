@@ -31,6 +31,8 @@ function mapStep(s: {
   responsibleActor: string
   estimatedMinutes: number | null
   sortOrder: number
+  assignedUserId: string | null
+  assignedUser?: { name: string | null } | null
   recommendedCategory: string | null
   linkedToolInstanceId: string | null
   completedAt: Date | null
@@ -49,6 +51,8 @@ function mapStep(s: {
     responsibleActor: s.responsibleActor as ResponsibleActor,
     estimatedMinutes: s.estimatedMinutes,
     sortOrder:   s.sortOrder,
+    assignedUserId:   s.assignedUserId,
+    assignedUserName: s.assignedUser?.name ?? null,
     recommendedCategory:  s.recommendedCategory,
     linkedToolInstanceId: s.linkedToolInstanceId,
     completedAt: s.completedAt?.toISOString() ?? null,
@@ -65,6 +69,7 @@ export async function getSteps(
   const rows = await db.missionStep.findMany({
     where:   { objectiveId, workspaceId },
     orderBy: { sortOrder: 'asc' },
+    include: { assignedUser: { select: { name: true } } },
   })
   return rows.map(mapStep)
 }
@@ -94,6 +99,7 @@ export async function createStep(
       recommendedCategory:  input.recommendedCategory ?? null,
       linkedToolInstanceId: input.linkedToolInstanceId ?? null,
     },
+    include: { assignedUser: { select: { name: true } } },
   })
 
   await getOrCreateIntelligence(objectiveId, workspaceId)
@@ -123,11 +129,13 @@ export async function updateStep(
       ...(input.responsibleActor !== undefined ? { responsibleActor: input.responsibleActor } : {}),
       ...(input.estimatedMinutes !== undefined ? { estimatedMinutes: input.estimatedMinutes } : {}),
       ...(input.sortOrder   !== undefined ? { sortOrder: input.sortOrder } : {}),
+      ...('assignedUserId'  in input ? { assignedUserId: input.assignedUserId ?? null } : {}),
       ...(input.recommendedCategory  !== undefined ? { recommendedCategory: input.recommendedCategory } : {}),
       ...(input.linkedToolInstanceId !== undefined ? { linkedToolInstanceId: input.linkedToolInstanceId } : {}),
       ...(input.resultNote  !== undefined ? { resultNote: input.resultNote?.trim().slice(0, 2000) ?? null } : {}),
       ...(isCompleting ? { completedAt: new Date() } : {}),
     },
+    include: { assignedUser: { select: { name: true } } },
   })
 
   // Recalcula progreso, Mission State, Next Action y timeline del objetivo padre
@@ -158,8 +166,9 @@ async function _syncObjectiveProgress(
   workspaceId: string,
 ): Promise<void> {
   const all = await db.missionStep.findMany({
-    where:  { objectiveId, workspaceId },
+    where:   { objectiveId, workspaceId },
     orderBy: { sortOrder: 'asc' },
+    include: { assignedUser: { select: { name: true } } },
   })
 
   if (all.length === 0) return

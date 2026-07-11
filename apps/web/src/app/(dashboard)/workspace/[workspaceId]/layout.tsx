@@ -44,6 +44,12 @@ export default async function WorkspaceLayout({ children, params }: Props) {
       description: 'Qué es lo más importante que debes hacer hoy en tu empresa',
     },
     {
+      label: 'Historial',
+      href: `${base}/history`,
+      icon: Icons.history,
+      description: 'Todo el trabajo generado con IA en este workspace',
+    },
+    {
       label: 'Herramientas',
       href: `${base}/tools`,
       icon: Icons.tools,

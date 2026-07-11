@@ -8,6 +8,7 @@ import { getExecutionDetail } from '@/app/actions/execution'
 import { formatCostEUR } from '@/lib/ai-cost'
 import { cn } from '@/lib/utils'
 import { AIResponseRenderer } from '@/components/ai-response'
+import { ExportButtons } from '../../run/_components/ExportButtons'
 
 interface Props {
   params: Promise<{ workspaceId: string; instanceId: string; executionId: string }>
@@ -61,9 +62,12 @@ export default async function ExecutionDetailPage({ params }: Props) {
 
             {execution.status === 'COMPLETED' && execution.result ? (
               <div className="space-y-3">
-                <h2 className="text-sm font-semibold uppercase tracking-wide text-muted-foreground">
-                  Resultado
-                </h2>
+                <div className="flex items-center justify-between gap-2 flex-wrap">
+                  <h2 className="text-sm font-semibold uppercase tracking-wide text-muted-foreground">
+                    Resultado
+                  </h2>
+                  <ExportButtons result={execution.result} toolName={instance.name} />
+                </div>
                 <AIResponseRenderer result={execution.result} />
               </div>
             ) : execution.status === 'FAILED' ? (

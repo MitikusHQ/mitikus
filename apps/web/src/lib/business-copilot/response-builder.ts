@@ -130,13 +130,11 @@ export function buildDoneMessage(): string {
 export function buildErrorMessage(reason: 'no_goal' | 'no_plans' | 'unknown'): string {
   const messages: Record<string, string> = {
     no_goal:
-      'No he podido identificar un objetivo claro. ' +
-      'Intenta describir qué resultado quieres conseguir para tu empresa.',
+      'No he podido identificar un objetivo concreto. Intenta ser más específico — por ejemplo: "quiero mejorar el SEO de mi web" o "necesito un plan de ventas".',
     no_plans:
-      'No he encontrado una estrategia adecuada para este objetivo con las herramientas disponibles. ' +
-      'Prueba a reformular el objetivo o ampliar el catálogo de herramientas.',
+      'No he encontrado una estrategia para ese objetivo con las herramientas actuales. Prueba a reformularlo con más detalle.',
     unknown:
-      'Ha ocurrido un error inesperado. Por favor, inicia una nueva sesión.',
+      'Algo ha fallado procesando tu mensaje. Prueba de nuevo o elige una de estas opciones:',
   }
   return messages[reason] ?? messages['unknown']!
 }

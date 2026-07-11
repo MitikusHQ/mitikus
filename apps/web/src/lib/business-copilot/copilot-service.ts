@@ -36,6 +36,7 @@ import {
   buildRestartActions,
 } from './response-builder'
 
+import { getFallbackSuggestions } from './sector-suggestions'
 import { randomUUID } from 'crypto'
 import type {
   CopilotResponse,
@@ -315,7 +316,7 @@ async function processNewGoal(
         phase:        'planning',
         message:      buildErrorMessage('no_plans'),
         context:      result.context,
-        suggestions:  [],
+        suggestions:  getFallbackSuggestions(result.context.sector),
         plans:        [],
         selectedPlan: null,
         workflowId:   null,
@@ -372,7 +373,7 @@ function errorResponse(
     phase:        'greeting',
     message:      buildErrorMessage(reason),
     context,
-    suggestions:  [],
+    suggestions:  getFallbackSuggestions(context.sector),
     plans:        [],
     selectedPlan: null,
     workflowId:   null,

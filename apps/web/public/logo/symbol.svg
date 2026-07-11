@@ -1,0 +1,17 @@
+<svg viewBox="0 0 200 200" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="MITIKUS">
+  <defs>
+    <linearGradient id="g" x1="10" y1="10" x2="190" y2="190" gradientUnits="userSpaceOnUse">
+      <stop offset="0%"   stop-color="#FFD040"/>
+      <stop offset="28%"  stop-color="#FF7028"/>
+      <stop offset="50%"  stop-color="#FF2878"/>
+      <stop offset="72%"  stop-color="#8B28FF"/>
+      <stop offset="100%" stop-color="#1820B8"/>
+    </linearGradient>
+    <clipPath id="c"><circle cx="100" cy="100" r="87"/></clipPath>
+  </defs>
+  <circle cx="100" cy="100" r="90" fill="none" stroke="url(#g)" stroke-width="5.5"/>
+  <g clip-path="url(#c)">
+    <polygon points="-10,0   192,95  192,100 -10,98"  fill="url(#g)"/>
+    <polygon points="-10,102 192,100 192,105 -10,200" fill="url(#g)"/>
+  </g>
+</svg>

@@ -1,6 +1,7 @@
 'use client'
 
 import type { DataSchema } from '@protools/schema'
+import { ImportButton } from './ImportButton'
 
 interface Props {
   fields: DataSchema['fields']
@@ -8,6 +9,7 @@ interface Props {
   onChange: (values: Record<string, string>) => void
   onSubmit: (e: React.FormEvent) => void
   isLoading: boolean
+  contextFields?: Set<string>
 }
 
 function VariableFieldInput({
@@ -90,7 +92,7 @@ function VariableFieldInput({
   )
 }
 
-export function VariableForm({ fields, values, onChange, onSubmit, isLoading }: Props) {
+export function VariableForm({ fields, values, onChange, onSubmit, isLoading, contextFields }: Props) {
   const fieldEntries = Object.entries(fields)
 
   function handleFieldChange(fieldId: string, value: string) {
@@ -108,13 +110,21 @@ export function VariableForm({ fields, values, onChange, onSubmit, isLoading }: 
           <div key={fieldId} className="space-y-1.5">
             <label
               htmlFor={fieldId}
-              className="text-sm font-medium flex items-center gap-1"
+              className="text-sm font-medium flex items-center gap-1.5 flex-wrap"
             >
               {field.label}
               {field.required && (
                 <span className="text-destructive text-xs" aria-hidden>
                   *
                 </span>
+              )}
+              {contextFields?.has(fieldId) && (
+                <span className="text-[10px] font-normal text-primary/60 bg-primary/8 border border-primary/20 rounded px-1.5 py-0.5 leading-none">
+                  📎 contexto
+                </span>
+              )}
+              {field.type === 'textarea' && (
+                <ImportButton onImport={(text) => handleFieldChange(fieldId, text)} />
               )}
             </label>
             <VariableFieldInput

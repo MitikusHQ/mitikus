@@ -21,5 +21,5 @@ export async function getLocale(): Promise<Locale> {
   const headerLocale = headersList.get(LOCALE_HEADER)
   if (headerLocale) return sanitizeLocale(headerLocale)
 
-  return 'en'
+  return 'es'
 }

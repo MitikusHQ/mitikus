@@ -1,0 +1,23 @@
+<svg viewBox="0 0 460 80" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="MITIKUS">
+  <defs>
+    <linearGradient id="g" x1="0" y1="0" x2="460" y2="80" gradientUnits="userSpaceOnUse">
+      <stop offset="0%"   stop-color="#FFD040"/>
+      <stop offset="28%"  stop-color="#FF7028"/>
+      <stop offset="50%"  stop-color="#FF2878"/>
+      <stop offset="72%"  stop-color="#8B28FF"/>
+      <stop offset="100%" stop-color="#1820B8"/>
+    </linearGradient>
+    <clipPath id="c"><circle cx="40" cy="40" r="34.8"/></clipPath>
+  </defs>
+  <!-- Symbol -->
+  <circle cx="40" cy="40" r="36" fill="none" stroke="url(#g)" stroke-width="2.2"/>
+  <g clip-path="url(#c)">
+    <polygon points="-4,0   76.8,38  76.8,40 -4,39.2"  fill="url(#g)"/>
+    <polygon points="-4,40.8 76.8,40 76.8,42  -4,80"  fill="url(#g)"/>
+  </g>
+  <!-- Wordmark -->
+  <text x="92" y="54"
+    font-family="system-ui,'Helvetica Neue',Arial,sans-serif"
+    font-size="38" font-weight="900" letter-spacing="7"
+    fill="url(#g)">MITIKUS</text>
+</svg>

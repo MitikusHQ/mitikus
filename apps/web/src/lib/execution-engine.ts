@@ -22,6 +22,8 @@ export interface ExecutionInput {
   customInstructions?: string | null
   outputFormat?: string | null
   language?: string | null
+  // Contexto de empresa para personalización IA
+  companyContextBlock?: string | null
 }
 
 export interface ExecutionOutput {
@@ -116,6 +118,7 @@ export async function runToolExecution(input: ExecutionInput): Promise<Execution
     outputFormat: input.outputFormat,
     systemPromptOverride: input.systemPromptOverride,
     customInstructions: input.customInstructions,
+    companyContextBlock: input.companyContextBlock,
   })
 
   const provider = getProvider(providerName)

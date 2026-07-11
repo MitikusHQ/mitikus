@@ -12,6 +12,9 @@ import { computeMissionState, getNextAction, remainingMinutes } from '@/lib/miss
 import { rankMissions } from '@/lib/missions/prioritization'
 import { MISSION_STATE_LABELS } from '@/lib/missions/types'
 import { IntelligenceBand } from './_components/IntelligenceBand'
+import { PendingReviews } from './_components/PendingReviews'
+import { OnboardingChecklist } from './_components/OnboardingChecklist'
+import { WorkspaceActivityFeed } from './_components/WorkspaceActivityFeed'
 
 interface Props {
   params: Promise<{ workspaceId: string }>
@@ -105,6 +108,12 @@ export default async function WorkspacePage({ params }: Props) {
         />
       )}
 
+
+      {/* Onboarding — desaparece cuando todos los pasos están completos */}
+      <OnboardingChecklist workspaceId={workspaceId} userId={user.id} />
+
+      {/* Revisiones periódicas */}
+      <PendingReviews workspaceId={workspaceId} />
 
       {/* Misiones activas */}
       <section>
@@ -210,6 +219,10 @@ export default async function WorkspacePage({ params }: Props) {
           </div>
         )}
       </section>
+
+      {/* Actividad reciente del workspace */}
+      <WorkspaceActivityFeed workspaceId={workspaceId} />
+
     </div>
   )
 }

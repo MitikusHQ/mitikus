@@ -1,8 +1,8 @@
 export const SUPPORTED_LOCALES = ['en', 'es'] as const
 export type Locale = (typeof SUPPORTED_LOCALES)[number]
 
-export const DEFAULT_LOCALE: Locale = 'en'
-export const FALLBACK_LOCALE: Locale = 'en'
+export const DEFAULT_LOCALE: Locale = 'es'
+export const FALLBACK_LOCALE: Locale = 'es'
 
 /** Cookie que persiste la preferencia del usuario (1 año) */
 export const LOCALE_COOKIE = 'protools-locale'

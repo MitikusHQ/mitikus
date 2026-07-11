@@ -27,6 +27,7 @@ import { computeMissionState, getNextAction } from '@/lib/missions/mission-state
 import { getTimeline } from '@/lib/missions/timeline'
 import { MissionStepActions } from './_components/MissionStepActions'
 import { AISuggestionPanel } from './_components/AISuggestionPanel'
+import { StepAssignee } from './_components/StepAssignee'
 
 interface Props {
   params: Promise<{ workspaceId: string; objectiveId: string }>
@@ -461,10 +462,10 @@ function StepCard({
   objectiveId,
   toolsByCategory,
 }: {
-  step: MissionStepData
-  index: number
-  workspaceId: string
-  objectiveId: string
+  step:            MissionStepData
+  index:           number
+  workspaceId:     string
+  objectiveId:     string
   toolsByCategory: Record<string, { id: string; name: string }[]>
 }) {
   const isCompleted = step.status === 'completed'
@@ -535,13 +536,22 @@ function StepCard({
           </div>
         </div>
 
-        {/* Acciones del paso */}
-        <MissionStepActions
-          stepId={step.id}
-          objectiveId={objectiveId}
-          workspaceId={workspaceId}
-          currentStatus={step.status}
-        />
+        {/* Asignación + acciones */}
+        <div className="flex items-center gap-2 shrink-0">
+          <StepAssignee
+            stepId={step.id}
+            objectiveId={objectiveId}
+            workspaceId={workspaceId}
+            assignedUserId={step.assignedUserId}
+            assignedUserName={step.assignedUserName}
+          />
+          <MissionStepActions
+            stepId={step.id}
+            objectiveId={objectiveId}
+            workspaceId={workspaceId}
+            currentStatus={step.status}
+          />
+        </div>
       </div>
     </div>
   )

@@ -7,6 +7,7 @@ import { ToolSectionNav } from '../_components/ToolSectionNav'
 import { ExecutionStatusBadge } from '../_components/ExecutionStatusBadge'
 import { getExecutionHistory } from '@/app/actions/execution'
 import { formatCostEUR } from '@/lib/ai-cost'
+import { HistoryExportButton } from '@/components/HistoryExportButton'
 
 interface Props {
   params: Promise<{ workspaceId: string; instanceId: string }>
@@ -50,7 +51,7 @@ export default async function ToolHistoryPage({ params }: Props) {
 
       <ToolSectionNav workspaceId={workspaceId} instanceId={instanceId} />
 
-      <div className="flex items-center justify-between mb-5">
+      <div className="flex items-center justify-between mb-5 flex-wrap gap-3">
           <div>
             <h2 className="text-lg font-semibold">Historial de ejecuciones IA</h2>
             <p className="text-sm text-muted-foreground mt-0.5">
@@ -59,12 +60,28 @@ export default async function ToolHistoryPage({ params }: Props) {
                 : `${executions.length} ejecución${executions.length !== 1 ? 'es' : ''}`}
             </p>
           </div>
-          <Link
-            href={`/workspace/${workspaceId}/tools/${instanceId}/run`}
-            className="rounded-md bg-primary px-4 py-2 text-sm font-medium text-primary-foreground shadow hover:bg-primary/90 transition-colors"
-          >
-            ✨ Nueva ejecución
-          </Link>
+          <div className="flex items-center gap-2">
+            {executions.length > 0 && (
+              <HistoryExportButton
+                filename={`historial-${instanceId}`}
+                rows={executions.map((e) => ({
+                  fecha:       e.createdAt,
+                  herramienta: instance.name,
+                  estado:      e.status,
+                  tokens:      e.inputTokens + e.outputTokens,
+                  coste:       formatCostEUR(e.estimatedCostEUR),
+                  duracion:    e.durationMs > 0 ? formatMs(e.durationMs) : '—',
+                  usuario:     e.userName ?? '—',
+                }))}
+              />
+            )}
+            <Link
+              href={`/workspace/${workspaceId}/tools/${instanceId}/run`}
+              className="rounded-md bg-primary px-4 py-2 text-sm font-medium text-primary-foreground shadow hover:bg-primary/90 transition-colors"
+            >
+              ✨ Nueva ejecución
+            </Link>
+          </div>
         </div>
 
         {executions.length === 0 ? (

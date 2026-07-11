@@ -1,6 +1,6 @@
 import type { Metadata } from 'next'
 import { Inter } from 'next/font/google'
-import { headers } from 'next/headers'
+import { headers, cookies } from 'next/headers'
 import { ClerkProvider } from '@clerk/nextjs'
 import { getLocale } from '@/i18n/locale'
 import { sanitizeLocale, SUGGESTED_LOCALE_HEADER } from '@/i18n/config'
@@ -14,12 +14,19 @@ const inter = Inter({ subsets: ['latin'] })
 export const metadata: Metadata = {
   title: 'MITIKUS',
   description: 'El sistema operativo de tu empresa.',
+  icons: {
+    icon: [
+      { url: '/favicon.svg', type: 'image/svg+xml' },
+    ],
+  },
 }
 
 export default async function RootLayout({ children }: { children: React.ReactNode }) {
   const locale = await getLocale()
   const headersList = await headers()
   const rawSuggested = headersList.get(SUGGESTED_LOCALE_HEADER)
+  const cookieStore = await cookies()
+  const hasConsentCookie = !!cookieStore.get('mitikus-cookie-consent')
   const suggestedLocale = rawSuggested ? sanitizeLocale(rawSuggested) : null
 
   return (
@@ -51,7 +58,7 @@ export default async function RootLayout({ children }: { children: React.ReactNo
             )}
             {children}
           </LocaleProvider>
-          <CookieBanner />
+          <CookieBanner initialShow={!hasConsentCookie} />
         </body>
       </html>
     </ClerkProvider>

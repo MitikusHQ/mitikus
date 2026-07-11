@@ -7,7 +7,8 @@ import { checkAllLimits } from '@/lib/ai-rate-limit'
 import { validateToolSchema } from '@protools/schema'
 import type { Prisma } from '@prisma/client'
 import { audit } from '@/lib/audit'
-import { updateMemoryFromExecution } from '@/lib/business-memory'
+import { updateMemoryFromExecution, getBusinessContext } from '@/lib/business-memory'
+import { buildCompanyContextBlock } from '@/lib/context-autofill'
 import { trackEvent } from '@/lib/product-analytics'
 
 export const runtime = 'nodejs'
@@ -98,6 +99,11 @@ export async function POST(req: NextRequest) {
     },
   })
 
+  const businessContext = await getBusinessContext(workspaceId).catch(() => null)
+  const companyContextBlock = businessContext && !businessContext.isEmpty
+    ? buildCompanyContextBlock(businessContext)
+    : null
+
   try {
     const execResult = await runToolExecution({
       toolName: instance.toolDefinition.name,
@@ -113,6 +119,7 @@ export async function POST(req: NextRequest) {
       customInstructions: cfg?.customInstructions ?? null,
       outputFormat: cfg?.outputFormat ?? 'markdown',
       language: cfg?.language ?? 'es',
+      companyContextBlock,
     })
 
     await db.toolExecution.update({
