@@ -9,7 +9,7 @@ export function ScrollReveal() {
       .reveal {
         opacity: 0;
         transform: translateY(24px);
-        transition: opacity 0.55s ease, transform 0.55s ease;
+        transition: opacity 1s ease, transform 1s ease;
       }
       .reveal.visible {
         opacity: 1;
