@@ -5,7 +5,9 @@ import { redirect } from 'next/navigation'
 import { db } from '@/lib/db'
 import { DemoRequestForm } from './_components/DemoRequestForm'
 import { ThemeToggle } from './(dashboard)/_components/ThemeToggle'
+import { LocaleSelector } from './(dashboard)/_components/LocaleSelector'
 import { ScrollReveal } from './_components/ScrollReveal'
+import { getLocale } from '@/i18n/locale'
 
 // LANDING-001 — SEO específico de esta página (sobrescribe el genérico de layout.tsx)
 export const metadata: Metadata = {
@@ -39,6 +41,7 @@ export const metadata: Metadata = {
 
 export default async function HomePage() {
   const { userId } = await auth()
+  const locale = await getLocale()
 
   if (userId) {
     const user = await db.user.findUnique({
@@ -96,6 +99,7 @@ export default async function HomePage() {
             </span>
           </div>
           <div className="flex items-center gap-4">
+            <LocaleSelector currentLocale={locale} />
             <ThemeToggle />
             <a href="/sign-in" className="text-sm text-muted-foreground hover:text-foreground transition-colors">
               Iniciar sesión
