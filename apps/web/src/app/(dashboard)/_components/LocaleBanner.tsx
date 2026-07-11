@@ -13,17 +13,17 @@ interface LocaleBannerProps {
 const BANNER_COPY: Record<Locale, {
   available: (lang: string) => string
   switchTo: (lang: string) => string
-  keep: string
+  keep: (lang: string) => string
 }> = {
   en: {
     available: (lang) => `MITIKUS is available in ${lang}.`,
     switchTo: (lang) => `Switch to ${lang}`,
-    keep: 'Keep English',
+    keep: (lang) => `Keep ${lang}`,
   },
   es: {
     available: (lang) => `MITIKUS está disponible en ${lang}.`,
     switchTo: (lang) => `Cambiar a ${lang}`,
-    keep: 'Mantener Español',
+    keep: (lang) => `Mantener ${lang}`,
   },
 }
 
@@ -34,8 +34,11 @@ export function LocaleBanner({ suggestedLocale, currentLocale }: LocaleBannerPro
 
   if (!visible) return null
 
+  // El mensaje del banner siempre en el idioma de la IP (suggestedLocale),
+  // no en el idioma actual — así el usuario lo entiende en su lengua nativa.
   const { nativeLabel, flag } = LOCALE_LABELS[suggestedLocale]
-  const copy = BANNER_COPY[currentLocale]
+  const { nativeLabel: currentLabel } = LOCALE_LABELS[currentLocale]
+  const copy = BANNER_COPY[suggestedLocale]
 
   function handleSwitch() {
     startTransition(async () => {
@@ -74,7 +77,7 @@ export function LocaleBanner({ suggestedLocale, currentLocale }: LocaleBannerPro
           disabled={isPending}
           className="text-foreground/70 hover:text-foreground disabled:opacity-50"
         >
-          {copy.keep}
+          {copy.keep(currentLabel)}
         </button>
       </div>
     </div>
