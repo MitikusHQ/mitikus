@@ -51,7 +51,6 @@ export async function GET(
 
   const data = (record.data ?? {}) as Record<string, unknown>
 
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const element = createElement(RecordPdfDocument as any, {
     schema: schemaResult.data,
     data,
@@ -62,7 +61,6 @@ export async function GET(
     recordId,
   })
 
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const buffer: Buffer = await renderToBuffer(element as any)
   const arrayBuffer = buffer.buffer.slice(
     buffer.byteOffset,

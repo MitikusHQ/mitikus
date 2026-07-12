@@ -242,7 +242,6 @@ function extractProfileFromVariables(vars: Record<string, unknown>): CompanyProf
       const existing = (update[field] as string[] | undefined) ?? []
       ;(update[field] as string[]) = [...existing, strVal]
     } else {
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
       ;(update as any)[field] = strVal
     }
   }

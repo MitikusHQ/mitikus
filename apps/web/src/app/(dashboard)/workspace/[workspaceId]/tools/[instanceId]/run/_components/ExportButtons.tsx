@@ -50,7 +50,6 @@ export function ExportButtons({ result, toolName }: Props) {
           return new Paragraph({ text: trimmed.slice(4), heading: HeadingLevel.HEADING_3 })
         }
         const boldPattern = /\*\*(.+?)\*\*/g
-        // eslint-disable-next-line @typescript-eslint/no-explicit-any
         const runs: any[] = []
         let last = 0
         let match
