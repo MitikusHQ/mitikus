@@ -1,6 +1,6 @@
 'use client'
 
-import type { DataSchema } from '@protools/schema'
+import type { DataSchema, FormConfig } from '@protools/schema'
 import { ImportButton } from './ImportButton'
 
 interface Props {
@@ -10,6 +10,7 @@ interface Props {
   onSubmit: (e: React.FormEvent) => void
   isLoading: boolean
   contextFields?: Set<string>
+  formSections?: FormConfig['sections']
 }
 
 function VariableFieldInput({
@@ -30,12 +31,12 @@ function VariableFieldInput({
     return (
       <textarea
         id={fieldId}
-        rows={3}
+        rows={field.rows ?? 3}
         required={field.required}
         placeholder={field.placeholder}
         value={value}
         onChange={(e) => onChange(e.target.value)}
-        className={`${base} resize-none`}
+        className={`${base} resize-y`}
       />
     )
   }
@@ -56,6 +57,31 @@ function VariableFieldInput({
           </option>
         ))}
       </select>
+    )
+  }
+
+  if (field.type === 'multiselect' && field.options) {
+    const selected = value ? value.split(',').map((v) => v.trim()).filter(Boolean) : []
+    function toggle(opt: string) {
+      const next = selected.includes(opt)
+        ? selected.filter((v) => v !== opt)
+        : [...selected, opt]
+      onChange(next.join(', '))
+    }
+    return (
+      <div className="grid grid-cols-2 gap-1.5 pt-0.5">
+        {field.options.map((opt) => (
+          <label key={opt} className="flex items-center gap-2 cursor-pointer group">
+            <input
+              type="checkbox"
+              checked={selected.includes(opt)}
+              onChange={() => toggle(opt)}
+              className="h-4 w-4 rounded border-input accent-primary shrink-0"
+            />
+            <span className="text-sm text-foreground group-hover:text-primary leading-snug">{opt}</span>
+          </label>
+        ))}
+      </div>
     )
   }
 
@@ -92,51 +118,114 @@ function VariableFieldInput({
   )
 }
 
-export function VariableForm({ fields, values, onChange, onSubmit, isLoading, contextFields }: Props) {
-  const fieldEntries = Object.entries(fields)
+function FieldBlock({
+  fieldId,
+  field,
+  value,
+  contextFields,
+  onChange,
+}: {
+  fieldId: string
+  field: DataSchema['fields'][string]
+  value: string
+  contextFields?: Set<string>
+  onChange: (fieldId: string, value: string) => void
+}) {
+  return (
+    <div key={fieldId} className="space-y-1.5">
+      <label
+        htmlFor={fieldId}
+        className="text-sm font-medium flex items-center gap-1.5 flex-wrap"
+      >
+        {field.label}
+        {field.required && (
+          <span className="text-destructive text-xs" aria-hidden>
+            *
+          </span>
+        )}
+        {contextFields?.has(fieldId) && (
+          <span className="text-[10px] font-normal text-primary/60 bg-primary/8 border border-primary/20 rounded px-1.5 py-0.5 leading-none">
+            📎 contexto
+          </span>
+        )}
+        {field.type === 'textarea' && (
+          <ImportButton onImport={(text) => onChange(fieldId, text)} />
+        )}
+      </label>
+      <VariableFieldInput
+        fieldId={fieldId}
+        field={field}
+        value={value}
+        onChange={(v) => onChange(fieldId, v)}
+      />
+      {field.helpText && (
+        <p className="text-xs text-muted-foreground">{field.helpText}</p>
+      )}
+    </div>
+  )
+}
 
+export function VariableForm({ fields, values, onChange, onSubmit, isLoading, contextFields, formSections }: Props) {
   function handleFieldChange(fieldId: string, value: string) {
     onChange({ ...values, [fieldId]: value })
   }
 
+  const hasSections = formSections && formSections.length > 0
+
+  // Campos que no pertenecen a ninguna sección (siempre renderizados al final)
+  const sectionFieldIds = new Set(hasSections ? formSections.flatMap((s) => s.fieldIds) : [])
+  const orphanFields = Object.entries(fields).filter(([id]) => !sectionFieldIds.has(id))
+
   return (
-    <form onSubmit={onSubmit} className="space-y-5">
-      {fieldEntries.length === 0 ? (
+    <form onSubmit={onSubmit} className="space-y-6">
+      {Object.keys(fields).length === 0 ? (
         <p className="text-sm text-muted-foreground">
           Esta herramienta no requiere variables. Ejecuta directamente.
         </p>
-      ) : (
-        fieldEntries.map(([fieldId, field]) => (
-          <div key={fieldId} className="space-y-1.5">
-            <label
-              htmlFor={fieldId}
-              className="text-sm font-medium flex items-center gap-1.5 flex-wrap"
-            >
-              {field.label}
-              {field.required && (
-                <span className="text-destructive text-xs" aria-hidden>
-                  *
-                </span>
-              )}
-              {contextFields?.has(fieldId) && (
-                <span className="text-[10px] font-normal text-primary/60 bg-primary/8 border border-primary/20 rounded px-1.5 py-0.5 leading-none">
-                  📎 contexto
-                </span>
-              )}
-              {field.type === 'textarea' && (
-                <ImportButton onImport={(text) => handleFieldChange(fieldId, text)} />
-              )}
-            </label>
-            <VariableFieldInput
+      ) : hasSections ? (
+        <>
+          {formSections!.map((section) => (
+            <fieldset key={section.id} className="space-y-4">
+              <legend className="text-xs font-semibold text-foreground/60 uppercase tracking-wider pb-1 border-b border-border/60 w-full">
+                {section.title}
+              </legend>
+              {section.fieldIds.map((fieldId) => {
+                const field = fields[fieldId]
+                if (!field) return null
+                return (
+                  <FieldBlock
+                    key={fieldId}
+                    fieldId={fieldId}
+                    field={field}
+                    value={values[fieldId] ?? ''}
+                    contextFields={contextFields}
+                    onChange={handleFieldChange}
+                  />
+                )
+              })}
+            </fieldset>
+          ))}
+          {orphanFields.map(([fieldId, field]) => (
+            <FieldBlock
+              key={fieldId}
               fieldId={fieldId}
               field={field}
               value={values[fieldId] ?? ''}
-              onChange={(v) => handleFieldChange(fieldId, v)}
+              contextFields={contextFields}
+              onChange={handleFieldChange}
             />
-            {field.helpText && (
-              <p className="text-xs text-muted-foreground">{field.helpText}</p>
-            )}
-          </div>
+          ))}
+        </>
+      ) : (
+        Object.entries(fields).map(([fieldId, field]) => (
+          <FieldBlock
+            key={fieldId}
+            fieldId={fieldId}
+            field={field}
+            value={values[fieldId] ?? ''}
+            contextFields={contextFields}
+            onChange={handleFieldChange}
+          />
         ))
       )}
 

@@ -32,12 +32,33 @@ function FieldInput({
       <textarea
         id={fieldId}
         name={fieldId}
-        rows={3}
+        rows={field.rows ?? 3}
         required={field.required}
         placeholder={field.placeholder}
         defaultValue={defaultValue != null ? String(defaultValue) : ''}
-        className={`${base} resize-none`}
+        className={`${base} resize-y`}
       />
+    )
+  }
+
+  if (field.type === 'multiselect' && field.options) {
+    const current = defaultValue != null ? String(defaultValue) : ''
+    const selected = current ? current.split(',').map((v) => v.trim()).filter(Boolean) : []
+    return (
+      <div className="grid grid-cols-2 gap-1.5 pt-0.5">
+        {field.options.map((opt) => (
+          <label key={opt} className="flex items-center gap-2 cursor-pointer">
+            <input
+              type="checkbox"
+              name={`${fieldId}[]`}
+              value={opt}
+              defaultChecked={selected.includes(opt)}
+              className="h-4 w-4 rounded border-input accent-primary shrink-0"
+            />
+            <span className="text-sm leading-snug">{opt}</span>
+          </label>
+        ))}
+      </div>
     )
   }
 

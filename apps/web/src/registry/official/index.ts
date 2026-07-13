@@ -1,6 +1,7 @@
 import type { OfficialToolDefinition } from './_types'
 
 // Audit
+import { ensCybersecurityAudit } from './audit/ens-cybersecurity-audit'
 import { iso9001Audit } from './audit/iso9001-audit'
 import { iso27001Audit } from './audit/iso27001-audit'
 import { itAudit } from './audit/it-audit'
@@ -72,6 +73,9 @@ import { contractReview } from './administration/contract-review'
 import { licenseControl } from './administration/license-control'
 
 export const allOfficialTools: OfficialToolDefinition[] = [
+  // Audit vertical (0)
+  ensCybersecurityAudit,
+
   // Audit (1-6)
   iso9001Audit,
   iso27001Audit,

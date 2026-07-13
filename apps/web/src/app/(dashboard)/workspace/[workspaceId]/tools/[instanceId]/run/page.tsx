@@ -1,7 +1,7 @@
 import { requireUser } from '@/lib/auth'
 import { db } from '@/lib/db'
 import { notFound } from 'next/navigation'
-import { validateToolSchema } from '@protools/schema'
+import { validateToolSchema, type FormConfig } from '@protools/schema'
 import { ToolSectionNav } from '../_components/ToolSectionNav'
 import { ExecutionClient } from './_components/ExecutionClient'
 import { suggestNextTools } from '@/lib/tool-intelligence'
@@ -45,6 +45,15 @@ export default async function ToolRunPage({ params, searchParams }: Props) {
   }
 
   const { fields } = schemaResult.data.dataSchema
+
+  // Extrae secciones del FORM default para el VariableForm
+  const defaultFormCap = schemaResult.data.capabilities.find(
+    (c) => c.type === 'FORM' && c.isDefault,
+  ) ?? schemaResult.data.capabilities.find((c) => c.type === 'FORM')
+  const formSections =
+    defaultFormCap?.config && 'layout' in defaultFormCap.config
+      ? (defaultFormCap.config as FormConfig).sections
+      : undefined
 
   // Carga variables pre-rellenadas desde una ejecución previa (?from=executionId)
   let initialValues: Record<string, string> | undefined
@@ -97,6 +106,7 @@ export default async function ToolRunPage({ params, searchParams }: Props) {
         fromMissionId={fromMission}
         fromStepId={fromStep}
         nextTools={nextTools.map((t) => ({ slug: t.slug, name: t.name, reason: t.reason }))}
+        formSections={formSections}
       />
     </div>
   )

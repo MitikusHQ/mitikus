@@ -2,7 +2,7 @@
 
 import { useState, useCallback } from 'react'
 import { useRouter } from 'next/navigation'
-import type { DataSchema } from '@protools/schema'
+import type { DataSchema, FormConfig } from '@protools/schema'
 import { VariableForm } from './VariableForm'
 import { ExecutionResult, type ExecutionState } from './ExecutionResult'
 
@@ -33,10 +33,11 @@ interface Props {
   fromMissionId?: string
   fromStepId?: string
   nextTools?: NextTool[]
+  formSections?: FormConfig['sections']
 }
 
 export function ExecutionClient({
-  toolInstanceId, workspaceId, toolName, fields, initialValues, contextDefaults, fromMissionId, fromStepId, nextTools = [],
+  toolInstanceId, workspaceId, toolName, fields, initialValues, contextDefaults, fromMissionId, fromStepId, nextTools = [], formSections,
 }: Props) {
   const router = useRouter()
   const [values, setValues] = useState<Record<string, string>>(
@@ -126,6 +127,7 @@ export function ExecutionClient({
             onSubmit={handleSubmit}
             isLoading={isLoading}
             contextFields={new Set(Object.keys(contextDefaults ?? {}))}
+            formSections={formSections}
           />
         </div>
       </div>

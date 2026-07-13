@@ -67,6 +67,7 @@ export const FIELD_TYPES = [
   'date',
   'textarea',
   'select',
+  'multiselect',
 ] as const
 
 export type FieldType = (typeof FIELD_TYPES)[number]
@@ -82,12 +83,14 @@ export interface DataSchemaField {
   placeholder?: string
   /** Texto de ayuda bajo el campo */
   helpText?: string
-  /** Solo para type: 'select' — opciones disponibles */
+  /** Solo para type: 'select' / 'multiselect' — opciones disponibles */
   options?: string[]
   /** Solo para type: 'number' — valor mínimo */
   min?: number
   /** Solo para type: 'number' — valor máximo */
   max?: number
+  /** Solo para type: 'textarea' — número de filas visible */
+  rows?: number
 }
 
 export interface DataSchema {
@@ -305,6 +308,7 @@ const dataSchemaFieldSchema = z.object({
   options: z.array(z.string()).optional(),
   min: z.number().optional(),
   max: z.number().optional(),
+  rows: z.number().int().positive().optional(),
 })
 
 const dataSchemaSchema = z.object({

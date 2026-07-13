@@ -76,6 +76,11 @@ function buildUserPrompt(input: PromptInput): string {
     .map(([fieldId, value]) => {
       const field = input.fields[fieldId]
       const label = field?.label ?? fieldId
+      // multiselect values are comma-separated; display as bullet list
+      if (field?.type === 'multiselect' && typeof value === 'string' && value.includes(',')) {
+        const items = value.split(',').map((v) => v.trim()).filter(Boolean)
+        return `- **${label}**:\n${items.map((i) => `  - ${i}`).join('\n')}`
+      }
       return `- **${label}**: ${String(value)}`
     })
     .join('\n')
