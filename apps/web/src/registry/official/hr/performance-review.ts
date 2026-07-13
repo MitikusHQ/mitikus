@@ -21,6 +21,7 @@ export const performanceReview: OfficialToolDefinition = {
     version: '1',
     isPublic: true,
     createdBy: 'official',
+    aiPrompt: `Eres un consultor de RRHH especializado en evaluacion del desempeno en empresas tecnologicas. Genera una evaluacion del desempeno con: puntuacion y justificacion de cada competencia evaluada, analisis de logros y areas de mejora con ejemplos concretos, comparativa con el nivel esperado para el puesto y seniority, plan de desarrollo individual para el proximo periodo, y recomendacion de clasificacion (supera/cumple/no cumple expectativas) con argumentacion objetiva.`,
     permissions: { defaultMemberRole: 'EDITOR', allowPublicShare: false },
     dataSchema: {
       fields: {

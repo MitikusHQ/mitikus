@@ -21,6 +21,7 @@ export const offerComparison: OfficialToolDefinition = {
     version: '1',
     isPublic: true,
     createdBy: 'official',
+    aiPrompt: `Eres un consultor de compras especializado en evaluacion de proveedores tecnologicos. Genera un analisis comparativo de ofertas con: tabla comparativa de criterios evaluados (precio, plazo, soporte, garantias, referencias), puntuacion ponderada con justificacion de los pesos, analisis de riesgos de cada proveedor (financiero, tecnico, de servicio), recomendacion razonada del proveedor ganador, y condiciones clave a negociar antes de la firma. El informe es para el responsable de compras o la direccion.`,
     permissions: { defaultMemberRole: 'EDITOR', allowPublicShare: false },
     dataSchema: {
       fields: {

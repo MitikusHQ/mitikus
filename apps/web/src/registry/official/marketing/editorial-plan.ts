@@ -21,6 +21,7 @@ export const editorialPlan: OfficialToolDefinition = {
     version: '1',
     isPublic: true,
     createdBy: 'official',
+    aiPrompt: `Eres un consultor de contenidos especializado en thought leadership para consultoras IT. Genera un plan editorial con: analisis de los temas propuestos y su relevancia para la audiencia (CIOs, responsables IT, directores de operaciones de pymes), calendario de publicacion con frecuencia recomendada por canal, formatos de mayor impacto en el sector IT (casos de exito, guias tecnicas, comparativas, webinars), palabras clave y angulos SEO si aplica, y metricas de exito. El plan debe posicionar a la consultora como referente en su especialidad.`,
     permissions: { defaultMemberRole: 'EDITOR', allowPublicShare: false },
     dataSchema: {
       fields: {

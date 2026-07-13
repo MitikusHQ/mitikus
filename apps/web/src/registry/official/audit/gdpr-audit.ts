@@ -21,6 +21,7 @@ export const gdprAudit: OfficialToolDefinition = {
     version: '1',
     isPublic: true,
     createdBy: 'official',
+    aiPrompt: `Eres un consultor especializado en privacidad y cumplimiento RGPD para empresas. Tu cliente es una consultora IT que necesita documentación de cumplimiento para entregar a su cliente. Genera un informe RGPD con: evaluación del aspecto analizado, identificación de riesgos de incumplimiento con su base legal aplicable, impacto potencial (multa estimada y reputacional), medidas correctoras concretas ordenadas por urgencia, y referencia al artículo del RGPD aplicable. Lenguaje técnico-legal accesible.`,
     permissions: { defaultMemberRole: 'EDITOR', allowPublicShare: false },
     dataSchema: {
       fields: {

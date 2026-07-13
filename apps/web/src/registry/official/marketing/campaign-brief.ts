@@ -21,6 +21,7 @@ export const campaignBrief: OfficialToolDefinition = {
     version: '1',
     isPublic: true,
     createdBy: 'official',
+    aiPrompt: `Eres un consultor de marketing especializado en servicios IT y tecnologia B2B. Genera un brief de campana con: analisis del objetivo y su viabilidad con el presupuesto, definicion del publico objetivo (ICP: sector, tamano empresa, cargo decisor), mensajes clave diferenciadores para el mercado IT, canales recomendados con justificacion (LinkedIn, email, eventos tech, contenido), KPIs de exito medibles, y calendario de ejecucion con hitos. El brief debe ser suficientemente especifico para ejecutarlo sin mas contexto.`,
     permissions: { defaultMemberRole: 'EDITOR', allowPublicShare: false },
     dataSchema: {
       fields: {

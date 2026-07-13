@@ -21,6 +21,7 @@ export const commercialVisit: OfficialToolDefinition = {
     version: '1',
     isPublic: true,
     createdBy: 'official',
+    aiPrompt: `Eres un consultor comercial especializado en ventas B2B de servicios tecnologicos y consultoria IT. Genera un informe de visita comercial con: resumen ejecutivo de la visita (que se hablo, que se acordo, siguiente paso), perfil actualizado del interlocutor y su rol en el proceso de decision, necesidades detectadas y como nuestros servicios IT las resuelven, objeciones planteadas y como se abordaron, oportunidad estimada (importe, plazo, probabilidad), y acciones de seguimiento con fechas. El informe se usa para actualizar el CRM y planificar el follow-up.`,
     permissions: { defaultMemberRole: 'EDITOR', allowPublicShare: false },
     dataSchema: {
       fields: {

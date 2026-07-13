@@ -21,6 +21,7 @@ export const assetInventory: OfficialToolDefinition = {
     version: '1',
     isPublic: true,
     createdBy: 'official',
+    aiPrompt: `Eres un consultor de gestion de activos para empresas de servicios IT. Genera un analisis del activo inventariado con: estado actual del activo (operativo, en mantenimiento, obsoleto, dado de baja), evaluacion de su valor residual y vida util restante, riesgos asociados (obsolescencia, fin de soporte, vulnerabilidades si es tecnologico), recomendacion de accion (mantener, renovar, dar de baja, externalizar), y impacto en la continuidad del negocio o en cumplimiento normativo si aplica. El analisis alimenta el plan de inversiones IT y el presupuesto anual.`,
     permissions: { defaultMemberRole: 'EDITOR', allowPublicShare: false },
     dataSchema: {
       fields: {

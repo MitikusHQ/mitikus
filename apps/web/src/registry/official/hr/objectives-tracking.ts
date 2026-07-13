@@ -21,6 +21,7 @@ export const objectivesTracking: OfficialToolDefinition = {
     version: '1',
     isPublic: true,
     createdBy: 'official',
+    aiPrompt: `Eres un consultor de gestion del desempeno para empresas de servicios IT. Genera un informe de seguimiento de objetivos con: estado actual de cada objetivo (en plazo/en riesgo/desviado) con porcentaje de avance, analisis de causas de desviacion, acciones correctivas con responsable y plazo, proyeccion de cumplimiento a fin de periodo, y recomendaciones para ajustar objetivos si el contexto ha cambiado. El informe sirve para conversaciones de seguimiento trimestrales.`,
     permissions: { defaultMemberRole: 'EDITOR', allowPublicShare: false },
     dataSchema: {
       fields: {

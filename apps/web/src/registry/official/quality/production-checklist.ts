@@ -21,6 +21,7 @@ export const productionChecklist: OfficialToolDefinition = {
     version: '1',
     isPublic: true,
     createdBy: 'official',
+    aiPrompt: `Eres un consultor de operaciones y calidad para empresas de servicios IT. Genera un analisis del checklist de produccion/entrega con: estado de cumplimiento de cada punto verificado, incidencias o desviaciones detectadas con su criticidad, impacto en la calidad del entregable si hay puntos no conformes, acciones inmediatas requeridas antes de entregar, y recomendaciones para mejorar el proceso o el propio checklist. El analisis sirve como acta de control de calidad del entregable.`,
     permissions: { defaultMemberRole: 'EDITOR', allowPublicShare: false },
     dataSchema: {
       fields: {

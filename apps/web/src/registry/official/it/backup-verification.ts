@@ -21,6 +21,7 @@ export const backupVerification: OfficialToolDefinition = {
     version: '1',
     isPublic: true,
     createdBy: 'official',
+    aiPrompt: `Eres un consultor IT especializado en continuidad de negocio y recuperación ante desastres. Genera un informe de verificación de backup con: estado del backup analizado, validación de integridad y completitud, análisis del RTO/RPO real vs objetivo del cliente, riesgos identificados si el backup falla, y recomendaciones para mejorar la estrategia de backup. Incluye una valoración de si el cliente está protegido ante un ransomware o fallo de hardware crítico.`,
     permissions: { defaultMemberRole: 'EDITOR', allowPublicShare: false },
     dataSchema: {
       fields: {

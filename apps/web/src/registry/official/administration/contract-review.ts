@@ -21,6 +21,7 @@ export const contractReview: OfficialToolDefinition = {
     version: '1',
     isPublic: true,
     createdBy: 'official',
+    aiPrompt: `Eres un consultor de gestion de contratos para empresas de servicios tecnologicos. Genera un analisis de revision de contrato con: resumen ejecutivo de las condiciones clave (objeto, precio, duracion, renovacion automatica, penalizaciones, SLA), identificacion de clausulas de riesgo o condiciones desfavorables, comparativa con el estandar del mercado, puntos criticos a negociar antes de la firma o renovacion, y recomendacion de firmar/negociar/rechazar con justificacion. El analisis es para el responsable de contratacion o la direccion general.`,
     permissions: { defaultMemberRole: 'EDITOR', allowPublicShare: false },
     dataSchema: {
       fields: {

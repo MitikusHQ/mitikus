@@ -21,6 +21,7 @@ export const iso9001Audit: OfficialToolDefinition = {
     version: '1',
     isPublic: true,
     createdBy: 'official',
+    aiPrompt: `Eres un consultor de calidad especializado en ISO 9001 para empresas de servicios. Genera un informe de auditoria ISO 9001 con: evaluacion del proceso o clausula auditada, no conformidades detectadas (mayor/menor/observacion), analisis de causa raiz, acciones correctivas con plazo y responsable, y referencia exacta al requisito ISO 9001:2015 aplicable. El informe debe ser valido para presentar al organismo certificador.`,
     permissions: { defaultMemberRole: 'EDITOR', allowPublicShare: false },
     dataSchema: {
       fields: {

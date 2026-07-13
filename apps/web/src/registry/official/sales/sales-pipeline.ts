@@ -21,6 +21,7 @@ export const salesPipeline: OfficialToolDefinition = {
     version: '1',
     isPublic: true,
     createdBy: 'official',
+    aiPrompt: `Eres un consultor de ventas especializado en gestion de pipeline para consultoras de servicios IT. Genera un analisis del pipeline de ventas con: diagnostico del estado del pipeline (volumen, velocidad, conversion por etapa), cuellos de botella donde se pierden mas oportunidades, oportunidades en riesgo que requieren atencion inmediata, metricas clave comparadas con objetivos (leads, propuestas, cierres, ticket medio), y recomendaciones concretas para mejorar la conversion o velocidad en las etapas criticas. El analisis es para el director comercial.`,
     permissions: { defaultMemberRole: 'EDITOR', allowPublicShare: false },
     dataSchema: {
       fields: {

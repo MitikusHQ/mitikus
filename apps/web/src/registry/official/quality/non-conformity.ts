@@ -21,6 +21,7 @@ export const nonConformity: OfficialToolDefinition = {
     version: '1',
     isPublic: true,
     createdBy: 'official',
+    aiPrompt: `Eres un consultor de calidad ISO 9001 para empresas de servicios tecnologicos. Genera un informe de no conformidad con: descripcion objetiva del incumplimiento (que, cuando, donde, como se detecto), clasificacion de la no conformidad (mayor/menor/potencial), requisito incumplido del sistema de gestion o del cliente, contencion inmediata aplicada para minimizar el impacto, y siguiente paso requerido (apertura de accion correctiva, registro informativo, notificacion al cliente). El registro es trazable y auditable.`,
     permissions: { defaultMemberRole: 'EDITOR', allowPublicShare: false },
     dataSchema: {
       fields: {

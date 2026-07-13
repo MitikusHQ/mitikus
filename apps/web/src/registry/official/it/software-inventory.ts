@@ -21,6 +21,7 @@ export const softwareInventory: OfficialToolDefinition = {
     version: '1',
     isPublic: true,
     createdBy: 'official',
+    aiPrompt: `Eres un consultor IT especializado en gestión de licencias y cumplimiento de software. Genera un análisis del software inventariado con: estado de licenciamiento (correcto, infralicenciado, supralicenciado, sin licencia), riesgo de auditoría del fabricante, coste de regularización estimado si hay incumplimiento, versión instalada vs versión actual con análisis de vulnerabilidades conocidas, y recomendación de acción. El informe sirve para la revisión de licencias del cliente.`,
     permissions: { defaultMemberRole: 'EDITOR', allowPublicShare: false },
     dataSchema: {
       fields: {

@@ -21,6 +21,7 @@ export const jobInterview: OfficialToolDefinition = {
     version: '1',
     isPublic: true,
     createdBy: 'official',
+    aiPrompt: `Eres un especialista en seleccion de talento IT con experiencia en evaluacion de perfiles tecnicos y de consultoria. Genera un informe de entrevista con: evaluacion de competencias tecnicas demostradas con evidencias, valoracion de competencias blandas clave para el puesto, analisis de riesgos del candidato, comparativa con el perfil requerido, recomendacion de avanzar/descartar/segunda entrevista con justificacion, y preguntas recomendadas para la siguiente fase.`,
     permissions: { defaultMemberRole: 'EDITOR', allowPublicShare: false },
     dataSchema: {
       fields: {

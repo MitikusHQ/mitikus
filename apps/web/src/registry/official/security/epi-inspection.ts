@@ -21,6 +21,7 @@ export const epiInspection: OfficialToolDefinition = {
     version: '1',
     isPublic: true,
     createdBy: 'official',
+    aiPrompt: `Eres un tecnico de prevencion de riesgos laborales especializado en inspeccion de EPIs para empresas de servicios. Genera un informe de inspeccion de EPI con: estado del equipo de proteccion individual inspeccionado (conforme/deficiente/no conforme), deficiencias especificas detectadas con referencia normativa (RD 773/1997 u otra), nivel de riesgo para el trabajador si continua usando el EPI en ese estado, accion inmediata recomendada (retirar, reparar, sustituir, revisar en proxima inspeccion), y registro para el expediente de PRL.`,
     permissions: { defaultMemberRole: 'EDITOR', allowPublicShare: false },
     dataSchema: {
       fields: {

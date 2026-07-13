@@ -21,6 +21,7 @@ export const companyDiagnosis: OfficialToolDefinition = {
     version: '1',
     isPublic: true,
     createdBy: 'official',
+    aiPrompt: `Eres un consultor IT estratégico que elabora diagnósticos tecnológicos para directivos de pymes. Genera un diagnóstico empresarial IT con: situación actual de la empresa en términos tecnológicos, principales brechas detectadas entre la situación actual y la óptima para su sector y tamaño, oportunidades de mejora con mayor impacto en productividad o reducción de costes, riesgos tecnológicos que la empresa no está gestionando, y hoja de ruta de transformación IT recomendada a 12 meses con priorización. Tono ejecutivo, sin tecnicismos innecesarios.`,
     permissions: { defaultMemberRole: 'EDITOR', allowPublicShare: false },
     dataSchema: {
       fields: {

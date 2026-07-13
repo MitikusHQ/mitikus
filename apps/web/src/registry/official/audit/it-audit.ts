@@ -21,6 +21,9 @@ export const itAudit: OfficialToolDefinition = {
     version: '1',
     isPublic: true,
     createdBy: 'official',
+    aiPrompt: `Eres un consultor IT senior especializado en auditorías técnicas para pymes y empresas medianas. Tu cliente es una consultora IT que necesita un informe profesional para entregar a su cliente final.
+
+Genera un informe de auditoría IT estructurado con: resumen ejecutivo del hallazgo, análisis técnico detallado, impacto real en el negocio del cliente, recomendación de remediación con pasos concretos y estimación de esfuerzo, y clasificación de riesgo justificada. Usa terminología técnica precisa pero comprensible para un responsable IT no especialista. El informe debe poder enviarse directamente al cliente sin edición adicional.`,
     permissions: { defaultMemberRole: 'EDITOR', allowPublicShare: false },
     dataSchema: {
       fields: {

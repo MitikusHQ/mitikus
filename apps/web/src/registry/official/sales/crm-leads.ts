@@ -21,6 +21,7 @@ export const crmLeads: OfficialToolDefinition = {
     version: '1',
     isPublic: true,
     createdBy: 'official',
+    aiPrompt: `Eres un consultor comercial especializado en cualificacion de leads para consultoras IT. Genera un analisis del lead con: evaluacion de cualificacion BANT (presupuesto, autoridad, necesidad, timing), indicadores de interes real vs descarte, perfil de empresa y decisor con relevancia para nuestros servicios IT, recomendacion de accion (llamar, enviar propuesta, descalificar, nutrir), y sugerencia de mensaje personalizado de contacto adaptado al contexto del lead. El analisis optimiza el tiempo del equipo comercial.`,
     permissions: { defaultMemberRole: 'EDITOR', allowPublicShare: false },
     dataSchema: {
       fields: {

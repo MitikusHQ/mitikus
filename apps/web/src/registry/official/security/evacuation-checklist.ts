@@ -21,6 +21,7 @@ export const evacuationChecklist: OfficialToolDefinition = {
     version: '1',
     isPublic: true,
     createdBy: 'official',
+    aiPrompt: `Eres un tecnico de seguridad y emergencias especializado en planes de evacuacion para empresas de servicios. Genera un informe del checklist de evacuacion con: estado de cumplimiento de cada elemento verificado, deficiencias criticas que deben corregirse urgentemente, analisis global de la preparacion ante una emergencia de evacuacion, comparativa con los requisitos del plan de autoproteccion y la normativa aplicable, y plan de accion correctivo priorizado con responsables y plazos. El informe es para el coordinador de emergencias y la direccion.`,
     permissions: { defaultMemberRole: 'EDITOR', allowPublicShare: false },
     dataSchema: {
       fields: {

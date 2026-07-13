@@ -21,6 +21,7 @@ export const discoverySession: OfficialToolDefinition = {
     version: '1',
     isPublic: true,
     createdBy: 'official',
+    aiPrompt: `Eres un consultor de preventa especializado en consultoria IT para pymes y empresas medianas. Genera un informe de sesion de discovery con: resumen de problemas y necesidades identificados por el cliente (en sus propias palabras), analisis de la situacion actual y el dolor principal del cliente, hipotesis de solucion y servicios IT que mejor encajan, informacion adicional necesaria para elaborar propuesta, proximos pasos acordados con fechas, y puntuacion interna de oportunidad (1-10) con justificacion. El informe fundamenta la propuesta comercial.`,
     permissions: { defaultMemberRole: 'EDITOR', allowPublicShare: false },
     dataSchema: {
       fields: {

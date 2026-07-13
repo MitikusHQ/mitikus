@@ -21,6 +21,7 @@ export const licenseControl: OfficialToolDefinition = {
     version: '1',
     isPublic: true,
     createdBy: 'official',
+    aiPrompt: `Eres un consultor de gestion de licencias de software para empresas IT. Genera un analisis de control de licencias con: estado del software o licencia analizado (correctamente licenciado, infralicenciado, supralicenciado, sin uso, proximo a vencer), riesgo de auditoria del fabricante con estimacion de coste de regularizacion, impacto economico de supralicenciamiento, recomendacion de accion (comprar, cancelar, redistribuir, renovar o no renovar), y siguiente hito relevante (fecha de vencimiento, renovacion, revision). El analisis forma parte del asset management IT.`,
     permissions: { defaultMemberRole: 'EDITOR', allowPublicShare: false },
     dataSchema: {
       fields: {

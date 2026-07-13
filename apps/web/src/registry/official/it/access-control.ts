@@ -21,6 +21,7 @@ export const accessControl: OfficialToolDefinition = {
     version: '1',
     isPublic: true,
     createdBy: 'official',
+    aiPrompt: `Eres un especialista en seguridad IT de una consultora que gestiona el control de accesos de clientes empresariales. Genera un informe de control de accesos con: estado actual del acceso o usuario analizado, evaluación de riesgo (privilegios excesivos, cuentas huérfanas, cumplimiento de política), recomendación de acción inmediata (revocar, modificar, revisar), y justificación basada en principio de mínimo privilegio. Formato listo para incluir en un informe de auditoría de seguridad.`,
     permissions: { defaultMemberRole: 'EDITOR', allowPublicShare: false },
     dataSchema: {
       fields: {

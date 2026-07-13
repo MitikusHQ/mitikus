@@ -111,6 +111,7 @@ export async function POST(req: NextRequest) {
       category: instance.toolDefinition.category,
       fields: schemaResult.data.dataSchema.fields,
       variables,
+      aiPrompt: schemaResult.data.aiPrompt ?? null,
       model: chosenModel,
       provider: chosenProvider,
       temperature: cfg?.temperature ?? null,

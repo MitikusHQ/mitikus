@@ -21,6 +21,7 @@ export const opportunityTracking: OfficialToolDefinition = {
     version: '1',
     isPublic: true,
     createdBy: 'official',
+    aiPrompt: `Eres un consultor comercial especializado en gestion de oportunidades de negocio en consultoria IT. Genera un informe de seguimiento de oportunidad con: estado actual en el proceso de venta, analisis de avances y retrocesos desde el ultimo contacto, evaluacion de la probabilidad real de cierre y plazo estimado, riesgos que pueden hacer perder la oportunidad, acciones de seguimiento recomendadas con el mensaje adecuado para cada interlocutor, y recomendacion de mantener activa/acelerar/cerrar o descartar. Para directores comerciales y account managers.`,
     permissions: { defaultMemberRole: 'EDITOR', allowPublicShare: false },
     dataSchema: {
       fields: {

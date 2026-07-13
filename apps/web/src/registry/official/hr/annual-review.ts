@@ -21,6 +21,7 @@ export const annualReview: OfficialToolDefinition = {
     version: '1',
     isPublic: true,
     createdBy: 'official',
+    aiPrompt: `Eres un consultor de RRHH especializado en empresas de servicios tecnologicos. Genera un informe de revision anual del empleado con: evaluacion de competencias tecnicas y soft skills para perfil IT, analisis de objetivos del anno (cumplidos/parcialmente/no cumplidos), valoracion de la contribucion al equipo y proyectos cliente, areas de desarrollo con plan de accion concreto, y recomendacion salarial o de promocion justificada. El informe debe ser valido para la conversacion de feedback.`,
     permissions: { defaultMemberRole: 'EDITOR', allowPublicShare: false },
     dataSchema: {
       fields: {

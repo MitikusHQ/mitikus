@@ -21,6 +21,7 @@ export const employeeOffboarding: OfficialToolDefinition = {
     version: '1',
     isPublic: true,
     createdBy: 'official',
+    aiPrompt: `Eres un consultor de RRHH especializado en gestion de salidas en empresas IT. Genera un informe de offboarding con: checklist de tareas completadas y pendientes (accesos, equipos, documentacion, traspaso de conocimiento), analisis de motivos de salida de la entrevista de salida, conocimiento critico que debe transferirse urgentemente, impacto en proyectos activos y plan de cobertura, y recomendaciones para evitar que la situacion se repita.`,
     permissions: { defaultMemberRole: 'EDITOR', allowPublicShare: false },
     dataSchema: {
       fields: {

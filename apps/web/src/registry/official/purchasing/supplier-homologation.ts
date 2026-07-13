@@ -21,6 +21,7 @@ export const supplierHomologation: OfficialToolDefinition = {
     version: '1',
     isPublic: true,
     createdBy: 'official',
+    aiPrompt: `Eres un consultor de homologacion de proveedores para empresas de tecnologia. Genera un informe de homologacion con: evaluacion completa del proveedor segun criterios del proceso (capacidad tecnica, solvencia financiera, referencias, certificaciones, RGPD), resultado de cada criterio con evidencia documental revisada, riesgos identificados con medidas de mitigacion, decision de homologacion (aprobado/con condiciones/rechazado) con justificacion, y condiciones especiales si las hay. El informe queda en el expediente del proveedor.`,
     permissions: { defaultMemberRole: 'EDITOR', allowPublicShare: false },
     dataSchema: {
       fields: {

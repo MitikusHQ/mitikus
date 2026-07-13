@@ -21,6 +21,7 @@ export const qualityInspection: OfficialToolDefinition = {
     version: '1',
     isPublic: true,
     createdBy: 'official',
+    aiPrompt: `Eres un inspector de calidad especializado en servicios y proyectos IT. Genera un informe de inspeccion de calidad con: descripcion del elemento o servicio inspeccionado y criterios de aceptacion aplicados, resultado de cada punto de inspeccion (conforme/no conforme/pendiente) con evidencia, clasificacion de defectos por tipo y gravedad, decision de aceptacion/rechazo/aceptacion condicional con justificacion, y acciones correctivas requeridas con plazo. El informe es la evidencia objetiva del control de calidad realizado.`,
     permissions: { defaultMemberRole: 'EDITOR', allowPublicShare: false },
     dataSchema: {
       fields: {

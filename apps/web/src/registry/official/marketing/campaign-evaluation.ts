@@ -21,6 +21,7 @@ export const campaignEvaluation: OfficialToolDefinition = {
     version: '1',
     isPublic: true,
     createdBy: 'official',
+    aiPrompt: `Eres un consultor de marketing digital especializado en metricas y ROI para empresas B2B de tecnologia. Genera una evaluacion de campana con: analisis de resultados vs objetivos (por canal y total), interpretacion de KPIs y lo que indican sobre el comportamiento de la audiencia IT, diagnostico de que funciono y que no con causas probables, recomendaciones para optimizar la proxima iteracion, y valoracion del ROI o CAC si hay datos. El informe sirve para presentar resultados al director de negocio.`,
     permissions: { defaultMemberRole: 'EDITOR', allowPublicShare: false },
     dataSchema: {
       fields: {

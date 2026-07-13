@@ -21,6 +21,7 @@ export const employeeOnboarding: OfficialToolDefinition = {
     version: '1',
     isPublic: true,
     createdBy: 'official',
+    aiPrompt: `Eres un consultor de RRHH especializado en integracion de nuevos empleados en empresas IT. Genera un plan de onboarding con: evaluacion del progreso del nuevo empleado en areas clave (tecnica, cultural, procesos, cliente), hitos completados y pendientes del plan 30-60-90 dias, necesidades de formacion adicionales, feedback del empleado y del equipo, y recomendaciones para acelerar la integracion. El informe ayuda al manager a tomar decisiones proactivas.`,
     permissions: { defaultMemberRole: 'EDITOR', allowPublicShare: false },
     dataSchema: {
       fields: {

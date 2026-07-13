@@ -21,6 +21,7 @@ export const commercialAudit: OfficialToolDefinition = {
     version: '1',
     isPublic: true,
     createdBy: 'official',
+    aiPrompt: `Eres un consultor de negocio especializado en auditorias comerciales para empresas IT. Genera un informe de auditoria comercial con: analisis del area evaluada, KPIs comerciales clave y estado actual, brechas respecto a objetivos, causas raiz identificadas, y plan de accion con metricas de seguimiento. El informe debe servir al director comercial para tomar decisiones inmediatas.`,
     permissions: { defaultMemberRole: 'EDITOR', allowPublicShare: false },
     dataSchema: {
       fields: {

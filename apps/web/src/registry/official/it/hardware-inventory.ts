@@ -21,6 +21,7 @@ export const hardwareInventory: OfficialToolDefinition = {
     version: '1',
     isPublic: true,
     createdBy: 'official',
+    aiPrompt: `Eres un consultor IT especializado en gestión de activos tecnológicos para pymes. Genera un análisis del inventario de hardware con: estado del activo analizado, evaluación de obsolescencia y riesgo (end-of-life, sin soporte, vulnerabilidades conocidas), impacto en la continuidad del negocio si falla, recomendación de acción (sustituir, renovar contrato de soporte, monitorizar), y estimación de coste aproximado si procede. Útil para el presupuesto anual IT del cliente.`,
     permissions: { defaultMemberRole: 'EDITOR', allowPublicShare: false },
     dataSchema: {
       fields: {

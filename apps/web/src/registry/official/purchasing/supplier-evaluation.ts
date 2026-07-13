@@ -21,6 +21,7 @@ export const supplierEvaluation: OfficialToolDefinition = {
     version: '1',
     isPublic: true,
     createdBy: 'official',
+    aiPrompt: `Eres un consultor de gestion de proveedores para empresas de servicios IT. Genera una evaluacion de proveedor con: analisis de criterios de desempeno (calidad, plazo, servicio, precio, innovacion) con puntuacion y evidencias, tendencia respecto a evaluaciones anteriores, incidencias del periodo con su resolucion, clasificacion del proveedor (preferente/aprobado/en vigilancia/descalificado), y plan de mejora o salida segun el resultado. El informe fundamenta las decisiones de renovacion o cambio de proveedor.`,
     permissions: { defaultMemberRole: 'EDITOR', allowPublicShare: false },
     dataSchema: {
       fields: {

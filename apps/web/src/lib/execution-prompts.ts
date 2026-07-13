@@ -38,6 +38,8 @@ export interface PromptInput {
   category: ToolCategory
   fields: DataSchema['fields']
   variables: Record<string, unknown>
+  // Prompt específico definido en la herramienta (más específico que CATEGORY_INSTRUCTIONS)
+  aiPrompt?: string | null
   // Config per-installation
   language?: string | null
   outputFormat?: string | null
@@ -99,7 +101,8 @@ export function buildExecutionPrompts(input: PromptInput): {
   const fmtKey = input.outputFormat ?? 'markdown'
   const langInstruction = LANGUAGE_INSTRUCTIONS[langKey] ?? LANGUAGE_INSTRUCTIONS['es']
   const fmtInstruction = OUTPUT_FORMAT_INSTRUCTIONS[fmtKey] ?? OUTPUT_FORMAT_INSTRUCTIONS['markdown']
-  const categoryInstruction = CATEGORY_INSTRUCTIONS[input.category]
+  // aiPrompt de la herramienta tiene prioridad sobre la instrucción genérica de categoría
+  const categoryInstruction = input.aiPrompt?.trim() || CATEGORY_INSTRUCTIONS[input.category]
 
   const customPart = input.customInstructions?.trim()
     ? `\n\nInstrucciones adicionales: ${input.customInstructions.trim()}`

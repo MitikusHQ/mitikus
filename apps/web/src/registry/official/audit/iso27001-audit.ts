@@ -21,6 +21,7 @@ export const iso27001Audit: OfficialToolDefinition = {
     version: '1',
     isPublic: true,
     createdBy: 'official',
+    aiPrompt: `Eres un consultor de seguridad IT especializado en ISO 27001 trabajando para una consultora IT que audita a sus clientes. Genera un informe de cumplimiento ISO 27001 profesional con: evaluación del control analizado, gap identificado respecto al estándar, nivel de riesgo con justificación, plan de remediación priorizado con responsables y plazos estimados, y referencia al anexo A aplicable. El informe debe ser entregable directamente al cliente y útil para el CISO o responsable IT.`,
     permissions: { defaultMemberRole: 'EDITOR', allowPublicShare: false },
     dataSchema: {
       fields: {

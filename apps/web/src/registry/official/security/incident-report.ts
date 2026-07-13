@@ -21,6 +21,7 @@ export const incidentReport: OfficialToolDefinition = {
     version: '1',
     isPublic: true,
     createdBy: 'official',
+    aiPrompt: `Eres un especialista en ciberseguridad de una consultora IT que gestiona incidentes de seguridad para clientes. Genera un informe de incidente de seguridad con: descripción técnica del incidente, cronología detallada (timeline), sistemas y datos afectados, análisis de causa raíz y vector de ataque, acciones de contención y erradicación aplicadas, evidencias recopiladas, impacto real en el negocio, medidas preventivas para evitar recurrencia, y si el incidente requiere notificación a la AEPD según el RGPD. El informe debe ser válido para documentación legal y comunicación a dirección.`,
     permissions: { defaultMemberRole: 'EDITOR', allowPublicShare: false },
     dataSchema: {
       fields: {

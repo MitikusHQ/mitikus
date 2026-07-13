@@ -21,6 +21,7 @@ export const seoChecklist: OfficialToolDefinition = {
     version: '1',
     isPublic: true,
     createdBy: 'official',
+    aiPrompt: `Eres un consultor SEO especializado en posicionamiento para empresas de servicios IT y consultoria tecnologica. Analiza el estado del checklist SEO con: evaluacion del elemento revisado con diagnostico tecnico especifico, impacto estimado en posicionamiento si se corrige (alto/medio/bajo), instruccion de implementacion concreta con ejemplo, herramienta recomendada para verificar la correccion, y prioridad de ejecucion. El analisis debe ser accionable para un desarrollador o responsable de marketing.`,
     permissions: { defaultMemberRole: 'EDITOR', allowPublicShare: false },
     dataSchema: {
       fields: {

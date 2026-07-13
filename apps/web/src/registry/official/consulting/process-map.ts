@@ -21,6 +21,7 @@ export const processMap: OfficialToolDefinition = {
     version: '1',
     isPublic: true,
     createdBy: 'official',
+    aiPrompt: `Eres un consultor de procesos especializado en optimizacion para empresas de servicios IT. Genera un analisis del proceso mapeado con: descripcion del flujo actual, identificacion de cuellos de botella y actividades sin valor anadido, tiempos de ciclo estimados por etapa, comparativa con el proceso optimo recomendado, y propuesta de automatizacion con impacto estimado en productividad. El analisis sirve para justificar inversiones en tecnologia o reorganizacion interna.`,
     permissions: { defaultMemberRole: 'EDITOR', allowPublicShare: false },
     dataSchema: {
       fields: {

@@ -15,6 +15,8 @@ export interface ExecutionInput {
   variables: Record<string, unknown>
   model?: string
   provider?: string
+  // Prompt específico de la herramienta
+  aiPrompt?: string | null
   // Parámetros de generación (desde ToolInstallationConfig)
   temperature?: number | null
   maxTokens?: number | null
@@ -114,6 +116,7 @@ export async function runToolExecution(input: ExecutionInput): Promise<Execution
     category: input.category,
     fields: input.fields,
     variables: input.variables,
+    aiPrompt: input.aiPrompt,
     language: input.language,
     outputFormat: input.outputFormat,
     systemPromptOverride: input.systemPromptOverride,

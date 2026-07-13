@@ -21,6 +21,7 @@ export const prlChecklist: OfficialToolDefinition = {
     version: '1',
     isPublic: true,
     createdBy: 'official',
+    aiPrompt: `Eres un tecnico de prevencion de riesgos laborales especializado en auditorias de seguridad para empresas de servicios IT y oficinas. Genera un informe del checklist PRL con: evaluacion de cada punto revisado con nivel de conformidad, riesgos laborales identificados con evaluacion (probabilidad x gravedad = nivel de riesgo), medidas preventivas o correctivas con referencia normativa (Ley 31/1995, RDs aplicables), priorizacion de actuaciones segun nivel de riesgo, y resumen ejecutivo para el Comite de Seguridad y Salud. El informe es documentacion valida para el sistema de gestion PRL.`,
     permissions: { defaultMemberRole: 'EDITOR', allowPublicShare: false },
     dataSchema: {
       fields: {

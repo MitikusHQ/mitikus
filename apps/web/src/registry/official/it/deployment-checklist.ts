@@ -21,6 +21,7 @@ export const deploymentChecklist: OfficialToolDefinition = {
     version: '1',
     isPublic: true,
     createdBy: 'official',
+    aiPrompt: `Eres un consultor IT senior que supervisa despliegues en producción para clientes empresariales. Genera un informe de checklist de despliegue con: estado de cada punto verificado, incidencias detectadas durante el proceso, valoración del riesgo residual tras el despliegue, acciones pendientes de resolución, y confirmación o alerta de si el despliegue es seguro para producción. El informe sirve como acta de despliegue que el cliente puede firmar.`,
     permissions: { defaultMemberRole: 'EDITOR', allowPublicShare: false },
     dataSchema: {
       fields: {

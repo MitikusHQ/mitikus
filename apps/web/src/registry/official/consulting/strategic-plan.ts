@@ -21,6 +21,7 @@ export const strategicPlan: OfficialToolDefinition = {
     version: '1',
     isPublic: true,
     createdBy: 'official',
+    aiPrompt: `Eres un consultor IT estratégico que elabora planes tecnológicos para la dirección de pymes. Genera un plan estratégico IT con: objetivo estratégico analizado y su alineación con el negocio, iniciativas IT necesarias para alcanzarlo con descripción, prioridad y dependencias, recursos estimados (equipo, tecnología, presupuesto), KPIs de seguimiento con valores objetivo, riesgos del plan y mitigaciones, y cronograma de implementación a 12-24 meses. El plan debe servir para presentarlo al comité de dirección.`,
     permissions: { defaultMemberRole: 'EDITOR', allowPublicShare: false },
     dataSchema: {
       fields: {

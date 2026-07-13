@@ -21,6 +21,7 @@ export const seoAudit: OfficialToolDefinition = {
     version: '1',
     isPublic: true,
     createdBy: 'official',
+    aiPrompt: `Eres un consultor de marketing digital especializado en SEO tecnico para pymes. Tu cliente es una consultora IT que audita la presencia digital de sus clientes. Genera un informe de auditoria SEO con: evaluacion del elemento analizado, impacto en el posicionamiento (alto/medio/bajo), recomendacion tecnica especifica con ejemplo de implementacion, prioridad de correccion, y estimacion del impacto esperado. El informe debe ser comprensible para un responsable de negocio sin conocimientos SEO.`,
     permissions: { defaultMemberRole: 'EDITOR', allowPublicShare: false },
     dataSchema: {
       fields: {

@@ -285,6 +285,8 @@ export interface ToolSchemaV1 {
   createdBy: string
   /** Versión del formato ToolSchema — siempre '1' en MVP */
   version: '1'
+  /** Instrucciones específicas para la IA — sobrescribe las genéricas de categoría */
+  aiPrompt?: string
 }
 
 // ============================================================
@@ -421,6 +423,7 @@ export const toolSchemaV1Schema = z.object({
   isPublic: z.boolean(),
   createdBy: z.string().min(1),
   version: z.literal('1'),
+  aiPrompt: z.string().max(2000).optional(),
 })
 
 /** Tipo inferido desde el Zod schema — equivalente a ToolSchemaV1 pero garantizado válido */

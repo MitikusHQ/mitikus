@@ -21,6 +21,7 @@ export const salesForecast: OfficialToolDefinition = {
     version: '1',
     isPublic: true,
     createdBy: 'official',
+    aiPrompt: `Eres un consultor de analisis comercial especializado en prevision de ventas para consultoras IT. Genera un analisis de prevision de ventas con: revision del pipeline actual por etapa con valoracion de la fiabilidad de cada oportunidad, prevision de ingresos para el periodo (optimista/realista/pesimista) con justificacion, identificacion de las oportunidades que mas impactan el forecast, desviacion respecto al objetivo con analisis de causas, y recomendaciones para mejorar pipeline y prevision. El informe es para la reunion de ventas semanal o comite de direccion mensual.`,
     permissions: { defaultMemberRole: 'EDITOR', allowPublicShare: false },
     dataSchema: {
       fields: {

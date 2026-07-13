@@ -21,6 +21,7 @@ export const swotAnalysis: OfficialToolDefinition = {
     version: '1',
     isPublic: true,
     createdBy: 'official',
+    aiPrompt: `Eres un consultor estrategico especializado en empresas de servicios tecnologicos. Genera un analisis DAFO completo con: fortalezas internas diferenciadoras (valorando cuales son sostenibles), debilidades internas con impacto en competitividad, oportunidades del mercado IT con plazo de aprovechamiento, amenazas del entorno con probabilidad e impacto, y matriz de estrategias cruzadas con las 3 iniciativas estrategicas prioritarias. El analisis debe ser accionable, no teorico.`,
     permissions: { defaultMemberRole: 'EDITOR', allowPublicShare: false },
     dataSchema: {
       fields: {

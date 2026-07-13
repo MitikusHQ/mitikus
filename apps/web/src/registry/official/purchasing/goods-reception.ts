@@ -21,6 +21,7 @@ export const goodsReception: OfficialToolDefinition = {
     version: '1',
     isPublic: true,
     createdBy: 'official',
+    aiPrompt: `Eres un consultor de operaciones especializado en gestion de proveedores para empresas IT. Genera un informe de recepcion de bienes/servicios con: verificacion de conformidad de lo recibido vs lo pedido (cantidad, especificaciones, plazos), incidencias detectadas con clasificacion (critica/menor/observacion), impacto en el proyecto si hay desviaciones, acciones a tomar con el proveedor (reclamacion, devolucion, aceptacion condicional), y recomendacion para la ficha del proveedor. El informe es valido para compras y contabilidad.`,
     permissions: { defaultMemberRole: 'EDITOR', allowPublicShare: false },
     dataSchema: {
       fields: {

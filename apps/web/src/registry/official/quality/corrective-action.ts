@@ -21,6 +21,7 @@ export const correctiveAction: OfficialToolDefinition = {
     version: '1',
     isPublic: true,
     createdBy: 'official',
+    aiPrompt: `Eres un consultor de calidad especializado en sistemas de gestion para empresas de servicios IT. Genera un informe de accion correctiva con: descripcion precisa de la no conformidad que la origina, analisis de causa raiz (5 Whys o Ishikawa segun complejidad), accion correctiva definida con responsable, plazo y recursos necesarios, criterio de verificacion de eficacia con fecha de comprobacion, y lecciones aprendidas para prevenir recurrencia. El informe debe cumplir los requisitos ISO 9001 clausula 10.2.`,
     permissions: { defaultMemberRole: 'EDITOR', allowPublicShare: false },
     dataSchema: {
       fields: {

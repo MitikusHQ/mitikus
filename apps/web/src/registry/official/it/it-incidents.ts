@@ -21,6 +21,7 @@ export const itIncidents: OfficialToolDefinition = {
     version: '1',
     isPublic: true,
     createdBy: 'official',
+    aiPrompt: `Eres un consultor IT que gestiona incidencias técnicas para clientes empresariales. Genera un informe de incidencia con: descripción técnica del problema, análisis de causa raíz (5 Whys si aplica), impacto real en el negocio del cliente (tiempo de parada, usuarios afectados, pérdida de datos), solución aplicada y efectividad, acciones preventivas para evitar recurrencia, y SLA: si se cumplió el tiempo de respuesta y resolución. Formato válido para comunicar al cliente y para el registro interno.`,
     permissions: { defaultMemberRole: 'EDITOR', allowPublicShare: false },
     dataSchema: {
       fields: {

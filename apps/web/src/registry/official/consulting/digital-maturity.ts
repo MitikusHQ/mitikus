@@ -21,6 +21,7 @@ export const digitalMaturity: OfficialToolDefinition = {
     version: '1',
     isPublic: true,
     createdBy: 'official',
+    aiPrompt: `Eres un consultor de transformación digital especializado en pymes industriales y de servicios. Genera una evaluación de madurez digital con: puntuación del área analizada (1-5) con justificación detallada, comparativa con el nivel típico del sector, impacto en competitividad de la brecha detectada, plan de mejora concreto con acciones priorizadas y coste estimado de implementación, y quick wins (mejoras con alta rentabilidad y bajo esfuerzo) que la empresa puede acometer en los próximos 30-90 días.`,
     permissions: { defaultMemberRole: 'EDITOR', allowPublicShare: false },
     dataSchema: {
       fields: {

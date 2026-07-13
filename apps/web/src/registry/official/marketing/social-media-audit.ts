@@ -21,6 +21,7 @@ export const socialMediaAudit: OfficialToolDefinition = {
     version: '1',
     isPublic: true,
     createdBy: 'official',
+    aiPrompt: `Eres un consultor de marketing digital especializado en presencia digital para empresas B2B de tecnologia. Genera una auditoria de redes sociales con: evaluacion del perfil o canal analizado (completitud, coherencia de marca, optimizacion), metricas de rendimiento vs benchmarks del sector IT, analisis del contenido que mejor funciona y cual no da resultados, identificacion de oportunidades de mejora (frecuencia, formatos, engagement), y plan de accion con 5 mejoras concretas para los proximos 30 dias.`,
     permissions: { defaultMemberRole: 'EDITOR', allowPublicShare: false },
     dataSchema: {
       fields: {

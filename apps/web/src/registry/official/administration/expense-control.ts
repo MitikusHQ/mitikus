@@ -21,6 +21,7 @@ export const expenseControl: OfficialToolDefinition = {
     version: '1',
     isPublic: true,
     createdBy: 'official',
+    aiPrompt: `Eres un consultor financiero especializado en control de gastos para empresas de servicios IT. Genera un analisis de control de gastos con: evaluacion del gasto analizado respecto al presupuesto y al periodo anterior, identificacion de desviaciones significativas con analisis de causas, clasificacion del gasto (necesario/optimizable/eliminar) con justificacion, recomendaciones de optimizacion con ahorro estimado, y alertas si hay gastos que requieren aprobacion adicional o revision de politica interna. El analisis sirve para el informe mensual de gestion.`,
     permissions: { defaultMemberRole: 'EDITOR', allowPublicShare: false },
     dataSchema: {
       fields: {
