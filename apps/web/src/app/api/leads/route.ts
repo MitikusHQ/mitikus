@@ -8,11 +8,40 @@ import { db } from '@/lib/db'
 
 export const runtime = 'nodejs'
 
+// Rate limit: 5 peticiones por IP cada 10 minutos
+const ipHits = new Map<string, { count: number; resetAt: number }>()
+const LIMIT = 5
+const WINDOW_MS = 10 * 60 * 1000
+
+function checkRateLimit(ip: string): boolean {
+  const now = Date.now()
+  const entry = ipHits.get(ip)
+  if (!entry || now > entry.resetAt) {
+    ipHits.set(ip, { count: 1, resetAt: now + WINDOW_MS })
+    return true
+  }
+  if (entry.count >= LIMIT) return false
+  entry.count++
+  return true
+}
+
 function isValidEmail(email: string): boolean {
   return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)
 }
 
 export async function POST(req: NextRequest) {
+  const ip =
+    req.headers.get('x-forwarded-for')?.split(',')[0]?.trim() ??
+    req.headers.get('x-real-ip') ??
+    'unknown'
+
+  if (!checkRateLimit(ip)) {
+    return NextResponse.json(
+      { error: 'Demasiadas solicitudes. Inténtalo de nuevo en unos minutos.' },
+      { status: 429 },
+    )
+  }
+
   let body: { name?: string; email?: string; company?: string; message?: string }
   try { body = await req.json() } catch {
     return NextResponse.json({ error: 'JSON inválido' }, { status: 400 })

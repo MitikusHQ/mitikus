@@ -321,8 +321,8 @@ export async function POST(req: NextRequest) {
 
       const userPrompt =
         attempt === 0
-          ? `${prefix}: ${trimmed}`
-          : `${prefix}: ${trimmed}\n\nEl intento anterior falló con estos errores de validación — corrígelos todos:\n${lastError}\n\nDevuelve únicamente el JSON corregido y completo.`
+          ? `${prefix}:\n<user_input>\n${trimmed}\n</user_input>`
+          : `${prefix}:\n<user_input>\n${trimmed}\n</user_input>\n\nEl intento anterior falló con estos errores de validación — corrígelos todos:\n${lastError}\n\nDevuelve únicamente el JSON corregido y completo.`
 
       const { text, inputTokens, outputTokens } = await callClaude(client, systemPrompt, userPrompt)
       totalInputTokens += inputTokens
