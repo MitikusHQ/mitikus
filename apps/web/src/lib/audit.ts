@@ -38,6 +38,10 @@ export type AuditAction =
   | 'favorite.remove'
   // Organización
   | 'org.member_role_update'
+  | 'org.member_removed'
+  | 'org.invitation_created'
+  | 'org.invitation_revoked'
+  | 'org.invitation_accepted'
   // Control de acceso
   | 'access.denied'
   // Planning Engine

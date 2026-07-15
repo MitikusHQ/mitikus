@@ -129,6 +129,7 @@ model OrgInvitation {
   acceptedAt DateTime?
   revokedAt  DateTime?
   createdBy  String
+  createdAt  DateTime  @default(now())
 
   org Organization @relation(fields: [orgId], references: [id], onDelete: Cascade)
 
