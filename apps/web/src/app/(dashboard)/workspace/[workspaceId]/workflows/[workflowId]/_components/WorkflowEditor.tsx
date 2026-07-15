@@ -16,6 +16,7 @@ import {
 } from '@xyflow/react'
 import '@xyflow/react/dist/style.css'
 
+import { AIWorkflowModal } from '../../_components/AIWorkflowModal'
 import { WorkflowNodeComponent, type WorkflowNodeData, type WorkflowNode as WFNode } from './WorkflowNodeComponent'
 import { WorkflowSidebar } from './WorkflowSidebar'
 import { WorkflowToolbar } from './WorkflowToolbar'
@@ -263,6 +264,8 @@ export function WorkflowEditor({ workflow, workspaceName, tools }: Props) {
     ? (nodes.find((n) => n.id === selectedNodeId) ?? null)
     : null
 
+  const isEmpty = nodes.length === 0
+
   return (
     <div className="h-full flex flex-col overflow-hidden">
       <WorkflowToolbar
@@ -292,7 +295,7 @@ export function WorkflowEditor({ workflow, workspaceName, tools }: Props) {
         />
 
         {/* Canvas */}
-        <div ref={reactFlowWrapper} className="flex-1 bg-muted/20">
+        <div ref={reactFlowWrapper} className="relative flex-1 bg-muted/20">
           <ReactFlow
             nodes={nodes}
             edges={edges}
@@ -317,6 +320,31 @@ export function WorkflowEditor({ workflow, workspaceName, tools }: Props) {
               className="!bg-muted/20 opacity-60"
             />
           </ReactFlow>
+
+          {isEmpty && (
+            <div className="absolute inset-0 z-10 flex flex-col items-center justify-center pointer-events-none">
+              <div className="rounded-2xl border-2 border-dashed border-primary/30 bg-card/90 backdrop-blur-sm p-8 flex flex-col items-center text-center gap-4 max-w-sm pointer-events-auto">
+                <div className="text-4xl">✨</div>
+                <div>
+                  <h3 className="text-base font-semibold">Canvas vacío</h3>
+                  <p className="text-sm text-muted-foreground mt-1">
+                    Arrastra herramientas desde el panel izquierdo, o deja que la IA monte el workflow por ti.
+                  </p>
+                </div>
+                <div className="flex flex-col gap-2 w-full">
+                  <AIWorkflowModal
+                    workspaceId={workflow.workspaceId}
+                    trigger={
+                      <button className="w-full rounded-lg bg-primary px-4 py-2.5 text-sm font-semibold text-primary-foreground hover:bg-primary/90 transition-colors">
+                        ✨ Generar con IA
+                      </button>
+                    }
+                  />
+                  <p className="text-xs text-muted-foreground">o arrastra una herramienta para empezar</p>
+                </div>
+              </div>
+            </div>
+          )}
         </div>
 
         {/* Right panel — Inspector / Run */}
