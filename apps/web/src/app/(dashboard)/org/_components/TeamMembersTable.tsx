@@ -11,6 +11,30 @@ interface Props {
   members: OrgMember[]
   currentUserId: string
   actorRole: OrgRole
+  showRemove?: boolean
+}
+
+function RemoveButton({ memberId, onRemoved }: { memberId: string; onRemoved: () => void }) {
+  const [loading, setLoading] = useState(false)
+
+  async function handleRemove() {
+    if (!confirm('¿Eliminar a este miembro del equipo? Perderá el acceso inmediatamente.')) return
+    setLoading(true)
+    const { removeMember } = await import('@/app/actions/org')
+    const result = await removeMember(memberId)
+    if ('success' in result) onRemoved()
+    setLoading(false)
+  }
+
+  return (
+    <button
+      onClick={handleRemove}
+      disabled={loading}
+      className="text-xs text-destructive hover:underline disabled:opacity-50 ml-3"
+    >
+      {loading ? '...' : 'Eliminar'}
+    </button>
+  )
 }
 
 function formatDate(iso: string): string {
@@ -31,7 +55,7 @@ function formatRelative(iso: string): string {
 
 const OWNER_COUNT = (members: OrgMember[]) => members.filter((m) => m.role === 'OWNER').length
 
-export function TeamMembersTable({ members: initialMembers, currentUserId, actorRole }: Props) {
+export function TeamMembersTable({ members: initialMembers, currentUserId, actorRole, showRemove }: Props) {
   const [members, setMembers] = useState<OrgMember[]>(initialMembers)
   const ownerCount = OWNER_COUNT(members)
 
@@ -85,14 +109,22 @@ export function TeamMembersTable({ members: initialMembers, currentUserId, actor
                     </div>
                   </td>
                   <td className="px-4 py-3.5">
-                    <RoleSelect
-                      memberId={member.id}
-                      currentRole={member.role}
-                      actorRole={actorRole}
-                      isOwnProfile={isMe}
-                      ownerCount={ownerCount}
-                      onSuccess={(newRole) => handleRoleChange(member.id, newRole)}
-                    />
+                    <div className="flex items-center">
+                      <RoleSelect
+                        memberId={member.id}
+                        currentRole={member.role}
+                        actorRole={actorRole}
+                        isOwnProfile={isMe}
+                        ownerCount={ownerCount}
+                        onSuccess={(newRole) => handleRoleChange(member.id, newRole)}
+                      />
+                      {showRemove && !isMe && member.role !== 'OWNER' && (
+                        <RemoveButton
+                          memberId={member.id}
+                          onRemoved={() => setMembers((prev) => prev.filter((m) => m.id !== member.id))}
+                        />
+                      )}
+                    </div>
                   </td>
                   <td className="px-4 py-3.5 text-xs text-muted-foreground whitespace-nowrap">
                     {formatDate(member.createdAt)}
@@ -132,14 +164,22 @@ export function TeamMembersTable({ members: initialMembers, currentUserId, actor
                     <div className="text-xs text-muted-foreground">{member.email}</div>
                   </div>
                 </div>
-                <RoleSelect
-                  memberId={member.id}
-                  currentRole={member.role}
-                  actorRole={actorRole}
-                  isOwnProfile={isMe}
-                  ownerCount={ownerCount}
-                  onSuccess={(newRole) => handleRoleChange(member.id, newRole)}
-                />
+                <div className="flex items-center">
+                  <RoleSelect
+                    memberId={member.id}
+                    currentRole={member.role}
+                    actorRole={actorRole}
+                    isOwnProfile={isMe}
+                    ownerCount={ownerCount}
+                    onSuccess={(newRole) => handleRoleChange(member.id, newRole)}
+                  />
+                  {showRemove && !isMe && member.role !== 'OWNER' && (
+                    <RemoveButton
+                      memberId={member.id}
+                      onRemoved={() => setMembers((prev) => prev.filter((m) => m.id !== member.id))}
+                    />
+                  )}
+                </div>
               </div>
               <div className="flex items-center gap-4 text-xs text-muted-foreground pl-10">
                 <span>Alta: {formatDate(member.createdAt)}</span>
