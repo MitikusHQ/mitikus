@@ -106,13 +106,35 @@ model Organization {
   createdAt  DateTime @default(now())
   updatedAt  DateTime @updatedAt
 
+  // Equipo — categorías activas (vacío = todas activas)
+  enabledCategories ToolCategory[]
+
   // Relaciones
   users        User[]
   workspaces   Workspace[]
   auditLogs    AuditLog[]
   subscription Subscription?
+  invitations  OrgInvitation[]
 
   @@map("organizations")
+}
+
+model OrgInvitation {
+  id         String    @id @default(cuid())
+  orgId      String
+  email      String?
+  role       OrgRole
+  token      String    @unique @default(cuid())
+  expiresAt  DateTime
+  acceptedAt DateTime?
+  revokedAt  DateTime?
+  createdBy  String
+
+  org Organization @relation(fields: [orgId], references: [id], onDelete: Cascade)
+
+  @@index([token])
+  @@index([orgId])
+  @@map("org_invitations")
 }
 
 // ============================================================
