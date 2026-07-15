@@ -87,6 +87,7 @@ export function AIWorkflowModal({ workspaceId, trigger }: Props) {
   }
 
   function reset() {
+    setLoading(false)
     setStep('context')
     setObjective('')
     setSector('')
@@ -206,7 +207,7 @@ export function AIWorkflowModal({ workspaceId, trigger }: Props) {
               <p className="text-xs font-medium text-muted-foreground uppercase tracking-wide">Pasos del workflow ({nodes.length})</p>
               <div className="rounded-xl border bg-card divide-y overflow-hidden">
                 {nodes.map((node, i) => (
-                  <div key={node.toolId} className="flex items-start gap-3 px-4 py-3">
+                  <div key={`${node.toolId}-${i}`} className="flex items-start gap-3 px-4 py-3">
                     <span className="text-xs font-mono text-muted-foreground mt-0.5 w-4 shrink-0">{i + 1}</span>
                     <div className="flex-1 min-w-0">
                       <div className="flex items-center gap-2 flex-wrap">
