@@ -299,6 +299,77 @@ export async function getOrgUsageSummary(): Promise<OrgUsageSummary | { error: s
   }
 }
 
+// ── removeMember ──────────────────────────────────────────────────
+
+export async function removeMember(
+  targetUserId: string,
+): Promise<{ success: true } | { error: string }> {
+  try {
+    const actor = await requireUser()
+    assertCan(actor, 'manage_members', { orgId: actor.orgId, userId: actor.id, entityType: 'member', entityId: targetUserId })
+
+    if (actor.id === targetUserId) return { error: 'No puedes eliminarte a ti mismo' }
+
+    const target = await db.user.findFirst({ where: { id: targetUserId, orgId: actor.orgId } })
+    if (!target) return { error: 'Usuario no encontrado' }
+    if (target.role === 'OWNER') return { error: 'No se puede eliminar al propietario' }
+
+    await db.user.delete({ where: { id: targetUserId } })
+
+    audit({
+      orgId: actor.orgId,
+      actorUserId: actor.id,
+      action: 'org.member_removed',
+      entityType: 'member',
+      entityId: targetUserId,
+      metadata: { targetEmail: target.email },
+    })
+
+    return { success: true }
+  } catch (e) {
+    return { error: e instanceof Error ? e.message : 'Error al eliminar miembro' }
+  }
+}
+
+// ── listPendingInvitations ────────────────────────────────────────
+
+export interface PendingInvitation {
+  id: string
+  email: string | null
+  role: OrgRole
+  roleLabel: string
+  token: string
+  expiresAt: string
+  createdAt: string
+  isExpired: boolean
+}
+
+export async function listPendingInvitations(): Promise<PendingInvitation[] | { error: string }> {
+  try {
+    const user = await requireUser()
+    assertCan(user, 'manage_members', { orgId: user.orgId, userId: user.id })
+
+    const invitations = await db.orgInvitation.findMany({
+      where: { orgId: user.orgId, acceptedAt: null, revokedAt: null },
+      orderBy: { createdAt: 'desc' },
+    })
+
+    const now = new Date()
+    return invitations.map((inv) => ({
+      id: inv.id,
+      email: inv.email,
+      role: inv.role,
+      roleLabel: ROLE_LABELS[inv.role],
+      token: inv.token,
+      expiresAt: inv.expiresAt.toISOString(),
+      createdAt: inv.createdAt.toISOString(),
+      isExpired: inv.expiresAt < now,
+    }))
+  } catch (e) {
+    return { error: e instanceof Error ? e.message : 'Error al listar invitaciones' }
+  }
+}
+
 // ── currentUserRole ───────────────────────────────────────────────
 
 export async function getCurrentUserOrgRole(): Promise<{ role: OrgRole; canManageMembers: boolean } | { error: string }> {
