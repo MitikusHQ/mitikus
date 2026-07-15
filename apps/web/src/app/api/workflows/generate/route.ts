@@ -44,6 +44,17 @@ export async function POST(req: NextRequest) {
   const body: RequestBody = await req.json().catch(() => null)
   if (!body?.step) return NextResponse.json({ error: 'Parámetro step requerido' }, { status: 400 })
 
+  // Validar longitudes para mitigar prompt injection
+  if ('objective' in body && body.objective.length > 300) {
+    return NextResponse.json({ error: 'El objetivo no puede superar 300 caracteres' }, { status: 400 })
+  }
+  if ('sector' in body && body.sector.length > 150) {
+    return NextResponse.json({ error: 'El sector no puede superar 150 caracteres' }, { status: 400 })
+  }
+  if ('answers' in body && body.answers.some((a: string) => a.length > 600)) {
+    return NextResponse.json({ error: 'Cada respuesta no puede superar 600 caracteres' }, { status: 400 })
+  }
+
   if (body.step === 'questions') {
     return handleQuestions(body)
   }
@@ -76,9 +87,18 @@ Responde SOLO con un JSON válido en este formato exacto:
   })
 
   const text = message.content[0]?.type === 'text' ? message.content[0].text.trim() : ''
-  const parsed = JSON.parse(text) as { questions: string[] }
 
-  return NextResponse.json({ questions: parsed.questions })
+  let questions: string[]
+  try {
+    // Claude a veces envuelve el JSON en markdown code fences — limpiarlos
+    const clean = text.replace(/^```(?:json)?\n?/m, '').replace(/\n?```$/m, '').trim()
+    const parsed = JSON.parse(clean) as { questions: string[] }
+    questions = parsed.questions
+  } catch {
+    return NextResponse.json({ error: 'Error al parsear respuesta de la IA' }, { status: 502 })
+  }
+
+  return NextResponse.json({ questions })
 }
 
 async function handleGenerate(
@@ -138,10 +158,22 @@ Responde SOLO con un JSON válido en este formato exacto:
   })
 
   const text = message.content[0]?.type === 'text' ? message.content[0].text.trim() : ''
-  const generated = JSON.parse(text) as {
-    workflowName: string
-    nodes: Array<{ toolId: string; toolSlug: string; toolName: string; label: string; reason: string }>
+
+  let generated: { workflowName: string; nodes: Array<{ toolId: string; toolSlug: string; toolName: string; label: string; reason: string }> }
+  try {
+    const clean = text.replace(/^```(?:json)?\n?/m, '').replace(/\n?```$/m, '').trim()
+    generated = JSON.parse(clean)
+  } catch {
+    return NextResponse.json({ error: 'Error al parsear respuesta de la IA' }, { status: 502 })
   }
+
+  // Filtrar nodos con toolId que no existan en el catálogo real
+  const validToolIds = new Set(tools.map((t) => t.id))
+  const validNodes = generated.nodes.filter((n) => validToolIds.has(n.toolId))
+  if (validNodes.length === 0) {
+    return NextResponse.json({ error: 'La IA no pudo seleccionar herramientas válidas para este objetivo' }, { status: 422 })
+  }
+  generated = { ...generated, nodes: validNodes }
 
   const installedInstances = await db.toolInstance.findMany({
     where: {

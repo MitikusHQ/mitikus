@@ -50,18 +50,7 @@ export async function POST(req: NextRequest) {
     }
   }
 
-  // 2. Obtener instancias
-  const instances = await db.toolInstance.findMany({
-    where: {
-      workspaceId,
-      status: 'ACTIVE',
-      toolDefinitionId: { in: nodes.map((n) => n.toolId) },
-    },
-    select: { toolDefinitionId: true, id: true },
-  })
-  const instanceMap = new Map(instances.map((i) => [i.toolDefinitionId, i.id]))
-
-  // 3. Crear workflow
+  // 2. Crear workflow
   const workflowResult = await createWorkflow(workspaceId, workflowName)
   if ('error' in workflowResult) {
     return NextResponse.json({ error: workflowResult.error }, { status: 500 })
@@ -91,7 +80,7 @@ export async function POST(req: NextRequest) {
     targetHandle: 'input',
   }))
 
-  // 5. Guardar grafo
+  // 3. Guardar grafo
   const saveResult = await saveWorkflowGraph(workflowId, workspaceId, {
     nodes: graphNodes,
     connections: graphConnections,
@@ -99,9 +88,6 @@ export async function POST(req: NextRequest) {
   if ('error' in saveResult) {
     return NextResponse.json({ error: saveResult.error }, { status: 500 })
   }
-
-  // instanceMap usado para referencia futura (evitar lint warning)
-  void instanceMap
 
   return NextResponse.json({ workflowId, workspaceId })
 }
