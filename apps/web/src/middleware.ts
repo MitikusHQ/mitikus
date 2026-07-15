@@ -17,6 +17,7 @@ const isPublicRoute = createRouteMatcher([
   '/onboarding',
   '/privacy',
   '/shared/(.*)',
+  '/invite/(.*)',
   '/sitemap.xml',
   '/robots.txt',
   '/llms.txt',
