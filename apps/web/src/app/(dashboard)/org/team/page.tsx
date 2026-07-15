@@ -31,19 +31,15 @@ export default async function OrgTeamPage() {
           </p>
         </div>
 
-        {/* Invite placeholder */}
-        <button
-          type="button"
-          disabled
-          title="Las invitaciones estarán disponibles próximamente"
-          className="inline-flex items-center gap-2 rounded-lg bg-primary px-4 py-2 text-sm font-medium text-primary-foreground opacity-50 cursor-not-allowed"
+        <a
+          href="/settings/team"
+          className="inline-flex items-center gap-2 rounded-lg bg-primary px-4 py-2 text-sm font-medium text-primary-foreground hover:bg-primary/90 transition-colors"
         >
           <svg className="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
             <path d="M12 5v14M5 12h14" />
           </svg>
-          Invitar miembro
-          <span className="text-[10px] opacity-70">(próximamente)</span>
-        </button>
+          Gestionar equipo
+        </a>
       </div>
 
       {/* Members table */}
