@@ -5,6 +5,7 @@ import { useRouter } from 'next/navigation'
 import Link from 'next/link'
 import { createWorkflow } from '@/app/actions/workflows'
 import { use } from 'react'
+import { AIWorkflowModal } from '../_components/AIWorkflowModal'
 
 interface Props {
   params: Promise<{ workspaceId: string }>
@@ -33,8 +34,10 @@ export default function NewWorkflowPage({ params }: Props) {
   }
 
   return (
-    <div className="max-w-lg mx-auto px-6 py-12">
-      <div className="rounded-2xl border bg-card p-8 shadow-sm">
+    <div className="max-w-4xl mx-auto px-6 py-12">
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-6 items-start">
+        {/* columna izquierda — formulario existente */}
+        <div className="rounded-2xl border bg-card p-8 shadow-sm">
           <div className="text-4xl mb-4">🔗</div>
           <h1 className="text-xl font-semibold mb-1">Nuevo Workflow</h1>
           <p className="text-sm text-muted-foreground mb-6">
@@ -79,6 +82,26 @@ export default function NewWorkflowPage({ params }: Props) {
             </button>
           </form>
         </div>
+
+        {/* columna derecha — CTA IA */}
+        <div className="rounded-2xl border-2 border-dashed border-primary/30 bg-primary/5 p-8 flex flex-col items-center text-center gap-4">
+          <div className="text-4xl">✨</div>
+          <div>
+            <h2 className="text-lg font-semibold">Generar con IA</h2>
+            <p className="text-sm text-muted-foreground mt-1">
+              Describe tu proceso en lenguaje natural y la IA crea el workflow automáticamente, eligiendo y conectando las herramientas por ti.
+            </p>
+          </div>
+          <AIWorkflowModal
+            workspaceId={workspaceId}
+            trigger={
+              <button className="rounded-lg bg-primary px-6 py-2.5 text-sm font-semibold text-primary-foreground hover:bg-primary/90 transition-colors">
+                ✨ Generar con IA
+              </button>
+            }
+          />
+        </div>
+      </div>
     </div>
   )
 }
