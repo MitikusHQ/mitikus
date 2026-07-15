@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { auth } from '@clerk/nextjs/server'
 import { db } from '@/lib/db'
+import { can } from '@/lib/permissions'
 import { runToolExecution } from '@/lib/execution-engine'
 import { recordAIUsage } from '@/lib/ai-usage'
 import { checkAllLimits } from '@/lib/ai-rate-limit'
@@ -34,9 +35,13 @@ export async function POST(req: NextRequest) {
 
   const user = await db.user.findUnique({
     where: { clerkId: userId },
-    select: { id: true, orgId: true },
+    select: { id: true, orgId: true, role: true },
   })
   if (!user) return NextResponse.json({ error: 'Usuario no encontrado' }, { status: 404 })
+
+  if (!can(user, 'execute_tool')) {
+    return NextResponse.json({ error: 'Sin permisos para ejecutar herramientas' }, { status: 403 })
+  }
 
   let body: RequestBody
   try {
