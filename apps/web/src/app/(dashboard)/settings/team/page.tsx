@@ -28,7 +28,7 @@ export default async function SettingsTeamPage() {
             {members.length} {members.length === 1 ? 'miembro' : 'miembros'} en la organización
           </p>
         </div>
-        <InviteModal actorRole={user.role} onInviteCreated={() => {}} />
+        <InviteModal actorRole={user.role} />
       </div>
 
       <section className="space-y-4">

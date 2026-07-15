@@ -11,10 +11,9 @@ const INVITE_ROLES: { value: OrgRole; label: string; description: string }[] = [
 
 interface Props {
   actorRole: OrgRole
-  onInviteCreated: () => void
 }
 
-export function InviteModal({ actorRole, onInviteCreated }: Props) {
+export function InviteModal({ actorRole }: Props) {
   const [open, setOpen] = useState(false)
   const [role, setRole] = useState<OrgRole>('EDITOR')
   const [email, setEmail] = useState('')
@@ -41,7 +40,6 @@ export function InviteModal({ actorRole, onInviteCreated }: Props) {
         return
       }
       setLink(data.link)
-      onInviteCreated()
     } catch {
       setError('Error de red')
     } finally {
