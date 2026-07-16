@@ -2,6 +2,8 @@ import Link from 'next/link'
 import { requireUser } from '@/lib/auth'
 import { getTodayData } from '@/app/actions/today'
 import type { PendingStep, PendingWorkflow, TeamActivityEvent } from '@/app/actions/today'
+import { ClockWidget } from './_components/ClockWidget'
+import { getTodayEntry } from '@/app/actions/timelog'
 
 interface Props {
   params: Promise<{ workspaceId: string }>
@@ -32,7 +34,10 @@ const statusLabels: Record<string, { label: string; className: string }> = {
 
 export default async function TodayPage({ params }: Props) {
   const [{ workspaceId }, user] = await Promise.all([params, requireUser()])
-  const data = await getTodayData(workspaceId, user.id)
+  const [data, todayEntry] = await Promise.all([
+    getTodayData(workspaceId, user.id),
+    getTodayEntry(workspaceId, user.id),
+  ])
 
   const isEmpty = data.pendingSteps.length === 0 && data.pendingWorkflows.length === 0
 
@@ -43,6 +48,8 @@ export default async function TodayPage({ params }: Props) {
         <h1 className="text-2xl font-semibold">{greeting()}, {user.name?.split(' ')[0] ?? 'equipo'}</h1>
         <p className="text-sm text-muted-foreground mt-0.5 capitalize">{todayLabel()}</p>
       </div>
+
+      <ClockWidget workspaceId={workspaceId} initialEntry={todayEntry} />
 
       {isEmpty && (
         <div className="rounded-2xl border border-dashed p-12 flex flex-col items-center text-center gap-3">
