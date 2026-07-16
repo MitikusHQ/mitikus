@@ -235,6 +235,7 @@ model User {
   auditLogs            AuditLog[]
   copilotConversations CopilotConversation[]
   assignedSteps        MissionStep[]         @relation("StepAssignments")
+  timeEntries          TimeEntry[]
 
   @@index([orgId])
   @@map("users")
@@ -272,6 +273,7 @@ model Workspace {
 
   // Business Copilot
   copilotConversations CopilotConversation[]
+  timeEntries          TimeEntry[]
 
   @@unique([orgId, slug])
   @@index([orgId])
@@ -297,6 +299,7 @@ model Client {
   workspace     Workspace         @relation(fields: [workspaceId], references: [id], onDelete: Cascade)
   toolInstances ToolInstance[]
   objectives    CompanyObjective[] // WM-001 Sprint 0
+  timeImputations TimeImputation[]
 
   @@index([workspaceId])
   @@map("clients")
@@ -1024,6 +1027,7 @@ model CompanyObjective {
   steps     MissionStep[]
   intelligence    MissionIntelligence?
   timelineEvents  MissionTimelineEvent[]
+  timeImputations TimeImputation[]
 
   @@index([workspaceId, status])
   @@index([profileId])
@@ -1319,4 +1323,47 @@ model ProductEvent {
   @@index([event, createdAt])              // frecuencia global por tipo de evento
   @@index([createdAt])                     // queries de rango temporal
   @@map("product_events")
+}
+
+// ============================================================
+// CONTROL HORARIO — Fichaje de entrada/salida
+// ============================================================
+
+model TimeEntry {
+  id          String    @id @default(cuid())
+  workspaceId String
+  userId      String
+  date        DateTime  @db.Date
+  clockIn     DateTime
+  clockOut    DateTime?
+  note        String?
+  editReason  String?
+  editedAt    DateTime?
+  editedBy    String?
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
+
+  workspace   Workspace      @relation(fields: [workspaceId], references: [id], onDelete: Cascade)
+  user        User           @relation(fields: [userId], references: [id], onDelete: Cascade)
+  imputations TimeImputation[]
+
+  @@index([workspaceId, userId, date])
+  @@map("time_entries")
+}
+
+model TimeImputation {
+  id          String   @id @default(cuid())
+  timeEntryId String
+  objectiveId String?
+  clientId    String?
+  hours       Decimal  @db.Decimal(4, 2)
+  description String?
+  createdAt   DateTime @default(now())
+
+  timeEntry   TimeEntry         @relation(fields: [timeEntryId], references: [id], onDelete: Cascade)
+  objective   CompanyObjective? @relation(fields: [objectiveId], references: [id], onDelete: SetNull)
+  client      Client?           @relation(fields: [clientId], references: [id], onDelete: SetNull)
+
+  @@index([timeEntryId])
+  @@map("time_imputations")
 }
