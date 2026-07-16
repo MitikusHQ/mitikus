@@ -92,6 +92,7 @@ function PendingStepsBlock({ steps, workspaceId }: { steps: PendingStep[]; works
             <Link
               href={`/workspace/${workspaceId}/missions/${step.objectiveId}`}
               className="shrink-0 text-xs font-medium text-primary hover:underline"
+              aria-label={`Ir al paso: ${step.stepTitle}`}
             >
               Ir al paso →
             </Link>
@@ -137,6 +138,7 @@ function WorkflowsBlock({ workflows, workspaceId }: { workflows: PendingWorkflow
               <Link
                 href={`/workspace/${workspaceId}/workflows/${wf.workflowId}`}
                 className="shrink-0 text-xs font-medium text-primary hover:underline"
+                aria-label={`Ejecutar workflow: ${wf.workflowName}`}
               >
                 Ejecutar →
               </Link>
@@ -165,8 +167,8 @@ function TeamActivityBlock({ events }: { events: TeamActivityEvent[] }) {
         Actividad del equipo hoy
       </h2>
       <div className="rounded-xl border bg-card divide-y overflow-hidden">
-        {events.slice(0, 20).map((event, i) => (
-          <div key={i} className="flex items-start gap-3 px-4 py-3">
+        {events.slice(0, 20).map((event) => (
+          <div key={`${event.actorName}-${event.createdAt}`} className="flex items-start gap-3 px-4 py-3">
             <div className="shrink-0 w-7 h-7 rounded-full bg-primary/10 flex items-center justify-center text-xs font-semibold text-primary">
               {event.actorName.charAt(0).toUpperCase()}
             </div>
