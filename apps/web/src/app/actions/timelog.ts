@@ -184,9 +184,16 @@ export async function updateEntry(
   data: { clockIn: string; clockOut: string; editReason: string }
 ): Promise<TimeEntryData> {
   const editorId = await getAuthUserId()
+
+  // Verificar ownership
+  const existing = await db.timeEntry.findFirst({
+    where: { id: entryId, workspaceId },
+    select: { id: true },
+  })
+  if (!existing) throw new Error('Fichaje no encontrado o sin permisos')
+
   const clockIn = new Date(data.clockIn)
   const clockOut = new Date(data.clockOut)
-
   if (clockOut <= clockIn) throw new Error('La hora de salida debe ser posterior a la entrada')
 
   const updated = await db.timeEntry.update({
@@ -201,6 +208,12 @@ export async function updateEntry(
 }
 
 export async function deleteEntry(entryId: string, workspaceId: string): Promise<void> {
+  const userId = await getAuthUserId()
+  const entry = await db.timeEntry.findFirst({
+    where: { id: entryId, workspaceId, userId },
+    select: { id: true },
+  })
+  if (!entry) throw new Error('Fichaje no encontrado o sin permisos')
   await db.timeEntry.delete({ where: { id: entryId } })
   revalidatePath(`/workspace/${workspaceId}/timelog`)
   revalidatePath(`/workspace/${workspaceId}/today`)
@@ -214,6 +227,15 @@ export async function addImputation(data: {
   hours: number
   description?: string
 }): Promise<ImputationData> {
+  const userId = await getAuthUserId()
+
+  // Verificar ownership del entry
+  const entry = await db.timeEntry.findFirst({
+    where: { id: data.timeEntryId, workspaceId: data.workspaceId, userId },
+    select: { id: true },
+  })
+  if (!entry) throw new Error('Fichaje no encontrado o sin permisos')
+
   const imp = await db.timeImputation.create({
     data: {
       timeEntryId: data.timeEntryId,
@@ -233,6 +255,18 @@ export async function addImputation(data: {
 }
 
 export async function deleteImputation(imputationId: string, workspaceId: string): Promise<void> {
+  const userId = await getAuthUserId()
+
+  // Verificar ownership via join a timeEntry
+  const imp = await db.timeImputation.findFirst({
+    where: {
+      id: imputationId,
+      timeEntry: { workspaceId, userId },
+    },
+    select: { id: true },
+  })
+  if (!imp) throw new Error('Imputación no encontrada o sin permisos')
+
   await db.timeImputation.delete({ where: { id: imputationId } })
   revalidatePath(`/workspace/${workspaceId}/timelog`)
 }
