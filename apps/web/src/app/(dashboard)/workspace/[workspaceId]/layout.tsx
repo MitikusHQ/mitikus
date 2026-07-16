@@ -43,6 +43,12 @@ export default async function WorkspaceLayout({ children, params }: Props) {
       badge: pendingCount > 0 ? String(pendingCount) : undefined,
     },
     {
+      label: 'Control horario',
+      href: `${base}/timelog`,
+      icon: Icons.timelog,
+      description: 'Fichaje de entrada/salida e imputación de horas por proyecto',
+    },
+    {
       label: 'Copilot',
       href: `${base}/copilot`,
       icon: Icons.copilot,
