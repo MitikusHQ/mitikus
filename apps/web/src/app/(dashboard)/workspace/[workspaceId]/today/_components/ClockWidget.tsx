@@ -71,7 +71,7 @@ export function ClockWidget({ workspaceId, initialEntry }: Props) {
           {!entry && <p className="text-sm font-medium">Sin fichar</p>}
           {isOpen && (
             <>
-              <p className="text-sm font-medium">Trabajando · <span className="text-muted-foreground">{elapsed}</span></p>
+              <p className="text-sm font-medium">Llevas <span className="text-muted-foreground">{elapsed}</span></p>
               <p className="text-xs text-muted-foreground">Entrada: {formatTime(entry.clockIn)}</p>
             </>
           )}
