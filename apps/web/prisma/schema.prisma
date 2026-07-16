@@ -236,6 +236,7 @@ model User {
   copilotConversations CopilotConversation[]
   assignedSteps        MissionStep[]         @relation("StepAssignments")
   timeEntries          TimeEntry[]
+  timeEntriesEdited    TimeEntry[]           @relation("TimeEntryEditor")
 
   @@index([orgId])
   @@map("users")
@@ -1340,6 +1341,7 @@ model TimeEntry {
   editReason  String?
   editedAt    DateTime?
   editedBy    String?
+  editor      User?    @relation("TimeEntryEditor", fields: [editedBy], references: [id], onDelete: SetNull)
   createdAt   DateTime  @default(now())
   updatedAt   DateTime  @updatedAt
 
@@ -1359,11 +1361,14 @@ model TimeImputation {
   hours       Decimal  @db.Decimal(4, 2)
   description String?
   createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
 
   timeEntry   TimeEntry         @relation(fields: [timeEntryId], references: [id], onDelete: Cascade)
   objective   CompanyObjective? @relation(fields: [objectiveId], references: [id], onDelete: SetNull)
   client      Client?           @relation(fields: [clientId], references: [id], onDelete: SetNull)
 
   @@index([timeEntryId])
+  @@index([objectiveId])
+  @@index([clientId])
   @@map("time_imputations")
 }
