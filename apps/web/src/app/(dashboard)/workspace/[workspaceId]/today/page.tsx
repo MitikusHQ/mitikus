@@ -75,7 +75,7 @@ function PendingStepsBlock({ steps, workspaceId }: { steps: PendingStep[]; works
         Mis pasos pendientes ({steps.length})
       </h2>
       <div className="rounded-xl border bg-card divide-y overflow-hidden">
-        {steps.map((step) => (
+        {steps.slice(0, 10).map((step) => (
           <div key={step.stepId} className="flex items-center gap-4 px-4 py-3">
             <div className="flex-1 min-w-0">
               <div className="flex items-center gap-2 flex-wrap">
@@ -97,6 +97,16 @@ function PendingStepsBlock({ steps, workspaceId }: { steps: PendingStep[]; works
             </Link>
           </div>
         ))}
+        {steps.length > 10 && (
+          <div className="px-4 py-2 border-t">
+            <Link
+              href={`/workspace/${workspaceId}/missions`}
+              className="text-xs text-primary hover:underline"
+            >
+              Ver todos ({steps.length}) →
+            </Link>
+          </div>
+        )}
       </div>
     </section>
   )
@@ -109,7 +119,7 @@ function WorkflowsBlock({ workflows, workspaceId }: { workflows: PendingWorkflow
         Workflows ({workflows.length})
       </h2>
       <div className="rounded-xl border bg-card divide-y overflow-hidden">
-        {workflows.map((wf) => {
+        {workflows.slice(0, 10).map((wf) => {
           const badge = wf.lastExecutionStatus ? statusLabels[wf.lastExecutionStatus] : null
           return (
             <div key={wf.workflowId} className="flex items-center gap-4 px-4 py-3">
@@ -133,6 +143,16 @@ function WorkflowsBlock({ workflows, workspaceId }: { workflows: PendingWorkflow
             </div>
           )
         })}
+        {workflows.length > 10 && (
+          <div className="px-4 py-2 border-t">
+            <Link
+              href={`/workspace/${workspaceId}/workflows`}
+              className="text-xs text-primary hover:underline"
+            >
+              Ver todos ({workflows.length}) →
+            </Link>
+          </div>
+        )}
       </div>
     </section>
   )
@@ -145,7 +165,7 @@ function TeamActivityBlock({ events }: { events: TeamActivityEvent[] }) {
         Actividad del equipo hoy
       </h2>
       <div className="rounded-xl border bg-card divide-y overflow-hidden">
-        {events.map((event, i) => (
+        {events.slice(0, 20).map((event, i) => (
           <div key={i} className="flex items-start gap-3 px-4 py-3">
             <div className="shrink-0 w-7 h-7 rounded-full bg-primary/10 flex items-center justify-center text-xs font-semibold text-primary">
               {event.actorName.charAt(0).toUpperCase()}
