@@ -147,8 +147,8 @@ export async function getTodayData(workspaceId: string, userId: string): Promise
   })
 
   const teamActivity: TeamActivityEvent[] = rawActivity.map((e) => {
-    const meta = (e.metadata ?? {}) as Record<string, string>
-    const entityLabel = meta['entityName'] ?? meta['name'] ?? e.entityType
+    const meta = (e.metadata ?? {}) as Record<string, unknown>
+    const entityLabel = String(meta['entityName'] ?? meta['name'] ?? e.entityType)
     return {
       actorName: e.actorUser?.name ?? 'Alguien',
       action: formatAction(e.action, e.entityType),
