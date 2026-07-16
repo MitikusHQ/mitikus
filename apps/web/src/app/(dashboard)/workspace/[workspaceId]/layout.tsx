@@ -5,6 +5,7 @@ import { can } from '@/lib/permissions'
 import { WorkspaceShell } from './_components/WorkspaceShell'
 import { Icons } from './_components/WorkspaceIcons'
 import type { NavItem } from './_components/WorkspaceSidebarItem'
+import { getPendingCount } from '@/app/actions/today'
 
 interface Props {
   children: React.ReactNode
@@ -19,10 +20,13 @@ interface NavGroup {
 export default async function WorkspaceLayout({ children, params }: Props) {
   const [{ workspaceId }, user] = await Promise.all([params, requireUser()])
 
-  const workspace = await db.workspace.findFirst({
-    where: { id: workspaceId, orgId: user.orgId },
-    select: { id: true, name: true },
-  })
+  const [workspace, pendingCount] = await Promise.all([
+    db.workspace.findFirst({
+      where: { id: workspaceId, orgId: user.orgId },
+      select: { id: true, name: true },
+    }),
+    getPendingCount(workspaceId, user.id),
+  ])
 
   if (!workspace) notFound()
 
@@ -31,6 +35,13 @@ export default async function WorkspaceLayout({ children, params }: Props) {
   const base = `/workspace/${workspaceId}`
 
   const mainItems: NavItem[] = [
+    {
+      label: 'Mi día',
+      href: `${base}/today`,
+      icon: Icons.today,
+      description: 'Tus tareas pendientes y actividad del equipo de hoy',
+      badge: pendingCount > 0 ? String(pendingCount) : undefined,
+    },
     {
       label: 'Copilot',
       href: `${base}/copilot`,
