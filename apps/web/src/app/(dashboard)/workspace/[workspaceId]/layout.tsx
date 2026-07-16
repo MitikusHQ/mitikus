@@ -25,7 +25,7 @@ export default async function WorkspaceLayout({ children, params }: Props) {
       where: { id: workspaceId, orgId: user.orgId },
       select: { id: true, name: true },
     }),
-    getPendingCount(workspaceId, user.id),
+    getPendingCount(workspaceId, user.id).catch(() => 0),
   ])
 
   if (!workspace) notFound()
@@ -78,7 +78,7 @@ export default async function WorkspaceLayout({ children, params }: Props) {
       icon: Icons.clients,
       description: 'Las empresas o personas a las que prestas servicio',
     },
-  ].filter((item) => {
+  ].filter(() => {
     // All VIEWER+ can see main items
     return can(user, 'view_workspace')
   })
