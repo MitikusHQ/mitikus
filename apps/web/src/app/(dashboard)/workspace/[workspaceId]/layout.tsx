@@ -43,12 +43,6 @@ export default async function WorkspaceLayout({ children, params }: Props) {
       badge: pendingCount > 0 ? String(pendingCount) : undefined,
     },
     {
-      label: 'Control horario',
-      href: `${base}/timelog`,
-      icon: Icons.timelog,
-      description: 'Fichaje de entrada/salida e imputación de horas por proyecto',
-    },
-    {
       label: 'Copilot',
       href: `${base}/copilot`,
       icon: Icons.copilot,
@@ -126,10 +120,20 @@ export default async function WorkspaceLayout({ children, params }: Props) {
     })
   }
 
+  const profileItems: NavItem[] = [
+    {
+      label: 'Mi perfil',
+      href: `${base}/profile`,
+      icon: Icons.profile,
+      description: 'Tu perfil, control horario y preferencias personales',
+    },
+  ]
+
   const navGroups: NavGroup[] = [
     { items: mainItems },
     { label: 'Datos', items: dataItems },
     ...(adminItems.length > 0 ? [{ label: 'Administración', items: adminItems }] : []),
+    { items: profileItems },
   ].filter((g) => g.items.length > 0)
 
   return (
