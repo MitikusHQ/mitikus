@@ -77,7 +77,8 @@ export function EditEntryModal({ entry, workspaceId, onClose, onSaved }: Props) 
 
         <div className="flex gap-3 pt-1">
           <button onClick={onClose}
-            className="flex-1 rounded-lg border px-4 py-2 text-sm hover:bg-muted/30 transition-colors">
+            disabled={isPending}
+            className="flex-1 rounded-lg border px-4 py-2 text-sm hover:bg-muted/30 disabled:opacity-60 transition-colors">
             Cancelar
           </button>
           <button onClick={handleSave} disabled={isPending}

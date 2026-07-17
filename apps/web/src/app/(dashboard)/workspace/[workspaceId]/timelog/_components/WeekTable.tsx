@@ -140,7 +140,8 @@ export function WeekTable({ workspaceId, initialEntries, weekStart }: Props) {
                     </button>
                     <button
                       onClick={() => setEditingEntry(entry)}
-                      className="text-xs text-muted-foreground hover:text-foreground"
+                      disabled={isPending}
+                      className="text-xs text-muted-foreground hover:text-foreground disabled:opacity-50"
                       aria-label={`Editar fichaje del ${dayName}`}
                     >
                       ✏️
