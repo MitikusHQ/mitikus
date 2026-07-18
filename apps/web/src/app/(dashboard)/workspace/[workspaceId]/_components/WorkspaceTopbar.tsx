@@ -5,6 +5,7 @@ import { usePathname } from 'next/navigation'
 import { UserNav } from '@/app/(dashboard)/_components/UserNav'
 import { Icons } from './WorkspaceIcons'
 import { GlobalSearch } from './GlobalSearch'
+import { NotificationBell } from './NotificationBell'
 
 interface Props {
   workspaceId: string
@@ -135,6 +136,7 @@ export function WorkspaceTopbar({ workspaceId, workspaceName, onToggleSidebar, s
           {Icons.plus}
           <span>Nueva herramienta</span>
         </Link>
+        <NotificationBell workspaceId={workspaceId} />
         <UserNav />
       </div>
     </header>
