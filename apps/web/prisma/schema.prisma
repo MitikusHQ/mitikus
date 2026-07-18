@@ -93,6 +93,20 @@ enum WorkflowNodeStatus {
   SKIPPED
 }
 
+enum TaskStatus {
+  PENDING
+  IN_PROGRESS
+  DONE
+  CANCELLED
+}
+
+enum TaskPriority {
+  LOW
+  MEDIUM
+  HIGH
+  CRITICAL
+}
+
 // ============================================================
 // ORGANIZACIÓN — raíz del modelo multi-tenant
 // ============================================================
@@ -237,6 +251,10 @@ model User {
   assignedSteps        MissionStep[]         @relation("StepAssignments")
   timeEntries          TimeEntry[]
   timeEntriesEdited    TimeEntry[]           @relation("TimeEntryEditor")
+  tasksCreated         Task[]                @relation("TaskCreator")
+  taskTagged           TaskTag[]             @relation("TaskTagged")
+  taskTagsMade         TaskTag[]             @relation("TaskTagger")
+  notifications        Notification[]
 
   @@index([orgId])
   @@map("users")
@@ -275,6 +293,7 @@ model Workspace {
   // Business Copilot
   copilotConversations CopilotConversation[]
   timeEntries          TimeEntry[]
+  tasks                Task[]
 
   @@unique([orgId, slug])
   @@index([orgId])
@@ -301,6 +320,7 @@ model Client {
   toolInstances ToolInstance[]
   objectives    CompanyObjective[] // WM-001 Sprint 0
   timeImputations TimeImputation[]
+  tasks           Task[]
 
   @@index([workspaceId])
   @@map("clients")
@@ -1029,6 +1049,7 @@ model CompanyObjective {
   intelligence    MissionIntelligence?
   timelineEvents  MissionTimelineEvent[]
   timeImputations TimeImputation[]
+  tasks           Task[]
 
   @@index([workspaceId, status])
   @@index([profileId])
@@ -1371,4 +1392,73 @@ model TimeImputation {
   @@index([objectiveId])
   @@index([clientId])
   @@map("time_imputations")
+}
+
+// ============================================================
+// TAREAS — trabajo operativo diario del equipo
+// ============================================================
+
+model Task {
+  id          String       @id @default(cuid())
+  workspaceId String
+  title       String
+  description String?
+  status      TaskStatus   @default(PENDING)
+  priority    TaskPriority @default(MEDIUM)
+  dueDate     DateTime?
+  objectiveId String?
+  clientId    String?
+  shareToken  String?      @unique
+  createdBy   String
+  createdAt   DateTime     @default(now())
+  updatedAt   DateTime     @updatedAt
+
+  workspace  Workspace         @relation(fields: [workspaceId], references: [id], onDelete: Cascade)
+  creator    User              @relation("TaskCreator", fields: [createdBy], references: [id], onDelete: Restrict)
+  objective  CompanyObjective? @relation(fields: [objectiveId], references: [id], onDelete: SetNull)
+  client     Client?           @relation(fields: [clientId], references: [id], onDelete: SetNull)
+  tags       TaskTag[]
+  notifications Notification[]
+
+  @@index([workspaceId, status])
+  @@index([workspaceId, dueDate])
+  @@index([createdBy])
+  @@index([objectiveId])
+  @@index([clientId])
+  @@index([shareToken])
+  @@map("tasks")
+}
+
+model TaskTag {
+  id        String   @id @default(cuid())
+  taskId    String
+  userId    String
+  taggedBy  String
+  createdAt DateTime @default(now())
+
+  task    Task @relation(fields: [taskId], references: [id], onDelete: Cascade)
+  user    User @relation("TaskTagged", fields: [userId], references: [id], onDelete: Cascade)
+  tagger  User @relation("TaskTagger", fields: [taggedBy], references: [id], onDelete: Cascade)
+
+  @@unique([taskId, userId])
+  @@index([userId])
+  @@index([taskId])
+  @@map("task_tags")
+}
+
+model Notification {
+  id        String    @id @default(cuid())
+  userId    String
+  type      String    // tagged | deadline
+  taskId    String
+  message   String
+  readAt    DateTime?
+  createdAt DateTime  @default(now())
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+  task Task @relation(fields: [taskId], references: [id], onDelete: Cascade)
+
+  @@index([userId, readAt])
+  @@index([userId, createdAt])
+  @@map("notifications")
 }
