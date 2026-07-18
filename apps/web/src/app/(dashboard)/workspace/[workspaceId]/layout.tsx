@@ -6,6 +6,7 @@ import { WorkspaceShell } from './_components/WorkspaceShell'
 import { Icons } from './_components/WorkspaceIcons'
 import type { NavItem } from './_components/WorkspaceSidebarItem'
 import { getPendingCount } from '@/app/actions/today'
+import { getMyPendingTaskCount } from '@/app/actions/tasks'
 
 interface Props {
   children: React.ReactNode
@@ -20,12 +21,13 @@ interface NavGroup {
 export default async function WorkspaceLayout({ children, params }: Props) {
   const [{ workspaceId }, user] = await Promise.all([params, requireUser()])
 
-  const [workspace, pendingCount] = await Promise.all([
+  const [workspace, pendingCount, taskCount] = await Promise.all([
     db.workspace.findFirst({
       where: { id: workspaceId, orgId: user.orgId },
       select: { id: true, name: true },
     }),
     getPendingCount(workspaceId, user.id).catch(() => 0),
+    getMyPendingTaskCount(workspaceId, user.id).catch(() => 0),
   ])
 
   if (!workspace) notFound()
@@ -41,6 +43,13 @@ export default async function WorkspaceLayout({ children, params }: Props) {
       icon: Icons.today,
       description: 'Tus tareas pendientes y actividad del equipo de hoy',
       badge: pendingCount > 0 ? String(pendingCount) : undefined,
+    },
+    {
+      label: 'Tareas',
+      href: `${base}/tasks`,
+      icon: Icons.tasks,
+      description: 'Tareas del equipo con etiquetado colaborativo',
+      badge: taskCount > 0 ? String(taskCount) : undefined,
     },
     {
       label: 'Copilot',
