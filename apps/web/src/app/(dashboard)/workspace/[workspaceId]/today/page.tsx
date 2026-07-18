@@ -4,6 +4,8 @@ import { getTodayData } from '@/app/actions/today'
 import type { PendingStep, PendingWorkflow, TeamActivityEvent } from '@/app/actions/today'
 import { ClockWidget } from './_components/ClockWidget'
 import { getTodayEntry } from '@/app/actions/timelog'
+import { getMyTasks } from '@/app/actions/tasks'
+import type { TaskData } from '@/app/actions/tasks'
 
 interface Props {
   params: Promise<{ workspaceId: string }>
@@ -34,9 +36,10 @@ const statusLabels: Record<string, { label: string; className: string }> = {
 
 export default async function TodayPage({ params }: Props) {
   const [{ workspaceId }, user] = await Promise.all([params, requireUser()])
-  const [data, todayEntry] = await Promise.all([
+  const [data, todayEntry, myTasks] = await Promise.all([
     getTodayData(workspaceId, user.id),
     getTodayEntry(workspaceId, user.id),
+    getMyTasks(workspaceId, user.id),
   ])
 
   const isEmpty = data.pendingSteps.length === 0 && data.pendingWorkflows.length === 0
@@ -50,6 +53,39 @@ export default async function TodayPage({ params }: Props) {
       </div>
 
       <ClockWidget workspaceId={workspaceId} initialEntry={todayEntry} />
+
+      {myTasks.length > 0 && (
+        <section>
+          <div className="flex items-center justify-between mb-3">
+            <h2 className="text-sm font-semibold text-muted-foreground uppercase tracking-wide">Mis tareas</h2>
+            <Link href={`/workspace/${workspaceId}/tasks?mine=true`} className="text-xs text-primary hover:underline">
+              Ver todas →
+            </Link>
+          </div>
+          <div className="rounded-xl border border-border overflow-hidden">
+            {myTasks.map((task: TaskData) => {
+              const isDue = task.dueDate && new Date(task.dueDate) < new Date()
+              return (
+                <div key={task.id} className="flex items-center gap-3 px-4 py-2.5 border-b border-border last:border-0 hover:bg-muted/30 transition-colors">
+                  <div className={`w-2 h-2 rounded-full shrink-0 ${task.priority === 'CRITICAL' ? 'bg-red-500' : task.priority === 'HIGH' ? 'bg-amber-400' : 'bg-blue-500'}`} />
+                  <span className="flex-1 text-sm truncate">{task.title}</span>
+                  {task.dueDate && (
+                    <span className={`text-xs ${isDue ? 'text-red-500' : 'text-muted-foreground'}`}>
+                      {new Date(task.dueDate).toLocaleDateString('es-ES', { day: 'numeric', month: 'short' })}
+                    </span>
+                  )}
+                  <Link
+                    href={`/workspace/${workspaceId}/tasks`}
+                    className="text-xs text-muted-foreground hover:text-primary"
+                  >
+                    →
+                  </Link>
+                </div>
+              )
+            })}
+          </div>
+        </section>
+      )}
 
       {isEmpty && (
         <div className="rounded-2xl border border-dashed p-12 flex flex-col items-center text-center gap-3">
