@@ -10,7 +10,7 @@ export default async function ProfilePage({ params }: Props) {
 
   const base = `/workspace/${workspaceId}`
 
-  const initial = (user.name ?? user.email ?? '?')[0].toUpperCase()
+  const initial = (user.name ?? user.email ?? '?')[0]?.toUpperCase() ?? '?'
 
   return (
     <div className="p-6 max-w-2xl mx-auto space-y-8">

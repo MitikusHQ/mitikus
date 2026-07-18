@@ -25,7 +25,7 @@ const PRIORITY_LABEL: Record<string, string> = {
 }
 
 function initial(name: string | null, email: string): string {
-  return (name ?? email)[0].toUpperCase()
+  return (name ?? email)[0]?.toUpperCase() ?? '?'
 }
 
 function formatDue(iso: string | null): { label: string; className: string } {
