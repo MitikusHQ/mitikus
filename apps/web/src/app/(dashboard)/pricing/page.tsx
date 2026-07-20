@@ -78,8 +78,8 @@ export default function PricingPage() {
                 <li>{fmtLimit(plan.limits.maxWorkspaces, 'Workspaces')}</li>
                 <li>
                   {plan.limits.aiGenerationsPerMonth === Infinity
-                    ? 'Generaciones IA ilimitadas'
-                    : `${plan.limits.aiGenerationsPerMonth} generaciones IA/mes`}
+                    ? 'Generaciones ilimitadas'
+                    : `${plan.limits.aiGenerationsPerMonth} generaciones/mes`}
                 </li>
                 <li>{fmtLimit(plan.limits.maxToolsInstalled, 'Herramientas')}</li>
               </ul>

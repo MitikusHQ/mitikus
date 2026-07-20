@@ -240,7 +240,7 @@ export function VariableForm({ fields, values, onChange, onSubmit, isLoading, co
             Generando…
           </>
         ) : (
-          '✨ Ejecutar con IA'
+          '✨ Ejecutar'
         )}
       </button>
     </form>

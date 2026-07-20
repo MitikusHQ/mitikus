@@ -26,7 +26,7 @@ const SECTION_LABELS: Array<{ segment: string; label: string }> = [
   { segment: '/settings',  label: 'Ajustes' },
   { segment: '/generate',  label: 'Generar herramienta' },
   { segment: '/import',    label: 'Importar' },
-  { segment: '/copilot',   label: 'Copilot' },
+  { segment: '/copilot',   label: 'Arkos' },
   { segment: '/tasks',    label: 'Tareas' },
   { segment: '/today',    label: 'Mi día' },
   { segment: '/timelog',  label: 'Control horario' },

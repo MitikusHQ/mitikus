@@ -42,7 +42,7 @@ export function ExecutionResult({ state, toolName }: Props) {
         <div className="text-4xl mb-4">✨</div>
         <p className="text-sm font-medium">Resultado de la ejecución</p>
         <p className="text-xs text-muted-foreground mt-1">
-          Rellena las variables y pulsa &quot;Ejecutar con IA&quot; para generar el output de{' '}
+          Rellena las variables y pulsa &quot;Ejecutar&quot; para generar el output de{' '}
           <span className="font-medium">{toolName}</span>.
         </p>
       </div>
@@ -54,7 +54,7 @@ export function ExecutionResult({ state, toolName }: Props) {
       <div className="flex flex-col items-center justify-center h-full min-h-[320px] rounded-xl border bg-card text-center p-8 gap-4">
         <div className="w-10 h-10 rounded-full border-4 border-primary/20 border-t-primary animate-spin" />
         <div>
-          <p className="text-sm font-medium">Generando con IA…</p>
+          <p className="text-sm font-medium">Generando…</p>
           <p className="text-xs text-muted-foreground mt-0.5">Esto puede tardar unos segundos</p>
         </div>
       </div>

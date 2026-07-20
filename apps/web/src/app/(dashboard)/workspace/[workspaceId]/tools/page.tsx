@@ -93,14 +93,14 @@ export default async function WorkspaceToolsPage({ params }: Props) {
       <div className="flex items-center justify-between">
         <div>
           <h1 className="text-xl font-semibold">Herramientas instaladas</h1>
-          <p className="text-xs text-muted-foreground mt-0.5">Pequeñas apps con IA para tareas concretas de tu negocio — auditorías, checklists, informes...</p>
+          <p className="text-xs text-muted-foreground mt-0.5">Pequeñas apps para tareas concretas de tu negocio — auditorías, checklists, informes...</p>
         </div>
         <div className="flex items-center gap-3">
           <Link
             href={`/workspace/${workspaceId}/generate`}
             className="rounded-md border border-input px-4 py-2 text-sm font-medium hover:border-primary hover:text-primary transition-colors"
           >
-            ✦ Generar con IA
+            ✦ Generar
           </Link>
           <Link
             href={`/tools?workspaceId=${workspaceId}`}
@@ -122,7 +122,7 @@ export default async function WorkspaceToolsPage({ params }: Props) {
                 href={`/workspace/${workspaceId}/generate`}
                 className="inline-flex items-center rounded-md bg-primary px-4 py-2 text-sm font-medium text-primary-foreground shadow hover:bg-primary/90 transition-colors"
               >
-                ✦ Generar con IA
+                ✦ Generar
               </Link>
               <Link
                 href={`/tools?workspaceId=${workspaceId}`}

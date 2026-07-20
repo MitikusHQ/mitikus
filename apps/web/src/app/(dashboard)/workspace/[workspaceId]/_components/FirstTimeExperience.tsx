@@ -9,8 +9,8 @@ interface Props {
 }
 
 const PILLARS = [
-  { icon: '🔧', label: 'Herramientas IA', desc: 'Ejecuta auditorías, informes y checklists con un clic' },
-  { icon: '🎯', label: 'Misiones', desc: 'Convierte objetivos en pasos concretos con el Copilot' },
+  { icon: '🔧', label: 'Herramientas', desc: 'Ejecuta auditorías, informes y checklists con un clic' },
+  { icon: '🎯', label: 'Misiones', desc: 'Convierte objetivos en pasos concretos con Arkos' },
   { icon: '🏢', label: 'Clientes', desc: 'Todo el trabajo vinculado a cada cuenta' },
   { icon: '📊', label: 'Historial', desc: 'Cada ejecución guardada y exportable' },
 ]
@@ -67,7 +67,7 @@ export function FirstTimeExperience({ workspaceId, userName }: Props) {
               Bienvenido a MITIKUS.
             </h1>
             <p className="text-muted-foreground text-sm leading-relaxed pt-1">
-              Tu sistema operativo empresarial con IA. Todo el trabajo de tu empresa — herramientas, misiones, clientes e historial — en un solo lugar.
+              Tu sistema operativo empresarial. Todo el trabajo de tu empresa — herramientas, misiones, clientes e historial — en un solo lugar.
             </p>
           </div>
 
@@ -110,7 +110,7 @@ export function FirstTimeExperience({ workspaceId, userName }: Props) {
               ¿A qué se dedica<br />tu empresa?
             </h1>
             <p className="text-sm text-muted-foreground leading-relaxed">
-              Con esto el Copilot aprende tu sector, tus servicios y tu contexto para personalizar todas las herramientas y misiones desde el primer momento.
+              Con esto Arkos aprende tu sector, tus servicios y tu contexto para personalizar todas las herramientas y misiones desde el primer momento.
             </p>
           </div>
 

@@ -388,7 +388,7 @@ function MockupCopilot() {
         <div className="w-2.5 h-2.5 rounded-full bg-red-400/60" />
         <div className="w-2.5 h-2.5 rounded-full bg-yellow-400/60" />
         <div className="w-2.5 h-2.5 rounded-full bg-green-400/60" />
-        <span className="text-xs text-muted-foreground ml-2">Copilot — MITIKUS</span>
+        <span className="text-xs text-muted-foreground ml-2">Arkos — MITIKUS</span>
       </div>
       <div className="flex gap-0 min-h-[260px]">
         <div className="w-36 border-r p-3 space-y-3 flex-shrink-0">
@@ -430,7 +430,7 @@ function MockupStrategies() {
         <div className="w-2.5 h-2.5 rounded-full bg-red-400/60" />
         <div className="w-2.5 h-2.5 rounded-full bg-yellow-400/60" />
         <div className="w-2.5 h-2.5 rounded-full bg-green-400/60" />
-        <span className="text-xs text-muted-foreground ml-2">Copilot — estrategias</span>
+        <span className="text-xs text-muted-foreground ml-2">Arkos — estrategias</span>
       </div>
       <div className="p-4 space-y-3">
         <p className="text-xs text-muted-foreground">He analizado tu objetivo. Elige la estrategia que mejor se adapte a lo que necesitas.</p>

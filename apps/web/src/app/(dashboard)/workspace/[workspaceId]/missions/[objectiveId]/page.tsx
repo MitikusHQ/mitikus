@@ -412,13 +412,13 @@ export default async function MissionPage({ params }: Props) {
       <div className="rounded-lg border bg-card p-5 flex items-center justify-between gap-4">
         <div>
           <p className="text-sm font-medium">¿Necesitas ayuda con esta misión?</p>
-          <p className="text-xs text-muted-foreground mt-0.5">El Copilot puede guiarte, crear pasos y recomendar herramientas.</p>
+          <p className="text-xs text-muted-foreground mt-0.5">Arkos puede guiarte, crear pasos y recomendar herramientas.</p>
         </div>
         <Link
           href={`/workspace/${workspaceId}/copilot`}
           className="shrink-0 inline-flex items-center gap-1.5 text-sm bg-card border px-4 py-2 rounded-md font-medium hover:bg-muted transition-colors"
         >
-          Abrir Copilot
+          Abrir Arkos
         </Link>
       </div>
     </div>
@@ -570,7 +570,7 @@ function EmptySteps({ workspaceId }: { workspaceId: string }) {
         href={`/workspace/${workspaceId}/copilot`}
         className="inline-block text-sm text-primary hover:underline font-medium"
       >
-        Definir pasos con el Copilot →
+        Definir pasos con Arkos →
       </Link>
     </div>
   )

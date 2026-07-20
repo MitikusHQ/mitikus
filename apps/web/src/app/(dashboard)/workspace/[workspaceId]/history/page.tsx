@@ -60,7 +60,7 @@ export default async function WorkspaceHistoryPage({ params }: Props) {
         <div>
           <h1 className="text-2xl font-semibold">Historial de trabajo</h1>
           <p className="text-sm text-muted-foreground mt-1">
-            Todo el trabajo generado con IA en este workspace
+            Todo el historial de trabajo en este workspace
           </p>
         </div>
         {executions.length > 0 && (

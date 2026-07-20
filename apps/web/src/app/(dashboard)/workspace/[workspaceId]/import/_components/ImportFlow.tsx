@@ -87,7 +87,7 @@ export function ImportFlow({ workspaceId }: ImportFlowProps) {
       const data = await res.json()
 
       if (!res.ok) {
-        setError(data.error ?? 'Error al convertir con IA')
+        setError(data.error ?? 'Error al convertir')
         setStep('preview')
         setLoading(false)
         return
@@ -256,7 +256,7 @@ export function ImportFlow({ workspaceId }: ImportFlowProps) {
             disabled={loading}
             className="flex-1 py-2.5 bg-primary text-primary-foreground rounded-lg text-sm font-medium hover:bg-primary/90 transition-colors disabled:opacity-50"
           >
-            {loading ? 'Convirtiendo con IA...' : '✦ Convertir a herramienta con IA'}
+            {loading ? 'Procesando...' : '✦ Convertir a herramienta'}
           </button>
           <button
             onClick={reset}
@@ -298,7 +298,7 @@ export function ImportFlow({ workspaceId }: ImportFlowProps) {
 
           {usage && (
             <div className="text-xs text-muted-foreground bg-muted rounded px-3 py-2">
-              Uso IA: {usage.inputTokens.toLocaleString()} tokens entrada · {usage.outputTokens.toLocaleString()} salida · ~€{usage.costEUR.toFixed(4)}
+              {usage.inputTokens.toLocaleString()} tokens procesados · ~€{usage.costEUR.toFixed(4)}
             </div>
           )}
 

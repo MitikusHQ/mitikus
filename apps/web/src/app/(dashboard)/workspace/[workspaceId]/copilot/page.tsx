@@ -73,7 +73,7 @@ function PageHeader({
   return (
     <div className="flex items-start justify-between">
       <div>
-        <h1 className="text-2xl font-semibold">Copilot</h1>
+        <h1 className="text-2xl font-semibold">Arkos</h1>
         <p className="text-sm text-muted-foreground mt-1">
           {context.isEmpty
             ? 'Cuéntame en qué quieres trabajar hoy.'

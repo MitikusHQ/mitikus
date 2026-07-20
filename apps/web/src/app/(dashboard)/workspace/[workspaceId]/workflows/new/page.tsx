@@ -87,7 +87,7 @@ export default function NewWorkflowPage({ params }: Props) {
         <div className="rounded-2xl border-2 border-dashed border-primary/30 bg-primary/5 p-8 flex flex-col items-center text-center gap-4">
           <div className="text-4xl">✨</div>
           <div>
-            <h2 className="text-lg font-semibold">Generar con IA</h2>
+            <h2 className="text-lg font-semibold">Generar</h2>
             <p className="text-sm text-muted-foreground mt-1">
               Describe tu proceso en lenguaje natural y la IA crea el workflow automáticamente, eligiendo y conectando las herramientas por ti.
             </p>
@@ -96,7 +96,7 @@ export default function NewWorkflowPage({ params }: Props) {
             workspaceId={workspaceId}
             trigger={
               <button className="rounded-lg bg-primary px-6 py-2.5 text-sm font-semibold text-primary-foreground hover:bg-primary/90 transition-colors">
-                ✨ Generar con IA
+                ✨ Generar
               </button>
             }
           />

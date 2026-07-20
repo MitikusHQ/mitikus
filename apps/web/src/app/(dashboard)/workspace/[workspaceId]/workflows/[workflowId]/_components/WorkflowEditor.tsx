@@ -336,7 +336,7 @@ export function WorkflowEditor({ workflow, workspaceName, tools }: Props) {
                     workspaceId={workflow.workspaceId}
                     trigger={
                       <button className="w-full rounded-lg bg-primary px-4 py-2.5 text-sm font-semibold text-primary-foreground hover:bg-primary/90 transition-colors">
-                        ✨ Generar con IA
+                        ✨ Generar
                       </button>
                     }
                   />

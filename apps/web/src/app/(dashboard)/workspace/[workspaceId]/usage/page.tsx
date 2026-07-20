@@ -158,7 +158,7 @@ export default async function UsagePage({ params }: Props) {
 
   return (
     <div className="max-w-3xl mx-auto px-6 py-8 space-y-8">
-      <h1 className="text-xl font-semibold">Uso IA</h1>
+      <h1 className="text-xl font-semibold">Créditos</h1>
 
         {/* Tipo de cuenta y plan */}
         <section>
@@ -197,12 +197,12 @@ export default async function UsagePage({ params }: Props) {
           <h2 className="text-base font-semibold">Límites de tu plan</h2>
           <div className="rounded-lg border bg-card p-5 space-y-5">
             <UsageBar
-              label="IA generaciones hoy"
+              label="Ejecuciones hoy"
               current={userUsage}
               limit={planLimits.aiGenerationsPerDay}
             />
             <UsageBar
-              label="IA generaciones este mes"
+              label="Ejecuciones este mes"
               current={userMonthlyUsage}
               limit={planLimits.aiGenerationsPerMonth}
             />
@@ -216,11 +216,11 @@ export default async function UsagePage({ params }: Props) {
 
         {/* AI Saved — Registry Intelligence metrics */}
         <section className="space-y-4">
-          <h2 className="text-base font-semibold">IA ahorrada</h2>
+          <h2 className="text-base font-semibold">Reutilización</h2>
           <div className="grid gap-3 sm:grid-cols-3">
             <StatCard label="Búsquedas en catálogo" value={String(totalSearches)} />
             <StatCard label="Herramientas reutilizadas" value={String(toolsReused)} />
-            <StatCard label="Generaciones IA" value={String(toolsGenerated)} />
+            <StatCard label="Generaciones" value={String(toolsGenerated)} />
           </div>
           {totalSearches > 0 && (
             <div className="rounded-lg border bg-card px-5 py-4">
@@ -234,7 +234,7 @@ export default async function UsagePage({ params }: Props) {
               </div>
               <p className="text-xs text-muted-foreground mt-1">
                 {toolsReused} de {totalSearches} búsquedas resultaron en instalación o fork
-                en lugar de generar con IA.
+                en lugar de generar una nueva.
               </p>
             </div>
           )}

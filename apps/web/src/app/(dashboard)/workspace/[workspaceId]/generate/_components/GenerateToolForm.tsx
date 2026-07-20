@@ -194,7 +194,7 @@ export function GenerateToolForm({ workspaceId, locale = 'es' }: Props) {
         </div>
         <div className="text-center space-y-2">
           <p className="text-sm font-medium">
-            {locale === 'es' ? 'Generando herramienta con IA…' : 'Generating tool with AI…'}
+            {locale === 'es' ? 'Generando herramienta…' : 'Generating tool…'}
           </p>
           <p className="text-xs text-muted-foreground">
             {locale === 'es'

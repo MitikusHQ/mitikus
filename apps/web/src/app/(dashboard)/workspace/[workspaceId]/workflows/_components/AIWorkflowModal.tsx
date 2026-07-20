@@ -106,7 +106,7 @@ export function AIWorkflowModal({ workspaceId, trigger }: Props) {
           <div>
             <div className="flex items-center gap-2">
               <span className="text-lg">✨</span>
-              <h2 className="text-base font-semibold">Generar workflow con IA</h2>
+              <h2 className="text-base font-semibold">Generar workflow</h2>
             </div>
             <p className="text-xs text-muted-foreground mt-0.5">
               {step === 'context' && 'Describe el proceso que quieres automatizar'}

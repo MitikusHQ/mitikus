@@ -36,9 +36,9 @@ export async function OnboardingChecklist({ workspaceId, userId }: Props) {
     {
       id:          'company',
       label:       'Describe tu empresa',
-      description: 'El Copilot aprende de tu negocio para personalizar todo el trabajo.',
+      description: 'Arkos aprende de tu negocio para personalizar todo el trabajo.',
       href:        `/workspace/${workspaceId}/copilot`,
-      cta:         'Abrir Copilot →',
+      cta:         'Abrir Arkos →',
       done:        !context.isEmpty,
     },
     {
@@ -51,7 +51,7 @@ export async function OnboardingChecklist({ workspaceId, userId }: Props) {
     },
     {
       id:          'execution',
-      label:       'Ejecuta tu primera herramienta con IA',
+      label:       'Ejecuta tu primera herramienta',
       description: 'Rellena las variables y genera tu primer output.',
       href:        firstTool ? `/workspace/${workspaceId}/tools/${firstTool.id}/run` : `/workspace/${workspaceId}/tools`,
       cta:         'Ejecutar ahora →',

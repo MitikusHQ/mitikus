@@ -52,10 +52,10 @@ export default async function WorkspaceLayout({ children, params }: Props) {
       badge: taskCount > 0 ? String(taskCount) : undefined,
     },
     {
-      label: 'Copilot',
+      label: 'Arkos',
       href: `${base}/copilot`,
       icon: Icons.copilot,
-      description: 'Tu Director de Operaciones IA — cuéntale tus objetivos y te ayuda a planificarlos',
+      description: 'Tu asesor estratégico — cuéntale tus objetivos y te ayuda a planificarlos',
     },
     {
       label: 'Mission Control',
@@ -67,13 +67,13 @@ export default async function WorkspaceLayout({ children, params }: Props) {
       label: 'Historial',
       href: `${base}/history`,
       icon: Icons.history,
-      description: 'Todo el trabajo generado con IA en este workspace',
+      description: 'Todo el historial de trabajo en este workspace',
     },
     {
       label: 'Herramientas',
       href: `${base}/tools`,
       icon: Icons.tools,
-      description: 'Las herramientas con IA que has instalado o generado para tu negocio',
+      description: 'Las herramientas que has instalado o creado para tu negocio',
     },
     {
       label: 'Flows',
@@ -97,7 +97,7 @@ export default async function WorkspaceLayout({ children, params }: Props) {
       label: 'Analytics',
       href: `${base}/analytics`,
       icon: Icons.analytics,
-      description: 'Uso de IA, ejecuciones y costes de tu workspace',
+      description: 'Actividad, ejecuciones y costes de tu workspace',
     },
   ].filter(() => can(user, 'view_usage'))
 
@@ -106,10 +106,10 @@ export default async function WorkspaceLayout({ children, params }: Props) {
   // Audit — VIEWER+ (can view_usage)
   if (can(user, 'view_usage')) {
     adminItems.push({
-      label: 'Uso IA',
+      label: 'Créditos',
       href: `${base}/usage`,
       icon: Icons.usage,
-      description: 'Cuánta IA has generado este mes y cuánto te queda de tu plan',
+      description: 'Cuánto has generado este mes y cuánto te queda de tu plan',
     })
     adminItems.push({
       label: 'Auditoría',

@@ -189,13 +189,13 @@ export default async function WorkspacePage({ params }: Props) {
           <div className="rounded-lg border border-dashed p-8 text-center bg-card">
             <p className="text-muted-foreground text-sm mb-2">No hay misiones activas.</p>
             <p className="text-xs text-muted-foreground mb-4">
-              Cuéntale al Copilot un objetivo de tu empresa y lo convertirá en una misión con pasos claros.
+              Cuéntale a Arkos un objetivo de tu empresa y lo convertirá en una misión con pasos claros.
             </p>
             <Link
               href={`/workspace/${workspaceId}/copilot`}
               className="text-sm text-primary hover:underline font-medium"
             >
-              Definir primer objetivo con el Copilot →
+              Definir primer objetivo con Arkos →
             </Link>
           </div>
         ) : (
