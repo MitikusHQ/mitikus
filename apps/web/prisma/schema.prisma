@@ -1484,12 +1484,12 @@ model Spreadsheet {
   title       String
   category    String?
   data        Json
-  rawText     String    @default("")
+  rawText     String    @default("") @db.Text
   createdAt   DateTime  @default(now())
   updatedAt   DateTime  @updatedAt
   uploadedBy  String
   workspace   Workspace @relation(fields: [workspaceId], references: [id], onDelete: Cascade)
-  uploader    User      @relation(fields: [uploadedBy], references: [id])
+  uploader    User      @relation(fields: [uploadedBy], references: [id], onDelete: Restrict)
 
   @@index([workspaceId])
   @@index([workspaceId, createdAt])
