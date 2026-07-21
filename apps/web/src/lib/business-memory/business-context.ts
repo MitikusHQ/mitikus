@@ -18,7 +18,7 @@ function toArr(v: Prisma.JsonValue): string[] {
  * Si no hay datos aún, devuelve un contexto vacío (isEmpty: true).
  */
 export async function getBusinessContext(workspaceId: string): Promise<BusinessContext> {
-  const [profile, objectives, risks, processes, assets] = await Promise.all([
+  const [profile, objectives, risks, processes, assets, docs] = await Promise.all([
     db.companyProfile.findUnique({ where: { workspaceId } }),
     db.companyObjective.findMany({
       where:   { workspaceId, status: 'active' },
@@ -40,11 +40,24 @@ export async function getBusinessContext(workspaceId: string): Promise<BusinessC
       orderBy: [{ type: 'asc' }],
       take:    20,
     }),
+    db.document.findMany({
+      where:   { workspaceId },
+      orderBy: { createdAt: 'desc' },
+      take:    3,
+      select:  { title: true, rawText: true },
+    }),
   ])
 
   if (!profile) {
     return emptyContext(workspaceId)
   }
+
+  const docsContext = docs.length === 0 ? null : docs
+    .map((d) => {
+      const words = d.rawText.split(/\s+/).slice(0, 2000).join(' ')
+      return `--- ${d.title} ---\n${words}`
+    })
+    .join('\n\n')
 
   return {
     workspaceId,
@@ -113,6 +126,7 @@ export async function getBusinessContext(workspaceId: string): Promise<BusinessC
     confidence:  profile.confidence,
     lastUpdated: profile.lastUpdatedAt.toISOString(),
     isEmpty:     false,
+    docsContext,
   }
 }
 
@@ -141,5 +155,6 @@ function emptyContext(workspaceId: string): BusinessContext {
     confidence:       0,
     lastUpdated:      null,
     isEmpty:          true,
+    docsContext:      null,
   }
 }

@@ -409,5 +409,6 @@ function emptyContext(workspaceId: string): BusinessContext {
     confidence:       0,
     lastUpdated:      null,
     isEmpty:          true,
+    docsContext:      null,
   }
 }

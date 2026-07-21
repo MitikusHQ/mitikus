@@ -41,6 +41,7 @@ export default async function CopilotPage({ params, searchParams }: Props) {
           <CompanyContextPanel context={context} />
           <ObjectivesPanel context={context} workspaceId={workspaceId} />
           <RisksPanel context={context} />
+          <DocsPanel context={context} />
         </aside>
 
         {/* Panel principal — interfaz copilot */}
@@ -211,6 +212,33 @@ function RisksPanel({ context }: { context: BusinessContext }) {
             <span className="ml-2 text-xs px-1.5 py-0.5 rounded bg-destructive/10 text-destructive">
               {risk.level}
             </span>
+          </li>
+        ))}
+      </ul>
+    </div>
+  )
+}
+
+// ── Docs Panel ────────────────────────────────────────────────────
+
+function DocsPanel({ context }: { context: BusinessContext }) {
+  if (!context.docsContext) return null
+
+  const docTitles = context.docsContext
+    .split('\n')
+    .filter((line) => line.startsWith('--- ') && line.endsWith(' ---'))
+    .map((line) => line.replace(/^--- /, '').replace(/ ---$/, ''))
+
+  return (
+    <div className="rounded-lg border bg-card p-4 space-y-3">
+      <h2 className="text-sm font-semibold text-muted-foreground uppercase tracking-wide">
+        Docs disponibles
+      </h2>
+      <ul className="space-y-1.5">
+        {docTitles.map((title) => (
+          <li key={title} className="flex items-center gap-2 text-sm">
+            <span className="text-muted-foreground">📄</span>
+            <span className="truncate">{title}</span>
           </li>
         ))}
       </ul>

@@ -220,6 +220,7 @@ export interface BusinessContext {
   confidence:       number
   lastUpdated:      string | null
   isEmpty:          boolean   // true si no hay datos aún
+  docsContext:      string | null
 }
 
 // ── Memory Update Input ────────────────────────────────────────────
