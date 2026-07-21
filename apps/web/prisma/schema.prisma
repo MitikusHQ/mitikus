@@ -256,6 +256,7 @@ model User {
   taskTagsMade         TaskTag[]             @relation("TaskTagger")
   notifications        Notification[]
   documentsUploaded    Document[]
+  spreadsheets         Spreadsheet[]
 
   @@index([orgId])
   @@map("users")
@@ -296,6 +297,7 @@ model Workspace {
   timeEntries          TimeEntry[]
   tasks                Task[]
   documents            Document[]
+  spreadsheets         Spreadsheet[]
 
   @@unique([orgId, slug])
   @@index([orgId])
@@ -1470,6 +1472,28 @@ model Document {
   @@index([workspaceId])
   @@index([workspaceId, createdAt])
   @@map("documents")
+}
+
+// ============================================================
+// SPREADSHEETS — hojas de cálculo del workspace
+// ============================================================
+
+model Spreadsheet {
+  id          String    @id @default(cuid())
+  workspaceId String
+  title       String
+  category    String?
+  data        Json
+  rawText     String    @default("")
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
+  uploadedBy  String
+  workspace   Workspace @relation(fields: [workspaceId], references: [id], onDelete: Cascade)
+  uploader    User      @relation(fields: [uploadedBy], references: [id])
+
+  @@index([workspaceId])
+  @@index([workspaceId, createdAt])
+  @@map("spreadsheets")
 }
 
 model Notification {
