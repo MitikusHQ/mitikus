@@ -104,3 +104,38 @@ export async function updateDocument(
   revalidatePath(`/workspace/${workspaceId}/docs`)
   revalidatePath(`/workspace/${workspaceId}/docs/${docId}`)
 }
+
+export async function updateDocumentContent(
+  docId: string,
+  workspaceId: string,
+  data: { content: string; rawText: string },
+): Promise<void> {
+  await getAuthUser()
+  const wordCount = data.rawText.trim().split(/\s+/).filter(Boolean).length
+  await db.document.updateMany({
+    where: { id: docId, workspaceId },
+    data:  { content: data.content, rawText: data.rawText, wordCount },
+  })
+  revalidatePath(`/workspace/${workspaceId}/docs`)
+  revalidatePath(`/workspace/${workspaceId}/docs/${docId}`)
+}
+
+export async function createDocument(
+  workspaceId: string,
+  data: { title: string; content: string; rawText: string },
+): Promise<string> {
+  const user = await getAuthUser()
+  const wordCount = data.rawText.trim().split(/\s+/).filter(Boolean).length
+  const doc = await db.document.create({
+    data: {
+      workspaceId,
+      title:      data.title.trim() || 'Sin título',
+      content:    data.content,
+      rawText:    data.rawText,
+      wordCount,
+      uploadedBy: user.id,
+    },
+  })
+  revalidatePath(`/workspace/${workspaceId}/docs`)
+  return doc.id
+}
