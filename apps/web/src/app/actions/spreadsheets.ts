@@ -26,6 +26,7 @@ async function getAuthUser() {
 }
 
 export async function getSpreadsheets(workspaceId: string): Promise<SpreadsheetData[]> {
+  await getAuthUser()
   const sheets = await db.spreadsheet.findMany({
     where:   { workspaceId },
     orderBy: { createdAt: 'desc' },
@@ -53,6 +54,7 @@ export async function getSpreadsheet(
   sheetId: string,
   workspaceId: string,
 ): Promise<SpreadsheetDetail | null> {
+  await getAuthUser()
   const sheet = await db.spreadsheet.findFirst({
     where:  { id: sheetId, workspaceId },
     select: {
