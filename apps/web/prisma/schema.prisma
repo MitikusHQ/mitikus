@@ -255,6 +255,7 @@ model User {
   taskTagged           TaskTag[]             @relation("TaskTagged")
   taskTagsMade         TaskTag[]             @relation("TaskTagger")
   notifications        Notification[]
+  documentsUploaded    Document[]
 
   @@index([orgId])
   @@map("users")
@@ -294,6 +295,7 @@ model Workspace {
   copilotConversations CopilotConversation[]
   timeEntries          TimeEntry[]
   tasks                Task[]
+  documents            Document[]
 
   @@unique([orgId, slug])
   @@index([orgId])
@@ -1444,6 +1446,29 @@ model TaskTag {
   @@index([userId])
   @@index([taskId])
   @@map("task_tags")
+}
+
+// ============================================================
+// DOCUMENTS — base de conocimiento del workspace
+// ============================================================
+
+model Document {
+  id          String    @id @default(cuid())
+  workspaceId String
+  title       String
+  content     String    @db.Text
+  rawText     String    @db.Text
+  category    String?
+  wordCount   Int       @default(0)
+  uploadedBy  String
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
+
+  workspace   Workspace @relation(fields: [workspaceId], references: [id], onDelete: Cascade)
+  uploader    User      @relation(fields: [uploadedBy], references: [id])
+
+  @@index([workspaceId])
+  @@map("documents")
 }
 
 model Notification {
