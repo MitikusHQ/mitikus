@@ -39,6 +39,16 @@ export function DocList({ workspaceId, initialDocs }: Props) {
 
   return (
     <div className="space-y-4">
+      {/* Nuevo documento */}
+      <div className="flex justify-end">
+        <Link
+          href={`/workspace/${workspaceId}/docs/new`}
+          className="text-xs border border-border px-3 py-1.5 rounded-full hover:bg-muted transition-colors inline-flex items-center gap-1"
+        >
+          <span aria-hidden>+</span> Nuevo documento
+        </Link>
+      </div>
+
       {/* Filtros */}
       {categories.length > 0 && (
         <div className="flex gap-2 flex-wrap">
