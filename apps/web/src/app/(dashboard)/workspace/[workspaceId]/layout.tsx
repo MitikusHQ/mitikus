@@ -87,6 +87,12 @@ export default async function WorkspaceLayout({ children, params }: Props) {
       icon: Icons.clients,
       description: 'Las empresas o personas a las que prestas servicio',
     },
+    {
+      label: 'Docs',
+      href: `${base}/docs`,
+      icon: Icons.docs,
+      description: 'Base de conocimiento del workspace',
+    },
   ].filter(() => {
     // All VIEWER+ can see main items
     return can(user, 'view_workspace')

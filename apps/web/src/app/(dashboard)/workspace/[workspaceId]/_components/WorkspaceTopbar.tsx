@@ -31,6 +31,7 @@ const SECTION_LABELS: Array<{ segment: string; label: string }> = [
   { segment: '/today',    label: 'Mi día' },
   { segment: '/timelog',  label: 'Control horario' },
   { segment: '/profile',  label: 'Mi perfil' },
+  { segment: '/docs',     label: 'Docs' },
 ]
 
 function useBreadcrumb(workspaceId: string, workspaceName: string) {
