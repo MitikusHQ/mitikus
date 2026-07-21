@@ -93,6 +93,12 @@ export default async function WorkspaceLayout({ children, params }: Props) {
       icon: Icons.docs,
       description: 'Base de conocimiento del workspace',
     },
+    {
+      label: 'Hojas de cálculo',
+      href: `${base}/sheets`,
+      icon: Icons.sheets,
+      description: 'Hojas de cálculo con fórmulas y datos',
+    },
   ].filter(() => {
     // All VIEWER+ can see main items
     return can(user, 'view_workspace')
