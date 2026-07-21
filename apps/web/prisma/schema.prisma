@@ -1465,9 +1465,10 @@ model Document {
   updatedAt   DateTime  @updatedAt
 
   workspace   Workspace @relation(fields: [workspaceId], references: [id], onDelete: Cascade)
-  uploader    User      @relation(fields: [uploadedBy], references: [id])
+  uploader    User      @relation(fields: [uploadedBy], references: [id], onDelete: Restrict)
 
   @@index([workspaceId])
+  @@index([workspaceId, createdAt])
   @@map("documents")
 }
 
