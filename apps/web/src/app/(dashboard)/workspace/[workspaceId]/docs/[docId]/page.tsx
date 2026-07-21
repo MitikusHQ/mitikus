@@ -4,20 +4,20 @@ import Link from 'next/link'
 import { getDocument } from '@/app/actions/documents'
 import { DeleteDocButton } from './_components/DeleteDocButton'
 import { EditableDocHeader } from './_components/EditableDocHeader'
+import { DocViewerClient } from './_components/DocViewerClient'
 
 interface Props {
   params: Promise<{ workspaceId: string; docId: string }>
 }
 
 export default async function DocViewerPage({ params }: Props) {
-  const [{ workspaceId, docId }, user] = await Promise.all([params, requireUser()])
+  const [{ workspaceId, docId }] = await Promise.all([params, requireUser()])
 
   const doc = await getDocument(docId, workspaceId)
   if (!doc) notFound()
 
   return (
     <div className="max-w-3xl mx-auto px-6 py-8 space-y-6">
-      {/* Volver */}
       <Link
         href={`/workspace/${workspaceId}/docs`}
         className="inline-flex items-center gap-1.5 text-sm text-muted-foreground hover:text-foreground transition-colors"
@@ -28,19 +28,13 @@ export default async function DocViewerPage({ params }: Props) {
         Documentación
       </Link>
 
-      {/* Cabecera editable */}
       <EditableDocHeader doc={doc} workspaceId={workspaceId} />
 
-      {/* Botón eliminar */}
       <div className="flex justify-end">
         <DeleteDocButton docId={docId} workspaceId={workspaceId} />
       </div>
 
-      {/* Contenido */}
-      <div
-        className="prose prose-sm dark:prose-invert max-w-none border border-border rounded-lg bg-card px-6 py-5"
-        dangerouslySetInnerHTML={{ __html: doc.content }}
-      />
+      <DocViewerClient doc={doc} workspaceId={workspaceId} />
     </div>
   )
 }
