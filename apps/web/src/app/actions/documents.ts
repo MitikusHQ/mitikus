@@ -90,3 +90,17 @@ export async function deleteDocument(
   await db.document.deleteMany({ where: { id: docId, workspaceId } })
   revalidatePath(`/workspace/${workspaceId}/docs`)
 }
+
+export async function updateDocument(
+  docId: string,
+  workspaceId: string,
+  data: { title: string; category: string | null },
+): Promise<void> {
+  await getAuthUser()
+  await db.document.updateMany({
+    where: { id: docId, workspaceId },
+    data:  { title: data.title.trim(), category: data.category || null },
+  })
+  revalidatePath(`/workspace/${workspaceId}/docs`)
+  revalidatePath(`/workspace/${workspaceId}/docs/${docId}`)
+}
