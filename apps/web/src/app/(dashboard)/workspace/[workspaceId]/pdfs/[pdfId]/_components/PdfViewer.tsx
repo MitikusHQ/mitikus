@@ -1,34 +1,42 @@
 'use client'
 
-import { useState, useMemo } from 'react'
+import { useState, useMemo, useRef } from 'react'
 import { Document, Page, pdfjs } from 'react-pdf'
 import 'react-pdf/dist/Page/AnnotationLayer.css'
 import 'react-pdf/dist/Page/TextLayer.css'
+import { PdfThumbnailSidebar } from './PdfThumbnailSidebar'
+import { PdfSearchBar } from './PdfSearchBar'
 
 pdfjs.GlobalWorkerOptions.workerSrc = new URL(
   'pdfjs-dist/build/pdf.worker.min.mjs',
   import.meta.url,
 ).toString()
 
+// Tipo del proxy de documento pdfjs expuesto por react-pdf v10
+// eslint-disable-next-line
+type PdfDocProxy = any
+
 interface Props {
-  dataArray: number[]   // Uint8Array serializado como number[] desde el Server Component
+  dataArray: number[]
   title:     string
 }
 
 export function PdfViewer({ dataArray, title }: Props) {
-  const [numPages, setNumPages]     = useState<number | null>(null)
-  const [pageNumber, setPageNumber] = useState(1)
-  const [scale, setScale]           = useState(1.0)
+  const [numPages, setNumPages]         = useState<number | null>(null)
+  const [pageNumber, setPageNumber]     = useState(1)
+  const [scale, setScale]               = useState(1.0)
+  const [showSidebar, setShowSidebar]   = useState(false)
+  const [pdfDoc, setPdfDoc]             = useState<PdfDocProxy>(null)
 
-  // Convert number[] → Uint8Array → Blob URL once
   const pdfData = useMemo(() => {
     const bytes = new Uint8Array(dataArray)
     return { data: bytes }
   }, [dataArray])
 
-  function onDocumentLoadSuccess({ numPages }: { numPages: number }) {
-    setNumPages(numPages)
+  function onDocumentLoadSuccess(pdf: PdfDocProxy) {
+    setNumPages(pdf.numPages as number)
     setPageNumber(1)
+    setPdfDoc(pdf)
   }
 
   function prevPage() {
@@ -48,9 +56,25 @@ export function PdfViewer({ dataArray, title }: Props) {
   }
 
   return (
-    <div className="flex flex-col items-center gap-4">
-      {/* Navigation bar */}
-      <div className="flex items-center gap-3 bg-muted/50 rounded-lg px-4 py-2 w-full justify-between">
+    <div className="flex flex-col gap-4">
+      {/* Toolbar */}
+      <div className="flex items-center gap-3 bg-muted/50 rounded-lg px-4 py-2 w-full justify-between flex-wrap gap-y-2">
+        {/* Toggle sidebar */}
+        <button
+          onClick={() => setShowSidebar((s) => !s)}
+          className={[
+            'text-sm px-2 py-1 rounded border transition-colors',
+            showSidebar
+              ? 'border-primary bg-primary text-primary-foreground'
+              : 'border-border hover:bg-muted',
+          ].join(' ')}
+          aria-label={showSidebar ? 'Ocultar miniaturas' : 'Mostrar miniaturas'}
+          title={showSidebar ? 'Ocultar miniaturas' : 'Mostrar miniaturas'}
+        >
+          ⊞
+        </button>
+
+        {/* Navegación páginas */}
         <div className="flex items-center gap-2">
           <button
             onClick={prevPage}
@@ -72,6 +96,11 @@ export function PdfViewer({ dataArray, title }: Props) {
             →
           </button>
         </div>
+
+        {/* Búsqueda */}
+        <PdfSearchBar pdfDoc={pdfDoc} onMatchPage={setPageNumber} />
+
+        {/* Zoom */}
         <div className="flex items-center gap-2">
           <button
             onClick={zoomOut}
@@ -95,29 +124,40 @@ export function PdfViewer({ dataArray, title }: Props) {
         </div>
       </div>
 
-      {/* PDF canvas */}
-      <div className="overflow-auto w-full flex justify-center">
-        <Document
-          file={pdfData}
-          onLoadSuccess={onDocumentLoadSuccess}
-          loading={
-            <div className="flex items-center justify-center py-16">
-              <p className="text-sm text-muted-foreground">Cargando PDF…</p>
-            </div>
-          }
-          error={
-            <div className="flex items-center justify-center py-16">
-              <p className="text-sm text-destructive">Error al cargar el PDF.</p>
-            </div>
-          }
-        >
-          <Page
-            pageNumber={pageNumber}
-            scale={scale}
-            renderTextLayer={true}
-            renderAnnotationLayer={true}
+      {/* Zona principal: sidebar + canvas */}
+      <div className="flex gap-3 overflow-auto w-full">
+        {showSidebar && numPages !== null && (
+          <PdfThumbnailSidebar
+            pdfData={pdfData}
+            numPages={numPages}
+            currentPage={pageNumber}
+            onPageSelect={setPageNumber}
           />
-        </Document>
+        )}
+
+        <div className="flex-1 flex justify-center overflow-auto">
+          <Document
+            file={pdfData}
+            onLoadSuccess={onDocumentLoadSuccess}
+            loading={
+              <div className="flex items-center justify-center py-16">
+                <p className="text-sm text-muted-foreground">Cargando PDF…</p>
+              </div>
+            }
+            error={
+              <div className="flex items-center justify-center py-16">
+                <p className="text-sm text-destructive">Error al cargar el PDF.</p>
+              </div>
+            }
+          >
+            <Page
+              pageNumber={pageNumber}
+              scale={scale}
+              renderTextLayer={true}
+              renderAnnotationLayer={true}
+            />
+          </Document>
+        </div>
       </div>
     </div>
   )
