@@ -1,6 +1,7 @@
 'use client'
 
 import { useState, useCallback } from 'react'
+import { useRouter } from 'next/navigation'
 import { Document, Page, pdfjs } from 'react-pdf'
 import 'react-pdf/dist/Page/AnnotationLayer.css'
 import 'react-pdf/dist/Page/TextLayer.css'
@@ -30,6 +31,7 @@ const STATUS_CLASS: Record<string, string> = {
 }
 
 export function ContractViewerClient({ contract, workspaceId }: Props) {
+  const router = useRouter()
   const [numPages,       setNumPages]       = useState<number>(0)
   const [isSavingSig,    setIsSavingSig]    = useState(false)
   const [isSending,      setIsSending]      = useState(false)
@@ -56,7 +58,7 @@ export function ContractViewerClient({ contract, workspaceId }: Props) {
     setSigError(null)
     try {
       await signInternalContract(contract.id, dataUrl, true)
-      window.location.reload()
+      router.refresh()
     } catch {
       setSigError('Error al guardar la firma. Inténtalo de nuevo.')
     } finally {
@@ -70,7 +72,7 @@ export function ContractViewerClient({ contract, workspaceId }: Props) {
     try {
       await sendContractToClient(contract.id, clientName, clientEmail)
       setShowSendModal(false)
-      window.location.reload()
+      router.refresh()
     } catch {
       setSendError('Error al enviar al cliente. Inténtalo de nuevo.')
     } finally {
