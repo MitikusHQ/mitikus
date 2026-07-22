@@ -8,11 +8,22 @@ import { updateDocument } from '@/app/actions/documents'
 const CATEGORIES = ['DNA', 'Producto', 'Arquitectura', 'Operaciones'] as const
 
 interface Props {
-  doc:         DocumentDetail
-  workspaceId: string
+  doc:              DocumentDetail
+  workspaceId:      string
+  onExportPdf:      () => void
+  onExportDocx:     () => void
+  isExportingPdf:   boolean
+  isExportingDocx:  boolean
 }
 
-export function EditableDocHeader({ doc, workspaceId }: Props) {
+export function EditableDocHeader({
+  doc,
+  workspaceId,
+  onExportPdf,
+  onExportDocx,
+  isExportingPdf,
+  isExportingDocx,
+}: Props) {
   const [title, setTitle]       = useState(doc.title)
   const [category, setCategory] = useState<string>(doc.category ?? '')
   const [saved, setSaved]       = useState(false)
@@ -67,6 +78,22 @@ export function EditableDocHeader({ doc, workspaceId }: Props) {
         <span className="text-xs border border-primary/30 text-primary px-2.5 py-1 rounded-full">
           Arkos usa este doc ✓
         </span>
+        <button
+          onClick={onExportPdf}
+          disabled={isExportingPdf}
+          className="text-xs border border-border px-2.5 py-1 rounded-full hover:bg-muted transition-colors disabled:opacity-50"
+          title="Descargar como PDF"
+        >
+          {isExportingPdf ? 'Generando…' : '↓ PDF'}
+        </button>
+        <button
+          onClick={onExportDocx}
+          disabled={isExportingDocx}
+          className="text-xs border border-border px-2.5 py-1 rounded-full hover:bg-muted transition-colors disabled:opacity-50"
+          title="Descargar como Word (.docx)"
+        >
+          {isExportingDocx ? 'Generando…' : '↓ .docx'}
+        </button>
         {isDirty && (
           <button
             onClick={handleSave}
