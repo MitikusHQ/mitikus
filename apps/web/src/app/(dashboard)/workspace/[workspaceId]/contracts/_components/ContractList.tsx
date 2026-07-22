@@ -1,6 +1,5 @@
 'use client'
 
-import { useState } from 'react'
 import Link from 'next/link'
 import type { ContractData } from '@/app/actions/contracts'
 import { ContractUploadZone } from './ContractUploadZone'
@@ -23,7 +22,7 @@ const STATUS_CLASS: Record<string, string> = {
 }
 
 export function ContractList({ workspaceId, initial }: Props) {
-  const [contracts] = useState(initial)
+  const contracts = initial
 
   return (
     <div className="space-y-6">

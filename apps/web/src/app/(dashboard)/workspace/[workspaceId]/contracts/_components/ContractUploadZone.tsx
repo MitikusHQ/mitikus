@@ -33,6 +33,10 @@ export function ContractUploadZone({ workspaceId }: Props) {
         setError(data.error ?? 'Error al subir el contrato')
         return
       }
+      if (!data.id) {
+        setError('Respuesta inesperada del servidor')
+        return
+      }
       router.push(`/workspace/${workspaceId}/contracts/${data.id}`)
     } catch {
       setError('Error de conexión. Inténtalo de nuevo.')
