@@ -134,6 +134,15 @@ export default async function WorkspaceToolsPage({ params }: Props) {
             <p className="text-xs text-muted-foreground">Datos y presupuestos</p>
             <span className="text-xs text-primary font-medium">BUILT-IN</span>
           </Link>
+          <Link
+            href={`/workspace/${workspaceId}/pdfs`}
+            className="flex flex-col gap-2 rounded-lg border p-4 hover:border-primary/50 hover:bg-muted/50 transition-colors"
+          >
+            <span className="text-2xl">📑</span>
+            <p className="text-sm font-medium">PDFs</p>
+            <p className="text-xs text-muted-foreground">Visor y conversión a Doc</p>
+            <span className="text-xs text-primary font-medium">BUILT-IN</span>
+          </Link>
         </div>
       </div>
 
