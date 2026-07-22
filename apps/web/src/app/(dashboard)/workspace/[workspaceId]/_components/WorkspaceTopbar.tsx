@@ -32,6 +32,10 @@ const SECTION_LABELS: Array<{ segment: string; label: string }> = [
   { segment: '/timelog',  label: 'Control horario' },
   { segment: '/profile',  label: 'Mi perfil' },
   { segment: '/docs',     label: 'Docs' },
+  { segment: '/sheets',   label: 'Hojas de cálculo' },
+  { segment: '/pdfs',     label: 'PDFs' },
+  { segment: '/office',   label: 'Mi Office' },
+  { segment: '/history',  label: 'Historial' },
 ]
 
 function useBreadcrumb(workspaceId: string, workspaceName: string) {
