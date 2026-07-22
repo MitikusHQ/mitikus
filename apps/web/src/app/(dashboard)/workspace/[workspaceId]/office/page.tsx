@@ -30,6 +30,12 @@ const TOOLS = [
     title:    'Contratos',
     subtitle: 'Firma y gestiona contratos con clientes',
   },
+  {
+    href:     (base: string) => `${base}/presentations`,
+    emoji:    '🎯',
+    title:    'Presentaciones',
+    subtitle: 'Crea y gestiona presentaciones del workspace',
+  },
 ] as const
 
 export default async function MyOfficePage({ params }: Props) {
