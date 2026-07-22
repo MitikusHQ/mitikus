@@ -15,6 +15,7 @@ export interface DocumentData {
 
 export interface DocumentDetail extends DocumentData {
   content: string
+  rawText: string
 }
 
 async function getAuthUser() {
@@ -64,6 +65,7 @@ export async function getDocument(
       category:  true,
       wordCount: true,
       content:   true,
+      rawText:   true,
       createdAt: true,
       uploader:  { select: { name: true } },
     },
@@ -77,6 +79,7 @@ export async function getDocument(
     category:     doc.category,
     wordCount:    doc.wordCount,
     content:      doc.content,
+    rawText:      doc.rawText,
     createdAt:    doc.createdAt.toISOString(),
     uploaderName: doc.uploader.name,
   }

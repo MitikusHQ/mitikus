@@ -12,12 +12,65 @@ interface Props {
 }
 
 export function DocViewerClient({ doc, workspaceId }: Props) {
-  const [isEditing, setIsEditing]     = useState(false)
-  const [html, setHtml]               = useState(doc.content)
-  const [rawText, setRawText]         = useState('')
-  const [isDirty, setIsDirty]         = useState(false)
-  const [isPending, startTransition]  = useTransition()
+  const [isEditing, setIsEditing]       = useState(false)
+  const [html, setHtml]                 = useState(doc.content)
+  const [rawText, setRawText]           = useState(doc.rawText ?? '')
+  const [isDirty, setIsDirty]           = useState(false)
+  const [isPending, startTransition]    = useTransition()
+  const [isExporting, setIsExporting]   = useState(false)
   const router = useRouter()
+
+  async function handleExportPdf() {
+    setIsExporting(true)
+    try {
+      const { jsPDF } = await import('jspdf')
+      const pdf = new jsPDF({ unit: 'mm', format: 'a4' })
+      const margin    = 20
+      const pageW     = pdf.internal.pageSize.getWidth() - margin * 2
+      const pageH     = pdf.internal.pageSize.getHeight()
+      const lineH     = 6
+      let y = margin
+
+      // Título
+      pdf.setFontSize(18)
+      pdf.setFont('helvetica', 'bold')
+      const titleLines = pdf.splitTextToSize(doc.title, pageW)
+      pdf.text(titleLines, margin, y)
+      y += (titleLines.length * 8) + 4
+
+      // Metadatos
+      pdf.setFontSize(9)
+      pdf.setFont('helvetica', 'normal')
+      pdf.setTextColor(120, 120, 120)
+      const meta = `${doc.wordCount.toLocaleString()} palabras · ${new Date(doc.createdAt).toLocaleDateString('es-ES')}`
+      pdf.text(meta, margin, y)
+      y += 10
+      pdf.setTextColor(0, 0, 0)
+
+      // Línea separadora
+      pdf.setDrawColor(200, 200, 200)
+      pdf.line(margin, y, margin + pageW, y)
+      y += 6
+
+      // Contenido
+      pdf.setFontSize(11)
+      const text = rawText || doc.rawText || ''
+      const paragraphs = text.split('\n').filter((l: string) => l.trim())
+      for (const para of paragraphs) {
+        const lines = pdf.splitTextToSize(para, pageW)
+        if (y + lines.length * lineH > pageH - margin) {
+          pdf.addPage()
+          y = margin
+        }
+        pdf.text(lines, margin, y)
+        y += lines.length * lineH + 3
+      }
+
+      pdf.save(`${doc.title}.pdf`)
+    } finally {
+      setIsExporting(false)
+    }
+  }
 
   const handleBeforeUnload = useCallback((e: BeforeUnloadEvent) => {
     if (isDirty) {
@@ -56,9 +109,16 @@ export function DocViewerClient({ doc, workspaceId }: Props) {
 
   return (
     <>
-      {/* Botón Editar — visible solo en modo lectura */}
+      {/* Acciones — visibles solo en modo lectura */}
       {!isEditing && (
-        <div className="flex justify-end">
+        <div className="flex justify-end gap-2">
+          <button
+            onClick={handleExportPdf}
+            disabled={isExporting}
+            className="text-xs border border-border px-3 py-1.5 rounded-full hover:bg-muted transition-colors disabled:opacity-50"
+          >
+            {isExporting ? 'Generando…' : '↓ PDF'}
+          </button>
           <button
             onClick={() => setIsEditing(true)}
             className="text-xs border border-border px-3 py-1.5 rounded-full hover:bg-muted transition-colors"

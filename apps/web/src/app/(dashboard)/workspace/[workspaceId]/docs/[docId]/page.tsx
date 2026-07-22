@@ -18,20 +18,6 @@ export default async function DocViewerPage({ params }: Props) {
 
   return (
     <div className="max-w-3xl mx-auto px-6 py-8 space-y-6">
-      {/* eslint-disable-next-line react/no-unknown-property */}
-      <style>{`
-        @media print {
-          body * { visibility: hidden; }
-          #doc-print-zone, #doc-print-zone * { visibility: visible; }
-          #doc-print-zone {
-            position: absolute;
-            left: 0; top: 0;
-            width: 100%;
-            padding: 40px;
-          }
-        }
-      `}</style>
-
       <Link
         href={`/workspace/${workspaceId}/docs`}
         className="inline-flex items-center gap-1.5 text-sm text-muted-foreground hover:text-foreground transition-colors"
@@ -42,14 +28,13 @@ export default async function DocViewerPage({ params }: Props) {
         Documentación
       </Link>
 
-      <div id="doc-print-zone" className="space-y-6">
-        <EditableDocHeader doc={doc} workspaceId={workspaceId} />
-        <DocViewerClient doc={doc} workspaceId={workspaceId} />
-      </div>
+      <EditableDocHeader doc={doc} workspaceId={workspaceId} />
 
       <div className="flex justify-end">
         <DeleteDocButton docId={docId} workspaceId={workspaceId} />
       </div>
+
+      <DocViewerClient doc={doc} workspaceId={workspaceId} />
     </div>
   )
 }
