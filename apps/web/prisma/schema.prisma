@@ -1541,8 +1541,8 @@ model Contract {
   title             String
   pdfData           Bytes
   status            ContractStatus @default(DRAFT)
-  clientName        String         @default("")
-  clientEmail       String         @default("")
+  clientName        String?
+  clientEmail       String?
   shareToken        String         @unique @default(cuid())
 
   internalSignature Bytes?
@@ -1565,7 +1565,6 @@ model Contract {
 
   @@index([workspaceId])
   @@index([workspaceId, status])
-  @@index([shareToken])
   @@map("contracts")
 }
 
