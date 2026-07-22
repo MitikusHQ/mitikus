@@ -99,6 +99,12 @@ export default async function WorkspaceLayout({ children, params }: Props) {
       icon: Icons.sheets,
       description: 'Hojas de cálculo con fórmulas y datos',
     },
+    {
+      label: 'PDFs',
+      href:  `${base}/pdfs`,
+      icon:  Icons.pdf,
+      description: 'Documentos PDF del workspace',
+    },
   ].filter(() => {
     // All VIEWER+ can see main items
     return can(user, 'view_workspace')
