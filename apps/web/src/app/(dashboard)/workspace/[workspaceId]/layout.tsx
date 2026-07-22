@@ -88,22 +88,10 @@ export default async function WorkspaceLayout({ children, params }: Props) {
       description: 'Las empresas o personas a las que prestas servicio',
     },
     {
-      label: 'Docs',
-      href: `${base}/docs`,
-      icon: Icons.docs,
-      description: 'Base de conocimiento del workspace',
-    },
-    {
-      label: 'Hojas de cálculo',
-      href: `${base}/sheets`,
-      icon: Icons.sheets,
-      description: 'Hojas de cálculo con fórmulas y datos',
-    },
-    {
-      label: 'PDFs',
-      href:  `${base}/pdfs`,
-      icon:  Icons.pdf,
-      description: 'Documentos PDF del workspace',
+      label: 'Mi Office',
+      href: `${base}/office`,
+      icon: Icons.office,
+      description: 'Documentos, hojas de cálculo y PDFs del workspace',
     },
   ].filter(() => {
     // All VIEWER+ can see main items

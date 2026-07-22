@@ -110,42 +110,6 @@ export default async function WorkspaceToolsPage({ params }: Props) {
           </Link>
         </div>
       </div>
-      {/* Herramientas de Office */}
-      <div className="space-y-3">
-        <h2 className="text-xs font-medium uppercase tracking-wider text-muted-foreground">
-          Herramientas de Office
-        </h2>
-        <div className="grid grid-cols-2 sm:grid-cols-3 gap-3">
-          <Link
-            href={`/workspace/${workspaceId}/docs`}
-            className="flex flex-col gap-2 rounded-lg border p-4 hover:border-primary/50 hover:bg-muted/50 transition-colors"
-          >
-            <span className="text-2xl">📄</span>
-            <p className="text-sm font-medium">Documentos</p>
-            <p className="text-xs text-muted-foreground">Base de conocimiento</p>
-            <span className="text-xs text-primary font-medium">BUILT-IN</span>
-          </Link>
-          <Link
-            href={`/workspace/${workspaceId}/sheets`}
-            className="flex flex-col gap-2 rounded-lg border p-4 hover:border-primary/50 hover:bg-muted/50 transition-colors"
-          >
-            <span className="text-2xl">📊</span>
-            <p className="text-sm font-medium">Hojas de cálculo</p>
-            <p className="text-xs text-muted-foreground">Datos y presupuestos</p>
-            <span className="text-xs text-primary font-medium">BUILT-IN</span>
-          </Link>
-          <Link
-            href={`/workspace/${workspaceId}/pdfs`}
-            className="flex flex-col gap-2 rounded-lg border p-4 hover:border-primary/50 hover:bg-muted/50 transition-colors"
-          >
-            <span className="text-2xl">📑</span>
-            <p className="text-sm font-medium">PDFs</p>
-            <p className="text-xs text-muted-foreground">Visor y conversión a Doc</p>
-            <span className="text-xs text-primary font-medium">BUILT-IN</span>
-          </Link>
-        </div>
-      </div>
-
       <div>
         {instances.length === 0 ? (
           <div className="rounded-lg border border-dashed p-16 text-center bg-card">
