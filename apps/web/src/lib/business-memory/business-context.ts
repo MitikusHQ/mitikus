@@ -18,7 +18,7 @@ function toArr(v: Prisma.JsonValue): string[] {
  * Si no hay datos aún, devuelve un contexto vacío (isEmpty: true).
  */
 export async function getBusinessContext(workspaceId: string): Promise<BusinessContext> {
-  const [profile, objectives, risks, processes, assets, docs] = await Promise.all([
+  const [profile, objectives, risks, processes, assets, docs, sheets] = await Promise.all([
     db.companyProfile.findUnique({ where: { workspaceId } }),
     db.companyObjective.findMany({
       where:   { workspaceId, status: 'active' },
@@ -46,18 +46,31 @@ export async function getBusinessContext(workspaceId: string): Promise<BusinessC
       take:    3,
       select:  { title: true, rawText: true },
     }),
+    db.spreadsheet.findMany({
+      where:   { workspaceId },
+      orderBy: { updatedAt: 'desc' },
+      take:    3,
+      select:  { title: true, rawText: true },
+    }),
   ])
 
   if (!profile) {
     return emptyContext(workspaceId)
   }
 
-  const docsContext = docs.length === 0 ? null : docs
-    .map((d) => {
-      const words = d.rawText.split(/\s+/).slice(0, 2000).join(' ')
-      return `--- ${d.title} ---\n${words}`
-    })
-    .join('\n\n')
+  const sheetsSnippet = sheets.length === 0 ? '' :
+    '\n\n=== HOJAS DE CÁLCULO ===\n' +
+    sheets
+      .map((s) => `--- ${s.title} ---\n${s.rawText.split('\n').slice(0, 100).join('\n')}`)
+      .join('\n\n')
+
+  const docsContext = (docs.length === 0 && sheets.length === 0) ? null :
+    (docs.length === 0 ? '' : docs
+      .map((d) => {
+        const words = d.rawText.split(/\s+/).slice(0, 2000).join(' ')
+        return `--- ${d.title} ---\n${words}`
+      })
+      .join('\n\n')) + sheetsSnippet
 
   return {
     workspaceId,
