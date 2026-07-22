@@ -259,6 +259,7 @@ model User {
   spreadsheets         Spreadsheet[]
   pdfsUploaded         Pdf[]
   contractsCreated     Contract[]
+  presentationsCreated Presentation[] @relation("PresentationsCreated")
 
   @@index([orgId])
   @@map("users")
@@ -302,6 +303,7 @@ model Workspace {
   spreadsheets         Spreadsheet[]
   pdfs                 Pdf[]
   contracts            Contract[]
+  presentations        Presentation[]
 
   @@unique([orgId, slug])
   @@index([orgId])
@@ -1566,6 +1568,45 @@ model Contract {
   @@index([workspaceId])
   @@index([workspaceId, status])
   @@map("contracts")
+}
+
+// ============================================================
+// PRESENTATIONS — módulo de presentaciones con reveal.js
+// ============================================================
+
+model Presentation {
+  id          String   @id @default(cuid())
+  workspaceId String
+  title       String
+  accentColor String   @default("#6366f1")
+  shareToken  String   @unique @default(cuid())
+  slides      Slide[]
+  createdBy   String
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  workspace   Workspace @relation(fields: [workspaceId], references: [id], onDelete: Cascade)
+  creator     User      @relation("PresentationsCreated", fields: [createdBy], references: [id], onDelete: Restrict)
+
+  @@index([workspaceId])
+  @@map("presentations")
+}
+
+model Slide {
+  id             String       @id @default(cuid())
+  presentationId String
+  order          Int
+  layout         String       @default("title-body")
+  title          String       @default("")
+  content        String       @default("{}")
+  imageUrl       String?
+  createdAt      DateTime     @default(now())
+  updatedAt      DateTime     @updatedAt
+
+  presentation   Presentation @relation(fields: [presentationId], references: [id], onDelete: Cascade)
+
+  @@index([presentationId])
+  @@map("slides")
 }
 
 model Notification {
