@@ -36,9 +36,9 @@ export function PdfUploadZone({ workspaceId, onUploaded }: Props) {
       onUploaded({
         id:           data.id,
         title:        data.title,
-        category:     null,
+        category:     data.category ?? null,
         pageCount:    data.pageCount ?? 0,
-        fileSize:     0,
+        fileSize:     data.fileSize ?? 0,
         createdAt:    new Date().toISOString(),
         uploaderName: null,
       })
@@ -81,6 +81,7 @@ export function PdfUploadZone({ workspaceId, onUploaded }: Props) {
           accept=".pdf"
           onChange={handleChange}
           className="hidden"
+          aria-label="Seleccionar archivo PDF"
         />
         {isUploading ? (
           <p className="text-sm text-muted-foreground">Procesando...</p>
