@@ -40,7 +40,6 @@ export async function POST(req: NextRequest): Promise<NextResponse> {
   let pageCount = 0
   try {
     // pdf-parse es un módulo CommonJS — require dinámico para evitar issues ESM
-    // eslint-disable-next-line @typescript-eslint/no-require-imports
     const pdfParse = require('pdf-parse') as (buf: Buffer) => Promise<{ text: string; numpages: number }>
     const result   = await pdfParse(buffer)
     rawText   = result.text.trim()
