@@ -3,7 +3,6 @@ import { notFound } from 'next/navigation'
 import Link from 'next/link'
 import { getDocument } from '@/app/actions/documents'
 import { DeleteDocButton } from './_components/DeleteDocButton'
-import { EditableDocHeader } from './_components/EditableDocHeader'
 import { DocViewerClient } from './_components/DocViewerClient'
 
 interface Props {
@@ -27,8 +26,6 @@ export default async function DocViewerPage({ params }: Props) {
         </svg>
         Documentación
       </Link>
-
-      <EditableDocHeader doc={doc} workspaceId={workspaceId} />
 
       <div className="flex justify-end">
         <DeleteDocButton docId={docId} workspaceId={workspaceId} />

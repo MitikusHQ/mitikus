@@ -5,6 +5,7 @@ import { useRouter } from 'next/navigation'
 import type { DocumentDetail } from '@/app/actions/documents'
 import { updateDocumentContent } from '@/app/actions/documents'
 import { TiptapEditor } from '../../_components/TiptapEditor'
+import { EditableDocHeader } from './EditableDocHeader'
 
 interface Props {
   doc:         DocumentDetail
@@ -17,11 +18,12 @@ export function DocViewerClient({ doc, workspaceId }: Props) {
   const [rawText, setRawText]           = useState(doc.rawText ?? '')
   const [isDirty, setIsDirty]           = useState(false)
   const [isPending, startTransition]    = useTransition()
-  const [isExporting, setIsExporting]   = useState(false)
+  const [isExportingPdf, setExportingPdf]   = useState(false)
+  const [isExportingDocx, setExportingDocx] = useState(false)
   const router = useRouter()
 
   async function handleExportPdf() {
-    setIsExporting(true)
+    setExportingPdf(true)
     try {
       const { jsPDF } = await import('jspdf')
       const pdf = new jsPDF({ unit: 'mm', format: 'a4' })
@@ -68,7 +70,17 @@ export function DocViewerClient({ doc, workspaceId }: Props) {
 
       pdf.save(`${doc.title}.pdf`)
     } finally {
-      setIsExporting(false)
+      setExportingPdf(false)
+    }
+  }
+
+  async function handleExportDocx() {
+    setExportingDocx(true)
+    try {
+      const { downloadAsDocx } = await import('@/lib/docx-export')
+      await downloadAsDocx(html, doc.title, doc.uploaderName, doc.wordCount, doc.createdAt)
+    } finally {
+      setExportingDocx(false)
     }
   }
 
@@ -109,16 +121,18 @@ export function DocViewerClient({ doc, workspaceId }: Props) {
 
   return (
     <>
+      <EditableDocHeader
+        doc={doc}
+        workspaceId={workspaceId}
+        onExportPdf={handleExportPdf}
+        onExportDocx={handleExportDocx}
+        isExportingPdf={isExportingPdf}
+        isExportingDocx={isExportingDocx}
+      />
+
       {/* Acciones — visibles solo en modo lectura */}
       {!isEditing && (
-        <div className="flex justify-end gap-2">
-          <button
-            onClick={handleExportPdf}
-            disabled={isExporting}
-            className="text-xs border border-border px-3 py-1.5 rounded-full hover:bg-muted transition-colors disabled:opacity-50"
-          >
-            {isExporting ? 'Generando…' : '↓ PDF'}
-          </button>
+        <div className="flex justify-end">
           <button
             onClick={() => setIsEditing(true)}
             className="text-xs border border-border px-3 py-1.5 rounded-full hover:bg-muted transition-colors"
