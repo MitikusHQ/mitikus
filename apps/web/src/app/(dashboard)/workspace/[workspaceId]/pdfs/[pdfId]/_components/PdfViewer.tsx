@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useCallback } from 'react'
+import { useState, useMemo } from 'react'
 import { Document, Page, pdfjs } from 'react-pdf'
 import 'react-pdf/dist/Page/AnnotationLayer.css'
 import 'react-pdf/dist/Page/TextLayer.css'
@@ -21,7 +21,7 @@ export function PdfViewer({ dataArray, title }: Props) {
   const [scale, setScale]           = useState(1.0)
 
   // Convert number[] → Uint8Array → Blob URL once
-  const pdfData = useCallback(() => {
+  const pdfData = useMemo(() => {
     const bytes = new Uint8Array(dataArray)
     return { data: bytes }
   }, [dataArray])
@@ -98,7 +98,7 @@ export function PdfViewer({ dataArray, title }: Props) {
       {/* PDF canvas */}
       <div className="overflow-auto w-full flex justify-center">
         <Document
-          file={pdfData()}
+          file={pdfData}
           onLoadSuccess={onDocumentLoadSuccess}
           loading={
             <div className="flex items-center justify-center py-16">
