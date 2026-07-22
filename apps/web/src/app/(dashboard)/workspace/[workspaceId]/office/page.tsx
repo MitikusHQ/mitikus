@@ -24,6 +24,12 @@ const TOOLS = [
     title:    'PDFs',
     subtitle: 'Visor, búsqueda y conversión a Doc',
   },
+  {
+    href:     (base: string) => `${base}/contracts`,
+    emoji:    '📝',
+    title:    'Contratos',
+    subtitle: 'Firma y gestiona contratos con clientes',
+  },
 ] as const
 
 export default async function MyOfficePage({ params }: Props) {
