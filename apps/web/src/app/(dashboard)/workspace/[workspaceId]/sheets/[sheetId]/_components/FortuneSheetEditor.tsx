@@ -1,5 +1,6 @@
 'use client'
 
+import '@fortune-sheet/react/dist/index.css'
 import dynamic from 'next/dynamic'
 
 const Workbook = dynamic(
