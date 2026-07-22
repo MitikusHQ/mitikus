@@ -2,7 +2,8 @@
 
 import { useState } from 'react'
 import { useRouter } from 'next/navigation'
-import { createPresentation, TEMPLATES } from '@/app/actions/presentations'
+import { createPresentation } from '@/app/actions/presentations'
+import { TEMPLATES } from '@/app/actions/presentations-types'
 
 const PRESET_COLORS = ['#6366f1', '#0ea5e9', '#10b981', '#f59e0b', '#ef4444', '#8b5cf6']
 
