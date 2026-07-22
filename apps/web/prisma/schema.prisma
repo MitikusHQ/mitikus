@@ -1500,6 +1500,7 @@ model Spreadsheet {
 
 // ============================================================
 // PDFS — archivos PDF del workspace
+// MVP: binario en DB (data Bytes). Migrar a Vercel Blob / S3 cuando el volumen lo requiera.
 // ============================================================
 
 model Pdf {
