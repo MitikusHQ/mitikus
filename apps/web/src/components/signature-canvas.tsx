@@ -58,8 +58,9 @@ export function SignatureCanvas({ onSave, disabled, existingSignature, label }: 
         <SignatureCanvasLib
           ref={canvasRef}
           penColor="#1a1a1a"
-          canvasProps={{ width: 240, height: 80, className: 'w-full' }}
+          canvasProps={{ className: 'w-full' }}
           onBegin={() => setIsEmpty(false)}
+          onEnd={() => setIsEmpty(canvasRef.current?.isEmpty() ?? true)}
         />
       </div>
       <div className="flex items-center gap-2">
