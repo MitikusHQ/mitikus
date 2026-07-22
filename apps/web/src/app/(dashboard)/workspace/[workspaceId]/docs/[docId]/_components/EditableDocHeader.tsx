@@ -67,6 +67,13 @@ export function EditableDocHeader({ doc, workspaceId }: Props) {
         <span className="text-xs border border-primary/30 text-primary px-2.5 py-1 rounded-full">
           Arkos usa este doc ✓
         </span>
+        <button
+          onClick={() => window.print()}
+          className="text-xs border border-border px-2.5 py-1 rounded-full hover:bg-muted transition-colors"
+          title="Exportar a PDF"
+        >
+          ↓ PDF
+        </button>
         {isDirty && (
           <button
             onClick={handleSave}
