@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useCallback, useRef } from 'react'
+import { useState, useCallback, useRef, useEffect } from 'react'
 import type { PDFDocumentProxy } from 'pdfjs-dist'
 
 interface Match {
@@ -21,6 +21,10 @@ export function PdfSearchBar({ pdfDoc, onMatchPage }: Props) {
   const [currentIdx, setCurrentIdx]   = useState(0)
   const [isSearching, setIsSearching] = useState(false)
   const debounceRef                   = useRef<ReturnType<typeof setTimeout> | null>(null)
+
+  useEffect(() => {
+    return () => { if (debounceRef.current) clearTimeout(debounceRef.current) }
+  }, [])
 
   const searchInPdf = useCallback(async (q: string) => {
     if (!pdfDoc || !q.trim()) {
@@ -90,9 +94,8 @@ export function PdfSearchBar({ pdfDoc, onMatchPage }: Props) {
     })
   }
 
-  const totalMatches = matches.reduce((acc, m) => acc + m.count, 0)
-  const hasQuery     = query.trim().length > 0
-  const noResults    = hasQuery && !isSearching && totalMatches === 0
+  const hasQuery  = query.trim().length > 0
+  const noResults = hasQuery && !isSearching && matches.length === 0
 
   return (
     <div className="flex items-center gap-1.5">
@@ -117,11 +120,11 @@ export function PdfSearchBar({ pdfDoc, onMatchPage }: Props) {
             ].join(' ')}
             aria-live="polite"
           >
-            {isSearching ? '…' : `${currentIdx + (totalMatches > 0 ? 1 : 0)} / ${totalMatches}`}
+            {isSearching ? '…' : `${currentIdx + (matches.length > 0 ? 1 : 0)} / ${matches.length}`}
           </span>
           <button
             onClick={goPrev}
-            disabled={totalMatches === 0 || isSearching}
+            disabled={matches.length === 0 || isSearching}
             className="text-xs border border-border px-1.5 py-0.5 rounded hover:bg-muted disabled:opacity-40 disabled:cursor-not-allowed transition-colors"
             aria-label="Coincidencia anterior"
           >
@@ -129,7 +132,7 @@ export function PdfSearchBar({ pdfDoc, onMatchPage }: Props) {
           </button>
           <button
             onClick={goNext}
-            disabled={totalMatches === 0 || isSearching}
+            disabled={matches.length === 0 || isSearching}
             className="text-xs border border-border px-1.5 py-0.5 rounded hover:bg-muted disabled:opacity-40 disabled:cursor-not-allowed transition-colors"
             aria-label="Coincidencia siguiente"
           >
