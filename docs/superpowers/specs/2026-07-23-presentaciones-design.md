@@ -123,9 +123,6 @@ addSlide(presentationId: string): Promise<{ id: string; order: number }>
 // Eliminar slide
 deleteSlide(slideId: string): Promise<void>
 
-// Reordenar slides
-reorderSlides(presentationId: string, orderedIds: string[]): Promise<void>
-
 // Eliminar presentación
 deletePresentation(presentationId: string): Promise<void>
 
@@ -175,7 +172,7 @@ Client Component (`PresentationEditorClient`). Layout de tres zonas:
   - `blank` → sin campo de contenido
 - Indicador "Guardado ✓" / "Guardando..." (aparece tras cada onBlur)
 
-**Preview (panel derecho):** miniatura del slide renderizado con los estilos de reveal.js pero en modo estático (no interactivo). Se actualiza en tiempo real al editar.
+**Panel derecho:** botón "👁 Vista previa" que abre `/p/[shareToken]` en nueva pestaña. El usuario ve la presentación real con reveal.js — sin preview duplicado en el editor.
 
 ### `/p/[token]` — Presentación pública
 
@@ -247,11 +244,11 @@ Comportamiento:
 - `onKeyDown` en Enter: añade nuevo bullet vacío después y enfoca
 - `onKeyDown` en Backspace con input vacío: elimina bullet y enfoca el anterior
 - `onChange` de cada input actualiza el array local
-- `onBlur` del último input que pierde foco dispara el guardado
+- El guardado (`onBlur`) se dispara en el `onBlur` del contenedor (`<div tabIndex={-1}>`), comprobando con `e.relatedTarget` que el foco salió del componente completo (no de un input al siguiente dentro del mismo componente)
 
 ### `SlidePreview.tsx`
 
-Miniatura del slide con los estilos aplicados. Sin interactividad. Reutilizado tanto en el panel preview del editor como en las miniaturas del sidebar.
+Miniatura del slide usada en el sidebar del editor (orden + título truncado). Sin interactividad. Solo muestra número de slide y título.
 
 ### `PresentationCard.tsx`
 
@@ -265,14 +262,15 @@ Card del listado con título, número de slides, fecha y acciones (abrir editor,
 npm install reveal.js --workspace=apps/web
 ```
 
-Copiar los assets estáticos a `apps/web/public/reveal/`:
+Los assets de reveal.js se sirven via route handler, sin copias manuales:
+
 ```
-public/reveal/reveal.css
-public/reveal/reveal.js
-public/reveal/theme/   (solo white.css y black.css)
+apps/web/src/app/api/reveal/[file]/route.ts
 ```
 
-La página `/p/[token]` es un Server Component que devuelve un documento HTML completo (no usa el layout de Next.js) con `export const dynamic = 'force-dynamic'`.
+Este handler lee el archivo solicitado desde `node_modules/reveal.js/dist/` y lo devuelve con el Content-Type apropiado (`text/css` o `application/javascript`). Solo se permiten los archivos `reveal.css`, `reveal.js`, `theme/white.css` y `theme/black.css` (whitelist explícita para evitar path traversal).
+
+La página `/p/[token]` es un Server Component que devuelve un documento HTML completo (no usa el layout de Next.js) con `export const dynamic = 'force-dynamic'`. Referencia los assets via `/api/reveal/reveal.css` y `/api/reveal/reveal.js`.
 
 ---
 
