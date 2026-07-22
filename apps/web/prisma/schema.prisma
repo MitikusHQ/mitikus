@@ -258,6 +258,7 @@ model User {
   documentsUploaded    Document[]
   spreadsheets         Spreadsheet[]
   pdfsUploaded         Pdf[]
+  contractsCreated     Contract[]
 
   @@index([orgId])
   @@map("users")
@@ -300,6 +301,7 @@ model Workspace {
   documents            Document[]
   spreadsheets         Spreadsheet[]
   pdfs                 Pdf[]
+  contracts            Contract[]
 
   @@unique([orgId, slug])
   @@index([orgId])
@@ -1521,6 +1523,50 @@ model Pdf {
   @@index([workspaceId])
   @@index([workspaceId, createdAt])
   @@map("pdfs")
+}
+
+// ============================================================
+// CONTRACTS — firma digital de contratos con clientes
+// ============================================================
+
+enum ContractStatus {
+  DRAFT
+  SENT
+  SIGNED
+}
+
+model Contract {
+  id                String         @id @default(cuid())
+  workspaceId       String
+  title             String
+  pdfData           Bytes
+  status            ContractStatus @default(DRAFT)
+  clientName        String         @default("")
+  clientEmail       String         @default("")
+  shareToken        String         @unique @default(cuid())
+
+  internalSignature Bytes?
+  internalAccepted  Boolean        @default(false)
+  internalSignedAt  DateTime?
+
+  clientSignature   Bytes?
+  clientAccepted    Boolean        @default(false)
+  clientSignedAt    DateTime?
+  clientIp          String?
+
+  signedPdfData     Bytes?
+
+  createdBy         String
+  createdAt         DateTime       @default(now())
+  updatedAt         DateTime       @updatedAt
+
+  workspace         Workspace      @relation(fields: [workspaceId], references: [id], onDelete: Cascade)
+  creator           User           @relation(fields: [createdBy], references: [id], onDelete: Restrict)
+
+  @@index([workspaceId])
+  @@index([workspaceId, status])
+  @@index([shareToken])
+  @@map("contracts")
 }
 
 model Notification {
