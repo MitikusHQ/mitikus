@@ -106,7 +106,7 @@ export async function GET(req: NextRequest, { params }: Params): Promise<NextRes
 
   const pdfBytes = await pdfDoc.save()
 
-  return new NextResponse(pdfBytes, {
+  return new NextResponse(Buffer.from(pdfBytes), {
     headers: {
       'Content-Type':        'application/pdf',
       'Content-Disposition': 'inline; filename="contrato-firmado.pdf"',

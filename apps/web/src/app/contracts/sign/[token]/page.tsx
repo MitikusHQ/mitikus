@@ -16,6 +16,8 @@ export default async function PublicSignPage({ params }: Props) {
     notFound()
   }
 
+  if (!contract) notFound()
+
   if (contract.status === 'SIGNED') {
     return (
       <div className="min-h-screen flex items-center justify-center bg-background">

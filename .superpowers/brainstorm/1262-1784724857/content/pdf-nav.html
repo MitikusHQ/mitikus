@@ -1,0 +1,47 @@
+<h2>¿Dónde viven los PDFs en MITIKUS?</h2>
+<p class="subtitle">Tres opciones de integración en la navegación</p>
+
+<div class="options">
+  <div class="option" data-choice="a" onclick="toggleSelect(this)">
+    <div class="letter">A</div>
+    <div class="content">
+      <h3>PDFs como ítem propio en el sidebar</h3>
+      <p>Al mismo nivel que Docs y Hojas de cálculo. Ruta <code>/pdfs</code>. Listado + visor. Estructura idéntica a Docs y Sheets.</p>
+      <div style="font-family:monospace;font-size:11px;margin-top:10px;padding:8px;background:var(--muted);border-radius:6px;line-height:2">
+        <div>📄 Docs</div>
+        <div>📊 Hojas de cálculo</div>
+        <div style="color:var(--accent);font-weight:600">📑 PDFs</div>
+        <div>🔧 Herramientas</div>
+      </div>
+    </div>
+  </div>
+
+  <div class="option" data-choice="b" onclick="toggleSelect(this)">
+    <div class="letter">B</div>
+    <div class="content">
+      <h3>PDFs integrados dentro de Docs</h3>
+      <p>La página <code>/docs</code> acepta tanto .docx como .pdf. Un solo listado unificado. Los PDFs muestran visor en lugar de editor Tiptap.</p>
+      <div style="font-family:monospace;font-size:11px;margin-top:10px;padding:8px;background:var(--muted);border-radius:6px;line-height:2">
+        <div>📄 Docs <span style="font-size:10px;color:var(--muted)">(docx + pdf juntos)</span></div>
+        <div>📊 Hojas de cálculo</div>
+        <div>🔧 Herramientas</div>
+      </div>
+    </div>
+  </div>
+
+  <div class="option" data-choice="c" onclick="toggleSelect(this)">
+    <div class="letter">C</div>
+    <div class="content">
+      <h3>PDFs dentro de Docs pero con pestaña separada</h3>
+      <p>En <code>/docs</code> hay dos tabs: "Documentos" y "PDFs". Mismo sidebar, contexto unificado, pero listados diferenciados.</p>
+      <div style="font-family:monospace;font-size:11px;margin-top:10px;padding:8px;background:var(--muted);border-radius:6px;line-height:2">
+        <div>📄 Docs</div>
+        <div style="padding-left:14px;font-size:11px">
+          <span style="border-bottom:2px solid var(--accent);color:var(--accent)">Documentos</span>
+          <span style="margin-left:12px;color:var(--muted)">PDFs</span>
+        </div>
+        <div>📊 Hojas de cálculo</div>
+      </div>
+    </div>
+  </div>
+</div>

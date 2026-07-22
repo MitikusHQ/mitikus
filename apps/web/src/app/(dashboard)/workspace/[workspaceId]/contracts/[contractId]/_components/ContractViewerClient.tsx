@@ -57,7 +57,7 @@ export function ContractViewerClient({ contract, workspaceId }: Props) {
     setIsSavingSig(true)
     setSigError(null)
     try {
-      await signInternalContract(contract.id, dataUrl, true)
+      await signInternalContract(contract.id, workspaceId, dataUrl, true)
       router.refresh()
     } catch {
       setSigError('Error al guardar la firma. Inténtalo de nuevo.')
@@ -70,7 +70,7 @@ export function ContractViewerClient({ contract, workspaceId }: Props) {
     setIsSending(true)
     setSendError(null)
     try {
-      await sendContractToClient(contract.id, clientName, clientEmail)
+      await sendContractToClient(contract.id, workspaceId, clientName, clientEmail)
       setShowSendModal(false)
       router.refresh()
     } catch {

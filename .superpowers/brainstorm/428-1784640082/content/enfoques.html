@@ -1,0 +1,40 @@
+<h2>¿Cómo almacenamos y mostramos los documentos?</h2>
+<p class="subtitle">3 enfoques — mismo resultado visible, diferente complejidad técnica</p>
+
+<div class="options">
+  <div class="option" data-choice="a" onclick="toggleSelect(this)">
+    <div class="letter">A</div>
+    <div class="content">
+      <h3>Texto extraído en base de datos</h3>
+      <p>Al subir el .docx, extraemos el texto y lo guardamos en PostgreSQL. El visor muestra el texto limpio. Arkos lo usa directamente.</p>
+      <div class="pros-cons" style="margin-top:10px">
+        <div class="pros"><h4>Pros</h4><ul><li>Sin almacenamiento externo</li><li>Arkos integrado fácil</li><li>Rápido de implementar</li></ul></div>
+        <div class="cons"><h4>Contras</h4><ul><li>Pierde formato (tablas, negritas)</li><li>No se puede descargar el original</li></ul></div>
+      </div>
+    </div>
+  </div>
+
+  <div class="option" data-choice="b" onclick="toggleSelect(this)">
+    <div class="letter">B</div>
+    <div class="content">
+      <h3>Markdown en base de datos <span style="font-size:11px;background:#dbeafe;color:#1d4ed8;padding:2px 6px;border-radius:4px;margin-left:6px">Recomendado</span></h3>
+      <p>Al subir, convertimos el .docx a Markdown (pandoc). Guardamos el markdown en PostgreSQL. El visor renderiza el markdown con formato. Arkos lo lee igual.</p>
+      <div class="pros-cons" style="margin-top:10px">
+        <div class="pros"><h4>Pros</h4><ul><li>Mantiene títulos, tablas, negritas</li><li>Ideal para Arkos (texto estructurado)</li><li>Sin almacenamiento externo</li></ul></div>
+        <div class="cons"><h4>Contras</h4><ul><li>No conserva el .docx original</li><li>Requiere pandoc en el servidor</li></ul></div>
+      </div>
+    </div>
+  </div>
+
+  <div class="option" data-choice="c" onclick="toggleSelect(this)">
+    <div class="letter">C</div>
+    <div class="content">
+      <h3>Archivo original en Vercel Blob</h3>
+      <p>Guardamos el .docx tal cual en Vercel Blob Storage. El visor ofrece descarga directa. También extraemos texto para Arkos.</p>
+      <div class="pros-cons" style="margin-top:10px">
+        <div class="pros"><h4>Pros</h4><ul><li>Archivo original siempre disponible</li><li>Puede abrirse en Word desde la app</li></ul></div>
+        <div class="cons"><h4>Contras</h4><ul><li>Coste adicional (Blob Storage)</li><li>Más complejo</li><li>No hay visor inline en el navegador</li></ul></div>
+      </div>
+    </div>
+  </div>
+</div>

@@ -18,6 +18,8 @@ export default async function ContractPage({ params }: Props) {
     notFound()
   }
 
+  if (!contract) notFound()
+
   return (
     <div className="flex flex-col h-[calc(100vh-4rem)]">
       <ContractViewerClient contract={contract} workspaceId={workspaceId} />

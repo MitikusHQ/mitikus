@@ -1,0 +1,91 @@
+<h2>¿Cómo debe organizarse el visor PDF mejorado?</h2>
+<p class="subtitle">Elige el layout que prefieras para las miniaturas y la búsqueda</p>
+
+<div class="cards">
+
+  <div class="card" data-choice="a" onclick="toggleSelect(this)">
+    <div class="card-image" style="padding:16px;background:var(--bg-secondary,#f5f5f5);border-radius:8px;font-family:monospace;font-size:12px;line-height:1.5">
+      <div style="display:flex;gap:8px;height:200px">
+        <div style="width:90px;background:var(--bg-tertiary,#e0e0e0);border-radius:4px;padding:8px;display:flex;flex-direction:column;gap:4px;overflow:hidden">
+          <div style="font-size:10px;color:var(--text-muted,#888);margin-bottom:4px;text-transform:uppercase;letter-spacing:.5px">Pág</div>
+          <div style="background:var(--accent,#6366f1);border-radius:2px;height:50px;width:100%;opacity:.9"></div>
+          <div style="background:var(--bg-card,#fff);border:1px solid var(--border,#ddd);border-radius:2px;height:50px;width:100%"></div>
+          <div style="background:var(--bg-card,#fff);border:1px solid var(--border,#ddd);border-radius:2px;height:50px;width:100%"></div>
+        </div>
+        <div style="flex:1;display:flex;flex-direction:column;gap:6px">
+          <div style="background:var(--bg-tertiary,#e0e0e0);border-radius:4px;padding:6px 8px;display:flex;align-items:center;gap:6px">
+            <span style="font-size:10px">🔍</span>
+            <div style="flex:1;height:14px;background:var(--bg-card,#fff);border-radius:2px;border:1px solid var(--border,#ddd)"></div>
+            <div style="font-size:10px;color:var(--text-muted,#888)">1/3</div>
+          </div>
+          <div style="flex:1;background:var(--bg-card,#fff);border-radius:4px;border:1px solid var(--border,#ddd)"></div>
+        </div>
+      </div>
+    </div>
+    <div class="card-body">
+      <h3>A — Panel izquierdo + búsqueda arriba</h3>
+      <p>Miniaturas en sidebar izquierdo fijo. Barra de búsqueda encima del PDF, visible siempre. La más parecida a Google Docs / Adobe.</p>
+    </div>
+  </div>
+
+  <div class="card" data-choice="b" onclick="toggleSelect(this)">
+    <div class="card-image" style="padding:16px;background:var(--bg-secondary,#f5f5f5);border-radius:8px;font-family:monospace;font-size:12px;line-height:1.5">
+      <div style="display:flex;flex-direction:column;gap:6px;height:200px">
+        <div style="background:var(--bg-tertiary,#e0e0e0);border-radius:4px;padding:6px 8px;display:flex;align-items:center;gap:6px">
+          <span style="font-size:10px">🔍</span>
+          <div style="flex:1;height:14px;background:var(--bg-card,#fff);border-radius:2px;border:1px solid var(--border,#ddd)"></div>
+          <div style="font-size:10px;color:var(--text-muted,#888)">1/3</div>
+          <div style="font-size:10px;background:var(--accent,#6366f1);color:#fff;border-radius:2px;padding:1px 5px">⊞ Miniat.</div>
+        </div>
+        <div style="flex:1;display:flex;gap:6px">
+          <div style="flex:1;background:var(--bg-card,#fff);border-radius:4px;border:1px solid var(--border,#ddd)"></div>
+          <div style="width:80px;background:var(--bg-tertiary,#e0e0e0);border-radius:4px;padding:6px;display:flex;flex-direction:column;gap:4px">
+            <div style="background:var(--accent,#6366f1);border-radius:2px;height:44px;width:100%;opacity:.9"></div>
+            <div style="background:var(--bg-card,#fff);border:1px solid var(--border,#ddd);border-radius:2px;height:44px;width:100%"></div>
+          </div>
+        </div>
+      </div>
+    </div>
+    <div class="card-body">
+      <h3>B — Panel derecho colapsable</h3>
+      <p>Búsqueda en la barra de herramientas existente (junto a ← →). Miniaturas en panel derecho, activado con un botón toggle. Más compacto, sin cambiar el layout actual.</p>
+    </div>
+  </div>
+
+  <div class="card" data-choice="c" onclick="toggleSelect(this)">
+    <div class="card-image" style="padding:16px;background:var(--bg-secondary,#f5f5f5);border-radius:8px;font-family:monospace;font-size:12px;line-height:1.5">
+      <div style="display:flex;gap:8px;height:200px">
+        <div style="width:72px;background:var(--bg-tertiary,#e0e0e0);border-radius:4px;padding:6px;display:flex;flex-direction:column;gap:3px;overflow:hidden">
+          <div style="font-size:9px;color:var(--text-muted,#888);margin-bottom:2px;text-transform:uppercase">Pág</div>
+          <div style="background:var(--accent,#6366f1);border-radius:2px;height:42px;width:100%;opacity:.9"></div>
+          <div style="background:var(--bg-card,#fff);border:1px solid var(--border,#ddd);border-radius:2px;height:42px;width:100%"></div>
+          <div style="background:var(--bg-card,#fff);border:1px solid var(--border,#ddd);border-radius:2px;height:42px;width:100%"></div>
+        </div>
+        <div style="flex:1;display:flex;flex-direction:column;gap:6px">
+          <div style="background:var(--bg-tertiary,#e0e0e0);border-radius:4px;padding:4px 8px;display:flex;align-items:center;gap:6px;justify-content:space-between">
+            <div style="display:flex;align-items:center;gap:4px">
+              <span style="font-size:10px">←</span>
+              <span style="font-size:10px;color:var(--text-muted,#888)">1/12</span>
+              <span style="font-size:10px">→</span>
+            </div>
+            <div style="display:flex;align-items:center;gap:4px">
+              <span style="font-size:10px">🔍</span>
+              <div style="width:60px;height:12px;background:var(--bg-card,#fff);border-radius:2px;border:1px solid var(--border,#ddd)"></div>
+            </div>
+            <div style="display:flex;align-items:center;gap:2px">
+              <span style="font-size:10px">−</span>
+              <span style="font-size:9px;color:var(--text-muted,#888)">100%</span>
+              <span style="font-size:10px">+</span>
+            </div>
+          </div>
+          <div style="flex:1;background:var(--bg-card,#fff);border-radius:4px;border:1px solid var(--border,#ddd)"></div>
+        </div>
+      </div>
+    </div>
+    <div class="card-body">
+      <h3>C — Sidebar izquierdo + búsqueda en toolbar</h3>
+      <p>Miniaturas en sidebar izquierdo siempre visible (más estrecho). Buscador integrado en la barra de navegación actual junto a los controles de zoom. Más compacto que A.</p>
+    </div>
+  </div>
+
+</div>

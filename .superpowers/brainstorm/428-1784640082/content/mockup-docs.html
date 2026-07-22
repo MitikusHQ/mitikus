@@ -1,0 +1,101 @@
+<h2>Así quedaría el gestor documental</h2>
+<p class="subtitle">Nueva sección "Docs" en el workspace — visor + subida de .docx</p>
+
+<div class="split" style="gap:16px;margin-top:20px">
+
+  <!-- Panel izquierdo: sidebar -->
+  <div class="mockup" style="max-width:220px;flex-shrink:0">
+    <div class="mockup-header">Sidebar</div>
+    <div class="mockup-body" style="padding:0">
+      <div style="padding:8px 12px;font-size:11px;font-weight:600;color:#888;letter-spacing:.08em;text-transform:uppercase">Principal</div>
+      <div style="padding:8px 14px;font-size:13px;color:#888">🗓 Mi día</div>
+      <div style="padding:8px 14px;font-size:13px;color:#888">✓ Tareas</div>
+      <div style="padding:8px 14px;font-size:13px;color:#888">◎ Arkos</div>
+      <div style="padding:8px 14px;font-size:13px;color:#888">⊞ Mission Control</div>
+      <div style="padding:8px 14px;font-size:13px;color:#888">⊡ Historial</div>
+      <div style="padding:8px 14px;font-size:13px;color:#888">🔧 Herramientas</div>
+      <div style="padding:8px 14px;font-size:13px;color:#888">⚡ Flows</div>
+      <div style="padding:8px 14px;font-size:13px;color:#888">👥 Clientes</div>
+      <div style="padding:8px 14px;font-size:13px;font-weight:600;background:rgba(99,102,241,.1);color:#6366f1;border-left:2px solid #6366f1">📄 Docs</div>
+      <div style="padding:8px 12px;margin-top:8px;font-size:11px;font-weight:600;color:#888;letter-spacing:.08em;text-transform:uppercase">Admin</div>
+      <div style="padding:8px 14px;font-size:13px;color:#888">✦ Créditos</div>
+      <div style="padding:8px 14px;font-size:13px;color:#888">🛡 Auditoría</div>
+    </div>
+  </div>
+
+  <!-- Panel derecho: página docs -->
+  <div class="mockup" style="flex:1">
+    <div class="mockup-header">Docs — listado</div>
+    <div class="mockup-body">
+      <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:16px">
+        <div>
+          <div style="font-size:16px;font-weight:600">Documentación</div>
+          <div style="font-size:12px;color:#888;margin-top:2px">Base de conocimiento del workspace</div>
+        </div>
+        <button class="mock-button" style="font-size:12px;padding:6px 14px">+ Subir documento</button>
+      </div>
+
+      <!-- Filtros de categoría -->
+      <div style="display:flex;gap:6px;margin-bottom:14px;flex-wrap:wrap">
+        <span style="font-size:11px;padding:3px 10px;border-radius:20px;background:#6366f1;color:#fff">Todos</span>
+        <span style="font-size:11px;padding:3px 10px;border-radius:20px;border:1px solid #ddd;color:#888">DNA</span>
+        <span style="font-size:11px;padding:3px 10px;border-radius:20px;border:1px solid #ddd;color:#888">Producto</span>
+        <span style="font-size:11px;padding:3px 10px;border-radius:20px;border:1px solid #ddd;color:#888">Arquitectura</span>
+        <span style="font-size:11px;padding:3px 10px;border-radius:20px;border:1px solid #ddd;color:#888">Operaciones</span>
+      </div>
+
+      <!-- Lista de docs -->
+      <div style="display:flex;flex-direction:column;gap:6px">
+        <div style="display:flex;align-items:center;gap:10px;padding:10px 12px;border-radius:8px;border:1px solid #e5e7eb;cursor:pointer">
+          <span style="font-size:18px">📄</span>
+          <div style="flex:1">
+            <div style="font-size:13px;font-weight:500">MITIKUS DNA v1.0</div>
+            <div style="font-size:11px;color:#888">DNA · Subido hace 16 días · 4.200 palabras</div>
+          </div>
+          <span style="font-size:11px;padding:2px 8px;border-radius:4px;background:#dbeafe;color:#1d4ed8">DNA</span>
+        </div>
+        <div style="display:flex;align-items:center;gap:10px;padding:10px 12px;border-radius:8px;border:1px solid #e5e7eb;cursor:pointer">
+          <span style="font-size:18px">📄</span>
+          <div style="flex:1">
+            <div style="font-size:13px;font-weight:500">Product Bible PB-100</div>
+            <div style="font-size:11px;color:#888">Producto · Subido hace 13 días · 6.800 palabras</div>
+          </div>
+          <span style="font-size:11px;padding:2px 8px;border-radius:4px;background:#dcfce7;color:#16a34a">Producto</span>
+        </div>
+        <div style="display:flex;align-items:center;gap:10px;padding:10px 12px;border-radius:8px;border:1px solid #e5e7eb;cursor:pointer">
+          <span style="font-size:18px">📄</span>
+          <div style="flex:1">
+            <div style="font-size:13px;font-weight:500">Dual Operating Cycle — DEC-009</div>
+            <div style="font-size:11px;color:#888">Arquitectura · Subido hace 13 días · 1.900 palabras</div>
+          </div>
+          <span style="font-size:11px;padding:2px 8px;border-radius:4px;background:#fef3c7;color:#d97706">Arquitectura</span>
+        </div>
+      </div>
+
+      <!-- Zona subida -->
+      <div style="margin-top:16px;border:2px dashed #d1d5db;border-radius:8px;padding:20px;text-align:center;color:#9ca3af;font-size:12px">
+        Arrastra un .docx aquí o <span style="color:#6366f1;cursor:pointer">elige archivo</span>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div class="mockup" style="margin-top:16px">
+  <div class="mockup-header">Visor de documento</div>
+  <div class="mockup-body">
+    <div style="display:flex;justify-content:space-between;align-items:start;margin-bottom:16px">
+      <div>
+        <div style="font-size:15px;font-weight:600">MITIKUS DNA v1.0</div>
+        <div style="font-size:11px;color:#888;margin-top:2px">DNA · 4.200 palabras · Subido el 5 jul 2026</div>
+      </div>
+      <button class="mock-button" style="font-size:11px;padding:4px 10px;background:transparent;color:#6366f1;border:1px solid #6366f1">Arkos usa este doc ✓</button>
+    </div>
+    <div style="font-size:13px;color:#374151;line-height:1.7;border-top:1px solid #f3f4f6;padding-top:14px">
+      <strong style="font-size:15px">1. Identidad de marca</strong>
+      <p style="margin:6px 0 12px">MITIKUS es el sistema operativo empresarial para equipos que trabajan con conocimiento...</p>
+      <strong>1.1 Propósito</strong>
+      <p style="margin:6px 0 12px">Convertir el caos operativo en claridad ejecutable mediante herramientas, misiones y contexto...</p>
+      <div style="text-align:center;color:#9ca3af;font-size:11px;padding:8px 0">— continúa —</div>
+    </div>
+  </div>
+</div>
