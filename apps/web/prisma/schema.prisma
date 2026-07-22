@@ -257,6 +257,7 @@ model User {
   notifications        Notification[]
   documentsUploaded    Document[]
   spreadsheets         Spreadsheet[]
+  pdfsUploaded         Pdf[]
 
   @@index([orgId])
   @@map("users")
@@ -298,6 +299,7 @@ model Workspace {
   tasks                Task[]
   documents            Document[]
   spreadsheets         Spreadsheet[]
+  pdfs                 Pdf[]
 
   @@unique([orgId, slug])
   @@index([orgId])
@@ -1494,6 +1496,30 @@ model Spreadsheet {
   @@index([workspaceId])
   @@index([workspaceId, createdAt])
   @@map("spreadsheets")
+}
+
+// ============================================================
+// PDFS — archivos PDF del workspace
+// ============================================================
+
+model Pdf {
+  id          String    @id @default(cuid())
+  workspaceId String
+  title       String
+  category    String?
+  data        Bytes
+  rawText     String    @default("") @db.Text
+  pageCount   Int       @default(0)
+  fileSize    Int       @default(0)
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
+  uploadedBy  String
+  workspace   Workspace @relation(fields: [workspaceId], references: [id], onDelete: Cascade)
+  uploader    User      @relation(fields: [uploadedBy], references: [id], onDelete: Restrict)
+
+  @@index([workspaceId])
+  @@index([workspaceId, createdAt])
+  @@map("pdfs")
 }
 
 model Notification {

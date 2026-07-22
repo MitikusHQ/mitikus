@@ -14,6 +14,7 @@ const securityHeaders = [
 const nextConfig: NextConfig = {
   transpilePackages: ['@protools/schema', '@protools/ui', '@protools/import-engine'],
   typedRoutes: false,
+  serverExternalPackages: ['pdf-parse'],
 
   async headers() {
     return [
