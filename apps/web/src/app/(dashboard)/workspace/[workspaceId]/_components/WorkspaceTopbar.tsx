@@ -36,6 +36,7 @@ const SECTION_LABELS: Array<{ segment: string; label: string }> = [
   { segment: '/pdfs',     label: 'PDFs' },
   { segment: '/contracts',     label: 'Contratos' },
   { segment: '/presentations', label: 'Presentaciones' },
+  { segment: '/notebooks',     label: 'Notebooks' },
   { segment: '/office',   label: 'Mi Office' },
   { segment: '/history',  label: 'Historial' },
 ]

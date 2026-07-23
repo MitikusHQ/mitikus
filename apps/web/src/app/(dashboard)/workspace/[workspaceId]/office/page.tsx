@@ -36,6 +36,12 @@ const TOOLS = [
     title:    'Presentaciones',
     subtitle: 'Crea y gestiona presentaciones del workspace',
   },
+  {
+    href:     (base: string) => `${base}/notebooks`,
+    emoji:    '🧠',
+    title:    'Notebooks',
+    subtitle: 'Sintetiza y consulta documentos con IA',
+  },
 ] as const
 
 export default async function MyOfficePage({ params }: Props) {
