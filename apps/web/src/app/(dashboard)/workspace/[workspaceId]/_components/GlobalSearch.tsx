@@ -5,7 +5,7 @@ import { useRouter } from 'next/navigation'
 
 interface SearchResult {
   id:    string
-  type:  'tool' | 'client' | 'mission' | 'execution'
+  type:  'tool' | 'client' | 'mission' | 'execution' | 'doc' | 'pdf' | 'contract' | 'notebook'
   label: string
   sub?:  string
   href:  string
@@ -16,6 +16,10 @@ const TYPE_LABEL: Record<SearchResult['type'], string> = {
   client:    'Cliente',
   mission:   'Misión',
   execution: 'Ejecución',
+  doc:       'Documento',
+  pdf:       'PDF',
+  contract:  'Contrato',
+  notebook:  'Notebook',
 }
 
 const TYPE_ICON: Record<SearchResult['type'], string> = {
@@ -23,6 +27,10 @@ const TYPE_ICON: Record<SearchResult['type'], string> = {
   client:    '🏢',
   mission:   '🎯',
   execution: '⚡',
+  doc:       '📄',
+  pdf:       '📑',
+  contract:  '✍️',
+  notebook:  '🧠',
 }
 
 interface Props {
@@ -101,7 +109,7 @@ export function GlobalSearch({ workspaceId }: Props) {
   }
 
   // Group results by type
-  const groups = (['tool', 'client', 'mission', 'execution'] as const)
+  const groups = (['tool', 'client', 'mission', 'execution', 'doc', 'pdf', 'contract', 'notebook'] as const)
     .map((type) => ({ type, items: results.filter((r) => r.type === type) }))
     .filter((g) => g.items.length > 0)
 
@@ -147,7 +155,7 @@ export function GlobalSearch({ workspaceId }: Props) {
             value={query}
             onChange={handleInput}
             onKeyDown={handleKeyDown}
-            placeholder="Buscar herramientas, clientes, misiones…"
+            placeholder="Buscar documentos, PDFs, contratos, notebooks…"
             className="flex-1 bg-transparent text-sm placeholder:text-muted-foreground focus:outline-none"
           />
           {loading && <LoadingDots />}
