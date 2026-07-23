@@ -99,3 +99,36 @@ export async function sendContractSignedEmail({
     ],
   })
 }
+
+export async function sendContractOtpEmail({
+  to,
+  code,
+  expiresInMin,
+}: {
+  to:           string
+  code:         string
+  expiresInMin: number
+}) {
+  const { Resend } = await import('resend')
+  const resend = new Resend(process.env.RESEND_API_KEY)
+
+  await resend.emails.send({
+    from:    'MITIKUS <noreply@mitikus.com>',
+    to,
+    subject: `Tu código de verificación: ${code}`,
+    html: `
+      <div style="font-family: sans-serif; max-width: 480px; margin: 0 auto; padding: 32px 24px;">
+        <p style="font-size: 18px; font-weight: 600; margin-bottom: 8px;">Código de verificación</p>
+        <p style="color: #666; margin-bottom: 24px;">
+          Para acceder al contrato que te han enviado para firmar, introduce este código:
+        </p>
+        <div style="background: #f4f4f5; border-radius: 8px; padding: 24px; text-align: center; margin-bottom: 24px;">
+          <span style="font-size: 36px; font-weight: 700; letter-spacing: 8px; font-family: monospace;">${code}</span>
+        </div>
+        <p style="color: #999; font-size: 13px;">
+          Este código caduca en ${expiresInMin} minutos. Si no solicitaste este código, ignora este email.
+        </p>
+      </div>
+    `,
+  })
+}
