@@ -389,3 +389,41 @@ export async function getOtpStatus(
 
   return { hasEmail, alreadyVerified, waitSeconds }
 }
+
+export async function getPendingContracts(workspaceId: string): Promise<{
+  id:          string
+  title:       string
+  status:      string
+  clientName:  string | null
+  clientEmail: string | null
+  createdAt:   string
+}[]> {
+  const { userId: clerkId } = await auth()
+  if (!clerkId) throw new Error('Unauthorized')
+
+  const contracts = await db.contract.findMany({
+    where: {
+      workspaceId,
+      status: { in: ['DRAFT', 'SENT'] },
+    },
+    orderBy: { createdAt: 'desc' },
+    take: 5,
+    select: {
+      id:          true,
+      title:       true,
+      status:      true,
+      clientName:  true,
+      clientEmail: true,
+      createdAt:   true,
+    },
+  })
+
+  return contracts.map((c) => ({
+    id:          c.id,
+    title:       c.title,
+    status:      c.status,
+    clientName:  c.clientName,
+    clientEmail: c.clientEmail,
+    createdAt:   c.createdAt.toISOString(),
+  }))
+}
