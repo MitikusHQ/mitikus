@@ -3,6 +3,8 @@
 import { auth } from '@clerk/nextjs/server'
 import { db } from '@/lib/db'
 import { revalidatePath } from 'next/cache'
+import { randomInt } from 'crypto'
+import bcrypt from 'bcryptjs'
 
 export interface ContractData {
   id:               string
@@ -215,18 +217,23 @@ export async function signClientContract(
   const contract = await db.contract.findUnique({
     where:  { shareToken },
     select: {
-      id:          true,
-      title:       true,
-      clientEmail: true,
-      clientName:  true,
-      status:      true,
-      workspaceId: true,
-      createdBy:   true,
-      creator:     { select: { email: true, name: true } },
+      id:            true,
+      title:         true,
+      clientEmail:   true,
+      clientName:    true,
+      status:        true,
+      workspaceId:   true,
+      createdBy:     true,
+      otpVerifiedAt: true,
+      creator:       { select: { email: true, name: true } },
     },
   })
   if (!contract) throw new Error('Contract not found')
   if (contract.status !== 'SENT') throw new Error('Contract is not in SENT state')
+
+  if (contract.clientEmail && !contract.otpVerifiedAt) {
+    throw new Error('OTP_NOT_VERIFIED')
+  }
 
   const base64 = dataUrl.split(',')[1]
   if (!base64) throw new Error('Invalid signature data URL')
@@ -269,4 +276,114 @@ export async function signClientContract(
   } catch {
     // El PDF firmado puede generarse luego; el estado SIGNED ya está guardado
   }
+}
+
+export async function requestOtp(shareToken: string): Promise<{ sent: boolean; waitSeconds?: number }> {
+  const contract = await db.contract.findUnique({
+    where:  { shareToken },
+    select: { id: true, clientEmail: true, status: true, otpRequestedAt: true },
+  })
+  if (!contract || !contract.clientEmail || contract.status === 'SIGNED') {
+    return { sent: false }
+  }
+
+  // Rate limiting: no permitir nuevo OTP hasta 60s después del último
+  if (contract.otpRequestedAt) {
+    const elapsed = Date.now() - contract.otpRequestedAt.getTime()
+    const waitMs  = 60_000 - elapsed
+    if (waitMs > 0) {
+      return { sent: false, waitSeconds: Math.ceil(waitMs / 1000) }
+    }
+  }
+
+  const code    = String(randomInt(100000, 999999))
+  const hashed  = await bcrypt.hash(code, 10)
+  const expires = new Date(Date.now() + 10 * 60 * 1000)
+
+  await db.contract.update({
+    where: { shareToken },
+    data: {
+      otpCode:        hashed,
+      otpExpiresAt:   expires,
+      otpAttempts:    0,
+      otpRequestedAt: new Date(),
+      otpVerifiedAt:  null,
+    },
+  })
+
+  const { sendContractOtpEmail } = await import('@/lib/email')
+  await sendContractOtpEmail({
+    to:           contract.clientEmail,
+    code,
+    expiresInMin: 10,
+  })
+
+  return { sent: true }
+}
+
+export async function verifyOtp(
+  shareToken: string,
+  code: string,
+): Promise<{ ok: boolean; error?: 'invalid' | 'expired' | 'max_attempts' }> {
+  const contract = await db.contract.findUnique({
+    where:  { shareToken },
+    select: {
+      id:           true,
+      otpCode:      true,
+      otpExpiresAt: true,
+      otpAttempts:  true,
+    },
+  })
+
+  if (!contract?.otpCode || !contract.otpExpiresAt) {
+    return { ok: false, error: 'invalid' }
+  }
+
+  if (contract.otpAttempts >= 3) {
+    return { ok: false, error: 'max_attempts' }
+  }
+
+  if (new Date() > contract.otpExpiresAt) {
+    return { ok: false, error: 'expired' }
+  }
+
+  const match = await bcrypt.compare(code, contract.otpCode)
+
+  if (!match) {
+    await db.contract.update({
+      where: { shareToken },
+      data:  { otpAttempts: { increment: 1 } },
+    })
+    return { ok: false, error: 'invalid' }
+  }
+
+  await db.contract.update({
+    where: { shareToken },
+    data:  { otpVerifiedAt: new Date(), otpAttempts: 0 },
+  })
+
+  return { ok: true }
+}
+
+export async function getOtpStatus(
+  shareToken: string,
+): Promise<{ hasEmail: boolean; alreadyVerified: boolean; waitSeconds: number }> {
+  const contract = await db.contract.findUnique({
+    where:  { shareToken },
+    select: { clientEmail: true, otpVerifiedAt: true, otpRequestedAt: true },
+  })
+
+  if (!contract) return { hasEmail: false, alreadyVerified: false, waitSeconds: 0 }
+
+  const alreadyVerified = !!contract.otpVerifiedAt
+  const hasEmail        = !!contract.clientEmail
+
+  let waitSeconds = 0
+  if (contract.otpRequestedAt) {
+    const elapsed = Date.now() - contract.otpRequestedAt.getTime()
+    const waitMs  = 60_000 - elapsed
+    if (waitMs > 0) waitSeconds = Math.ceil(waitMs / 1000)
+  }
+
+  return { hasEmail, alreadyVerified, waitSeconds }
 }
