@@ -6,6 +6,10 @@ import { ClockWidget } from './_components/ClockWidget'
 import { getTodayEntry } from '@/app/actions/timelog'
 import { getMyTasks } from '@/app/actions/tasks'
 import type { TaskData } from '@/app/actions/tasks'
+import { getPendingContracts } from '@/app/actions/contracts'
+import { getNotebooks } from '@/app/actions/notebooks'
+import { ContractsWidget } from './_components/ContractsWidget'
+import { NotebooksWidget } from './_components/NotebooksWidget'
 
 interface Props {
   params: Promise<{ workspaceId: string }>
@@ -36,10 +40,12 @@ const statusLabels: Record<string, { label: string; className: string }> = {
 
 export default async function TodayPage({ params }: Props) {
   const [{ workspaceId }, user] = await Promise.all([params, requireUser()])
-  const [data, todayEntry, myTasks] = await Promise.all([
+  const [data, todayEntry, myTasks, contracts, notebooks] = await Promise.all([
     getTodayData(workspaceId, user.id),
     getTodayEntry(workspaceId, user.id),
     getMyTasks(workspaceId, user.id),
+    getPendingContracts(workspaceId),
+    getNotebooks(workspaceId),
   ])
 
   const isEmpty = data.pendingSteps.length === 0 && data.pendingWorkflows.length === 0
@@ -102,6 +108,9 @@ export default async function TodayPage({ params }: Props) {
       {data.pendingWorkflows.length > 0 && (
         <WorkflowsBlock workflows={data.pendingWorkflows} workspaceId={workspaceId} />
       )}
+
+      <ContractsWidget workspaceId={workspaceId} contracts={contracts} />
+      <NotebooksWidget workspaceId={workspaceId} notebooks={notebooks} />
 
       {data.teamActivity.length > 0 && (
         <TeamActivityBlock events={data.teamActivity} />
