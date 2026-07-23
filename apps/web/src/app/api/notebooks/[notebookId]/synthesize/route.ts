@@ -48,7 +48,7 @@ ${sourcesContext}`
     messages:   [{ role: 'user', content: prompt }],
   })
 
-  const raw = response.content[0].type === 'text' ? response.content[0].text : ''
+  const raw = response.content[0]?.type === 'text' ? (response.content[0] as { type: 'text'; text: string }).text : ''
   let parsed: { summary: string; keyPoints: string[]; suggestedQuestions: string[] }
   try {
     parsed = JSON.parse(raw.trim())

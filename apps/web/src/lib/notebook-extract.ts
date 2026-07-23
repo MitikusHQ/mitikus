@@ -16,7 +16,7 @@ function stripHtml(html: string): string {
 }
 
 export async function extractPdf(buffer: Buffer): Promise<string> {
-  const pdfParse = (await import('pdf-parse')).default
+  const pdfParse = require('pdf-parse') as (buf: Buffer) => Promise<{ text: string }> // eslint-disable-line
   const data = await pdfParse(buffer)
   return data.text.trim()
 }

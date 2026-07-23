@@ -25,7 +25,7 @@ export async function POST(
     return NextResponse.json({ error: 'No sources' }, { status: 400 })
   }
 
-  const firstSource = notebook.sources[0]
+  const firstSource = notebook.sources[0]!
   const preview = firstSource.content.slice(0, 2000)
 
   const response = await client.messages.create({
@@ -37,8 +37,8 @@ export async function POST(
     }],
   })
 
-  const title = response.content[0].type === 'text'
-    ? response.content[0].text.trim().slice(0, 60)
+  const title = response.content[0]?.type === 'text'
+    ? (response.content[0] as { type: 'text'; text: string }).text.trim().slice(0, 60)
     : 'Nuevo notebook'
 
   await updateNotebookTitle(notebookId, title)
