@@ -2,118 +2,92 @@ import { NextRequest, NextResponse } from 'next/server'
 import { auth } from '@clerk/nextjs/server'
 import { db } from '@/lib/db'
 
-export const runtime = 'nodejs'
-
-interface SearchResult {
-  id:       string
-  type:     'tool' | 'client' | 'mission' | 'execution'
-  label:    string
-  sub?:     string
-  href:     string
-}
-
 export async function GET(
   req: NextRequest,
   { params }: { params: Promise<{ workspaceId: string }> },
 ) {
-  const { userId } = await auth()
-  if (!userId) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
+  const { userId: clerkId } = await auth()
+  if (!clerkId) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
 
   const { workspaceId } = await params
   const q = req.nextUrl.searchParams.get('q')?.trim() ?? ''
-
   if (q.length < 2) return NextResponse.json({ results: [] })
-
-  // Verify workspace belongs to user's org
-  const user = await db.user.findUnique({
-    where: { clerkId: userId },
-    select: { orgId: true },
-  })
-  if (!user) return NextResponse.json({ error: 'Usuario no encontrado' }, { status: 404 })
-
-  const workspace = await db.workspace.findFirst({
-    where: { id: workspaceId, orgId: user.orgId },
-    select: { id: true },
-  })
-  if (!workspace) return NextResponse.json({ error: 'Workspace no encontrado' }, { status: 404 })
 
   const base = `/workspace/${workspaceId}`
 
-  const [tools, clients, missions, executions] = await Promise.all([
-    db.toolInstance.findMany({
+  const [docs, pdfs, contracts, notebooks] = await Promise.all([
+    db.document.findMany({
       where: {
         workspaceId,
-        status: 'ACTIVE',
-        name: { contains: q, mode: 'insensitive' },
+        OR: [
+          { title:   { contains: q, mode: 'insensitive' } },
+          { rawText: { contains: q, mode: 'insensitive' } },
+        ],
       },
-      select: { id: true, name: true, toolDefinition: { select: { name: true } } },
-      take: 5,
+      take:   5,
+      select: { id: true, title: true },
     }),
 
-    db.client.findMany({
+    db.pdf.findMany({
       where: {
         workspaceId,
-        isArchived: false,
-        name: { contains: q, mode: 'insensitive' },
+        OR: [
+          { title:   { contains: q, mode: 'insensitive' } },
+          { rawText: { contains: q, mode: 'insensitive' } },
+        ],
       },
-      select: { id: true, name: true, sector: true },
-      take: 5,
+      take:   5,
+      select: { id: true, title: true },
     }),
 
-    db.companyObjective.findMany({
+    db.contract.findMany({
       where: {
         workspaceId,
-        status: { in: ['active', 'in_progress'] },
-        label: { contains: q, mode: 'insensitive' },
+        OR: [
+          { title:      { contains: q, mode: 'insensitive' } },
+          { clientName: { contains: q, mode: 'insensitive' } },
+        ],
       },
-      select: { id: true, label: true, priority: true },
-      take: 4,
+      take:   5,
+      select: { id: true, title: true, clientName: true, status: true },
     }),
 
-    db.toolExecution.findMany({
+    db.notebook.findMany({
       where: {
         workspaceId,
-        status: 'COMPLETED',
-        toolInstance: { name: { contains: q, mode: 'insensitive' } },
+        title: { contains: q, mode: 'insensitive' },
       },
-      select: {
-        id: true,
-        createdAt: true,
-        toolInstance: { select: { id: true, name: true } },
-      },
-      orderBy: { createdAt: 'desc' },
-      take: 4,
+      take:   5,
+      select: { id: true, title: true, _count: { select: { sources: true } } },
     }),
   ])
 
-  const results: SearchResult[] = [
-    ...tools.map((t) => ({
-      id:    t.id,
-      type:  'tool' as const,
-      label: t.name,
-      sub:   t.toolDefinition.name,
-      href:  `${base}/tools/${t.id}/run`,
+  const results = [
+    ...docs.map((d) => ({
+      id:    `doc-${d.id}`,
+      type:  'doc' as const,
+      label: d.title,
+      href:  `${base}/docs/${d.id}`,
     })),
-    ...clients.map((c) => ({
-      id:    c.id,
-      type:  'client' as const,
-      label: c.name,
-      sub:   c.sector ?? undefined,
-      href:  `${base}/clients/${c.id}`,
+    ...pdfs.map((p) => ({
+      id:    `pdf-${p.id}`,
+      type:  'pdf' as const,
+      label: p.title,
+      href:  `${base}/pdfs/${p.id}`,
     })),
-    ...missions.map((m) => ({
-      id:    m.id,
-      type:  'mission' as const,
-      label: m.label,
-      sub:   m.priority,
-      href:  `${base}/missions/${m.id}`,
+    ...contracts.map((c) => ({
+      id:    `contract-${c.id}`,
+      type:  'contract' as const,
+      label: c.title,
+      sub:   c.clientName ?? undefined,
+      href:  `${base}/contracts/${c.id}`,
     })),
-    ...executions.map((e) => ({
-      id:    e.id,
-      type:  'execution' as const,
-      label: e.toolInstance.name,
-      sub:   new Intl.DateTimeFormat('es-ES', { day: '2-digit', month: 'short', year: 'numeric' }).format(e.createdAt),
-      href:  `${base}/tools/${e.toolInstance.id}/history/${e.id}`,
+    ...notebooks.map((n) => ({
+      id:    `notebook-${n.id}`,
+      type:  'notebook' as const,
+      label: n.title,
+      sub:   `${n._count.sources} ${n._count.sources === 1 ? 'fuente' : 'fuentes'}`,
+      href:  `${base}/notebooks/${n.id}`,
     })),
   ]
 
