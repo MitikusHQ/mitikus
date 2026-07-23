@@ -190,12 +190,13 @@ export async function getContractByToken(shareToken: string): Promise<{
   title:        string
   status:       'DRAFT' | 'SENT' | 'SIGNED'
   clientName:   string | null
+  clientEmail:  string | null
   creatorName:  string | null
   pdfDataArray: number[]
 } | null> {
   const c = await db.contract.findUnique({
     where:  { shareToken },
-    select: { id: true, title: true, status: true, clientName: true, pdfData: true, creator: { select: { name: true } } },
+    select: { id: true, title: true, status: true, clientName: true, clientEmail: true, pdfData: true, creator: { select: { name: true } } },
   })
   if (!c) return null
   return {
@@ -203,6 +204,7 @@ export async function getContractByToken(shareToken: string): Promise<{
     title:        c.title,
     status:       c.status,
     clientName:   c.clientName,
+    clientEmail:  c.clientEmail,
     creatorName:  c.creator.name,
     pdfDataArray: Array.from(c.pdfData),
   }

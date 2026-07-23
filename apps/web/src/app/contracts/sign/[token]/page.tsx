@@ -1,6 +1,6 @@
 import { notFound } from 'next/navigation'
-import { getContractByToken } from '@/app/actions/contracts'
-import { PublicSignClient } from './_components/PublicSignClient'
+import { getContractByToken, getOtpStatus } from '@/app/actions/contracts'
+import { SignFlowClient } from './_components/SignFlowClient'
 
 interface Props {
   params: Promise<{ token: string }>
@@ -32,12 +32,17 @@ export default async function PublicSignPage({ params }: Props) {
     )
   }
 
+  const { hasEmail, alreadyVerified, waitSeconds } = await getOtpStatus(token)
+
   return (
-    <PublicSignClient
+    <SignFlowClient
       shareToken={token}
       contractTitle={contract.title}
       pdfDataArray={contract.pdfDataArray}
       workspaceName={contract.creatorName}
+      clientEmail={contract.clientEmail ?? null}
+      requiresOtp={hasEmail && !alreadyVerified}
+      initialWait={waitSeconds}
     />
   )
 }
