@@ -17,7 +17,7 @@ model Notebook {
   id              String    @id @default(cuid())
   workspaceId     String
   title           String
-  synthesisCache  String?   // resumen global generado por IA, JSON: { summary, keyPoints[] }
+  synthesisCache  String?   // resumen global generado por IA, JSON: { summary, keyPoints[], suggestedQuestions[] }
   synthesisDirty  Boolean   @default(true) // true = regenerar síntesis en próxima visita
   createdBy       String
   createdAt       DateTime  @default(now())
@@ -171,6 +171,10 @@ Sin body. Extrae todas las fuentes del notebook, llama a Claude claude-sonnet-5 
 
 Guarda el resultado en `Notebook.synthesisCache` y marca `synthesisDirty=false`. Devuelve el JSON.
 
+### `POST /api/notebooks/[notebookId]/suggest-title`
+
+Sin body. Llama a Claude claude-sonnet-5 con las primeras 2.000 chars de la primera fuente del notebook. Devuelve `{ title: string }` — un título corto (máximo 60 caracteres) que describe el contenido. Se llama automáticamente al añadir la primera fuente si el título del notebook es "Nuevo notebook" (o vacío).
+
 ---
 
 ## Páginas
@@ -218,6 +222,10 @@ Client Component (`NotebookClient`). Layout dos columnas:
 - Si `synthesisDirty=true` al cargar: llamar automáticamente a `/synthesize` y mostrar spinner mientras carga
 - Si `synthesisDirty=false`: mostrar `synthesisCache` directamente
 - Botón "Regenerar síntesis": fuerza llamada a `/synthesize`
+- Debajo de los puntos clave: 3 **preguntas sugeridas** (chips clicables) generadas por `/synthesize` y guardadas en `synthesisCache.suggestedQuestions[]`. Al hacer clic en una, se inserta directamente en el input del chat y se envía.
+
+**Título auto-sugerido:**
+- Al añadir la primera fuente a un notebook con título vacío o "Nuevo notebook": llamar a `/suggest-title` y actualizar el título automáticamente (sin confirmación del usuario, que puede editarlo manualmente después).
 
 **Comportamiento chat:**
 - `onSubmit`: guardar mensaje usuario en BD (`saveMessage`), llamar a `/chat` con fetch+ReadableStream, mostrar respuesta en streaming en pantalla, al completar guardar mensaje assistant en BD
@@ -253,7 +261,7 @@ Al confirmar, se llama a `addSource` por cada fuente seleccionada.
 | `NotebookClient.tsx`    | Client Component principal: estado, layout dos columnas              |
 | `SourcePanel.tsx`       | Panel izquierdo: lista de fuentes, total chars, botón añadir         |
 | `AddSourceModal.tsx`    | Modal con 4 modos de añadir fuentes                                  |
-| `SynthesisPanel.tsx`    | Resumen + puntos clave + botón regenerar (colapsable)                |
+| `SynthesisPanel.tsx`    | Resumen + puntos clave + preguntas sugeridas + botón regenerar (colapsable) |
 | `ChatPanel.tsx`         | Historial de mensajes + input + streaming                            |
 | `ChatMessage.tsx`       | Burbuja individual de mensaje (user/assistant)                       |
 
