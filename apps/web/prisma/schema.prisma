@@ -260,6 +260,7 @@ model User {
   pdfsUploaded         Pdf[]
   contractsCreated     Contract[]
   presentationsCreated Presentation[] @relation("PresentationsCreated")
+  notebooksCreated     Notebook[]     @relation("NotebooksCreated")
 
   @@index([orgId])
   @@map("users")
@@ -304,6 +305,7 @@ model Workspace {
   pdfs                 Pdf[]
   contracts            Contract[]
   presentations        Presentation[]
+  notebooks            Notebook[]
 
   @@unique([orgId, slug])
   @@index([orgId])
@@ -1624,4 +1626,59 @@ model Notification {
   @@index([userId, readAt])
   @@index([userId, createdAt])
   @@map("notifications")
+}
+
+// ============================================================
+// NOTEBOOKS — base de conocimiento con IA conversacional
+// ============================================================
+
+model Notebook {
+  id              String    @id @default(cuid())
+  workspaceId     String
+  title           String    @default("Nuevo notebook")
+  synthesisCache  String?   @db.Text
+  synthesisDirty  Boolean   @default(true)
+  createdBy       String
+  createdAt       DateTime  @default(now())
+  updatedAt       DateTime  @updatedAt
+
+  workspace  Workspace         @relation(fields: [workspaceId], references: [id], onDelete: Cascade)
+  creator    User              @relation("NotebooksCreated", fields: [createdBy], references: [id], onDelete: Restrict)
+  sources    NotebookSource[]
+  messages   NotebookMessage[]
+
+  @@index([workspaceId])
+  @@map("notebooks")
+}
+
+model NotebookSource {
+  id         String   @id @default(cuid())
+  notebookId String
+  type       String
+  title      String
+  content    String   @db.Text
+  charCount  Int
+  docId      String?
+  pdfId      String?
+  url        String?
+  createdAt  DateTime @default(now())
+
+  notebook   Notebook @relation(fields: [notebookId], references: [id], onDelete: Cascade)
+
+  @@index([notebookId])
+  @@map("notebook_sources")
+}
+
+model NotebookMessage {
+  id              String   @id @default(cuid())
+  notebookId      String
+  role            String
+  content         String   @db.Text
+  sourcesSnapshot String   @default("[]") @db.Text
+  createdAt       DateTime @default(now())
+
+  notebook   Notebook @relation(fields: [notebookId], references: [id], onDelete: Cascade)
+
+  @@index([notebookId])
+  @@map("notebook_messages")
 }
