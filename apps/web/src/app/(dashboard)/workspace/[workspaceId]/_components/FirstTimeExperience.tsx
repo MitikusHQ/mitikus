@@ -362,9 +362,9 @@ export function FirstTimeExperience({ workspaceId, userName, sector }: Props) {
             <button
               type="button"
               onClick={() => router.push(`/workspace/${workspaceId}`)}
-              className="text-xs text-muted-foreground/50 hover:text-muted-foreground transition underline-offset-4 hover:underline"
+              className="text-sm text-muted-foreground hover:text-foreground transition underline-offset-4 hover:underline"
             >
-              Explorar por mi cuenta
+              Saltar este paso →
             </button>
           </div>
         </div>
