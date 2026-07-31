@@ -220,7 +220,7 @@ export function FirstTimeExperience({ workspaceId, userName, sector }: Props) {
           <div className="flex items-center justify-between">
             <button
               type="button"
-              onClick={() => router.push(`/workspace/${workspaceId}`)}
+              onClick={() => router.push(`/workspace/${workspaceId}?skip=1`)}
               className="text-xs text-muted-foreground/50 hover:text-muted-foreground transition underline-offset-4 hover:underline"
             >
               Explorar por mi cuenta
@@ -361,7 +361,7 @@ export function FirstTimeExperience({ workspaceId, userName, sector }: Props) {
             </button>
             <button
               type="button"
-              onClick={() => router.push(`/workspace/${workspaceId}`)}
+              onClick={() => router.push(`/workspace/${workspaceId}?skip=1`)}
               className="text-sm text-muted-foreground hover:text-foreground transition underline-offset-4 hover:underline"
             >
               Saltar este paso →

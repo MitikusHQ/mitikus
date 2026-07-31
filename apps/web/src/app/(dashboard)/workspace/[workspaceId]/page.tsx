@@ -21,10 +21,11 @@ import { MissionTemplateButton } from './_components/MissionTemplateModal'
 
 interface Props {
   params: Promise<{ workspaceId: string }>
+  searchParams: Promise<{ skip?: string }>
 }
 
-export default async function WorkspacePage({ params }: Props) {
-  const [{ workspaceId }, user] = await Promise.all([params, requireUser()])
+export default async function WorkspacePage({ params, searchParams }: Props) {
+  const [{ workspaceId }, { skip }, user] = await Promise.all([params, searchParams, requireUser()])
 
   const [workspace, clientCount, toolInstanceCount, companyProfile] = await Promise.all([
     db.workspace.findFirst({ where: { id: workspaceId, orgId: user.orgId } }),
@@ -37,7 +38,7 @@ export default async function WorkspacePage({ params }: Props) {
 
   const firstName = (user.name ?? user.email ?? '').split(' ')[0]?.split('@')[0] ?? ''
 
-  const isFirstTime = toolInstanceCount === 0 && clientCount === 0
+  const isFirstTime = toolInstanceCount === 0 && clientCount === 0 && !skip
   if (isFirstTime) {
     return <FirstTimeExperience workspaceId={workspaceId} userName={firstName} sector={companyProfile?.sector ?? null} />
   }
