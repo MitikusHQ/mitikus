@@ -300,10 +300,10 @@ export function FirstTimeExperience({ workspaceId, userName, sector }: Props) {
 
       {/* ── Paso 3: elige primera auditoría ──────────────────── */}
       {step === 'audit-select' && (
-        <div className="w-full max-w-2xl space-y-8">
-          <div className="space-y-2 text-center">
+        <div className="w-full max-w-2xl flex flex-col gap-5 overflow-y-auto max-h-[calc(100vh-80px)] py-4">
+          <div className="space-y-1 text-center">
             <p className="text-xs text-primary font-semibold uppercase tracking-widest">Paso 2 de 3</p>
-            <h1 className="text-3xl font-semibold leading-snug">
+            <h1 className="text-2xl font-semibold leading-snug">
               Elige tu primera auditoría
             </h1>
             <p className="text-sm text-muted-foreground">
