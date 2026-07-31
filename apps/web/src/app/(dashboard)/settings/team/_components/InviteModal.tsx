@@ -11,10 +11,11 @@ const INVITE_ROLES: { value: OrgRole; label: string; description: string }[] = [
 
 interface Props {
   actorRole: OrgRole
+  autoOpen?: boolean
 }
 
-export function InviteModal({ actorRole }: Props) {
-  const [open, setOpen] = useState(false)
+export function InviteModal({ actorRole, autoOpen = false }: Props) {
+  const [open, setOpen] = useState(autoOpen)
   const [role, setRole] = useState<OrgRole>('EDITOR')
   const [email, setEmail] = useState('')
   const [loading, setLoading] = useState(false)

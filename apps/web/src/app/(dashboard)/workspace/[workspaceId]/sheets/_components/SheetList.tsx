@@ -63,9 +63,25 @@ export function SheetList({ workspaceId, initial }: Props) {
       <SheetUploadZone workspaceId={workspaceId} onUploaded={handleUploaded} />
 
       {visible.length === 0 ? (
-        <p className="text-sm text-muted-foreground py-8 text-center">
-          {activeCategory ? `No hay hojas en "${activeCategory}"` : 'Aún no hay hojas de cálculo'}
-        </p>
+        <div className="py-12 text-center space-y-3">
+          <div className="w-11 h-11 rounded-xl bg-primary/10 flex items-center justify-center text-xl mx-auto">📊</div>
+          <div className="space-y-1">
+            <p className="font-semibold text-sm">
+              {activeCategory ? `Sin hojas en "${activeCategory}"` : 'Sin hojas de cálculo todavía'}
+            </p>
+            <p className="text-xs text-muted-foreground max-w-xs mx-auto">
+              {activeCategory ? 'Prueba otra categoría o crea una hoja nueva.' : 'Sube un .xlsx o crea una hoja en blanco.'}
+            </p>
+          </div>
+          {!activeCategory && (
+            <Link
+              href={`/workspace/${workspaceId}/sheets/new`}
+              className="inline-flex items-center gap-1.5 rounded-md bg-primary px-4 py-2 text-xs font-medium text-primary-foreground hover:bg-primary/90 transition-colors"
+            >
+              + Nueva hoja
+            </Link>
+          )}
+        </div>
       ) : (
         <div className="divide-y divide-border rounded-lg border">
           {visible.map((sheet) => (

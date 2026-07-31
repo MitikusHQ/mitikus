@@ -6,11 +6,12 @@ import { NewPresentationModal } from './NewPresentationModal'
 import type { PresentationData } from '@/app/actions/presentations'
 
 interface Props {
-  workspaceId: string
-  initial:     PresentationData[]
+  workspaceId:   string
+  initial:       PresentationData[]
+  currentUserId: string
 }
 
-export function PresentationList({ workspaceId, initial }: Props) {
+export function PresentationList({ workspaceId, initial, currentUserId }: Props) {
   const presentations = initial
   const [showModal, setShowModal] = useState(false)
 
@@ -32,19 +33,25 @@ export function PresentationList({ workspaceId, initial }: Props) {
       </div>
 
       {presentations.length === 0 ? (
-        <div className="text-center py-16 text-sm text-muted-foreground">
-          <p>Aún no hay presentaciones.</p>
+        <div className="rounded-xl border border-dashed bg-card p-12 text-center space-y-4">
+          <div className="w-12 h-12 rounded-xl bg-primary/10 flex items-center justify-center text-2xl mx-auto">🎯</div>
+          <div className="space-y-1.5">
+            <p className="font-semibold text-base">Sin presentaciones todavía</p>
+            <p className="text-sm text-muted-foreground max-w-xs mx-auto leading-relaxed">
+              Crea diapositivas con texto, listas y notas. Compártelas con un enlace público.
+            </p>
+          </div>
           <button
             onClick={() => setShowModal(true)}
-            className="mt-3 text-primary hover:underline"
+            className="inline-flex items-center gap-1.5 rounded-md bg-primary px-5 py-2.5 text-sm font-medium text-primary-foreground hover:bg-primary/90 transition-colors"
           >
-            Crea tu primera presentación
+            + Nueva presentación
           </button>
         </div>
       ) : (
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
           {presentations.map((p) => (
-            <PresentationCard key={p.id} presentation={p} workspaceId={workspaceId} />
+            <PresentationCard key={p.id} presentation={p} workspaceId={workspaceId} currentUserId={currentUserId} />
           ))}
         </div>
       )}

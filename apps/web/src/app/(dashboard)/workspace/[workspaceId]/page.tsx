@@ -15,6 +15,9 @@ import { IntelligenceBand } from './_components/IntelligenceBand'
 import { PendingReviews } from './_components/PendingReviews'
 import { OnboardingChecklist } from './_components/OnboardingChecklist'
 import { WorkspaceActivityFeed } from './_components/WorkspaceActivityFeed'
+import { TrialBanner } from './_components/TrialBanner'
+import { LastExecutionWidget } from './_components/LastExecutionWidget'
+import { MissionTemplateButton } from './_components/MissionTemplateModal'
 
 interface Props {
   params: Promise<{ workspaceId: string }>
@@ -23,19 +26,20 @@ interface Props {
 export default async function WorkspacePage({ params }: Props) {
   const [{ workspaceId }, user] = await Promise.all([params, requireUser()])
 
-  const [workspace, clientCount, toolInstanceCount] = await Promise.all([
+  const [workspace, clientCount, toolInstanceCount, companyProfile] = await Promise.all([
     db.workspace.findFirst({ where: { id: workspaceId, orgId: user.orgId } }),
     db.client.count({ where: { workspaceId, isArchived: false } }),
     db.toolInstance.count({ where: { workspaceId, status: 'ACTIVE' } }),
+    db.companyProfile.findUnique({ where: { workspaceId }, select: { sector: true } }),
   ])
 
   if (!workspace) notFound()
 
-  const firstName = (user.name ?? user.email ?? '').split(' ')[0]?.split('@')[0] ?? 'ahí'
+  const firstName = (user.name ?? user.email ?? '').split(' ')[0]?.split('@')[0] ?? ''
 
   const isFirstTime = toolInstanceCount === 0 && clientCount === 0
   if (isFirstTime) {
-    return <FirstTimeExperience workspaceId={workspaceId} userName={firstName} />
+    return <FirstTimeExperience workspaceId={workspaceId} userName={firstName} sector={companyProfile?.sector ?? null} />
   }
 
   // QW-4: mostrar banda solo cuando ha cambiado el día de calendario, no por intervalo de 3h
@@ -95,9 +99,12 @@ export default async function WorkspacePage({ params }: Props) {
       <div>
         <h1 className="text-2xl font-semibold">{workspace.name}</h1>
         <p className="text-xs text-muted-foreground mt-0.5">
-          Mission Control — qué es lo más importante que debes hacer hoy
+          Panel — qué es lo más importante que debes hacer hoy
         </p>
       </div>
+
+      {/* Trial banner — visible solo durante el periodo de prueba */}
+      <TrialBanner orgId={user.orgId} />
 
       {/* Sprint 1 — Banda de Inteligencia */}
       {showSinceLastVisit && (
@@ -108,6 +115,8 @@ export default async function WorkspacePage({ params }: Props) {
         />
       )}
 
+      {/* Acceso rápido a última ejecución */}
+      <LastExecutionWidget workspaceId={workspaceId} />
 
       {/* Onboarding — desaparece cuando todos los pasos están completos */}
       <OnboardingChecklist workspaceId={workspaceId} userId={user.id} />
@@ -119,11 +128,12 @@ export default async function WorkspacePage({ params }: Props) {
       <section>
         <div className="flex items-center justify-between mb-1">
           <h2 className="text-base font-semibold">Misiones activas</h2>
-          {sortedMissions.length > 0 && (
+          <div className="flex items-center gap-3">
+            <MissionTemplateButton workspaceId={workspaceId} />
             <Link href={`/workspace/${workspaceId}/copilot`} className="text-sm text-primary hover:underline">
               Crear misión →
             </Link>
-          )}
+          </div>
         </div>
 
         {/* Sprint 1 — Barra de estado del workload */}
@@ -189,14 +199,17 @@ export default async function WorkspacePage({ params }: Props) {
           <div className="rounded-lg border border-dashed p-8 text-center bg-card">
             <p className="text-muted-foreground text-sm mb-2">No hay misiones activas.</p>
             <p className="text-xs text-muted-foreground mb-4">
-              Cuéntale a Arkos un objetivo de tu empresa y lo convertirá en una misión con pasos claros.
+              Cuéntale a Arkos un objetivo de tu empresa y lo convertirá en una misión con pasos claros, o usa una plantilla para empezar al instante.
             </p>
-            <Link
-              href={`/workspace/${workspaceId}/copilot`}
-              className="text-sm text-primary hover:underline font-medium"
-            >
-              Definir primer objetivo con Arkos →
-            </Link>
+            <div className="flex items-center justify-center gap-3 flex-wrap">
+              <MissionTemplateButton workspaceId={workspaceId} />
+              <Link
+                href={`/workspace/${workspaceId}/copilot`}
+                className="text-sm text-primary hover:underline font-medium"
+              >
+                Definir con Arkos →
+              </Link>
+            </div>
           </div>
         ) : (
           <div className="space-y-3">

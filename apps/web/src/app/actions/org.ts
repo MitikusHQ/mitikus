@@ -4,7 +4,8 @@ import { requireUser } from '@/lib/auth'
 import { db } from '@/lib/db'
 import { assertCan, can, ROLE_LABELS, roleLevel } from '@/lib/permissions'
 import { audit } from '@/lib/audit'
-import type { OrgRole } from '@prisma/client'
+import { PLAN_CATALOG } from '@/lib/billing/plan-catalog'
+import type { OrgRole, PlanTier } from '@prisma/client'
 
 // ── Tipos públicos ────────────────────────────────────────────────
 
@@ -314,7 +315,21 @@ export async function removeMember(
     if (!target) return { error: 'Usuario no encontrado' }
     if (target.role === 'OWNER') return { error: 'No se puede eliminar al propietario' }
 
-    await db.user.delete({ where: { id: targetUserId } })
+    // Soft-remove: mover al usuario a una org propia nueva en lugar de borrar el registro.
+    // Borrarlo causaría que el webhook user.created de Clerk cree un duplicado en el
+    // próximo login, corrompiendo la integridad org↔usuario.
+    await db.$transaction(async (tx) => {
+      const newOrg = await tx.organization.create({
+        data: {
+          name: `Org de ${target.email.split('@')[0]}`,
+          workspaces: { create: { name: 'Mi espacio', slug: 'mi-espacio' } },
+        },
+      })
+      await tx.user.update({
+        where: { id: targetUserId },
+        data: { orgId: newOrg.id, role: 'OWNER' },
+      })
+    })
 
     audit({
       orgId: actor.orgId,
@@ -381,5 +396,51 @@ export async function getCurrentUserOrgRole(): Promise<{ role: OrgRole; canManag
     }
   } catch {
     return { error: 'Error al obtener rol' }
+  }
+}
+
+// ── getOrgPlanUsage ───────────────────────────────────────────────
+
+export interface PlanUsageItem {
+  key: string
+  label: string
+  used: number
+  limit: number // Infinity = ilimitado
+}
+
+export async function getOrgPlanUsage(): Promise<PlanUsageItem[] | { error: string }> {
+  try {
+    const user = await requireUser()
+    const orgId = user.orgId
+
+    const org = await db.organization.findUnique({ where: { id: orgId }, select: { plan: true } })
+    if (!org) return { error: 'Organización no encontrada' }
+
+    const plan = org.plan as PlanTier
+    const limits = PLAN_CATALOG[plan]?.limits
+    if (!limits) return { error: 'Plan no reconocido' }
+
+    const monthStart = new Date()
+    monthStart.setUTCDate(1)
+    monthStart.setUTCHours(0, 0, 0, 0)
+
+    const [activeUsers, pendingInvites, workspaceCount, toolsInstalled, aiGenerations] = await Promise.all([
+      db.user.count({ where: { orgId } }),
+      db.orgInvitation.count({
+        where: { orgId, acceptedAt: null, revokedAt: null, expiresAt: { gt: new Date() } },
+      }),
+      db.workspace.count({ where: { orgId } }),
+      db.toolInstance.count({ where: { workspace: { orgId }, status: 'ACTIVE' } }),
+      db.toolExecution.count({ where: { workspace: { orgId }, createdAt: { gte: monthStart } } }),
+    ])
+
+    return [
+      { key: 'maxUsers',              label: 'Usuarios',            used: activeUsers + pendingInvites, limit: limits.maxUsers },
+      { key: 'maxWorkspaces',         label: 'Workspaces',          used: workspaceCount,               limit: limits.maxWorkspaces },
+      { key: 'maxToolsInstalled',     label: 'Herramientas activas',used: toolsInstalled,               limit: limits.maxToolsInstalled },
+      { key: 'aiGenerationsPerMonth', label: 'Gen. IA este mes',    used: aiGenerations,                limit: limits.aiGenerationsPerMonth },
+    ]
+  } catch (e) {
+    return { error: e instanceof Error ? e.message : 'Error al obtener uso del plan' }
   }
 }

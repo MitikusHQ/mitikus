@@ -1,7 +1,8 @@
 import { requireUser } from '@/lib/auth'
 import { notFound } from 'next/navigation'
 import Link from 'next/link'
-import { getDocument } from '@/app/actions/documents'
+import { db } from '@/lib/db'
+import { getDocument, getDocumentShares } from '@/app/actions/documents'
 import { DeleteDocButton } from './_components/DeleteDocButton'
 import { DocViewerClient } from './_components/DocViewerClient'
 
@@ -10,9 +11,16 @@ interface Props {
 }
 
 export default async function DocViewerPage({ params }: Props) {
-  const [{ workspaceId, docId }] = await Promise.all([params, requireUser()])
+  const [{ workspaceId, docId }, user] = await Promise.all([params, requireUser()])
 
-  const doc = await getDocument(docId, workspaceId)
+  const [doc, workspace, shares] = await Promise.all([
+    getDocument(docId, workspaceId),
+    db.workspace.findFirst({
+      where: { id: workspaceId, orgId: user.orgId },
+      select: { name: true },
+    }),
+    getDocumentShares(docId, workspaceId),
+  ])
   if (!doc) notFound()
 
   return (
@@ -31,7 +39,12 @@ export default async function DocViewerPage({ params }: Props) {
         <DeleteDocButton docId={docId} workspaceId={workspaceId} />
       </div>
 
-      <DocViewerClient doc={doc} workspaceId={workspaceId} />
+      <DocViewerClient
+        doc={doc}
+        workspaceId={workspaceId}
+        workspaceName={workspace?.name ?? 'MITIKUS'}
+        shares={shares}
+      />
     </div>
   )
 }

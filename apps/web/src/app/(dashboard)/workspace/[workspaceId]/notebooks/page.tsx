@@ -7,12 +7,12 @@ interface Props {
 }
 
 export default async function NotebooksPage({ params }: Props) {
-  const [{ workspaceId }] = await Promise.all([params, requireUser()])
+  const [{ workspaceId }, user] = await Promise.all([params, requireUser()])
   const notebooks = await getNotebooks(workspaceId)
 
   return (
     <div className="p-6">
-      <NotebookList workspaceId={workspaceId} initial={notebooks} />
+      <NotebookList workspaceId={workspaceId} initial={notebooks} currentUserId={user.id} />
     </div>
   )
 }

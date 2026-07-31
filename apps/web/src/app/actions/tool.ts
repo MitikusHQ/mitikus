@@ -4,6 +4,7 @@ import { auth } from '@clerk/nextjs/server'
 import { redirect } from 'next/navigation'
 import { db } from '@/lib/db'
 import { getPlanLimits } from '@/lib/plan-limits'
+import { checkPlanLimit } from '@/lib/billing/check-plan-limit'
 import { assertCan } from '@/lib/permissions'
 import { audit } from '@/lib/audit'
 
@@ -50,19 +51,13 @@ export async function installTool(
     if (!client) return { error: 'Cliente no pertenece a este workspace.' }
   }
 
-  // Límite de herramientas por plan
+  // Límite de herramientas por plan (usa plan de la org si existe, si no el trialPlan)
   const planLimits = getPlanLimits(user.trialPlan)
   if (planLimits.maxToolsInstalled === 0) {
     return { error: 'Este dominio de correo no está permitido para la beta.' }
   }
-  const installedCount = await db.toolInstance.count({
-    where: { workspaceId, status: 'ACTIVE' },
-  })
-  if (installedCount >= planLimits.maxToolsInstalled) {
-    return {
-      error: `Has alcanzado el límite de herramientas instaladas de tu plan (${planLimits.maxToolsInstalled}). Contacta con soporte para ampliar.`,
-    }
-  }
+  const toolLimitCheck = await checkPlanLimit(user.orgId, 'maxToolsInstalled', workspaceId)
+  if (!toolLimitCheck.allowed) return { error: toolLimitCheck.message }
 
   // Comprobar que no existe ya una instancia activa de esta herramienta en el workspace
   const existing = await db.toolInstance.findFirst({
@@ -91,6 +86,50 @@ export async function installTool(
   })
 
   redirect(`/workspace/${workspaceId}/tools`)
+}
+
+// Instala una herramienta oficial por slug y devuelve el instanceId.
+// Usado en el onboarding para llevar al usuario directo al run sin FormData.
+export async function quickInstallTool(
+  workspaceId: string,
+  slug: string,
+): Promise<{ instanceId: string } | { error: string }> {
+  const { userId } = await auth()
+  if (!userId) return { error: 'No autenticado.' }
+
+  const user = await db.user.findUnique({
+    where: { clerkId: userId },
+    select: { id: true, orgId: true, role: true, trialPlan: true },
+  })
+  if (!user) return { error: 'Usuario no encontrado.' }
+
+  assertCan(user, 'install_tool', { orgId: user.orgId, userId: user.id, workspaceId, entityType: 'tool_instance' })
+
+  const workspace = await db.workspace.findFirst({ where: { id: workspaceId, orgId: user.orgId } })
+  if (!workspace) return { error: 'Workspace no encontrado.' }
+
+  const toolDef = await db.toolDefinition.findFirst({ where: { slug } })
+  if (!toolDef) return { error: 'Herramienta no encontrada.' }
+
+  const planLimits = getPlanLimits(user.trialPlan)
+  if (planLimits.maxToolsInstalled === 0) return { error: 'Este dominio no está permitido para la beta.' }
+  const toolLimitCheck = await checkPlanLimit(user.orgId, 'maxToolsInstalled', workspaceId)
+  if (!toolLimitCheck.allowed) return { error: toolLimitCheck.message }
+
+  const existing = await db.toolInstance.findFirst({ where: { toolDefinitionId: toolDef.id, workspaceId, status: 'ACTIVE' } })
+  if (existing) return { instanceId: existing.id }
+
+  const instance = await db.toolInstance.create({
+    data: { toolDefinitionId: toolDef.id, workspaceId, name: toolDef.name, createdBy: user.id },
+  })
+
+  audit({
+    orgId: user.orgId, workspaceId, actorUserId: user.id,
+    action: 'tool.install', entityType: 'tool_instance', entityId: instance.id,
+    metadata: { toolDefinitionId: toolDef.id, toolName: toolDef.name, via: 'onboarding' },
+  })
+
+  return { instanceId: instance.id }
 }
 
 export async function assignClientToInstance(

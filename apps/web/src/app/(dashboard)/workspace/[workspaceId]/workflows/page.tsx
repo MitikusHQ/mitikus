@@ -75,7 +75,7 @@ function WorkflowCard({ workflow, workspaceId }: { workflow: WorkflowSummary; wo
               ? new Intl.DateTimeFormat('es-ES', { day: '2-digit', month: 'short' }).format(new Date(workflow.lastExecutionAt))
               : '—'}
           </div>
-          <div className="text-muted-foreground mt-0.5">Último run</div>
+          <div className="text-muted-foreground mt-0.5">Última ejecución</div>
         </div>
       </div>
     </Link>
@@ -94,22 +94,22 @@ export default async function WorkflowsPage({ params }: Props) {
     <div className="max-w-6xl mx-auto px-6 py-8 space-y-6">
       <div className="flex items-center justify-between">
         <div>
-          <h1 className="text-xl font-semibold">Flows</h1>
+          <h1 className="text-xl font-semibold">Flujos</h1>
           <p className="text-xs text-muted-foreground mt-0.5">Cadenas de herramientas inteligentes</p>
         </div>
         <Link
           href={`/workspace/${workspaceId}/workflows/new`}
           className="rounded-md bg-primary px-4 py-2 text-sm font-medium text-primary-foreground shadow hover:bg-primary/90 transition-colors"
         >
-          + Nuevo Flow
+          + Nuevo flujo
         </Link>
       </div>
       {/* Templates */}
       <div>
         <div className="flex items-center justify-between mb-4">
           <div>
-            <h2 className="text-base font-semibold">Templates</h2>
-            <p className="text-xs text-muted-foreground mt-0.5">Flows preconstruidos listos en un clic</p>
+            <h2 className="text-base font-semibold">Plantillas</h2>
+            <p className="text-xs text-muted-foreground mt-0.5">Flujos preconstruidos listos en un clic</p>
           </div>
         </div>
         <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
@@ -123,7 +123,7 @@ export default async function WorkflowsPage({ params }: Props) {
       <div>
         <div className="flex items-center justify-between mb-4">
           <h2 className="text-base font-semibold">
-            Mis Flows
+            Mis flujos
             {workflows.length > 0 && (
               <span className="ml-2 text-xs font-normal text-muted-foreground">
                 {workflows.length}
@@ -136,7 +136,7 @@ export default async function WorkflowsPage({ params }: Props) {
             <p className="text-sm text-muted-foreground">
               Usa un template o{' '}
               <Link href={`/workspace/${workspaceId}/workflows/new`} className="text-primary hover:underline">
-                crea un Flow desde cero
+                crea un flujo desde cero
               </Link>
               .
             </p>

@@ -68,7 +68,7 @@ export function TemplateCard({ template, workspaceId }: Props) {
         disabled={loading}
         className="mt-auto w-full rounded-lg bg-primary py-2 text-xs font-semibold text-primary-foreground shadow hover:bg-primary/90 disabled:opacity-50 transition-colors"
       >
-        {loading ? 'Creando…' : 'Usar template →'}
+        {loading ? 'Creando…' : 'Usar plantilla →'}
       </button>
     </div>
   )

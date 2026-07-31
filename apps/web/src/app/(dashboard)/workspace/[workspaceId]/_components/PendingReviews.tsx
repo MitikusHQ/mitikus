@@ -31,11 +31,14 @@ function daysAgo(date: Date): number {
   return Math.floor((Date.now() - date.getTime()) / (1000 * 60 * 60 * 24))
 }
 
-function urgencyLabel(days: number, periodicity: number): { text: string; className: string } {
+function urgencyLabel(days: number | null, periodicity: number): { text: string; className: string } {
+  if (days === null) {
+    return { text: 'Sin ejecutar', className: 'text-muted-foreground bg-muted/50 border-border' }
+  }
   const ratio = days / periodicity
   if (ratio >= 1.5) return { text: 'Muy atrasada', className: 'text-red-700 dark:text-red-400 bg-red-50 dark:bg-red-950/30 border-red-200 dark:border-red-900/40' }
   if (ratio >= 1)   return { text: 'Atrasada',      className: 'text-orange-700 dark:text-orange-400 bg-orange-50 dark:bg-orange-950/30 border-orange-200 dark:border-orange-900/40' }
-  return               { text: 'Próxima',       className: 'text-amber-700 dark:text-amber-400 bg-amber-50 dark:bg-amber-950/30 border-amber-200 dark:border-amber-900/40' }
+  return                   { text: 'Próxima',       className: 'text-amber-700 dark:text-amber-400 bg-amber-50 dark:bg-amber-950/30 border-amber-200 dark:border-amber-900/40' }
 }
 
 interface Props {
@@ -75,9 +78,9 @@ export async function PendingReviews({ workspaceId }: Props) {
     })
     .filter((x) => x.overdue)
     .sort((a, b) => {
-      // Primero las nunca ejecutadas, luego por ratio de retraso descendente
-      const ratioA = a.days === null ? Infinity : a.days / a.periodicity
-      const ratioB = b.days === null ? Infinity : b.days / b.periodicity
+      // Primero las más atrasadas; las nunca ejecutadas van al final (son pendientes normales, no urgencias)
+      const ratioA = a.days === null ? -1 : a.days / a.periodicity
+      const ratioB = b.days === null ? -1 : b.days / b.periodicity
       return ratioB - ratioA
     })
     .slice(0, 5) // máximo 5 para no saturar
@@ -97,7 +100,7 @@ export async function PendingReviews({ workspaceId }: Props) {
       </div>
       <div className="space-y-2">
         {pending.map(({ inst, cat, periodicity, days }) => {
-          const urgency = urgencyLabel(days ?? periodicity * 2, periodicity)
+          const urgency = urgencyLabel(days, periodicity)
           return (
             <div
               key={inst.id}
@@ -115,7 +118,7 @@ export async function PendingReviews({ workspaceId }: Props) {
                 </div>
                 <p className="text-xs mt-0.5 opacity-80">
                   {days === null
-                    ? 'Sin ejecutar todavía'
+                    ? `Primera ejecución pendiente · tipo: ${CATEGORY_LABEL[cat]}`
                     : `Última ejecución hace ${days} día${days !== 1 ? 's' : ''} · recomendada cada ${periodicity}d`}
                 </p>
               </div>
@@ -123,7 +126,7 @@ export async function PendingReviews({ workspaceId }: Props) {
                 href={`/workspace/${workspaceId}/tools/${inst.id}/run`}
                 className="shrink-0 rounded-md bg-background/70 border border-current/20 px-3 py-1.5 text-xs font-semibold hover:bg-background transition-colors whitespace-nowrap"
               >
-                Ejecutar →
+                Generar informe →
               </Link>
             </div>
           )

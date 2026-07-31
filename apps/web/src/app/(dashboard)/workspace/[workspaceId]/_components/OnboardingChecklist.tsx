@@ -17,11 +17,12 @@ interface Step {
 }
 
 export async function OnboardingChecklist({ workspaceId, userId }: Props) {
-  const [context, toolCount, executionCount, clientCount] = await Promise.all([
+  const [context, toolCount, executionCount, clientCount, objectiveCount] = await Promise.all([
     getBusinessContext(workspaceId),
     db.toolInstance.count({ where: { workspaceId, status: 'ACTIVE' } }),
     db.toolExecution.count({ where: { workspaceId, status: 'COMPLETED' } }),
     db.client.count({ where: { workspaceId, isArchived: false } }),
+    db.companyObjective.count({ where: { workspaceId } }),
   ])
 
   const firstTool = toolCount > 0
@@ -56,6 +57,14 @@ export async function OnboardingChecklist({ workspaceId, userId }: Props) {
       href:        firstTool ? `/workspace/${workspaceId}/tools/${firstTool.id}/run` : `/workspace/${workspaceId}/tools`,
       cta:         'Ejecutar ahora →',
       done:        executionCount > 0,
+    },
+    {
+      id:          'mission',
+      label:       'Crea tu primera misión',
+      description: 'Convierte un objetivo de tu empresa en pasos concretos. Puedes usar una plantilla o pedírselo a Arkos.',
+      href:        `/workspace/${workspaceId}/copilot`,
+      cta:         'Crear misión →',
+      done:        objectiveCount > 0,
     },
     {
       id:          'client',

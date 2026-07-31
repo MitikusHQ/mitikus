@@ -18,7 +18,7 @@ function toArr(v: Prisma.JsonValue): string[] {
  * Si no hay datos aún, devuelve un contexto vacío (isEmpty: true).
  */
 export async function getBusinessContext(workspaceId: string): Promise<BusinessContext> {
-  const [profile, objectives, risks, processes, assets, docs, sheets, pdfs] = await Promise.all([
+  const [profile, objectives, risks, processes, assets, docs, sheets, pdfs, receiptsData, invoicesData] = await Promise.all([
     db.companyProfile.findUnique({ where: { workspaceId } }),
     db.companyObjective.findMany({
       where:   { workspaceId, status: 'active' },
@@ -58,6 +58,18 @@ export async function getBusinessContext(workspaceId: string): Promise<BusinessC
       take:    3,
       select:  { title: true, rawText: true },
     }),
+    db.receipt.findMany({
+      where:   { workspaceId },
+      orderBy: { createdAt: 'desc' },
+      take:    10,
+      select:  { vendor: true, date: true, total: true, currency: true, category: true, status: true },
+    }).catch(() => []),
+    db.invoice.findMany({
+      where:   { workspaceId },
+      orderBy: { createdAt: 'desc' },
+      take:    10,
+      select:  { number: true, date: true, total: true, currency: true, status: true, client: { select: { name: true } } },
+    }).catch(() => []),
   ])
 
   if (!profile) {
@@ -76,13 +88,25 @@ export async function getBusinessContext(workspaceId: string): Promise<BusinessC
       .map((p) => `--- ${p.title} ---\n${p.rawText.split('\n').slice(0, 100).join('\n')}`)
       .join('\n\n')
 
-  const docsContext = (docs.length === 0 && sheets.length === 0 && pdfs.length === 0) ? null :
+  const receiptsSnippet = receiptsData.length === 0 ? '' :
+    '\n\n=== GASTOS RECIENTES ===\n' +
+    receiptsData.map((r) =>
+      `${r.date ? new Date(r.date).toLocaleDateString('es-ES') : '?'} | ${r.vendor ?? 'Sin proveedor'} | ${r.total?.toFixed(2) ?? '?'} ${r.currency} | ${r.category ?? 'sin categoría'} | ${r.status}`
+    ).join('\n')
+
+  const invoicesSnippet = invoicesData.length === 0 ? '' :
+    '\n\n=== FACTURAS RECIENTES ===\n' +
+    invoicesData.map((i) =>
+      `${i.number} | ${i.client?.name ?? 'Sin cliente'} | ${new Date(i.date).toLocaleDateString('es-ES')} | ${i.total.toFixed(2)} ${i.currency} | ${i.status}`
+    ).join('\n')
+
+  const docsContext = (docs.length === 0 && sheets.length === 0 && pdfs.length === 0 && receiptsData.length === 0 && invoicesData.length === 0) ? null :
     (docs.length === 0 ? '' : docs
       .map((d) => {
         const words = d.rawText.split(/\s+/).slice(0, 2000).join(' ')
         return `--- ${d.title} ---\n${words}`
       })
-      .join('\n\n')) + sheetsSnippet + pdfsSnippet
+      .join('\n\n')) + sheetsSnippet + pdfsSnippet + receiptsSnippet + invoicesSnippet
 
   return {
     workspaceId,

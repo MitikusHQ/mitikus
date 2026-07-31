@@ -4,10 +4,12 @@ import { useState } from 'react'
 import Link from 'next/link'
 import type { DocumentData } from '@/app/actions/documents'
 import { UploadZone } from './UploadZone'
+import { CommentBadge } from '@/components/resource-drawer'
 
 interface Props {
-  workspaceId:  string
-  initialDocs:  DocumentData[]
+  workspaceId:   string
+  initialDocs:   DocumentData[]
+  currentUserId: string
 }
 
 const CATEGORY_COLORS: Record<string, string> = {
@@ -26,7 +28,7 @@ function formatWords(n: number): string {
   return n >= 1000 ? `${(n / 1000).toFixed(1)}k palabras` : `${n} palabras`
 }
 
-export function DocList({ workspaceId, initialDocs }: Props) {
+export function DocList({ workspaceId, initialDocs, currentUserId }: Props) {
   const [docs, setDocs]     = useState<DocumentData[]>(initialDocs)
   const [filter, setFilter] = useState<string | null>(null)
 
@@ -81,8 +83,18 @@ export function DocList({ workspaceId, initialDocs }: Props) {
       {/* Lista */}
       <div className="divide-y divide-border border border-border rounded-lg overflow-hidden">
         {filtered.length === 0 ? (
-          <div className="px-4 py-8 text-center text-sm text-muted-foreground">
-            No hay documentos todavía. Sube el primero.
+          <div className="py-12 text-center space-y-3">
+            <div className="w-11 h-11 rounded-xl bg-primary/10 flex items-center justify-center text-xl mx-auto">📝</div>
+            <div className="space-y-1">
+              <p className="font-semibold text-sm">Sin documentos todavía</p>
+              <p className="text-xs text-muted-foreground max-w-xs mx-auto">Sube un .docx o crea uno en blanco directamente en MITIKUS.</p>
+            </div>
+            <Link
+              href={`/workspace/${workspaceId}/docs/new`}
+              className="inline-flex items-center gap-1.5 rounded-md bg-primary px-4 py-2 text-xs font-medium text-primary-foreground hover:bg-primary/90 transition-colors"
+            >
+              + Nuevo documento
+            </Link>
           </div>
         ) : (
           filtered.map((doc) => (
@@ -104,6 +116,13 @@ export function DocList({ workspaceId, initialDocs }: Props) {
                   {doc.category}
                 </span>
               )}
+              <CommentBadge
+                workspaceId={workspaceId}
+                resourceType="document"
+                resourceId={doc.id}
+                resourceTitle={doc.title}
+                currentUserId={currentUserId}
+              />
               <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="shrink-0 text-muted-foreground/40" aria-hidden>
                 <polyline points="9 18 15 12 9 6"/>
               </svg>

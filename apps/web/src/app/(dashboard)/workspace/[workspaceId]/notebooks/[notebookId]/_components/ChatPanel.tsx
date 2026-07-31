@@ -24,6 +24,7 @@ export function ChatPanel({
   const [input,      setInput]      = useState('')
   const [streaming,  setStreaming]  = useState(false)
   const [streamText, setStreamText] = useState('')
+  const [chatError,  setChatError]  = useState('')
   const bottomRef = useRef<HTMLDivElement>(null)
 
   useEffect(() => {
@@ -54,6 +55,7 @@ export function ChatPanel({
 
     setStreaming(true)
     setStreamText('')
+    setChatError('')
 
     try {
       const res = await fetch(`/api/notebooks/${notebookId}/chat`, {
@@ -61,6 +63,7 @@ export function ChatPanel({
         headers: { 'Content-Type': 'application/json' },
         body:    JSON.stringify({ message: text }),
       })
+      if (!res.ok) throw new Error(`Error ${res.status}`)
       if (!res.body) throw new Error('No stream body')
       const reader = res.body.getReader()
       const decoder = new TextDecoder()
@@ -80,6 +83,8 @@ export function ChatPanel({
       }
       setMessages((prev) => [...prev, assistantMsg])
       await saveMessage(notebookId, 'assistant', full, sources.map((s) => s.id))
+    } catch {
+      setChatError('No se pudo obtener respuesta. Inténtalo de nuevo.')
     } finally {
       setStreaming(false)
       setStreamText('')
@@ -109,6 +114,9 @@ export function ChatPanel({
         <div ref={bottomRef} />
       </div>
 
+      {chatError && (
+        <p className="px-4 pb-2 text-xs text-destructive">{chatError}</p>
+      )}
       <form onSubmit={handleSubmit} className="border-t p-3 flex gap-2">
         <textarea
           value={input}

@@ -1,5 +1,7 @@
 import { db } from '@/lib/db'
 import { getPlanLimits, startOfMonthUTC } from '@/lib/plan-limits'
+import { PLAN_CATALOG } from '@/lib/billing/plan-catalog'
+import type { PlanTier } from '@prisma/client'
 
 export interface LimitResult {
   allowed: boolean
@@ -112,14 +114,40 @@ export async function getUserMonthlyAIUsage(userId: string): Promise<number> {
 export async function checkPlanLimits(userId: string, todayStart = startOfTodayUTC()): Promise<LimitResult | null> {
   const user = await db.user.findUnique({
     where: { id: userId },
-    select: { trialPlan: true },
+    select: { trialPlan: true, orgId: true },
   })
 
-  const plan = user?.trialPlan ?? 'trial_personal'
-  const limits = getPlanLimits(plan)
+  // Comprobar si la org tiene suscripción activa/trial con plan del catálogo
+  const subscription = user ? await db.subscription.findUnique({
+    where: { orgId: user.orgId },
+    select: { status: true, tier: true },
+  }) : null
 
-  // Plan bloqueado — rechazo inmediato
-  if (plan === 'blocked' || limits.aiGenerationsPerDay === 0) {
+  const hasActiveBillingPlan = subscription?.status === 'ACTIVE' || subscription?.status === 'TRIALING'
+
+  if (hasActiveBillingPlan && user && subscription) {
+    const planDef = PLAN_CATALOG[subscription.tier as PlanTier]
+    const monthlyLimit = planDef?.limits.aiGenerationsPerMonth ?? 0
+
+    if (Number.isFinite(monthlyLimit)) {
+      const monthlyUsage = await getUserMonthlyAIUsage(userId)
+      if (monthlyUsage >= monthlyLimit) {
+        return {
+          allowed: false,
+          reason: `Límite mensual de tu plan ${planDef?.name ?? ''} alcanzado (${monthlyLimit}/mes).`,
+          current: monthlyUsage,
+          limit: monthlyLimit,
+        }
+      }
+    }
+    return null
+  }
+
+  // Sin suscripción activa — usar sistema de trialPlan heredado
+  const trialPlan = user?.trialPlan ?? 'trial_personal'
+  const limits = getPlanLimits(trialPlan)
+
+  if (trialPlan === 'blocked' || limits.aiGenerationsPerDay === 0) {
     return {
       allowed: false,
       reason: 'Este dominio de correo no está permitido para la beta.',
@@ -128,7 +156,6 @@ export async function checkPlanLimits(userId: string, todayStart = startOfTodayU
     }
   }
 
-  // Límite diario por plan
   const dailyUsage = await getUserUsageToday(userId, todayStart)
   if (dailyUsage >= limits.aiGenerationsPerDay) {
     return {
@@ -139,7 +166,6 @@ export async function checkPlanLimits(userId: string, todayStart = startOfTodayU
     }
   }
 
-  // Límite mensual por plan
   const monthlyUsage = await getUserMonthlyAIUsage(userId)
   if (monthlyUsage >= limits.aiGenerationsPerMonth) {
     return {

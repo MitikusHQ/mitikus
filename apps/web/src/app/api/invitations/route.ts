@@ -3,6 +3,8 @@ import { requireUser } from '@/lib/auth'
 import { assertCan } from '@/lib/permissions'
 import { db } from '@/lib/db'
 import { audit } from '@/lib/audit'
+import { checkPlanLimit } from '@/lib/billing/check-plan-limit'
+import { sendInvitationLinkEmail } from '@/lib/email'
 import type { OrgRole } from '@prisma/client'
 
 export const runtime = 'nodejs'
@@ -27,6 +29,14 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ error: 'Solo el propietario puede invitar administradores.' }, { status: 403 })
     }
 
+    // El OWNER nunca está bloqueado por límites de plan — es el creador de la org
+    if (actor.role !== 'OWNER') {
+      const limitCheck = await checkPlanLimit(actor.orgId, 'maxUsers')
+      if (!limitCheck.allowed) {
+        return NextResponse.json({ error: limitCheck.message }, { status: 402 })
+      }
+    }
+
     const invitation = await db.orgInvitation.create({
       data: {
         orgId: actor.orgId,
@@ -48,6 +58,16 @@ export async function POST(req: NextRequest) {
 
     const appUrl = process.env.NEXT_PUBLIC_APP_URL ?? 'https://app.mitikus.com'
     const link = `${appUrl}/invite/${invitation.token}`
+
+    if (email) {
+      const org = await db.organization.findUnique({ where: { id: actor.orgId }, select: { name: true } })
+      void sendInvitationLinkEmail({
+        to: email,
+        orgName: org?.name ?? 'tu equipo',
+        inviteUrl: link,
+        expiresAt: invitation.expiresAt,
+      }).catch(() => null)
+    }
 
     return NextResponse.json({ token: invitation.token, link, expiresAt: invitation.expiresAt })
   } catch (e) {

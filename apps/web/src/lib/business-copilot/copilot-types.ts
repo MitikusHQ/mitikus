@@ -29,6 +29,7 @@ export type SuggestionCategory =
   | 'process'       // mejora un proceso conocido
   | 'domain'        // cubre un dominio sin explorar
   | 'analytics'     // acción sugerida por historial
+  | 'fiscal'        // obligación fiscal próxima
 
 export interface CopilotSuggestion {
   id:          string

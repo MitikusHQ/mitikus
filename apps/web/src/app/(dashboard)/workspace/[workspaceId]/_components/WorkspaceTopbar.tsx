@@ -12,12 +12,14 @@ interface Props {
   workspaceName: string
   onToggleSidebar: () => void
   sidebarCollapsed: boolean
+  teamPanelOpen: boolean
+  onToggleTeamPanel: () => void
 }
 
 // Mapa ruta → label de sección. Orden: más específico primero.
 const SECTION_LABELS: Array<{ segment: string; label: string }> = [
   { segment: '/tools',     label: 'Herramientas' },
-  { segment: '/workflows', label: 'Flows' },
+  { segment: '/workflows', label: 'Flujos' },
   { segment: '/clients',   label: 'Clientes' },
   { segment: '/analytics', label: 'Analytics' },
   { segment: '/audit',     label: 'Auditoría' },
@@ -30,8 +32,9 @@ const SECTION_LABELS: Array<{ segment: string; label: string }> = [
   { segment: '/tasks',    label: 'Tareas' },
   { segment: '/today',    label: 'Mi día' },
   { segment: '/timelog',  label: 'Control horario' },
+  { segment: '/missions', label: 'Misiones' },
   { segment: '/profile',  label: 'Mi perfil' },
-  { segment: '/docs',     label: 'Docs' },
+  { segment: '/docs',     label: 'Documentos' },
   { segment: '/sheets',   label: 'Hojas de cálculo' },
   { segment: '/pdfs',     label: 'PDFs' },
   { segment: '/contracts',     label: 'Contratos' },
@@ -93,7 +96,7 @@ function resolveSubLabel(segments: string[]): string | null {
   return labels[last] ?? null
 }
 
-export function WorkspaceTopbar({ workspaceId, workspaceName, onToggleSidebar, sidebarCollapsed }: Props) {
+export function WorkspaceTopbar({ workspaceId, workspaceName, onToggleSidebar, sidebarCollapsed, teamPanelOpen, onToggleTeamPanel }: Props) {
   const breadcrumbs = useBreadcrumb(workspaceId, workspaceName)
 
   return (
@@ -142,8 +145,25 @@ export function WorkspaceTopbar({ workspaceId, workspaceName, onToggleSidebar, s
           className="hidden sm:flex items-center gap-1.5 h-8 px-3 rounded-md bg-primary text-primary-foreground text-xs font-medium hover:bg-primary/90 transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
         >
           {Icons.plus}
-          <span>Nueva herramienta</span>
+          <span>Nueva misión</span>
         </Link>
+        <button
+          type="button"
+          onClick={onToggleTeamPanel}
+          aria-label={teamPanelOpen ? 'Cerrar panel de equipo' : 'Abrir panel de equipo'}
+          aria-pressed={teamPanelOpen}
+          className={`p-2 rounded-md transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring ${
+            teamPanelOpen
+              ? 'bg-primary/10 text-primary'
+              : 'text-muted-foreground hover:text-foreground hover:bg-muted'
+          }`}
+        >
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" aria-hidden>
+            <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2" />
+            <circle cx="9" cy="7" r="4" />
+            <path d="M23 21v-2a4 4 0 0 0-3-3.87M16 3.13a4 4 0 0 1 0 7.75" />
+          </svg>
+        </button>
         <NotificationBell workspaceId={workspaceId} />
         <UserNav />
       </div>

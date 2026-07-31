@@ -1,4 +1,5 @@
 import { redirect } from 'next/navigation'
+import Link from 'next/link'
 import { requireUser } from '@/lib/auth'
 import { can } from '@/lib/permissions'
 import { listOrgMembers, listPendingInvitations } from '@/app/actions/org'
@@ -6,9 +7,14 @@ import { TeamMembersTable } from '@/app/(dashboard)/org/_components/TeamMembersT
 import { InviteModal } from './_components/InviteModal'
 import { PendingInvitationsTable } from './_components/PendingInvitationsTable'
 
-export default async function SettingsTeamPage() {
-  const user = await requireUser()
+interface Props {
+  searchParams: Promise<{ invite?: string }>
+}
+
+export default async function SettingsTeamPage({ searchParams }: Props) {
+  const [user, sp] = await Promise.all([requireUser(), searchParams])
   if (!can(user, 'manage_members')) redirect('/dashboard')
+  const autoOpen = sp.invite === 'email' // valor emitido por OnboardingWizard paso 3
 
   const [membersResult, invitationsResult] = await Promise.all([
     listOrgMembers(),
@@ -21,6 +27,10 @@ export default async function SettingsTeamPage() {
 
   return (
     <div className="max-w-5xl mx-auto px-6 py-8 space-y-10">
+      <Link href="/settings" className="inline-flex items-center gap-1.5 text-sm text-muted-foreground hover:text-foreground transition-colors">
+        <svg className="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M15 18l-6-6 6-6"/></svg>
+        Ajustes
+      </Link>
       <div className="flex items-start justify-between gap-4 flex-wrap">
         <div>
           <h1 className="text-xl font-semibold">Equipo</h1>
@@ -28,7 +38,7 @@ export default async function SettingsTeamPage() {
             {members.length} {members.length === 1 ? 'miembro' : 'miembros'} en la organización
           </p>
         </div>
-        <InviteModal actorRole={user.role} />
+        <InviteModal actorRole={user.role} autoOpen={autoOpen} />
       </div>
 
       <section className="space-y-4">

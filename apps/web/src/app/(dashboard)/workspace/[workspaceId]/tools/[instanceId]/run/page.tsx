@@ -1,6 +1,7 @@
 import { requireUser } from '@/lib/auth'
 import { db } from '@/lib/db'
 import { notFound } from 'next/navigation'
+import Link from 'next/link'
 import { validateToolSchema, type FormConfig } from '@protools/schema'
 import { ToolSectionNav } from '../_components/ToolSectionNav'
 import { ExecutionClient } from './_components/ExecutionClient'
@@ -83,6 +84,10 @@ export default async function ToolRunPage({ params, searchParams }: Props) {
 
   return (
     <div className="max-w-6xl mx-auto px-6 py-8">
+      <Link href={`/workspace/${workspaceId}/tools/${instanceId}`} className="inline-flex items-center gap-1.5 text-sm text-muted-foreground hover:text-foreground transition-colors mb-6 block">
+        <svg className="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M15 18l-6-6 6-6"/></svg>
+        {instance.name}
+      </Link>
       <div className="mb-6">
         <h1 className="text-xl font-semibold truncate">{instance.name}</h1>
         <p className="text-xs text-muted-foreground truncate">

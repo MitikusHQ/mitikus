@@ -13,6 +13,26 @@ interface LocaleBannerProps {
 const ALSO_AVAILABLE: Record<Locale, string> = {
   en: 'Also available in:',
   es: 'También disponible en:',
+  fr: 'Également disponible en :',
+  de: 'Auch verfügbar in:',
+  pt: 'Também disponível em:',
+  it: 'Disponibile anche in:',
+  nl: 'Ook beschikbaar in:',
+  pl: 'Dostępne również w:',
+  ro: 'Disponibil și în:',
+  sv: 'Finns även på:',
+  da: 'Også tilgængeligt på:',
+  no: 'Også tilgjengelig på:',
+  hu: 'Elérhető más nyelven is:',
+  cs: 'K dispozici také v:',
+  sk: 'K dispozícii aj v:',
+  el: 'Διαθέσιμο επίσης σε:',
+  fi: 'Saatavilla myös:',
+  hr: 'Dostupno i na:',
+  bg: 'Достъпно и на:',
+  sl: 'Na voljo tudi v:',
+  ja: '他の言語でも利用可能：',
+  zh: '也支持以下语言：',
 }
 
 export function LocaleBanner({ suggestedLocale, currentLocale }: LocaleBannerProps) {

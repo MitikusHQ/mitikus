@@ -6,6 +6,7 @@ import { ToolCategory } from '@prisma/client'
 import { formatDate } from '@/lib/format-date'
 import { getLocale } from '@/i18n/locale'
 import { cn } from '@/lib/utils'
+import { ToolsEmptyState } from './_components/ToolsEmptyState'
 
 const CATEGORY_LABELS: Record<ToolCategory, string> = {
   AUDIT:      'Auditoría',
@@ -112,26 +113,7 @@ export default async function WorkspaceToolsPage({ params }: Props) {
       </div>
       <div>
         {instances.length === 0 ? (
-          <div className="rounded-lg border border-dashed p-16 text-center bg-card">
-            <p className="font-medium mb-1">Aún no tienes herramientas</p>
-            <p className="text-muted-foreground text-sm mb-6">
-              Genera una nueva describiendo tu proceso, o añade una ya hecha desde el catálogo.
-            </p>
-            <div className="flex items-center justify-center gap-3">
-              <Link
-                href={`/workspace/${workspaceId}/generate`}
-                className="inline-flex items-center rounded-md bg-primary px-4 py-2 text-sm font-medium text-primary-foreground shadow hover:bg-primary/90 transition-colors"
-              >
-                ✦ Generar
-              </Link>
-              <Link
-                href={`/tools?workspaceId=${workspaceId}`}
-                className="inline-flex items-center rounded-md border border-input px-4 py-2 text-sm font-medium hover:border-primary hover:text-primary transition-colors"
-              >
-                Explorar catálogo
-              </Link>
-            </div>
-          </div>
+          <ToolsEmptyState workspaceId={workspaceId} />
         ) : (
           <div className="grid gap-4 sm:grid-cols-2">
             {sortedInstances.map((instance) => {

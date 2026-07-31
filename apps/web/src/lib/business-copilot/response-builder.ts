@@ -110,12 +110,12 @@ export function buildWorkflowReadyMessage(
   if (!objectiveId) {
     return (
       `He preparado el plan "${planLabel}".\n\n` +
-      `Ve a Mission Control para ver los pasos y empezar a trabajar.`
+      `Ve a Panel para ver los pasos y empezar a trabajar.`
     )
   }
   return (
     `La misión "${planLabel}" está creada con todos sus pasos.\n\n` +
-    `Puedes verla en Mission Control, ajustar los pasos y empezar cuando quieras.`
+    `Puedes verla en Panel, ajustar los pasos y empezar cuando quieras.`
   )
 }
 

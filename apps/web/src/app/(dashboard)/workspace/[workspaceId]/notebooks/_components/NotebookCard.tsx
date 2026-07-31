@@ -5,13 +5,15 @@ import { useState } from 'react'
 import { useRouter } from 'next/navigation'
 import { deleteNotebook } from '@/app/actions/notebooks'
 import type { NotebookData } from '@/app/actions/notebooks'
+import { CommentBadge } from '@/components/resource-drawer'
 
 interface Props {
-  notebook:    NotebookData
-  workspaceId: string
+  notebook:      NotebookData
+  workspaceId:   string
+  currentUserId: string
 }
 
-export function NotebookCard({ notebook, workspaceId }: Props) {
+export function NotebookCard({ notebook, workspaceId, currentUserId }: Props) {
   const router = useRouter()
   const [deleting, setDeleting] = useState(false)
 
@@ -33,13 +35,22 @@ export function NotebookCard({ notebook, workspaceId }: Props) {
         {notebook.sourceCount} {notebook.sourceCount === 1 ? 'fuente' : 'fuentes'} ·{' '}
         {new Date(notebook.createdAt).toLocaleDateString('es-ES')}
       </p>
-      <button
-        onClick={handleDelete}
-        disabled={deleting}
-        className="absolute right-3 top-3 hidden group-hover:flex items-center justify-center w-5 h-5 rounded text-muted-foreground hover:text-destructive text-sm"
-      >
-        ×
-      </button>
+      <div className="absolute right-3 top-3 hidden group-hover:flex items-center gap-1">
+        <CommentBadge
+          workspaceId={workspaceId}
+          resourceType="notebook"
+          resourceId={notebook.id}
+          resourceTitle={notebook.title}
+          currentUserId={currentUserId}
+        />
+        <button
+          onClick={handleDelete}
+          disabled={deleting}
+          className="flex items-center justify-center w-5 h-5 rounded text-muted-foreground hover:text-destructive text-sm"
+        >
+          ×
+        </button>
+      </div>
     </Link>
   )
 }

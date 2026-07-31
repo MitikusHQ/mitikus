@@ -64,6 +64,10 @@ export default async function RecordDetailPage({ params }: Props) {
 
   return (
     <div className="max-w-3xl mx-auto px-6 py-8 space-y-6">
+      <Link href={`/workspace/${workspaceId}/tools/${instanceId}`} className="inline-flex items-center gap-1.5 text-sm text-muted-foreground hover:text-foreground transition-colors">
+        <svg className="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M15 18l-6-6 6-6"/></svg>
+        {instance.name}
+      </Link>
       <div className="flex items-center justify-between">
         <h1 className="text-xl font-semibold">Detalle del registro</h1>
         <div className="flex items-center gap-3">

@@ -10,6 +10,11 @@ import { getPendingContracts } from '@/app/actions/contracts'
 import { getNotebooks } from '@/app/actions/notebooks'
 import { ContractsWidget } from './_components/ContractsWidget'
 import { NotebooksWidget } from './_components/NotebooksWidget'
+import { FiscalWidget } from './_components/FiscalWidget'
+import { InvoicesWidget } from './_components/InvoicesWidget'
+import { db } from '@/lib/db'
+import { getFiscalEvents, type LegalForm } from '@/lib/fiscal-calendar'
+import { getInvoices } from '@/app/actions/invoices'
 
 interface Props {
   params: Promise<{ workspaceId: string }>
@@ -31,7 +36,7 @@ function todayLabel(): string {
 }
 
 const statusLabels: Record<string, { label: string; className: string }> = {
-  PENDING:   { label: 'En cola',    className: 'bg-yellow-500/10 text-yellow-600 dark:text-yellow-400' },
+  PENDING:   { label: 'En cola',    className: 'bg-muted text-muted-foreground' },
   RUNNING:   { label: 'Ejecutando', className: 'bg-blue-500/10 text-blue-600 dark:text-blue-400' },
   COMPLETED: { label: 'Completado', className: 'bg-green-500/10 text-green-600 dark:text-green-400' },
   FAILED:    { label: 'Fallido',    className: 'bg-red-500/10 text-red-600 dark:text-red-400' },
@@ -40,13 +45,19 @@ const statusLabels: Record<string, { label: string; className: string }> = {
 
 export default async function TodayPage({ params }: Props) {
   const [{ workspaceId }, user] = await Promise.all([params, requireUser()])
-  const [data, todayEntry, myTasks, contracts, notebooks] = await Promise.all([
+  const [data, todayEntry, myTasks, contracts, notebooks, fiscalProfile, invoices] = await Promise.all([
     getTodayData(workspaceId, user.id),
     getTodayEntry(workspaceId, user.id),
     getMyTasks(workspaceId, user.id),
     getPendingContracts(workspaceId),
     getNotebooks(workspaceId),
+    db.companyProfile.findUnique({ where: { workspaceId }, select: { legalForm: true, country: true } }),
+    getInvoices(workspaceId).catch(() => []),
   ])
+
+  const fiscalEvents = (fiscalProfile?.legalForm || fiscalProfile?.country)
+    ? getFiscalEvents(fiscalProfile.country ?? 'ES', fiscalProfile.legalForm)
+    : []
 
   const isEmpty = data.pendingSteps.length === 0 && data.pendingWorkflows.length === 0
 
@@ -58,7 +69,15 @@ export default async function TodayPage({ params }: Props) {
         <p className="text-sm text-muted-foreground mt-0.5 capitalize">{todayLabel()}</p>
       </div>
 
-      <ClockWidget workspaceId={workspaceId} initialEntry={todayEntry} />
+      <div>
+        <div className="flex items-center justify-between mb-2">
+          <h2 className="text-sm font-semibold text-muted-foreground uppercase tracking-wide">Control horario</h2>
+          <Link href={`/workspace/${workspaceId}/timelog`} className="text-xs text-primary hover:underline">
+            Ver historial →
+          </Link>
+        </div>
+        <ClockWidget workspaceId={workspaceId} initialEntry={todayEntry} />
+      </div>
 
       {myTasks.length > 0 && (
         <section>
@@ -109,6 +128,8 @@ export default async function TodayPage({ params }: Props) {
         <WorkflowsBlock workflows={data.pendingWorkflows} workspaceId={workspaceId} />
       )}
 
+      <FiscalWidget workspaceId={workspaceId} events={fiscalEvents} />
+      <InvoicesWidget workspaceId={workspaceId} invoices={invoices} />
       <ContractsWidget workspaceId={workspaceId} contracts={contracts} />
       <NotebooksWidget workspaceId={workspaceId} notebooks={notebooks} />
 
@@ -169,7 +190,7 @@ function WorkflowsBlock({ workflows, workspaceId }: { workflows: PendingWorkflow
   return (
     <section className="space-y-3">
       <h2 className="text-xs font-semibold uppercase tracking-widest text-muted-foreground">
-        Workflows ({workflows.length})
+        Flujos ({workflows.length})
       </h2>
       <div className="rounded-xl border bg-card divide-y overflow-hidden">
         {workflows.slice(0, 10).map((wf) => {
@@ -184,15 +205,15 @@ function WorkflowsBlock({ workflows, workspaceId }: { workflows: PendingWorkflow
                   </span>
                 )}
                 {!badge && (
-                  <span className="shrink-0 text-[10px] text-muted-foreground">Sin ejecutar</span>
+                  <span className="shrink-0 text-[10px] text-muted-foreground">Pendiente</span>
                 )}
               </div>
               <Link
                 href={`/workspace/${workspaceId}/workflows/${wf.workflowId}`}
                 className="shrink-0 text-xs font-medium text-primary hover:underline"
-                aria-label={`Ejecutar workflow: ${wf.workflowName}`}
+                aria-label={`Abrir flujo: ${wf.workflowName}`}
               >
-                Ejecutar →
+                Abrir flujo →
               </Link>
             </div>
           )

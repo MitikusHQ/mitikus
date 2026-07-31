@@ -11,15 +11,23 @@ export async function GET(req: NextRequest, { params }: Params): Promise<NextRes
 
   // Permitir llamada interna (desde signClientContract) o usuario autenticado
   const internalSecret = req.headers.get('x-internal-secret')
-  const isInternal     = internalSecret && internalSecret === (process.env.INTERNAL_SECRET ?? '')
+  const configuredSecret = process.env.INTERNAL_SECRET
+  const isInternal = !!(configuredSecret && internalSecret === configuredSecret)
 
+  let orgId: string | null = null
   if (!isInternal) {
     const { userId: clerkId } = await auth()
     if (!clerkId) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
+    const user = await db.user.findUnique({ where: { clerkId }, select: { orgId: true } })
+    if (!user) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
+    orgId = user.orgId
   }
 
-  const contract = await db.contract.findUnique({
-    where:  { id: contractId },
+  const contract = await db.contract.findFirst({
+    where: {
+      id: contractId,
+      ...(orgId ? { workspace: { orgId } } : {}),
+    },
     select: {
       pdfData:           true,
       internalSignature: true,

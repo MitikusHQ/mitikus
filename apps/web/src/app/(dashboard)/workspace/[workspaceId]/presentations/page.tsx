@@ -7,13 +7,12 @@ interface Props {
 }
 
 export default async function PresentationsPage({ params }: Props) {
-  await requireUser()
-  const { workspaceId } = await params
+  const [{ workspaceId }, user] = await Promise.all([params, requireUser()])
   const presentations = await getPresentations(workspaceId)
 
   return (
     <div className="p-6 max-w-3xl mx-auto">
-      <PresentationList workspaceId={workspaceId} initial={presentations} />
+      <PresentationList workspaceId={workspaceId} initial={presentations} currentUserId={user.id} />
     </div>
   )
 }

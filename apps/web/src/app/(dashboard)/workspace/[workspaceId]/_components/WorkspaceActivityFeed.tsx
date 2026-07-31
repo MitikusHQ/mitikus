@@ -8,9 +8,9 @@ const ACTION_LABELS: Record<string, string> = {
   'tool.install':         'Instaló herramienta',
   'tool.configure':       'Configuró herramienta',
   'tool.execute':         'Ejecutó herramienta',
-  'workflow.create':      'Creó flow',
-  'workflow.execute':     'Ejecutó flow',
-  'workflow.archive':     'Archivó flow',
+  'workflow.create':      'Creó flujo',
+  'workflow.execute':     'Ejecutó flujo',
+  'workflow.archive':     'Archivó flujo',
   'record.create':        'Creó registro',
   'record.update':        'Actualizó registro',
   'record.delete':        'Eliminó registro',
@@ -46,7 +46,16 @@ export async function WorkspaceActivityFeed({ workspaceId }: Props) {
     take:    12,
   })
 
-  if (logs.length === 0) return null
+  if (logs.length === 0) {
+    return (
+      <section className="space-y-3">
+        <h2 className="text-xs font-semibold uppercase tracking-widest text-muted-foreground">
+          Actividad reciente
+        </h2>
+        <p className="text-sm text-muted-foreground py-2">Aún no hay actividad registrada en este workspace.</p>
+      </section>
+    )
+  }
 
   // Fetch actors in one query
   const actorIds = [...new Set(logs.map((l) => l.actorUserId).filter(Boolean))] as string[]

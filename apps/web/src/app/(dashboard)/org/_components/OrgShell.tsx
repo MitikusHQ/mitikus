@@ -82,7 +82,7 @@ export function OrgShell({ orgName, canManageMembers, canViewAdmin, workspaceId,
     { label: 'Analítica', href: '/org/analytics', icon: analyticsIcon },
     ...(canManageMembers ? [{ label: 'Equipo', href: '/org/team', icon: Icons.team }] : []),
     ...(canViewAdmin ? [{ label: 'Beta Dashboard', href: '/org/beta', icon: betaIcon }] : []),
-    { label: 'Actualizar plan', href: '/pricing', icon: billingIcon },
+    { label: 'Plan y facturación', href: '/org#plan-billing', icon: billingIcon },
     { label: 'Ajustes', href: '/settings', icon: settingsIcon },
   ]
 

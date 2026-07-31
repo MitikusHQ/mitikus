@@ -5,6 +5,7 @@ import Link from 'next/link'
 import { cn } from '@/lib/utils'
 import { formatCostEUR } from '@/lib/ai-cost'
 import { ExecutionStatusBadge } from '../../tools/[instanceId]/_components/ExecutionStatusBadge'
+import { PortalLinkButton } from './_components/PortalLinkButton'
 
 interface Props {
   params: Promise<{ workspaceId: string; clientId: string }>
@@ -96,12 +97,15 @@ export default async function ClientDossierPage({ params }: Props) {
             <p className="mt-2 text-sm text-muted-foreground max-w-xl">{client.notes}</p>
           )}
         </div>
-        <Link
-          href={`/workspace/${workspaceId}/clients/${clientId}/edit`}
-          className="shrink-0 text-xs border border-input rounded-md px-3 py-1.5 hover:bg-accent transition-colors"
-        >
-          Editar
-        </Link>
+        <div className="flex items-center gap-2">
+          <PortalLinkButton clientId={clientId} />
+          <Link
+            href={`/workspace/${workspaceId}/clients/${clientId}/edit`}
+            className="shrink-0 text-xs border border-input rounded-md px-3 py-1.5 hover:bg-accent transition-colors"
+          >
+            Editar
+          </Link>
+        </div>
       </div>
 
       {/* Stats */}

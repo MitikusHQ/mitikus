@@ -176,6 +176,8 @@ model Subscription {
   cancelAtPeriodEnd  Boolean   @default(false)
   cancelledAt        DateTime?
 
+  trialEndReminderSentAt DateTime?
+
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 
@@ -229,7 +231,13 @@ model User {
   // i18n
   locale    String   @default("en")        // en | es
   // BETA-002 — Second Day Experience: última vez que vio Mission Control
-  lastSeenAt DateTime?
+  lastSeenAt                DateTime?
+  // ACTIVATION — recordatorio día 3 y día 7 si no ha ejecutado ninguna herramienta
+  activationReminderSentAt   DateTime?
+  activation2ReminderSentAt  DateTime?
+  // NURTURING — post-activación (semana 2) y bienvenida si viene por invitación
+  postActivationEmailSentAt  DateTime?
+  inviteWelcomeSentAt        DateTime?
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 
@@ -261,6 +269,11 @@ model User {
   contractsCreated     Contract[]
   presentationsCreated Presentation[] @relation("PresentationsCreated")
   notebooksCreated     Notebook[]     @relation("NotebooksCreated")
+  commentsAuthored     Comment[]          @relation("CommentsAuthored")
+  activitiesLogged     ResourceActivity[] @relation("ActivitiesLogged")
+  presence             UserPresence?
+  conversationMembers  ConversationMember[]
+  sentMessages         DirectMessage[]    @relation("SentMessages")
 
   @@index([orgId])
   @@map("users")
@@ -287,7 +300,8 @@ model Workspace {
   workflowExecutions WorkflowExecution[]
 
   // Business Memory Engine
-  companyProfile  CompanyProfile?
+  companyProfile       CompanyProfile?
+  fiscalDeclarations   FiscalDeclaration[]
   objectives      CompanyObjective[]
   assets          CompanyAsset[]
   processes       CompanyProcess[]
@@ -306,6 +320,11 @@ model Workspace {
   contracts            Contract[]
   presentations        Presentation[]
   notebooks            Notebook[]
+  clientShares         ClientShare[]
+  comments             Comment[]
+  resourceActivities   ResourceActivity[]
+  receipts             Receipt[]
+  invoices             Invoice[]
 
   @@unique([orgId, slug])
   @@index([orgId])
@@ -324,6 +343,7 @@ model Client {
   sector      String?
   notes       String?
   isArchived  Boolean  @default(false)
+  portalToken String?  @unique
   createdAt   DateTime @default(now())
   updatedAt   DateTime @updatedAt
 
@@ -333,6 +353,7 @@ model Client {
   objectives    CompanyObjective[] // WM-001 Sprint 0
   timeImputations TimeImputation[]
   tasks           Task[]
+  invoices        Invoice[]
 
   @@index([workspaceId])
   @@map("clients")
@@ -1014,6 +1035,9 @@ model CompanyProfile {
   integrations    Json   @default("[]")       // string[]
   digitalMaturity String @default("emerging") // emerging|developing|advanced|leading
 
+  // Fiscal
+  legalForm String? // autonomo|sl|sa|otro
+
   // Organización interna
   departments Json @default("[]")  // string[]
 
@@ -1033,6 +1057,25 @@ model CompanyProfile {
   memoryLogs  BusinessMemoryLog[]
 
   @@map("company_profiles")
+}
+
+model FiscalDeclaration {
+  id          String   @id @default(cuid())
+  workspaceId String
+  modelo      String   // 303 | 130 | 111 | 115
+  periodo     String   // T1 | T2 | T3 | T4
+  year        Int
+  data        Json     // valores del formulario
+  resultado   Float    // importe a ingresar (positivo) o compensar (negativo)
+  status      String   @default("borrador") // borrador | presentada
+  notas       String?
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  workspace Workspace @relation(fields: [workspaceId], references: [id], onDelete: Cascade)
+
+  @@unique([workspaceId, modelo, periodo, year])
+  @@map("fiscal_declarations")
 }
 
 model CompanyObjective {
@@ -1474,12 +1517,36 @@ model Document {
   createdAt   DateTime  @default(now())
   updatedAt   DateTime  @updatedAt
 
-  workspace   Workspace @relation(fields: [workspaceId], references: [id], onDelete: Cascade)
-  uploader    User      @relation(fields: [uploadedBy], references: [id], onDelete: Restrict)
+  workspace    Workspace     @relation(fields: [workspaceId], references: [id], onDelete: Cascade)
+  uploader     User          @relation(fields: [uploadedBy], references: [id], onDelete: Restrict)
+  clientShares ClientShare[]
 
   @@index([workspaceId])
   @@index([workspaceId, createdAt])
   @@map("documents")
+}
+
+// ============================================================
+// CLIENT SHARE — portal público para el cliente
+// ============================================================
+
+model ClientShare {
+  id             String    @id @default(cuid())
+  token          String    @unique @default(cuid())
+  documentId     String
+  recipientEmail String
+  recipientName  String?
+  workspaceId    String
+  note           String?   @db.Text
+  viewedAt       DateTime?
+  createdAt      DateTime  @default(now())
+
+  document  Document  @relation(fields: [documentId], references: [id], onDelete: Cascade)
+  workspace Workspace @relation(fields: [workspaceId], references: [id], onDelete: Cascade)
+
+  @@index([documentId])
+  @@index([workspaceId])
+  @@map("client_shares")
 }
 
 // ============================================================
@@ -1564,6 +1631,7 @@ model Contract {
   otpVerifiedAt     DateTime?
 
   signedPdfData     Bytes?
+  reminderSentAt    DateTime?
 
   createdBy         String
   createdAt         DateTime       @default(now())
@@ -1643,6 +1711,7 @@ model Notebook {
   title           String    @default("Nuevo notebook")
   synthesisCache  String?   @db.Text
   synthesisDirty  Boolean   @default(true)
+  shareToken      String    @unique @default(cuid())
   createdBy       String
   createdAt       DateTime  @default(now())
   updatedAt       DateTime  @updatedAt
@@ -1686,4 +1755,176 @@ model NotebookMessage {
 
   @@index([notebookId])
   @@map("notebook_messages")
+}
+
+// ============================================================
+// COMMENTS — comentarios en recursos del workspace
+// ============================================================
+
+model Comment {
+  id           String   @id @default(cuid())
+  workspaceId  String
+  resourceType String   // 'document' | 'contract' | 'notebook' | 'presentation' | 'pdf'
+  resourceId   String
+  authorId     String
+  content      String   @db.Text
+  parentId     String?
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+
+  workspace Workspace @relation(fields: [workspaceId], references: [id], onDelete: Cascade)
+  author    User      @relation("CommentsAuthored", fields: [authorId], references: [id], onDelete: Cascade)
+  parent    Comment?  @relation("CommentReplies", fields: [parentId], references: [id], onDelete: Cascade)
+  replies   Comment[] @relation("CommentReplies")
+
+  @@index([workspaceId, resourceType, resourceId, createdAt])
+  @@map("comments")
+}
+
+// ============================================================
+// RESOURCE ACTIVITY — historial de edición por recurso
+// ============================================================
+
+model ResourceActivity {
+  id           String   @id @default(cuid())
+  workspaceId  String
+  resourceType String
+  resourceId   String
+  userId       String
+  action       String   // 'created' | 'edited' | 'title_changed' | 'status_changed' | 'source_added' | 'source_removed' | 'signed' | 'sent' | 'slide_added' | 'uploaded'
+  metadata     String   @default("{}") // JSON
+  createdAt    DateTime @default(now())
+
+  workspace Workspace @relation(fields: [workspaceId], references: [id], onDelete: Cascade)
+  user      User      @relation("ActivitiesLogged", fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([workspaceId, resourceType, resourceId, createdAt])
+  @@map("resource_activities")
+}
+
+// ============================================================
+// TEAM CHAT & PRESENCE
+// ============================================================
+
+enum PresenceStatus {
+  OFFLINE
+  AVAILABLE
+  BUSY
+  IN_MEETING
+}
+
+model UserPresence {
+  userId    String         @id
+  orgId     String
+  status    PresenceStatus @default(OFFLINE)
+  updatedAt DateTime       @updatedAt
+  user      User           @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([orgId])
+  @@map("user_presences")
+}
+
+model DirectConversation {
+  id        String   @id @default(cuid())
+  orgId     String
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  members   ConversationMember[]
+  messages  DirectMessage[]
+
+  @@index([orgId])
+  @@map("direct_conversations")
+}
+
+model ConversationMember {
+  id             String             @id @default(cuid())
+  conversationId String
+  userId         String
+  lastReadAt     DateTime?
+  joinedAt       DateTime           @default(now())
+  conversation   DirectConversation @relation(fields: [conversationId], references: [id], onDelete: Cascade)
+  user           User               @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([conversationId, userId])
+  @@index([userId])
+  @@map("conversation_members")
+}
+
+model DirectMessage {
+  id             String             @id @default(cuid())
+  conversationId String
+  senderId       String
+  content        String             @db.Text
+  createdAt      DateTime           @default(now())
+  editedAt       DateTime?
+  deletedAt      DateTime?
+  conversation   DirectConversation @relation(fields: [conversationId], references: [id], onDelete: Cascade)
+  sender         User               @relation("SentMessages", fields: [senderId], references: [id], onDelete: Cascade)
+
+  @@index([conversationId, createdAt])
+  @@map("direct_messages")
+}
+
+model TeamEvent {
+  id           String   @id @default(cuid())
+  targetUserId String
+  orgId        String
+  type         String
+  payload      Json
+  createdAt    DateTime @default(now())
+
+  @@index([targetUserId, createdAt])
+  @@index([createdAt])
+  @@map("team_events")
+}
+
+// ============================================================
+// RECEIPT — ticket / factura escaneado con OCR
+
+model Receipt {
+  id          String    @id @default(cuid())
+  workspaceId String
+  workspace   Workspace @relation(fields: [workspaceId], references: [id], onDelete: Cascade)
+  imageData   String?   @db.Text       // base64 data URI de la imagen
+  vendor      String?
+  date        DateTime?
+  total       Float?
+  subtotal    Float?
+  tax         Float?
+  taxRate     Float?
+  currency    String    @default("EUR")
+  items       Json?     // [{description, qty, unitPrice, total}]
+  category    String?
+  notes       String?
+  status      String    @default("pendiente") // pendiente | revisado | contabilizado
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
+
+  @@index([workspaceId, createdAt])
+  @@map("receipts")
+}
+
+model Invoice {
+  id          String    @id @default(cuid())
+  workspaceId String
+  workspace   Workspace @relation(fields: [workspaceId], references: [id], onDelete: Cascade)
+  clientId    String?
+  client      Client?   @relation(fields: [clientId], references: [id], onDelete: SetNull)
+  number      String    // e.g. "2026-001"
+  date        DateTime  @default(now())
+  dueDate     DateTime?
+  status      String    @default("borrador") // borrador | enviada | pagada | vencida | cancelada
+  items       Json      @default("[]")
+  subtotal    Float     @default(0)
+  taxRate     Float     @default(21)
+  tax         Float     @default(0)
+  total       Float     @default(0)
+  currency    String    @default("EUR")
+  notes       String?
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
+
+  @@index([workspaceId, createdAt])
+  @@index([clientId])
+  @@map("invoices")
 }

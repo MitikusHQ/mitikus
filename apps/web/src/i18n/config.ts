@@ -1,4 +1,4 @@
-export const SUPPORTED_LOCALES = ['en', 'es'] as const
+export const SUPPORTED_LOCALES = ['en', 'es', 'fr', 'de', 'pt', 'it', 'nl', 'pl', 'ro', 'sv', 'da', 'no', 'hu', 'cs', 'sk', 'el', 'fi', 'hr', 'bg', 'sl', 'ja', 'zh'] as const
 export type Locale = (typeof SUPPORTED_LOCALES)[number]
 
 export const DEFAULT_LOCALE: Locale = 'es'
@@ -31,6 +31,26 @@ export function sanitizeLocale(value: unknown): Locale {
 }
 
 export const LOCALE_LABELS: Record<Locale, { label: string; flag: string; nativeLabel: string }> = {
-  en: { label: 'English', flag: '🇺🇸', nativeLabel: 'English' },
-  es: { label: 'Spanish', flag: '🇪🇸', nativeLabel: 'Español' },
+  en: { label: 'English',  flag: '🇺🇸', nativeLabel: 'English' },
+  es: { label: 'Spanish',  flag: '🇪🇸', nativeLabel: 'Español' },
+  fr: { label: 'French',   flag: '🇫🇷', nativeLabel: 'Français' },
+  de: { label: 'German',      flag: '🇩🇪', nativeLabel: 'Deutsch'   },
+  pt: { label: 'Portuguese', flag: '🇵🇹', nativeLabel: 'Português' },
+  it: { label: 'Italian',    flag: '🇮🇹', nativeLabel: 'Italiano'  },
+  nl: { label: 'Dutch',      flag: '🇳🇱', nativeLabel: 'Nederlands' },
+  pl: { label: 'Polish',     flag: '🇵🇱', nativeLabel: 'Polski'     },
+  ro: { label: 'Romanian',   flag: '🇷🇴', nativeLabel: 'Română'     },
+  sv: { label: 'Swedish',    flag: '🇸🇪', nativeLabel: 'Svenska'    },
+  da: { label: 'Danish',     flag: '🇩🇰', nativeLabel: 'Dansk'      },
+  no: { label: 'Norwegian',  flag: '🇳🇴', nativeLabel: 'Norsk'      },
+  hu: { label: 'Hungarian',  flag: '🇭🇺', nativeLabel: 'Magyar'     },
+  cs: { label: 'Czech',      flag: '🇨🇿', nativeLabel: 'Čeština'    },
+  sk: { label: 'Slovak',     flag: '🇸🇰', nativeLabel: 'Slovenčina' },
+  el: { label: 'Greek',      flag: '🇬🇷', nativeLabel: 'Ελληνικά'  },
+  fi: { label: 'Finnish',   flag: '🇫🇮', nativeLabel: 'Suomi'      },
+  hr: { label: 'Croatian',  flag: '🇭🇷', nativeLabel: 'Hrvatski'   },
+  bg: { label: 'Bulgarian', flag: '🇧🇬', nativeLabel: 'Български'  },
+  sl: { label: 'Slovenian', flag: '🇸🇮', nativeLabel: 'Slovenščina' },
+  ja: { label: 'Japanese',  flag: '🇯🇵', nativeLabel: '日本語'      },
+  zh: { label: 'Chinese',   flag: '🇨🇳', nativeLabel: '中文'        },
 }

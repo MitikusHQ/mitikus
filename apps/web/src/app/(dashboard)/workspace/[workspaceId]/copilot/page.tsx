@@ -1,6 +1,7 @@
 import { requireUser } from '@/lib/auth'
 import { db } from '@/lib/db'
 import { notFound } from 'next/navigation'
+import Link from 'next/link'
 import { getBusinessContext } from '@/lib/business-memory'
 import { getCopilotSuggestions } from '@/lib/business-copilot'
 import { CopilotInterface } from './_components/CopilotInterface'
@@ -82,7 +83,10 @@ function PageHeader({
         </p>
       </div>
       {!context.isEmpty && (
-        <div className="text-right text-xs text-muted-foreground">
+        <div
+          className="text-right text-xs text-muted-foreground cursor-default"
+          title="Basado en conversaciones, documentos y objetivos registrados en este espacio"
+        >
           <span className="font-medium">{confidencePct}%</span> conocimiento empresa
           <ConfidenceBar value={context.confidence} />
         </div>
@@ -174,11 +178,14 @@ function ObjectivesPanel({
       </h2>
       <ul className="space-y-3">
         {context.activeObjectives.slice(0, 3).map((obj) => (
-          <li key={obj.id} className="space-y-1">
-            <div className="flex items-center justify-between">
-              <span className="text-sm font-medium truncate max-w-[75%]">{obj.label}</span>
+          <li key={obj.id} className="space-y-1 group">
+            <Link
+              href={`/workspace/${workspaceId}/missions/${obj.id}`}
+              className="flex items-center justify-between hover:text-primary transition-colors"
+            >
+              <span className="text-sm font-medium truncate max-w-[75%] group-hover:text-primary">{obj.label}</span>
               <span className="text-xs text-muted-foreground">{obj.progress}%</span>
-            </div>
+            </Link>
             <div className="h-1 rounded-full bg-muted overflow-hidden">
               <div
                 className="h-full rounded-full bg-primary transition-all"
@@ -232,7 +239,7 @@ function DocsPanel({ context }: { context: BusinessContext }) {
   return (
     <div className="rounded-lg border bg-card p-4 space-y-3">
       <h2 className="text-sm font-semibold text-muted-foreground uppercase tracking-wide">
-        Docs disponibles
+        Documentos disponibles
       </h2>
       <ul className="space-y-1.5">
         {docTitles.map((title) => (

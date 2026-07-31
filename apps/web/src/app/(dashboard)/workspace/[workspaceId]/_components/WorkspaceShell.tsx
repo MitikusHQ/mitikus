@@ -5,6 +5,7 @@ import { usePathname } from 'next/navigation'
 import { cn } from '@/lib/utils'
 import { WorkspaceSidebar } from './WorkspaceSidebar'
 import { WorkspaceTopbar } from './WorkspaceTopbar'
+import { TeamPanel } from './TeamPanel'
 import { Icons } from './WorkspaceIcons'
 import type { NavItem } from './WorkspaceSidebarItem'
 
@@ -17,6 +18,7 @@ interface Props {
   workspaceId: string
   workspaceName: string
   navGroups: NavGroup[]
+  myId: string
   children: React.ReactNode
 }
 
@@ -32,9 +34,10 @@ function useIsFullscreen(workspaceId: string): boolean {
   return segments.length === 1
 }
 
-export function WorkspaceShell({ workspaceId, workspaceName, navGroups, children }: Props) {
+export function WorkspaceShell({ workspaceId, workspaceName, navGroups, myId, children }: Props) {
   const [sidebarCollapsed, setSidebarCollapsed] = useState(false)
   const [mobileOpen, setMobileOpen] = useState(false)
+  const [teamPanelOpen, setTeamPanelOpen] = useState(false)
   const isFullscreen = useIsFullscreen(workspaceId)
 
   // Close mobile nav on route change
@@ -103,6 +106,8 @@ export function WorkspaceShell({ workspaceId, workspaceName, navGroups, children
             }
           }}
           sidebarCollapsed={sidebarCollapsed}
+          teamPanelOpen={teamPanelOpen}
+          onToggleTeamPanel={() => setTeamPanelOpen((p) => !p)}
         />
 
         {/* Mobile: hamburger alternative (small screens already use overlay above) */}
@@ -118,19 +123,29 @@ export function WorkspaceShell({ workspaceId, workspaceName, navGroups, children
           {Icons.menu}
         </button>
 
-        {/* Content area */}
-        <main
-          id="workspace-main"
-          className={cn(
-            'flex-1 min-w-0',
-            isFullscreen
-              ? 'overflow-hidden'     // workflow editor fills exactly
-              : 'overflow-y-auto',    // normal pages scroll
+        {/* Content area + team panel */}
+        <div className="flex flex-1 min-h-0 overflow-hidden">
+          <main
+            id="workspace-main"
+            className={cn(
+              'flex-1 min-w-0',
+              isFullscreen
+                ? 'overflow-hidden'     // workflow editor fills exactly
+                : 'overflow-y-auto',    // normal pages scroll
+            )}
+            tabIndex={-1}
+          >
+            {children}
+          </main>
+
+          {/* Team panel — slides in from the right */}
+          {teamPanelOpen && (
+            <TeamPanel
+              myId={myId}
+              onClose={() => setTeamPanelOpen(false)}
+            />
           )}
-          tabIndex={-1}
-        >
-          {children}
-        </main>
+        </div>
       </div>
     </div>
   )

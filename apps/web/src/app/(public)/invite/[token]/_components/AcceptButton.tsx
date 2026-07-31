@@ -18,7 +18,7 @@ export function AcceptButton({ token }: { token: string }) {
         setError(data.error ?? 'Error al aceptar la invitación')
         return
       }
-      router.push('/dashboard')
+      router.push(data.workspaceUrl ?? '/dashboard')
     } catch {
       setError('Error de red. Inténtalo de nuevo.')
     } finally {

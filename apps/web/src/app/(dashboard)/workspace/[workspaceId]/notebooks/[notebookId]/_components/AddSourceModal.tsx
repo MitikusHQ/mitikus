@@ -41,8 +41,10 @@ export function AddSourceModal({ notebookId, workspaceDocs, workspacePdfs, onClo
       const msg = e instanceof Error ? e.message : 'Error desconocido'
       if (msg.startsWith('LIMIT_EXCEEDED')) {
         setError('Has alcanzado el límite de contexto. Elimina alguna fuente para añadir una nueva.')
+      } else if (tab === 'url') {
+        setError('No se pudo cargar el contenido de esa URL. Verifica que sea accesible públicamente.')
       } else {
-        setError(msg)
+        setError('Error al añadir la fuente. Inténtalo de nuevo.')
       }
     } finally {
       setLoading(false)
@@ -76,29 +78,41 @@ export function AddSourceModal({ notebookId, workspaceDocs, workspacePdfs, onClo
 
         <div className="space-y-3 min-h-[120px]">
           {tab === 'doc' && (
-            <select
-              value={docId}
-              onChange={(e) => setDocId(e.target.value)}
-              className="w-full rounded-md border border-input bg-background px-3 py-2 text-sm"
-            >
-              <option value="">Selecciona un documento...</option>
-              {workspaceDocs.map((d) => (
-                <option key={d.id} value={d.id}>{d.title}</option>
-              ))}
-            </select>
+            workspaceDocs.length === 0 ? (
+              <p className="text-sm text-muted-foreground py-4 text-center">
+                No hay documentos en este workspace.
+              </p>
+            ) : (
+              <select
+                value={docId}
+                onChange={(e) => setDocId(e.target.value)}
+                className="w-full rounded-md border border-input bg-background px-3 py-2 text-sm"
+              >
+                <option value="">Selecciona un documento...</option>
+                {workspaceDocs.map((d) => (
+                  <option key={d.id} value={d.id}>{d.title}</option>
+                ))}
+              </select>
+            )
           )}
 
           {tab === 'pdf' && (
-            <select
-              value={pdfId}
-              onChange={(e) => setPdfId(e.target.value)}
-              className="w-full rounded-md border border-input bg-background px-3 py-2 text-sm"
-            >
-              <option value="">Selecciona un PDF...</option>
-              {workspacePdfs.map((p) => (
-                <option key={p.id} value={p.id}>{p.title}</option>
-              ))}
-            </select>
+            workspacePdfs.length === 0 ? (
+              <p className="text-sm text-muted-foreground py-4 text-center">
+                No hay PDFs en este workspace.
+              </p>
+            ) : (
+              <select
+                value={pdfId}
+                onChange={(e) => setPdfId(e.target.value)}
+                className="w-full rounded-md border border-input bg-background px-3 py-2 text-sm"
+              >
+                <option value="">Selecciona un PDF...</option>
+                {workspacePdfs.map((p) => (
+                  <option key={p.id} value={p.id}>{p.title}</option>
+                ))}
+              </select>
+            )
           )}
 
           {tab === 'text' && (
@@ -146,7 +160,7 @@ export function AddSourceModal({ notebookId, workspaceDocs, workspacePdfs, onClo
             disabled={loading || !canAdd}
             className="flex-1 rounded-md bg-primary text-primary-foreground px-4 py-2 text-sm font-medium hover:bg-primary/90 disabled:opacity-50"
           >
-            {loading ? 'Añadiendo...' : 'Añadir fuente'}
+            {loading ? (tab === 'url' ? 'Extrayendo...' : 'Añadiendo...') : 'Añadir fuente'}
           </button>
         </div>
       </div>

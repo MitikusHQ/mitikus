@@ -4,6 +4,7 @@ import { auth } from '@clerk/nextjs/server'
 import { db } from '@/lib/db'
 import { revalidatePath } from 'next/cache'
 import { extractDocHtml, extractPdf, extractUrl, checkLimit, CHAR_LIMIT } from '@/lib/notebook-extract'
+import { logActivity } from './activity'
 
 export interface NotebookData {
   id:          string
@@ -39,6 +40,7 @@ export interface SynthesisCache {
 export interface NotebookDetail {
   id:             string
   title:          string
+  shareToken:     string
   synthesisCache: SynthesisCache | null
   synthesisDirty: boolean
   totalChars:     number
@@ -104,6 +106,7 @@ export async function getNotebook(workspaceId: string, notebookId: string): Prom
   return {
     id:             n.id,
     title:          n.title,
+    shareToken:     n.shareToken,
     synthesisCache: parsedCache,
     synthesisDirty: n.synthesisDirty,
     totalChars,
@@ -131,6 +134,7 @@ export async function createNotebook(workspaceId: string): Promise<{ id: string 
   const n = await db.notebook.create({
     data: { workspaceId, createdBy: user.id },
   })
+  await logActivity(workspaceId, 'notebook', n.id, user.id, 'created')
   revalidatePath(`/workspace/${workspaceId}/notebooks`)
   return { id: n.id }
 }
@@ -146,7 +150,7 @@ export async function updateNotebookTitle(notebookId: string, title: string): Pr
 }
 
 export async function addSource(notebookId: string, input: AddSourceInput): Promise<NotebookSourceData> {
-  await getAuthUser()
+  const user = await getAuthUser()
 
   const agg = await db.notebookSource.aggregate({
     where: { notebookId },
@@ -207,6 +211,9 @@ export async function addSource(notebookId: string, input: AddSourceInput): Prom
     data:  { synthesisDirty: true },
   })
 
+  const notebook = await db.notebook.findUnique({ where: { id: notebookId }, select: { workspaceId: true } })
+  if (notebook) await logActivity(notebook.workspaceId, 'notebook', notebookId, user.id, 'source_added', { title: source.title })
+
   return {
     id:        source.id,
     type:      source.type,
@@ -220,8 +227,10 @@ export async function addSource(notebookId: string, input: AddSourceInput): Prom
 }
 
 export async function deleteSource(sourceId: string, notebookId: string): Promise<void> {
-  await getAuthUser()
+  const user = await getAuthUser()
+  const src = await db.notebookSource.findUnique({ where: { id: sourceId }, select: { notebookId: true, title: true, notebook: { select: { workspaceId: true } } } })
   await db.notebookSource.delete({ where: { id: sourceId } })
+  if (src) await logActivity(src.notebook.workspaceId, 'notebook', src.notebookId, user.id, 'source_removed', { title: src.title })
   await db.notebook.update({
     where: { id: notebookId },
     data:  { synthesisDirty: true },
@@ -275,4 +284,20 @@ export async function getWorkspacePdfs(workspaceId: string): Promise<{ id: strin
     select:  { id: true, title: true },
   })
   return pdfs
+}
+
+export async function getNotebookByToken(shareToken: string): Promise<{
+  title: string
+  synthesisCache: string | null
+  sources: { title: string; type: string; charCount: number }[]
+} | null> {
+  const notebook = await db.notebook.findUnique({
+    where: { shareToken },
+    select: {
+      title: true,
+      synthesisCache: true,
+      sources: { select: { title: true, type: true, charCount: true } },
+    },
+  })
+  return notebook
 }

@@ -73,6 +73,11 @@ export function CopilotInterface({
 
   const isLoading = ui.loading || isPending
 
+  // Auto-focus al montar
+  useEffect(() => {
+    textareaRef.current?.focus()
+  }, [])
+
   // Scroll al último mensaje
   useEffect(() => {
     bottomRef.current?.scrollIntoView({ behavior: 'smooth' })
@@ -196,6 +201,15 @@ export function CopilotInterface({
     }
   }
 
+  const [dismissedIds, setDismissedIds] = useState<Set<string>>(new Set())
+
+  function handleDismiss(id: string, e: React.MouseEvent) {
+    e.stopPropagation()
+    setDismissedIds((prev) => new Set([...prev, id]))
+  }
+
+  const visibleSuggestions = ui.suggestions.filter((s) => !dismissedIds.has(s.id))
+
   // Sugerencia → envía directamente (sin pasar por el input)
   async function handleSuggestion(suggestion: CopilotSuggestion) {
     await doSendMessage(suggestion.label)
@@ -235,7 +249,7 @@ export function CopilotInterface({
             <p className="text-sm text-muted-foreground">
               Dime en qué objetivo quieres trabajar hoy o elige una sugerencia. Lo convertiré en una misión con pasos claros.
             </p>
-            <SuggestionsGrid suggestions={ui.suggestions} onSelect={handleSuggestion} />
+            <SuggestionsGrid suggestions={visibleSuggestions} onSelect={handleSuggestion} onDismiss={handleDismiss} allDismissed={visibleSuggestions.length === 0 && ui.suggestions.length > 0} />
           </div>
         )}
 
@@ -244,7 +258,7 @@ export function CopilotInterface({
           <div key={i} className={msg.role === 'user' ? 'flex justify-end' : 'flex justify-start'}>
             {msg.role === 'assistant' && (
               <div className="w-6 h-6 rounded-full bg-primary/10 flex items-center justify-center text-primary text-[10px] font-bold shrink-0 mt-0.5 mr-2">
-                DO
+                A
               </div>
             )}
             <div
@@ -330,9 +344,9 @@ export function CopilotInterface({
       {/* ── Input ───────────────────────────────────────────────── */}
       <div className="border-t p-4 space-y-3">
         {/* Chips de sugerencias contextuales (tras greeting) */}
-        {!isLoading && messages.length > 0 && ui.phase === 'greeting' && ui.suggestions.length > 0 && (
+        {!isLoading && messages.length > 0 && ui.phase === 'greeting' && visibleSuggestions.length > 0 && (
           <div className="flex flex-wrap gap-2">
-            {ui.suggestions.slice(0, 3).map((s) => (
+            {visibleSuggestions.slice(0, 3).map((s) => (
               <button
                 key={s.id}
                 onClick={() => void handleSuggestion(s)}
@@ -452,10 +466,22 @@ function InlineMarkdown({ text }: { text: string }) {
 function SuggestionsGrid({
   suggestions,
   onSelect,
+  onDismiss,
+  allDismissed,
 }: {
   suggestions: CopilotSuggestion[]
   onSelect: (s: CopilotSuggestion) => void
+  onDismiss: (id: string, e: React.MouseEvent) => void
+  allDismissed?: boolean
 }) {
+  if (allDismissed) {
+    return (
+      <div className="rounded-lg border border-dashed p-5 text-center space-y-1">
+        <p className="text-sm text-muted-foreground">No hay más sugerencias.</p>
+        <p className="text-xs text-muted-foreground">Escríbeme directamente en qué quieres trabajar.</p>
+      </div>
+    )
+  }
   if (suggestions.length === 0) return null
   return (
     <div className="space-y-2">
@@ -464,21 +490,41 @@ function SuggestionsGrid({
       </p>
       <div className="space-y-2">
         {suggestions.map((s) => (
-          <button
-            key={s.id}
-            onClick={() => onSelect(s)}
-            className="w-full text-left rounded-lg border p-3 hover:bg-muted/50 hover:border-primary/40 transition-colors group"
-          >
-            <div className="flex items-start gap-3">
-              <span className="text-lg leading-none mt-0.5 shrink-0">{s.icon}</span>
-              <div>
-                <p className="text-sm font-medium group-hover:text-primary transition-colors">
-                  {s.label}
-                </p>
-                <p className="text-xs text-muted-foreground mt-0.5">{s.description}</p>
+          <div key={s.id} className="relative group/card">
+            <button
+              onClick={() => onSelect(s)}
+              className="w-full text-left rounded-lg border p-3 hover:bg-muted/50 hover:border-primary/40 transition-colors group pr-8"
+            >
+              <div className="flex items-start gap-3">
+                <span className="text-lg leading-none mt-0.5 shrink-0">{s.icon}</span>
+                <div className="min-w-0">
+                  <div className="flex items-center gap-2 flex-wrap">
+                    <p className="text-sm font-medium group-hover:text-primary transition-colors">
+                      {s.label}
+                    </p>
+                    {s.category === 'objective' && (
+                      <span className="shrink-0 text-[10px] font-semibold px-1.5 py-0.5 rounded-full bg-primary/10 text-primary leading-none">
+                        En curso
+                      </span>
+                    )}
+                    {s.category === 'fiscal' && (
+                      <span className="shrink-0 text-[10px] font-semibold px-1.5 py-0.5 rounded-full bg-amber-100 text-amber-700 dark:bg-amber-900/30 dark:text-amber-400 leading-none">
+                        Fiscal
+                      </span>
+                    )}
+                  </div>
+                  <p className="text-xs text-muted-foreground mt-0.5">{s.description}</p>
+                </div>
               </div>
-            </div>
-          </button>
+            </button>
+            <button
+              onClick={(e) => onDismiss(s.id, e)}
+              className="absolute top-2 right-2 w-5 h-5 flex items-center justify-center rounded text-muted-foreground/40 hover:text-muted-foreground hover:bg-muted transition-colors opacity-0 group-hover/card:opacity-100"
+              title="Descartar"
+            >
+              <svg className="w-3 h-3" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5"><path d="M18 6L6 18M6 6l12 12"/></svg>
+            </button>
+          </div>
         ))}
       </div>
     </div>
@@ -572,7 +618,7 @@ function WorkflowReadyPanel({
           </p>
         </div>
         <p className="text-xs text-muted-foreground">
-          Los pasos del plan están listos en Mission Control.
+          Los pasos del plan están listos en Panel.
         </p>
         <div className="flex items-center gap-4">
           <a
@@ -585,7 +631,7 @@ function WorkflowReadyPanel({
             href={`/workspace/${workspaceId}`}
             className="text-xs text-muted-foreground hover:text-foreground transition-colors"
           >
-            Mission Control
+            Panel
           </a>
         </div>
       </div>

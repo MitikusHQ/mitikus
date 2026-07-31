@@ -2,17 +2,20 @@
 
 import { useState, useTransition, useEffect, useCallback } from 'react'
 import { useRouter } from 'next/navigation'
-import type { DocumentDetail } from '@/app/actions/documents'
+import type { DocumentDetail, ClientShareData } from '@/app/actions/documents'
 import { updateDocumentContent } from '@/app/actions/documents'
 import { TiptapEditor } from '../../_components/TiptapEditor'
 import { EditableDocHeader } from './EditableDocHeader'
+import { SendDocModal } from './SendDocModal'
 
 interface Props {
-  doc:         DocumentDetail
-  workspaceId: string
+  doc:           DocumentDetail
+  workspaceId:   string
+  workspaceName: string
+  shares:        ClientShareData[]
 }
 
-export function DocViewerClient({ doc, workspaceId }: Props) {
+export function DocViewerClient({ doc, workspaceId, workspaceName, shares }: Props) {
   const [isEditing, setIsEditing]       = useState(false)
   const [html, setHtml]                 = useState(doc.content)
   const [rawText, setRawText]           = useState(doc.rawText ?? '')
@@ -20,49 +23,84 @@ export function DocViewerClient({ doc, workspaceId }: Props) {
   const [isPending, startTransition]    = useTransition()
   const [isExportingPdf, setExportingPdf]   = useState(false)
   const [isExportingDocx, setExportingDocx] = useState(false)
+  const [showSendModal, setShowSendModal]   = useState(false)
   const router = useRouter()
 
   async function handleExportPdf() {
     setExportingPdf(true)
     try {
       const { jsPDF } = await import('jspdf')
-      const pdf = new jsPDF({ unit: 'mm', format: 'a4' })
-      const margin    = 20
-      const pageW     = pdf.internal.pageSize.getWidth() - margin * 2
+      const pdf       = new jsPDF({ unit: 'mm', format: 'a4' })
+      const fullW     = pdf.internal.pageSize.getWidth()
       const pageH     = pdf.internal.pageSize.getHeight()
+      const margin    = 20
+      const pageW     = fullW - margin * 2
       const lineH     = 6
-      let y = margin
 
-      // Título
+      // ── Cabecera de marca ────────────────────────────────────
+      pdf.setFillColor(15, 23, 42)         // slate-900
+      pdf.rect(0, 0, fullW, 14, 'F')
+      pdf.setFontSize(9)
+      pdf.setFont('helvetica', 'bold')
+      pdf.setTextColor(255, 255, 255)
+      pdf.text(workspaceName.toUpperCase(), margin, 9)
+      pdf.setFont('helvetica', 'normal')
+      pdf.setTextColor(148, 163, 184)      // slate-400
+      pdf.text('mitikus.com', fullW - margin, 9, { align: 'right' })
+
+      let y = 26
+
+      // ── Título ───────────────────────────────────────────────
       pdf.setFontSize(18)
       pdf.setFont('helvetica', 'bold')
+      pdf.setTextColor(15, 23, 42)
       const titleLines = pdf.splitTextToSize(doc.title, pageW)
       pdf.text(titleLines, margin, y)
       y += (titleLines.length * 8) + 4
 
-      // Metadatos
+      // ── Metadatos ────────────────────────────────────────────
       pdf.setFontSize(9)
       pdf.setFont('helvetica', 'normal')
-      pdf.setTextColor(120, 120, 120)
-      const meta = `${doc.wordCount.toLocaleString()} palabras · ${new Date(doc.createdAt).toLocaleDateString('es-ES')}`
+      pdf.setTextColor(100, 116, 139)      // slate-500
+      const meta = [
+        doc.uploaderName ? `Elaborado por ${doc.uploaderName}` : null,
+        `${doc.wordCount.toLocaleString()} palabras`,
+        new Date(doc.createdAt).toLocaleDateString('es-ES', { day: '2-digit', month: 'long', year: 'numeric' }),
+      ].filter(Boolean).join(' · ')
       pdf.text(meta, margin, y)
-      y += 10
+      y += 9
       pdf.setTextColor(0, 0, 0)
 
-      // Línea separadora
-      pdf.setDrawColor(200, 200, 200)
+      // ── Separador ────────────────────────────────────────────
+      pdf.setDrawColor(226, 232, 240)
       pdf.line(margin, y, margin + pageW, y)
-      y += 6
+      y += 7
 
-      // Contenido
+      // ── Contenido ────────────────────────────────────────────
       pdf.setFontSize(11)
-      const text = rawText || doc.rawText || ''
+      pdf.setFont('helvetica', 'normal')
+      pdf.setTextColor(30, 41, 59)
+      const text       = rawText || doc.rawText || ''
       const paragraphs = text.split('\n').filter((l: string) => l.trim())
+
       for (const para of paragraphs) {
         const lines = pdf.splitTextToSize(para, pageW)
-        if (y + lines.length * lineH > pageH - margin) {
+        if (y + lines.length * lineH > pageH - margin - 10) {
           pdf.addPage()
-          y = margin
+          // Repite la cabecera en páginas siguientes
+          pdf.setFillColor(15, 23, 42)
+          pdf.rect(0, 0, fullW, 14, 'F')
+          pdf.setFontSize(9)
+          pdf.setFont('helvetica', 'bold')
+          pdf.setTextColor(255, 255, 255)
+          pdf.text(workspaceName.toUpperCase(), margin, 9)
+          pdf.setFont('helvetica', 'normal')
+          pdf.setTextColor(148, 163, 184)
+          pdf.text('mitikus.com', fullW - margin, 9, { align: 'right' })
+          pdf.setFontSize(11)
+          pdf.setFont('helvetica', 'normal')
+          pdf.setTextColor(30, 41, 59)
+          y = 26
         }
         pdf.text(lines, margin, y)
         y += lines.length * lineH + 3
@@ -121,11 +159,20 @@ export function DocViewerClient({ doc, workspaceId }: Props) {
 
   return (
     <>
+      {showSendModal && (
+        <SendDocModal
+          docId={doc.id}
+          workspaceId={workspaceId}
+          docTitle={doc.title}
+          onClose={() => setShowSendModal(false)}
+        />
+      )}
       <EditableDocHeader
         doc={doc}
         workspaceId={workspaceId}
         onExportPdf={handleExportPdf}
         onExportDocx={handleExportDocx}
+        onSendToClient={() => setShowSendModal(true)}
         isExportingPdf={isExportingPdf}
         isExportingDocx={isExportingDocx}
       />
@@ -170,6 +217,40 @@ export function DocViewerClient({ doc, workspaceId }: Props) {
           className="prose prose-sm dark:prose-invert max-w-none border border-border rounded-lg bg-card px-6 py-5"
           dangerouslySetInnerHTML={{ __html: html }}
         />
+      )}
+
+      {/* Historial de envíos al cliente */}
+      {shares.length > 0 && (
+        <div className="border border-border rounded-lg bg-card px-5 py-4 space-y-3">
+          <p className="text-xs font-semibold text-muted-foreground uppercase tracking-wide">
+            Enviado al cliente
+          </p>
+          <ul className="space-y-2">
+            {shares.map((s) => (
+              <li key={s.id} className="flex items-center justify-between gap-4 text-sm">
+                <div className="min-w-0">
+                  <span className="font-medium truncate block">
+                    {s.recipientName ?? s.recipientEmail}
+                  </span>
+                  {s.recipientName && (
+                    <span className="text-xs text-muted-foreground">{s.recipientEmail}</span>
+                  )}
+                </div>
+                <div className="shrink-0 text-right">
+                  {s.viewedAt ? (
+                    <span className="text-xs text-green-600 dark:text-green-400 font-medium">
+                      Visto · {new Date(s.viewedAt).toLocaleDateString('es-ES', { day: 'numeric', month: 'short' })}
+                    </span>
+                  ) : (
+                    <span className="text-xs text-muted-foreground">
+                      Enviado · {new Date(s.createdAt).toLocaleDateString('es-ES', { day: 'numeric', month: 'short' })}
+                    </span>
+                  )}
+                </div>
+              </li>
+            ))}
+          </ul>
+        </div>
       )}
     </>
   )

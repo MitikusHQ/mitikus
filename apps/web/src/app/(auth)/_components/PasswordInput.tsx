@@ -15,9 +15,9 @@ function calcStrength(pwd: string): StrengthScore {
 }
 
 const STRENGTH_CONFIG: Record<StrengthScore, { label: string; color: string; bar: string }> = {
-  0: { label: 'Weak', color: 'text-red-600', bar: 'bg-red-500' },
-  1: { label: 'Medium', color: 'text-amber-600', bar: 'bg-amber-500' },
-  2: { label: 'Strong', color: 'text-green-600', bar: 'bg-green-500' },
+  0: { label: 'Débil', color: 'text-red-600', bar: 'bg-red-500' },
+  1: { label: 'Media', color: 'text-amber-600', bar: 'bg-amber-500' },
+  2: { label: 'Fuerte', color: 'text-green-600', bar: 'bg-green-500' },
 }
 
 interface PasswordInputProps {
@@ -82,7 +82,7 @@ export function PasswordInput({
         <button
           type="button"
           onClick={() => setVisible((v) => !v)}
-          aria-label={visible ? 'Hide password' : 'Show password'}
+          aria-label={visible ? 'Ocultar contraseña' : 'Mostrar contraseña'}
           tabIndex={-1}
           className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground transition-colors"
         >
@@ -107,7 +107,7 @@ export function PasswordInput({
             <line x1="12" y1="6" x2="12" y2="18" />
             <line x1="8" y1="21" x2="16" y2="21" />
           </svg>
-          Caps Lock is on
+          Bloq Mayús activado
         </p>
       )}
 

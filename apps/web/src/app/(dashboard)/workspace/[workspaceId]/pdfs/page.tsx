@@ -7,7 +7,7 @@ interface Props {
 }
 
 export default async function PdfsPage({ params }: Props) {
-  const [{ workspaceId }] = await Promise.all([params, requireUser()])
+  const [{ workspaceId }, user] = await Promise.all([params, requireUser()])
   const pdfs = await getPdfs(workspaceId)
 
   return (
@@ -18,7 +18,7 @@ export default async function PdfsPage({ params }: Props) {
           Sube archivos PDF para visualizarlos y convertirlos a documentos editables
         </p>
       </div>
-      <PdfList workspaceId={workspaceId} initial={pdfs} />
+      <PdfList workspaceId={workspaceId} initial={pdfs} currentUserId={user.id} />
     </div>
   )
 }

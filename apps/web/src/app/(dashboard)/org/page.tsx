@@ -1,14 +1,27 @@
 import { notFound } from 'next/navigation'
 import Link from 'next/link'
+import type { PlanTier } from '@prisma/client'
+import { requireUser } from '@/lib/auth'
+import { db } from '@/lib/db'
 import { getOrgOverview, getOrgWorkspaces } from '@/app/actions/org'
 import { OrgMetricCard } from './_components/OrgMetricCard'
 import { OrgRecentActivity } from './_components/OrgRecentActivity'
 import { OrgWorkspaceList } from './_components/OrgWorkspaceList'
+import { PlanUpgradeSection } from './_components/PlanUpgradeSection'
+import { PlanUsageSection } from './_components/PlanUsageSection'
+import { getOrgPlanUsage } from '@/app/actions/org'
 
-const PLAN_LABELS: Record<string, string> = { FREE: 'Free', PRO: 'Pro' }
+const PLAN_LABELS: Record<string, string> = {
+  FREE: 'Free', PRO: 'Pro',
+  STARTER: 'Starter', PROFESSIONAL: 'Professional', BUSINESS: 'Business', ENTERPRISE: 'Enterprise',
+}
 const PLAN_BADGE: Record<string, string> = {
   FREE: 'bg-muted text-muted-foreground border-border',
   PRO:  'bg-violet-50 text-violet-700 border-violet-200 dark:bg-violet-900/20 dark:text-violet-400 dark:border-violet-800',
+  STARTER: 'bg-blue-50 text-blue-700 border-blue-200 dark:bg-blue-900/20 dark:text-blue-400 dark:border-blue-800',
+  PROFESSIONAL: 'bg-violet-50 text-violet-700 border-violet-200 dark:bg-violet-900/20 dark:text-violet-400 dark:border-violet-800',
+  BUSINESS: 'bg-emerald-50 text-emerald-700 border-emerald-200 dark:bg-emerald-900/20 dark:text-emerald-400 dark:border-emerald-800',
+  ENTERPRISE: 'bg-amber-50 text-amber-700 border-amber-200 dark:bg-amber-900/20 dark:text-amber-400 dark:border-amber-800',
 }
 
 function formatCost(eur: number): string {
@@ -28,9 +41,16 @@ function formatDate(iso: string): string {
 }
 
 export default async function OrgPage() {
-  const [overviewResult, workspacesResult] = await Promise.all([
+  const user = await requireUser()
+
+  const [overviewResult, workspacesResult, subscription, planUsageResult] = await Promise.all([
     getOrgOverview(),
     getOrgWorkspaces(),
+    db.subscription.findUnique({
+      where: { orgId: user.orgId },
+      select: { status: true, trialEndsAt: true },
+    }),
+    getOrgPlanUsage(),
   ])
 
   if ('error' in overviewResult) notFound()
@@ -38,9 +58,14 @@ export default async function OrgPage() {
   const overview = overviewResult
   const workspaces = 'error' in workspacesResult ? [] : workspacesResult
 
-  const plan = overview.org.plan
+  const plan = overview.org.plan as PlanTier
   const planLabel = PLAN_LABELS[plan] ?? plan
   const planBadgeClass = PLAN_BADGE[plan] ?? PLAN_BADGE.FREE
+
+  const trialDaysLeft =
+    subscription?.status === 'TRIALING' && subscription.trialEndsAt
+      ? Math.max(0, Math.ceil((subscription.trialEndsAt.getTime() - Date.now()) / 86_400_000))
+      : null
 
   return (
     <div className="max-w-5xl mx-auto px-6 py-8 space-y-8">
@@ -114,6 +139,20 @@ export default async function OrgPage() {
       <div>
         <h2 className="text-xs font-semibold uppercase tracking-widest text-muted-foreground mb-3">Actividad reciente</h2>
         <OrgRecentActivity items={overview.recentActivity} />
+      </div>
+
+      {/* Plan / billing */}
+      <div id="plan-billing" className="space-y-4">
+        <h2 className="text-xs font-semibold uppercase tracking-widest text-muted-foreground">Plan y facturación</h2>
+        {!('error' in planUsageResult) && (
+          <PlanUsageSection items={planUsageResult} />
+        )}
+        <PlanUpgradeSection
+          currentTier={plan}
+          trialDaysLeft={trialDaysLeft}
+          trialEndsAt={subscription?.trialEndsAt?.toISOString() ?? null}
+          hasActiveSubscription={subscription?.status === 'ACTIVE'}
+        />
       </div>
     </div>
   )

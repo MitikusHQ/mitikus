@@ -3,6 +3,7 @@
 import { auth } from '@clerk/nextjs/server'
 import { db } from '@/lib/db'
 import { revalidatePath } from 'next/cache'
+import { logActivity } from './activity'
 import type {
   SlideLayout,
   SlideContent,
@@ -126,6 +127,7 @@ export async function createPresentation(
       },
     },
   })
+  await logActivity(workspaceId, 'presentation', p.id, user.id, 'created')
   revalidatePath(`/workspace/${workspaceId}/presentations`)
   return { id: p.id }
 }
@@ -139,7 +141,7 @@ export async function updatePresentation(
 }
 
 export async function addSlide(presentationId: string): Promise<{ id: string; order: number }> {
-  await getAuthUser()
+  const user = await getAuthUser()
   const last = await db.slide.findFirst({
     where:   { presentationId },
     orderBy: { order: 'desc' },
@@ -155,6 +157,8 @@ export async function addSlide(presentationId: string): Promise<{ id: string; or
       content: JSON.stringify({ type: 'text', value: '' }),
     },
   })
+  const pres = await db.presentation.findUnique({ where: { id: presentationId }, select: { workspaceId: true } })
+  if (pres) await logActivity(pres.workspaceId, 'presentation', presentationId, user.id, 'slide_added')
   return { id: slide.id, order: slide.order }
 }
 

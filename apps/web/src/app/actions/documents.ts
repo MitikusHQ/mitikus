@@ -3,6 +3,7 @@
 import { auth } from '@clerk/nextjs/server'
 import { db } from '@/lib/db'
 import { revalidatePath } from 'next/cache'
+import { logActivity } from './activity'
 
 export interface DocumentData {
   id:           string
@@ -16,6 +17,41 @@ export interface DocumentData {
 export interface DocumentDetail extends DocumentData {
   content: string
   rawText: string
+}
+
+export interface ClientShareData {
+  id:            string
+  token:         string
+  recipientEmail: string
+  recipientName: string | null
+  viewedAt:      string | null
+  createdAt:     string
+}
+
+export async function getDocumentShares(
+  docId: string,
+  workspaceId: string,
+): Promise<ClientShareData[]> {
+  const shares = await db.clientShare.findMany({
+    where:   { documentId: docId, workspaceId },
+    orderBy: { createdAt: 'desc' },
+    select: {
+      id:             true,
+      token:          true,
+      recipientEmail: true,
+      recipientName:  true,
+      viewedAt:       true,
+      createdAt:      true,
+    },
+  })
+  return shares.map((s) => ({
+    id:             s.id,
+    token:          s.token,
+    recipientEmail: s.recipientEmail,
+    recipientName:  s.recipientName,
+    viewedAt:       s.viewedAt?.toISOString() ?? null,
+    createdAt:      s.createdAt.toISOString(),
+  }))
 }
 
 async function getAuthUser() {
@@ -99,11 +135,12 @@ export async function updateDocument(
   workspaceId: string,
   data: { title: string; category: string | null },
 ): Promise<void> {
-  await getAuthUser()
+  const user = await getAuthUser()
   await db.document.updateMany({
     where: { id: docId, workspaceId },
     data:  { title: data.title.trim(), category: data.category || null },
   })
+  await logActivity(workspaceId, 'document', docId, user.id, 'title_changed', { title: data.title ?? '' })
   revalidatePath(`/workspace/${workspaceId}/docs`)
   revalidatePath(`/workspace/${workspaceId}/docs/${docId}`)
 }
@@ -113,14 +150,69 @@ export async function updateDocumentContent(
   workspaceId: string,
   data: { content: string; rawText: string },
 ): Promise<void> {
-  await getAuthUser()
+  const user = await getAuthUser()
   const wordCount = data.rawText.trim().split(/\s+/).filter(Boolean).length
   await db.document.updateMany({
     where: { id: docId, workspaceId },
     data:  { content: data.content, rawText: data.rawText, wordCount },
   })
+  await logActivity(workspaceId, 'document', docId, user.id, 'edited')
   revalidatePath(`/workspace/${workspaceId}/docs`)
   revalidatePath(`/workspace/${workspaceId}/docs/${docId}`)
+}
+
+export async function sendDocumentToClient(
+  docId: string,
+  workspaceId: string,
+  recipientEmail: string,
+  recipientName: string | null,
+  note: string | null,
+): Promise<{ success: true } | { error: string }> {
+  const user = await getAuthUser()
+
+  const [doc, workspace] = await Promise.all([
+    db.document.findFirst({ where: { id: docId, workspaceId } }),
+    db.workspace.findFirst({
+      where:  { id: workspaceId, orgId: user.orgId },
+      select: { name: true },
+    }),
+  ])
+
+  if (!doc)       return { error: 'Documento no encontrado.' }
+  if (!workspace) return { error: 'Workspace no encontrado.' }
+
+  // Crear ClientShare para el portal público
+  const share = await db.clientShare.create({
+    data: {
+      documentId:    docId,
+      workspaceId,
+      recipientEmail,
+      recipientName: recipientName || null,
+      note:          note || null,
+    },
+  })
+
+  const appUrl    = process.env.NEXT_PUBLIC_APP_URL ?? 'https://www.mitikus.com'
+  const portalUrl = `${appUrl}/c/${share.token}`
+
+  const { sendDocumentEmail } = await import('@/lib/email')
+  await sendDocumentEmail({
+    to:            recipientEmail,
+    recipientName,
+    senderName:    user.name,
+    workspaceName: workspace.name,
+    docTitle:      doc.title,
+    rawText:       doc.rawText,
+    note,
+    portalUrl,
+  })
+
+  await logActivity(workspaceId, 'document', docId, user.id, 'sent_to_client', {
+    recipientEmail,
+    shareToken: share.token,
+  })
+
+  return { success: true }
 }
 
 export async function createDocument(
@@ -139,6 +231,7 @@ export async function createDocument(
       uploadedBy: user.id,
     },
   })
+  await logActivity(workspaceId, 'document', doc.id, user.id, 'created')
   revalidatePath(`/workspace/${workspaceId}/docs`)
   return doc.id
 }

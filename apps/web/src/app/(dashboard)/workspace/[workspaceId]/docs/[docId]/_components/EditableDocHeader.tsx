@@ -8,12 +8,13 @@ import { updateDocument } from '@/app/actions/documents'
 const CATEGORIES = ['DNA', 'Producto', 'Arquitectura', 'Operaciones'] as const
 
 interface Props {
-  doc:              DocumentDetail
-  workspaceId:      string
-  onExportPdf:      () => void
-  onExportDocx:     () => void
-  isExportingPdf:   boolean
-  isExportingDocx:  boolean
+  doc:               DocumentDetail
+  workspaceId:       string
+  onExportPdf:       () => void
+  onExportDocx:      () => void
+  onSendToClient:    () => void
+  isExportingPdf:    boolean
+  isExportingDocx:   boolean
 }
 
 export function EditableDocHeader({
@@ -21,6 +22,7 @@ export function EditableDocHeader({
   workspaceId,
   onExportPdf,
   onExportDocx,
+  onSendToClient,
   isExportingPdf,
   isExportingDocx,
 }: Props) {
@@ -93,6 +95,13 @@ export function EditableDocHeader({
           title="Descargar como Word (.docx)"
         >
           {isExportingDocx ? 'Generando…' : '↓ .docx'}
+        </button>
+        <button
+          onClick={onSendToClient}
+          className="text-xs border border-border px-2.5 py-1 rounded-full hover:bg-muted transition-colors"
+          title="Enviar al cliente por email"
+        >
+          ✉ Enviar
         </button>
         {isDirty && (
           <button

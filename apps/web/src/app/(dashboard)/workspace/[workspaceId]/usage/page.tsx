@@ -15,6 +15,8 @@ import { getRecentErrors } from '@/app/actions/ai-admin'
 import { AdminPanel } from './_components/AdminPanel'
 import { getPlanLimits, startOfMonthUTC } from '@/lib/plan-limits'
 import { trialPlanLabel, emailTypeLabel } from '@/lib/email-classification'
+import { PLAN_CATALOG } from '@/lib/billing/plan-catalog'
+import type { PlanTier } from '@prisma/client'
 
 interface Props {
   params: Promise<{ workspaceId: string }>
@@ -106,8 +108,17 @@ export default async function UsagePage({ params }: Props) {
   const limitGlobal = envInt('MAX_AI_GENERATIONS_GLOBAL_DAY', 50)
   const limitCostEUR = envFloat('MAX_AI_ESTIMATED_COST_DAY_EUR', 2.0)
 
-  // Plan del usuario
-  const planLimits = getPlanLimits(user.trialPlan)
+  // Plan del usuario — preferir suscripción activa sobre trial
+  const subscription = await db.subscription.findUnique({
+    where: { orgId: user.orgId },
+    select: { status: true, tier: true },
+  })
+  const hasActiveSub = subscription?.status === 'ACTIVE' || subscription?.status === 'TRIALING'
+  const catalogPlan = hasActiveSub && subscription
+    ? PLAN_CATALOG[subscription.tier as PlanTier]
+    : null
+  const trialLimits = getPlanLimits(user.trialPlan)
+  const planLimits = catalogPlan?.limits ?? trialLimits
 
   // Estadísticas en paralelo
   const today = startOfTodayUTC()
@@ -162,56 +173,119 @@ export default async function UsagePage({ params }: Props) {
 
         {/* Tipo de cuenta y plan */}
         <section>
-          <div className={`rounded-lg border px-5 py-4 flex items-start justify-between gap-4 ${
-            user.trialPlan === 'blocked'
-              ? 'bg-red-50 border-red-200'
-              : user.trialPlan === 'trial_business'
-              ? 'bg-blue-50 border-blue-200'
-              : 'bg-muted/40'
-          }`}>
+          <div className="rounded-lg border px-5 py-4 flex items-start justify-between gap-4 bg-muted/40">
             <div className="space-y-1">
-              <p className="font-semibold text-sm">
-                {trialPlanLabel(user.trialPlan as 'trial_personal' | 'trial_business' | 'blocked')}
-                {' · '}
-                <span className="font-normal text-muted-foreground">
-                  {emailTypeLabel(user.emailType as 'personal' | 'business' | 'disposable' | 'unknown')}
-                </span>
-              </p>
-              <p className="text-xs text-muted-foreground">{user.email}</p>
+              {catalogPlan ? (
+                <>
+                  <p className="font-semibold text-sm">
+                    Plan {catalogPlan.name}
+                    {' · '}
+                    <span className="font-normal text-muted-foreground">
+                      {subscription?.status === 'TRIALING' ? 'En prueba' : 'Activo'}
+                    </span>
+                  </p>
+                  <p className="text-xs text-muted-foreground">{user.email}</p>
+                </>
+              ) : (
+                <>
+                  <p className="font-semibold text-sm">
+                    {trialPlanLabel(user.trialPlan as 'trial_personal' | 'trial_business' | 'blocked')}
+                    {' · '}
+                    <span className="font-normal text-muted-foreground">
+                      {emailTypeLabel(user.emailType as 'personal' | 'business' | 'disposable' | 'unknown')}
+                    </span>
+                  </p>
+                  <p className="text-xs text-muted-foreground">{user.email}</p>
+                </>
+              )}
             </div>
-            {user.trialPlan === 'blocked' && (
+            {catalogPlan ? (
+              <span className="shrink-0 text-xs text-primary bg-primary/10 px-2 py-1 rounded font-medium">
+                {catalogPlan.name}
+              </span>
+            ) : user.trialPlan === 'blocked' ? (
               <span className="shrink-0 text-xs text-red-700 bg-red-100 px-2 py-1 rounded font-medium">
                 Bloqueado
               </span>
-            )}
-            {user.trialPlan === 'trial_business' && (
-              <span className="shrink-0 text-xs text-blue-700 bg-blue-100 px-2 py-1 rounded font-medium">
-                Empresarial
-              </span>
-            )}
+            ) : null}
           </div>
         </section>
 
         {/* Límites del plan */}
         <section className="space-y-4">
-          <h2 className="text-base font-semibold">Límites de tu plan</h2>
+          <h2 className="text-base font-semibold">Créditos IA de tu plan</h2>
           <div className="rounded-lg border bg-card p-5 space-y-5">
-            <UsageBar
-              label="Ejecuciones hoy"
-              current={userUsage}
-              limit={planLimits.aiGenerationsPerDay}
-            />
-            <UsageBar
-              label="Ejecuciones este mes"
-              current={userMonthlyUsage}
-              limit={planLimits.aiGenerationsPerMonth}
-            />
-            <UsageBar
-              label="Herramientas instaladas"
-              current={installedToolsCount}
-              limit={planLimits.maxToolsInstalled}
-            />
+            {catalogPlan ? (
+              <>
+                <UsageBar
+                  label="Generaciones IA este mes"
+                  current={userMonthlyUsage}
+                  limit={Number.isFinite(planLimits.aiGenerationsPerMonth) ? planLimits.aiGenerationsPerMonth : 99999}
+                  format={Number.isFinite(planLimits.aiGenerationsPerMonth)
+                    ? undefined
+                    : () => `${userMonthlyUsage} (ilimitado)`}
+                />
+                <UsageBar
+                  label="Herramientas instaladas"
+                  current={installedToolsCount}
+                  limit={Number.isFinite(planLimits.maxToolsInstalled) ? planLimits.maxToolsInstalled : 99999}
+                  format={Number.isFinite(planLimits.maxToolsInstalled)
+                    ? undefined
+                    : () => `${installedToolsCount} (ilimitado)`}
+                />
+              </>
+            ) : (
+              <>
+                <UsageBar
+                  label="Ejecuciones hoy"
+                  current={userUsage}
+                  limit={trialLimits.aiGenerationsPerDay}
+                />
+                <UsageBar
+                  label="Ejecuciones este mes"
+                  current={userMonthlyUsage}
+                  limit={trialLimits.aiGenerationsPerMonth}
+                />
+                <UsageBar
+                  label="Herramientas instaladas"
+                  current={installedToolsCount}
+                  limit={trialLimits.maxToolsInstalled}
+                />
+              </>
+            )}
           </div>
+          {catalogPlan && (
+            <div className="rounded-lg border bg-muted/40 px-5 py-4 grid grid-cols-2 sm:grid-cols-4 gap-4 text-center">
+              <div>
+                <p className="text-xs text-muted-foreground">Generaciones/mes</p>
+                <p className="font-semibold text-sm mt-0.5">
+                  {Number.isFinite(catalogPlan.limits.aiGenerationsPerMonth)
+                    ? catalogPlan.limits.aiGenerationsPerMonth.toLocaleString('es-ES')
+                    : '∞'}
+                </p>
+              </div>
+              <div>
+                <p className="text-xs text-muted-foreground">Herramientas</p>
+                <p className="font-semibold text-sm mt-0.5">
+                  {Number.isFinite(catalogPlan.limits.maxToolsInstalled)
+                    ? catalogPlan.limits.maxToolsInstalled
+                    : '∞'}
+                </p>
+              </div>
+              <div>
+                <p className="text-xs text-muted-foreground">Usuarios</p>
+                <p className="font-semibold text-sm mt-0.5">
+                  {Number.isFinite(catalogPlan.limits.maxUsers) ? catalogPlan.limits.maxUsers : '∞'}
+                </p>
+              </div>
+              <div>
+                <p className="text-xs text-muted-foreground">Workspaces</p>
+                <p className="font-semibold text-sm mt-0.5">
+                  {Number.isFinite(catalogPlan.limits.maxWorkspaces) ? catalogPlan.limits.maxWorkspaces : '∞'}
+                </p>
+              </div>
+            </div>
+          )}
         </section>
 
         {/* AI Saved — Registry Intelligence metrics */}

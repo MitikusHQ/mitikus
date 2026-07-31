@@ -173,7 +173,7 @@ export default async function MissionPage({ params }: Props) {
       {/* Breadcrumb */}
       <nav className="flex items-center gap-1.5 text-sm text-muted-foreground">
         <Link href={`/workspace/${workspaceId}`} className="hover:text-foreground transition-colors">
-          Mission Control
+          Panel
         </Link>
         <span className="text-muted-foreground/40">›</span>
         <span className="text-foreground font-medium truncate">{objective.label}</span>
@@ -392,17 +392,17 @@ export default async function MissionPage({ params }: Props) {
       {/* Historial / Workflow asociado */}
       {objective.linkedWorkflowId && (
         <section className="space-y-3">
-          <h2 className="text-base font-semibold">Flow asociado</h2>
+          <h2 className="text-base font-semibold">Flujo asociado</h2>
           <div className="rounded-lg border bg-card p-4 flex items-center justify-between">
             <div>
-              <p className="text-sm font-medium">Flow vinculado a esta misión</p>
+              <p className="text-sm font-medium">Flujo vinculado a esta misión</p>
               <p className="text-xs text-muted-foreground mt-0.5">Ver el proceso automatizado asociado</p>
             </div>
             <Link
               href={`/workspace/${workspaceId}/workflows/${objective.linkedWorkflowId}`}
               className="text-sm text-primary hover:underline font-medium shrink-0"
             >
-              Abrir Flow →
+              Abrir flujo →
             </Link>
           </div>
         </section>

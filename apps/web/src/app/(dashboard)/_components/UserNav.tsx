@@ -2,8 +2,6 @@
 
 import { useClerk, useUser } from '@clerk/nextjs'
 import Link from 'next/link'
-import { useLocale } from '@/i18n/locale-context'
-import { LocaleSelector } from './LocaleSelector'
 import { ThemeToggle } from './ThemeToggle'
 
 interface UserNavProps {
@@ -13,8 +11,6 @@ interface UserNavProps {
 export function UserNav({ signOutLabel = 'Cerrar sesión' }: UserNavProps) {
   const { signOut } = useClerk()
   const { user } = useUser()
-  const locale = useLocale()
-
   const displayName =
     user?.firstName
       ? [user.firstName, user.lastName].filter(Boolean).join(' ')
@@ -29,7 +25,6 @@ export function UserNav({ signOutLabel = 'Cerrar sesión' }: UserNavProps) {
   return (
     <div className="flex items-center gap-3">
       <ThemeToggle />
-      <LocaleSelector currentLocale={locale} />
       <Link
         href="/profile"
         className="flex items-center gap-2 hover:opacity-80 transition-opacity"

@@ -167,7 +167,7 @@ function AnalyticsDashboard({ data, workspaceId }: { data: WorkspaceAnalytics; w
               />
             </Section>
 
-            <Section title="Workflows ejecutados">
+            <Section title="Flujos ejecutados">
               <HorizontalBarList
                 items={topWorkflows.map((w) => ({
                   label: w.name,

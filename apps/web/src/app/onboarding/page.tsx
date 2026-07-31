@@ -1,7 +1,7 @@
 import { auth, currentUser } from '@clerk/nextjs/server'
 import { redirect } from 'next/navigation'
 import { db } from '@/lib/db'
-import { CreateWorkspaceForm } from './_components/CreateWorkspaceForm'
+import { OnboardingWizard } from './_components/OnboardingWizard'
 import { SignOutButton } from '@clerk/nextjs'
 
 export default async function OnboardingPage() {
@@ -76,12 +76,14 @@ export default async function OnboardingPage() {
           </button>
         </SignOutButton>
       </div>
-      <div className="text-center max-w-sm w-full">
-        <h1 className="text-2xl font-bold mb-2">Bienvenido a MITIKUS</h1>
-        <p className="text-muted-foreground mb-2">
-          Crea tu primer workspace — el espacio de tu empresa donde vivirán tus misiones, herramientas y clientes.
-        </p>
-        <CreateWorkspaceForm />
+      <div className="max-w-sm w-full">
+        <div className="mb-8">
+          <h1 className="text-2xl font-bold">Bienvenido a MITIKUS</h1>
+          <p className="text-muted-foreground text-sm mt-1">
+            Tu espacio de trabajo para consultoría IT — herramientas, clientes y misiones en un solo lugar.
+          </p>
+        </div>
+        <OnboardingWizard />
       </div>
     </div>
   )

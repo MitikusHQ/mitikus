@@ -25,7 +25,7 @@ export default async function DocsPage({ params }: Props) {
         <h1 className="text-xl font-semibold">Documentación</h1>
         <p className="text-sm text-muted-foreground mt-1">Base de conocimiento del workspace</p>
       </div>
-      <DocList workspaceId={workspaceId} initialDocs={docs} />
+      <DocList workspaceId={workspaceId} initialDocs={docs} currentUserId={user.id} />
     </div>
   )
 }

@@ -46,13 +46,14 @@ export function detectLocaleFromCountry(country: string | null): Locale | null {
  *
  * Prioridad:
  * 1. Cookie (elección explícita del usuario)
- * 2. IP del país (x-vercel-ip-country / cf-ipcountry)
- * 3. Accept-Language del navegador
- * 4. Fallback: 'en'
+ * 2. IP del país — solo España → 'es'
+ * 3. Fallback: 'en'
+ *
+ * Accept-Language se ignora intencionadamente: el usuario elige su idioma
+ * en el modal de primer acceso o en ajustes de perfil.
  */
 export function resolveLocale({
   cookieLocale,
-  acceptLanguage,
   country,
 }: {
   cookieLocale: string | null
@@ -60,11 +61,7 @@ export function resolveLocale({
   country?: string | null
 }): Locale {
   if (cookieLocale) return sanitizeLocale(cookieLocale)
-  return (
-    detectLocaleFromCountry(country ?? null) ??
-    detectLocaleFromAcceptLanguage(acceptLanguage ?? null) ??
-    'en'
-  )
+  return detectLocaleFromCountry(country ?? null) ?? 'en'
 }
 
 /**

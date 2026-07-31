@@ -36,13 +36,32 @@ export default async function WorkspaceLayout({ children, params }: Props) {
 
   const base = `/workspace/${workspaceId}`
 
-  const mainItems: NavItem[] = [
+  const canView = can(user, 'view_workspace')
+
+  // Top — acceso inmediato diario
+  const coreItems: NavItem[] = [
     {
       label: 'Mi día',
       href: `${base}/today`,
       icon: Icons.today,
       description: 'Tus tareas pendientes y actividad del equipo de hoy',
       badge: pendingCount > 0 ? String(pendingCount) : undefined,
+    },
+    {
+      label: 'Arkos',
+      href: `${base}/copilot`,
+      icon: Icons.copilot,
+      description: 'Tu asesor estratégico — cuéntale tus objetivos y te ayuda a planificarlos',
+    },
+  ].filter(() => canView)
+
+  // Trabajo — operativa del negocio
+  const workItems: NavItem[] = [
+    {
+      label: 'Clientes',
+      href: `${base}/clients`,
+      icon: Icons.clients,
+      description: 'Las empresas o personas a las que prestas servicio',
     },
     {
       label: 'Tareas',
@@ -52,53 +71,54 @@ export default async function WorkspaceLayout({ children, params }: Props) {
       badge: taskCount > 0 ? String(taskCount) : undefined,
     },
     {
-      label: 'Arkos',
-      href: `${base}/copilot`,
-      icon: Icons.copilot,
-      description: 'Tu asesor estratégico — cuéntale tus objetivos y te ayuda a planificarlos',
-    },
-    {
-      label: 'Mission Control',
-      href: base,
-      icon: Icons.dashboard,
-      description: 'Qué es lo más importante que debes hacer hoy en tu empresa',
-    },
-    {
-      label: 'Historial',
-      href: `${base}/history`,
-      icon: Icons.history,
-      description: 'Todo el historial de trabajo en este workspace',
-    },
-    {
       label: 'Herramientas',
       href: `${base}/tools`,
       icon: Icons.tools,
       description: 'Las herramientas que has instalado o creado para tu negocio',
     },
     {
-      label: 'Flows',
+      label: 'Flujos',
       href: `${base}/workflows`,
       icon: Icons.workflows,
       description: 'Encadena varias herramientas para automatizar un proceso completo',
     },
-    {
-      label: 'Clientes',
-      href: `${base}/clients`,
-      icon: Icons.clients,
-      description: 'Las empresas o personas a las que prestas servicio',
-    },
+  ].filter(() => canView)
+
+  // Contenido — documentos y planificación
+  const contentItems: NavItem[] = [
     {
       label: 'Mi Office',
       href: `${base}/office`,
       icon: Icons.office,
-      description: 'Documentos, hojas de cálculo y PDFs del workspace',
+      description: 'Documentos, hojas de cálculo, PDFs, contratos y presentaciones',
     },
-  ].filter(() => {
-    // All VIEWER+ can see main items
-    return can(user, 'view_workspace')
-  })
+    {
+      label: 'Misiones',
+      href: `${base}/missions`,
+      icon: Icons.missions,
+      description: 'Objetivos estratégicos y sus pasos de ejecución',
+    },
+  ].filter(() => canView)
 
   const dataItems: NavItem[] = [
+    {
+      label: 'Fiscal',
+      href: `${base}/fiscal`,
+      icon: Icons.fiscal,
+      description: 'Calendario de obligaciones fiscales para tu empresa',
+    },
+    {
+      label: 'Facturas',
+      href: `${base}/invoices`,
+      icon: Icons.invoices,
+      description: 'Crea y gestiona facturas para tus clientes con PDF descargable',
+    },
+    {
+      label: 'Gastos',
+      href: `${base}/receipts`,
+      icon: Icons.receipts,
+      description: 'Escanea tickets y facturas con la cámara — la IA extrae los datos',
+    },
     {
       label: 'Analytics',
       href: `${base}/analytics`,
@@ -145,9 +165,10 @@ export default async function WorkspaceLayout({ children, params }: Props) {
   ]
 
   const navGroups: NavGroup[] = [
-    { items: mainItems },
-    { label: 'Datos', items: dataItems },
-    ...(adminItems.length > 0 ? [{ label: 'Administración', items: adminItems }] : []),
+    { items: coreItems },
+    { label: 'Trabajo', items: workItems },
+    { label: 'Contenido', items: contentItems },
+    { label: 'Sistema', items: [...dataItems, ...adminItems] },
     { items: profileItems },
   ].filter((g) => g.items.length > 0)
 
@@ -156,6 +177,7 @@ export default async function WorkspaceLayout({ children, params }: Props) {
       workspaceId={workspaceId}
       workspaceName={workspace.name}
       navGroups={navGroups}
+      myId={user.id}
     >
       {children}
     </WorkspaceShell>

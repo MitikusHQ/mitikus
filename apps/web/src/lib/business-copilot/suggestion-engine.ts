@@ -15,6 +15,7 @@ import type { BusinessContext } from '@/lib/business-memory/memory-types'
 import { GOAL_CATALOG } from '@/lib/intent-engine/goals'
 import type { CanonicalGoal } from '@/lib/intent-engine/types'
 import { randomUUID } from 'crypto'
+import { getFiscalEvents } from '@/lib/fiscal-calendar'
 
 const MAX_SUGGESTIONS = 5
 
@@ -40,6 +41,10 @@ export async function generateSuggestions(
   context: BusinessContext,
 ): Promise<CopilotSuggestion[]> {
   const suggestions: CopilotSuggestion[] = []
+
+  // 0. Obligaciones fiscales próximas — prioridad máxima
+  const fiscalSuggestions = await suggestFromFiscal(workspaceId)
+  suggestions.push(...fiscalSuggestions)
 
   // 1. Objetivos activos con poco progreso → continuar
   for (const obj of context.activeObjectives.slice(0, 2)) {
@@ -171,6 +176,30 @@ async function suggestFromAnalytics(workspaceId: string): Promise<CopilotSuggest
     // silencioso
   }
   return []
+}
+
+async function suggestFromFiscal(workspaceId: string): Promise<CopilotSuggestion[]> {
+  try {
+    const profile = await db.companyProfile.findUnique({
+      where: { workspaceId },
+      select: { legalForm: true, country: true },
+    })
+    if (!profile?.legalForm && !profile?.country) return []
+
+    const events = getFiscalEvents(profile.country ?? 'ES', profile.legalForm)
+    const upcoming = events.filter((e) => e.status === 'proximo')
+
+    return upcoming.slice(0, 2).map((e) => ({
+      id:           randomUUID(),
+      category:     'fiscal' as const,
+      label:        `Preparar ${e.titulo} — ${e.periodo}`,
+      description:  `Vence el ${e.deadline.toLocaleDateString('es-ES', { day: 'numeric', month: 'long' })} · Modelo ${e.modelo}`,
+      canonicalGoal: null,
+      icon:         '🗓️',
+    }))
+  } catch {
+    return []
+  }
 }
 
 function defaultSuggestionsForContext(ctx: BusinessContext): CopilotSuggestion[] {

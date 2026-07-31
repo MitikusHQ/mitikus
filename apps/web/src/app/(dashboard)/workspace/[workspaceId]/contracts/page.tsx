@@ -7,8 +7,7 @@ interface Props {
 }
 
 export default async function ContractsPage({ params }: Props) {
-  await requireUser()
-  const { workspaceId } = await params
+  const [{ workspaceId }, user] = await Promise.all([params, requireUser()])
   const contracts = await getContracts(workspaceId)
 
   return (
@@ -21,7 +20,7 @@ export default async function ContractsPage({ params }: Props) {
           </p>
         </div>
       </div>
-      <ContractList workspaceId={workspaceId} initial={contracts} />
+      <ContractList workspaceId={workspaceId} initial={contracts} currentUserId={user.id} />
     </div>
   )
 }

@@ -1,6 +1,7 @@
 import { requireUser } from '@/lib/auth'
 import { db } from '@/lib/db'
 import { notFound } from 'next/navigation'
+import Link from 'next/link'
 import { validateToolSchema } from '@protools/schema'
 import type { FormConfig } from '@protools/schema'
 import { updateRecord } from '@/app/actions/record'
@@ -46,6 +47,10 @@ export default async function EditRecordPage({ params }: Props) {
 
   return (
     <div className="max-w-3xl mx-auto px-6 py-8">
+      <Link href={`/workspace/${workspaceId}/tools/${instanceId}`} className="inline-flex items-center gap-1.5 text-sm text-muted-foreground hover:text-foreground transition-colors mb-6">
+        <svg className="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M15 18l-6-6 6-6"/></svg>
+        {instance.name}
+      </Link>
       <h1 className="text-xl font-semibold mb-8">Editar registro</h1>
       <FormRenderer
         action={updateRecord}

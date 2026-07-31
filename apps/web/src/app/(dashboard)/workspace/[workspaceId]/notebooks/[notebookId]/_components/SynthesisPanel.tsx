@@ -20,9 +20,10 @@ export function SynthesisPanel({
   onQuestionClick,
   onSynthesisReady,
 }: Props) {
-  const [synthesis, setSynthesis] = useState<SynthesisCache | null>(initialSynthesis)
-  const [loading,   setLoading]   = useState(false)
-  const [collapsed, setCollapsed] = useState(false)
+  const [synthesis,  setSynthesis]  = useState<SynthesisCache | null>(initialSynthesis)
+  const [loading,    setLoading]    = useState(false)
+  const [collapsed,  setCollapsed]  = useState(false)
+  const [synthError, setSynthError] = useState(false)
 
   useEffect(() => {
     if (isDirty && !hasNoSources) {
@@ -33,13 +34,18 @@ export function SynthesisPanel({
 
   async function generateSynthesis() {
     setLoading(true)
+    setSynthError(false)
     try {
       const res = await fetch(`/api/notebooks/${notebookId}/synthesize`, { method: 'POST' })
       if (res.ok) {
         const data = await res.json() as SynthesisCache
         setSynthesis(data)
         onSynthesisReady(data)
+      } else {
+        setSynthError(true)
       }
+    } catch {
+      setSynthError(true)
     } finally {
       setLoading(false)
     }
@@ -108,12 +114,17 @@ export function SynthesisPanel({
           )}
 
           {!loading && !synthesis && (
-            <button
-              onClick={generateSynthesis}
-              className="text-xs text-primary hover:underline"
-            >
-              Generar síntesis
-            </button>
+            <div className="space-y-1">
+              {synthError && (
+                <p className="text-xs text-destructive">No se pudo generar la síntesis.</p>
+              )}
+              <button
+                onClick={generateSynthesis}
+                className="text-xs text-primary hover:underline"
+              >
+                {synthError ? 'Reintentar' : 'Generar síntesis'}
+              </button>
+            </div>
           )}
         </div>
       )}

@@ -1,4 +1,5 @@
 import { notFound } from 'next/navigation'
+import Link from 'next/link'
 import { requireUser } from '@/lib/auth'
 import { getNotebook, getWorkspaceDocs, getWorkspacePdfs } from '@/app/actions/notebooks'
 import { NotebookClient } from './_components/NotebookClient'
@@ -19,11 +20,19 @@ export default async function NotebookPage({ params }: Props) {
   if (!notebook) notFound()
 
   return (
-    <NotebookClient
-      notebook={notebook}
-      workspaceId={workspaceId}
-      workspaceDocs={docs}
-      workspacePdfs={pdfs}
-    />
+    <>
+      <div className="px-6 py-2.5 border-b bg-background">
+        <Link href={`/workspace/${workspaceId}/notebooks`} className="inline-flex items-center gap-1.5 text-sm text-muted-foreground hover:text-foreground transition-colors">
+          <svg className="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M15 18l-6-6 6-6"/></svg>
+          Notebooks
+        </Link>
+      </div>
+      <NotebookClient
+        notebook={notebook}
+        workspaceId={workspaceId}
+        workspaceDocs={docs}
+        workspacePdfs={pdfs}
+      />
+    </>
   )
 }

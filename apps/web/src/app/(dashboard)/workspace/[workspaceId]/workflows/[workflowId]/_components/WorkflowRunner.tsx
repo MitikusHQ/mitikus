@@ -77,7 +77,7 @@ export function WorkflowRunner({
       {/* Variables */}
       {variables.length > 0 && (
         <div className="rounded-xl border bg-card p-4">
-          <p className="text-xs font-semibold mb-3">Variables del workflow</p>
+          <p className="text-xs font-semibold mb-3">Variables del flujo</p>
           <div className="space-y-2">
             {variables.map((v) => (
               <div key={v.key} className="space-y-0.5">
@@ -119,7 +119,7 @@ export function WorkflowRunner({
             : 'bg-primary text-primary-foreground hover:bg-primary/90',
         )}
       >
-        {runState === 'running' ? '⏳ Ejecutando…' : '▶ Ejecutar workflow'}
+        {runState === 'running' ? '⏳ Ejecutando…' : '▶ Ejecutar flujo'}
       </button>
 
       {/* Result */}

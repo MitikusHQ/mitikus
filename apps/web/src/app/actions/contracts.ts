@@ -5,6 +5,7 @@ import { db } from '@/lib/db'
 import { revalidatePath } from 'next/cache'
 import { randomInt } from 'crypto'
 import bcrypt from 'bcryptjs'
+import { logActivity } from './activity'
 
 export interface ContractData {
   id:               string
@@ -144,7 +145,7 @@ export async function sendContractToClient(
   clientName:  string,
   clientEmail: string,
 ): Promise<void> {
-  await getAuthUser()
+  const user = await getAuthUser()
   const contract = await db.contract.findFirst({
     where:  { id: contractId, workspaceId },
     select: { id: true, title: true, shareToken: true, internalSignedAt: true, status: true },
@@ -157,6 +158,7 @@ export async function sendContractToClient(
     where: { id: contractId, workspaceId },
     data:  { clientName, clientEmail, status: 'SENT' },
   })
+  await logActivity(workspaceId, 'contract', contractId, user.id, 'sent', { clientEmail: clientEmail ?? '' })
 
   const workspace = await db.workspace.findUnique({
     where:  { id: workspaceId },
@@ -251,6 +253,7 @@ export async function signClientContract(
       status:          'SIGNED',
     },
   })
+  await logActivity(contract.workspaceId, 'contract', contract.id, contract.createdBy, 'signed', { clientName: contract.clientName ?? '' })
 
   // Generar PDF firmado via API route interna
   const baseUrl = process.env.NEXT_PUBLIC_APP_URL ?? 'https://www.mitikus.com'

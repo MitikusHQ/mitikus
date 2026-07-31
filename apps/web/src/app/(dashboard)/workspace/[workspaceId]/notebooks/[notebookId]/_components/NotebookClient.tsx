@@ -2,6 +2,7 @@
 
 import { useState, useCallback } from 'react'
 import { updateNotebook } from '@/app/actions/notebooks'
+import { Share2 } from 'lucide-react'
 import { SourcePanel }    from './SourcePanel'
 import { SynthesisPanel } from './SynthesisPanel'
 import { ChatPanel }      from './ChatPanel'
@@ -20,6 +21,15 @@ export function NotebookClient({ notebook, workspaceId, workspaceDocs, workspace
   const [synthesis,         setSynthesis]         = useState(notebook.synthesisCache)
   const [isDirty,           setIsDirty]           = useState(notebook.synthesisDirty)
   const [suggestedQuestion, setSuggestedQuestion] = useState<string>('')
+  const [copied,            setCopied]            = useState(false)
+
+  function handleShare() {
+    const url = `${window.location.origin}/p/notebook/${notebook.shareToken}`
+    void navigator.clipboard.writeText(url).then(() => {
+      setCopied(true)
+      setTimeout(() => setCopied(false), 2000)
+    })
+  }
 
   async function handleTitleBlur() {
     if (title !== notebook.title) await updateNotebook(notebook.id, title)
@@ -46,15 +56,26 @@ export function NotebookClient({ notebook, workspaceId, workspaceDocs, workspace
     <div className="flex h-[calc(100vh-4rem)]">
       {/* Panel izquierdo: fuentes */}
       <div className="w-64 border-r flex flex-col shrink-0">
-        <div className="p-3 border-b">
+        <div className="p-3 border-b flex items-center gap-1">
           <input
             type="text"
             value={title}
             onChange={(e) => setTitle(e.target.value)}
             onBlur={handleTitleBlur}
-            className="w-full bg-transparent text-sm font-medium focus:outline-none placeholder:text-muted-foreground truncate"
+            className="flex-1 min-w-0 bg-transparent text-sm font-medium focus:outline-none placeholder:text-muted-foreground truncate"
             placeholder="Nombre del notebook"
           />
+          <button
+            onClick={handleShare}
+            title="Compartir notebook"
+            className="shrink-0 p-1 rounded hover:bg-muted text-muted-foreground hover:text-foreground transition-colors"
+          >
+            {copied ? (
+              <span className="text-xs text-green-600 whitespace-nowrap">¡Copiado!</span>
+            ) : (
+              <Share2 className="h-3.5 w-3.5" />
+            )}
+          </button>
         </div>
         <SourcePanel
           notebookId={notebook.id}

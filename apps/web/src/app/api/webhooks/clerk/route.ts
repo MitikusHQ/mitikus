@@ -59,37 +59,39 @@ export async function POST(req: Request) {
 
     const classification = classifyEmail(primaryEmail.email_address)
 
-    // Crear usuario — la org y workspace se crean en /onboarding
-    const created = await db.user.create({
-      data: {
-        clerkId: id,
-        email: primaryEmail.email_address,
-        name: [first_name, last_name].filter(Boolean).join(' ') || null,
-        emailType: classification.emailType,
-        trialPlan: classification.trialPlan,
-        // orgId se setea en el onboarding — se crea una org temporal
-        org: {
-          create: {
-            name: `Org de ${primaryEmail.email_address.split('@')[0]}`,
-            workspaces: {
-              create: {
-                name: 'Mi espacio',
-                slug: 'mi-espacio',
-              },
+    // Idempotente: si Clerk reintenta tras un fallo parcial, upsert evita duplicados
+    const existing = await db.user.findUnique({ where: { clerkId: id }, select: { orgId: true } })
+
+    let orgId: string
+    if (existing) {
+      orgId = existing.orgId
+    } else {
+      const created = await db.user.create({
+        data: {
+          clerkId: id,
+          email: primaryEmail.email_address,
+          name: [first_name, last_name].filter(Boolean).join(' ') || null,
+          emailType: classification.emailType,
+          trialPlan: classification.trialPlan,
+          org: {
+            create: {
+              name: `Org de ${primaryEmail.email_address.split('@')[0]}`,
+              workspaces: { create: { name: 'Mi espacio', slug: 'mi-espacio' } },
             },
           },
+          role: 'OWNER',
         },
-        role: 'OWNER',
-      },
-      select: { orgId: true },
-    })
+        select: { orgId: true },
+      })
+      orgId = created.orgId
+    }
 
-    // BILLING-001 — toda organización nace con una Subscription en TRIALING
-    await getOrCreateSubscription(created.orgId)
+    // BILLING-001 — getOrCreateSubscription es idempotente por diseño
+    await getOrCreateSubscription(orgId)
 
-    // DATA-001 — registrar signup como primer evento del funnel
-    trackEvent({
-      orgId:  created.orgId,
+    // DATA-001 — registrar signup como primer evento del funnel (solo en primera creación)
+    if (!existing) trackEvent({
+      orgId,
       event:  'user.signed_up',
       source: 'webhook',
       properties: {
@@ -97,6 +99,15 @@ export async function POST(req: Request) {
         trialPlan:  classification.trialPlan,
       },
     })
+
+    // EMAIL-001 — welcome email solo en primera creación (no en reintentos)
+    if (!existing) {
+      const userName = [first_name, last_name].filter(Boolean).join(' ') || null
+      const appUrl   = process.env.NEXT_PUBLIC_APP_URL ?? 'https://www.mitikus.com'
+      void import('@/lib/email').then(({ sendWelcomeEmail }) =>
+        sendWelcomeEmail({ to: primaryEmail.email_address, userName, appUrl }).catch(() => null)
+      )
+    }
   }
 
   if (evt.type === 'user.updated') {

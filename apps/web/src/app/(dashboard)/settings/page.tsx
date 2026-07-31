@@ -1,9 +1,13 @@
 import { requireUser } from '@/lib/auth'
 import { can } from '@/lib/permissions'
+import { getLocale } from '@/i18n/locale'
 import Link from 'next/link'
+import { LocaleSelector } from './_components/LocaleSelector'
 
 export default async function SettingsPage() {
   const user = await requireUser()
+  const locale = await getLocale()
+  const workspaceId = user.org?.workspaces?.[0]?.id
 
   const sections = [
     {
@@ -35,6 +39,12 @@ export default async function SettingsPage() {
 
   return (
     <div className="max-w-2xl mx-auto px-6 py-8 space-y-6">
+      {workspaceId && (
+        <Link href={`/workspace/${workspaceId}`} className="inline-flex items-center gap-1.5 text-sm text-muted-foreground hover:text-foreground transition-colors">
+          <svg className="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M15 18l-6-6 6-6"/></svg>
+          Mi espacio
+        </Link>
+      )}
       <div>
         <h1 className="text-xl font-semibold">Ajustes</h1>
         <p className="text-sm text-muted-foreground mt-0.5">Configura tu organización y equipo.</p>
@@ -71,6 +81,22 @@ export default async function SettingsPage() {
             <p className="text-sm text-muted-foreground">No tienes acceso a ninguna sección de ajustes.</p>
           </div>
         )}
+      </div>
+
+      <div className="rounded-xl border bg-card p-5 space-y-4">
+        <div className="flex items-start gap-4">
+          <div className="mt-0.5 shrink-0 text-muted-foreground">
+            <svg className="w-5 h-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5">
+              <circle cx="12" cy="12" r="10" />
+              <path d="M2 12h20M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z" />
+            </svg>
+          </div>
+          <div>
+            <div className="font-medium text-sm">Language</div>
+            <div className="text-xs text-muted-foreground mt-0.5">Choose the language used throughout MITIKUS.</div>
+          </div>
+        </div>
+        <LocaleSelector currentLocale={locale} />
       </div>
     </div>
   )

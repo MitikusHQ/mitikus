@@ -3,10 +3,12 @@
 import Link from 'next/link'
 import type { ContractData } from '@/app/actions/contracts'
 import { ContractUploadZone } from './ContractUploadZone'
+import { CommentBadge } from '@/components/resource-drawer'
 
 interface Props {
-  workspaceId: string
-  initial:     ContractData[]
+  workspaceId:   string
+  initial:       ContractData[]
+  currentUserId: string
 }
 
 const STATUS_LABEL: Record<string, string> = {
@@ -21,7 +23,7 @@ const STATUS_CLASS: Record<string, string> = {
   SIGNED: 'bg-green-100 text-green-800 dark:bg-green-900/30 dark:text-green-300',
 }
 
-export function ContractList({ workspaceId, initial }: Props) {
+export function ContractList({ workspaceId, initial, currentUserId }: Props) {
   const contracts = initial
 
   return (
@@ -29,7 +31,15 @@ export function ContractList({ workspaceId, initial }: Props) {
       <ContractUploadZone workspaceId={workspaceId} />
 
       {contracts.length === 0 ? (
-        <p className="text-sm text-muted-foreground py-8 text-center">Aún no hay contratos</p>
+        <div className="rounded-xl border border-dashed bg-card p-10 text-center space-y-4">
+          <div className="w-12 h-12 rounded-xl bg-primary/10 flex items-center justify-center text-2xl mx-auto">📄</div>
+          <div className="space-y-1">
+            <p className="font-semibold text-sm">Sube tu primer contrato</p>
+            <p className="text-xs text-muted-foreground max-w-xs mx-auto leading-relaxed">
+              Arrastra un PDF arriba o usa el botón de carga. El cliente puede firmarlo digitalmente con verificación OTP.
+            </p>
+          </div>
+        </div>
       ) : (
         <div className="divide-y divide-border rounded-lg border">
           {contracts.map((c) => (
@@ -48,9 +58,18 @@ export function ContractList({ workspaceId, initial }: Props) {
                   {c.clientEmail ? ` · ${c.clientEmail}` : ''}
                 </p>
               </div>
-              <span className={`text-xs px-2 py-0.5 rounded-full font-medium shrink-0 ml-3 ${STATUS_CLASS[c.status] ?? ''}`}>
-                {STATUS_LABEL[c.status] ?? c.status}
-              </span>
+              <div className="flex items-center gap-2 ml-3 shrink-0">
+                <CommentBadge
+                  workspaceId={workspaceId}
+                  resourceType="contract"
+                  resourceId={c.id}
+                  resourceTitle={c.title}
+                  currentUserId={currentUserId}
+                />
+                <span className={`text-xs px-2 py-0.5 rounded-full font-medium ${STATUS_CLASS[c.status] ?? ''}`}>
+                  {STATUS_LABEL[c.status] ?? c.status}
+                </span>
+              </div>
             </Link>
           ))}
         </div>

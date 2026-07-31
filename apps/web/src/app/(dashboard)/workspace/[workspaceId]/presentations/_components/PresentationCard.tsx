@@ -5,13 +5,15 @@ import { useState } from 'react'
 import { useRouter } from 'next/navigation'
 import { deletePresentation } from '@/app/actions/presentations'
 import type { PresentationData } from '@/app/actions/presentations'
+import { CommentBadge } from '@/components/resource-drawer'
 
 interface Props {
-  presentation: PresentationData
-  workspaceId:  string
+  presentation:  PresentationData
+  workspaceId:   string
+  currentUserId: string
 }
 
-export function PresentationCard({ presentation, workspaceId }: Props) {
+export function PresentationCard({ presentation, workspaceId, currentUserId }: Props) {
   const router   = useRouter()
   const [deleting, setDeleting] = useState(false)
 
@@ -43,6 +45,13 @@ export function PresentationCard({ presentation, workspaceId }: Props) {
         {new Date(presentation.createdAt).toLocaleDateString('es-ES')}
       </p>
       <div className="absolute right-3 top-3 flex gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
+        <CommentBadge
+          workspaceId={workspaceId}
+          resourceType="presentation"
+          resourceId={presentation.id}
+          resourceTitle={presentation.title}
+          currentUserId={currentUserId}
+        />
         <button
           onClick={handleCopyLink}
           title="Copiar link público"

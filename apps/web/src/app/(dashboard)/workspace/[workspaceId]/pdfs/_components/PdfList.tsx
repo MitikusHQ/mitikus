@@ -4,15 +4,17 @@ import { useState } from 'react'
 import Link from 'next/link'
 import type { PdfData } from '@/app/actions/pdfs'
 import { PdfUploadZone } from './PdfUploadZone'
+import { CommentBadge } from '@/components/resource-drawer'
 
 const CATEGORIES = ['Contratos', 'Informes', 'Propuestas', 'Facturas', 'Otro']
 
 interface Props {
-  workspaceId: string
-  initial:     PdfData[]
+  workspaceId:   string
+  initial:       PdfData[]
+  currentUserId: string
 }
 
-export function PdfList({ workspaceId, initial }: Props) {
+export function PdfList({ workspaceId, initial, currentUserId }: Props) {
   const [pdfs, setPdfs]              = useState(initial)
   const [activeCategory, setActive]  = useState<string | null>(null)
 
@@ -57,9 +59,17 @@ export function PdfList({ workspaceId, initial }: Props) {
       <PdfUploadZone workspaceId={workspaceId} onUploaded={handleUploaded} />
 
       {visible.length === 0 ? (
-        <p className="text-sm text-muted-foreground py-8 text-center">
-          {activeCategory ? `No hay PDFs en "${activeCategory}"` : 'Aún no hay PDFs'}
-        </p>
+        <div className="py-12 text-center space-y-3">
+          <div className="w-11 h-11 rounded-xl bg-primary/10 flex items-center justify-center text-xl mx-auto">📑</div>
+          <div className="space-y-1">
+            <p className="font-semibold text-sm">
+              {activeCategory ? `Sin PDFs en "${activeCategory}"` : 'Sin PDFs todavía'}
+            </p>
+            <p className="text-xs text-muted-foreground max-w-xs mx-auto">
+              {activeCategory ? 'Prueba otra categoría o sube un PDF nuevo.' : 'Arrastra un PDF en la zona de carga superior para empezar.'}
+            </p>
+          </div>
+        </div>
       ) : (
         <div className="divide-y divide-border rounded-lg border">
           {visible.map((pdf) => (
@@ -79,6 +89,13 @@ export function PdfList({ workspaceId, initial }: Props) {
                 </p>
               </div>
               <div className="flex items-center gap-2 ml-3 shrink-0">
+                <CommentBadge
+                  workspaceId={workspaceId}
+                  resourceType="pdf"
+                  resourceId={pdf.id}
+                  resourceTitle={pdf.title}
+                  currentUserId={currentUserId}
+                />
                 <span className="text-xs text-muted-foreground">
                   {Math.round(pdf.fileSize / 1024)} KB
                 </span>
