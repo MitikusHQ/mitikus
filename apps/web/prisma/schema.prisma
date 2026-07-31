@@ -23,6 +23,7 @@ enum Plan {
 // Plan es el campo legacy en Organization (no se toca, no se borra).
 // PlanTier es el plan real de la Subscription, la fuente de verdad de límites.
 enum PlanTier {
+  AUTONOMO
   STARTER
   PROFESSIONAL
   BUSINESS

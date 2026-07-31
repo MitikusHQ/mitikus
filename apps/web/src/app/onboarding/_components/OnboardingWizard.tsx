@@ -20,8 +20,8 @@ const SECTORS = [
 ]
 
 const SIZES = [
-  { value: 'micro', label: 'Solo o 2–4 personas' },
-  { value: 'small', label: '5–20 personas' },
+  { value: 'micro', label: 'Solo yo (autónomo)' },
+  { value: 'small', label: '2–20 personas' },
   { value: 'medium', label: '20–100 personas' },
   { value: 'large', label: 'Más de 100' },
 ]
@@ -65,28 +65,28 @@ function toSlug(name: string): string {
 
 const PLAN_HINT: Record<string, { plan: string; color: string; msg: string; link: string }> = {
   micro: {
-    plan: 'Starter',
+    plan: 'Autónomo',
     color: 'bg-blue-50 border-blue-200 text-blue-700 dark:bg-blue-900/20 dark:border-blue-800 dark:text-blue-300',
-    msg: 'El plan Starter (39 €/mes) encaja perfectamente — hasta 5 usuarios y todas las herramientas incluidas.',
+    msg: 'El plan Autónomo (29 €/mes) está hecho para ti — 1 usuario, 1 workspace y todas las herramientas incluidas.',
     link: '/pricing',
   },
   small: {
-    plan: 'Professional',
+    plan: 'Starter',
     color: 'bg-violet-50 border-violet-200 text-violet-700 dark:bg-violet-900/20 dark:border-violet-800 dark:text-violet-300',
-    msg: 'Tu equipo encaja en el plan Professional (99 €/mes) — hasta 15 usuarios, 3 workspaces y soporte prioritario.',
+    msg: 'El plan Starter (49 €/mes) encaja perfectamente — hasta 2 usuarios, 1 workspace y todas las herramientas.',
     link: '/pricing',
   },
   medium: {
-    plan: 'Business',
+    plan: 'Professional',
     color: 'bg-amber-50 border-amber-200 text-amber-700 dark:bg-amber-900/20 dark:border-amber-800 dark:text-amber-400',
-    msg: 'Para equipos de 20–100 personas recomendamos el plan Business (349 €/mes) — usuarios ilimitados y workspaces ilimitados.',
+    msg: 'Para equipos de hasta 15 personas recomendamos el plan Professional (149 €/mes) — 3 workspaces y soporte prioritario.',
     link: '/pricing',
   },
   large: {
-    plan: 'Enterprise',
+    plan: 'Business',
     color: 'bg-gray-50 border-gray-200 text-gray-700 dark:bg-gray-800 dark:border-gray-700 dark:text-gray-300',
-    msg: 'Para más de 100 personas, contáctanos para un plan Enterprise a medida.',
-    link: 'mailto:hola@mitikus.com',
+    msg: 'Para más de 100 personas, el plan Business (349 €/mes) ofrece hasta 15 usuarios y 10 workspaces.',
+    link: '/pricing',
   },
 }
 

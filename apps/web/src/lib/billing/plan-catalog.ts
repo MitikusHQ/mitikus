@@ -35,10 +35,28 @@ export interface PlanDefinition {
 const UNLIMITED = Number.POSITIVE_INFINITY
 
 export const PLAN_CATALOG: Record<PlanTier, PlanDefinition> = {
+  AUTONOMO: {
+    tier: 'AUTONOMO',
+    name: 'Autónomo',
+    priceMonthlyEUR: 29,
+    stripePriceEnvVar: 'STRIPE_PRICE_AUTONOMO_MONTHLY',
+    limits: {
+      maxUsers: 1,
+      maxWorkspaces: 1,
+      maxActiveMissions: 5,
+      aiGenerationsPerMonth: 100,
+      maxToolsInstalled: 5,
+    },
+    features: {
+      aiRecommendations: true,
+      prioritySupport: false,
+      customBranding: false,
+    },
+  },
   STARTER: {
     tier: 'STARTER',
     name: 'Starter',
-    priceMonthlyEUR: 39,
+    priceMonthlyEUR: 49,
     stripePriceEnvVar: 'STRIPE_PRICE_STARTER_MONTHLY',
     limits: {
       maxUsers: 2,
@@ -111,10 +129,11 @@ export const PLAN_CATALOG: Record<PlanTier, PlanDefinition> = {
 
 /** Orden de "tamaño" de plan — para decidir si un cambio es upgrade o downgrade. */
 const TIER_RANK: Record<PlanTier, number> = {
-  STARTER: 0,
-  PROFESSIONAL: 1,
-  BUSINESS: 2,
-  ENTERPRISE: 3,
+  AUTONOMO: 0,
+  STARTER: 1,
+  PROFESSIONAL: 2,
+  BUSINESS: 3,
+  ENTERPRISE: 4,
 }
 
 export function isUpgrade(from: PlanTier, to: PlanTier): boolean {
