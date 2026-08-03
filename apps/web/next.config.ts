@@ -13,6 +13,12 @@ const securityHeaders = [
 
 const nextConfig: NextConfig = {
   transpilePackages: ['@protools/schema', '@protools/ui', '@protools/import-engine'],
+
+  images: {
+    remotePatterns: [
+      { protocol: 'https', hostname: '*.public.blob.vercel-storage.com' },
+    ],
+  },
   typedRoutes: false,
   serverExternalPackages: ['pdf-parse'],
 

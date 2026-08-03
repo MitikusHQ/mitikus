@@ -1,7 +1,6 @@
 'use client'
 
 import Link from 'next/link'
-import Image from 'next/image'
 import { cn } from '@/lib/utils'
 import { WorkspaceSidebarItem, type NavItem } from './WorkspaceSidebarItem'
 
@@ -37,13 +36,8 @@ export function WorkspaceSidebar({ workspaceId, workspaceName, workspaceLogoUrl,
         {/* Workspace logo / initial */}
         <div className="shrink-0 w-7 h-7 rounded-lg overflow-hidden">
           {workspaceLogoUrl ? (
-            <Image
-              src={workspaceLogoUrl}
-              alt={workspaceName}
-              width={28}
-              height={28}
-              className="object-contain w-full h-full"
-            />
+            // eslint-disable-next-line @next/next/no-img-element
+            <img src={workspaceLogoUrl} alt={workspaceName} className="object-contain w-full h-full" />
           ) : (
             <div
               className="w-full h-full flex items-center justify-center text-white text-xs font-bold"
