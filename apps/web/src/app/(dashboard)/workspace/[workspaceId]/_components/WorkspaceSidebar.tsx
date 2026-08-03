@@ -108,7 +108,9 @@ export function WorkspaceSidebar({ workspaceId, workspaceName, workspaceLogoUrl,
           </button>
         )}
         {!collapsed && (
-          <p className="px-3 text-[10px] text-muted-foreground/40 truncate">MITIKUS</p>
+          <p className="px-3 text-[10px] text-muted-foreground/50 truncate">
+            Powered by <span className="font-semibold">MITIKUS</span>
+          </p>
         )}
       </div>
     </aside>
