@@ -48,8 +48,8 @@ export default async function PublicLeadFormPage({ params }: Props) {
 
         <LeadFormClient workspaceId={workspaceId} brandColor={brandColor} />
 
-        <p className="text-center text-[11px] text-muted-foreground/60 mt-6">
-          Powered by <span className="font-semibold">MITIKUS</span>
+        <p className="text-center text-xs text-muted-foreground mt-6">
+          Powered by <span className="font-semibold tracking-wide">MITIKUS</span>
         </p>
       </div>
     </div>
