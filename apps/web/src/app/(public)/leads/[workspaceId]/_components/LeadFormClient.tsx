@@ -119,9 +119,6 @@ export function LeadFormClient({ workspaceId, brandColor = '#3B82F6' }: Props) {
         {status === 'loading' ? 'Enviando...' : 'Enviar solicitud'}
       </button>
 
-      <p className="text-center text-[10px] text-muted-foreground/50">
-        Powered by MITIKUS
-      </p>
     </form>
   )
 }
