@@ -1,6 +1,7 @@
 'use client'
 
 import Link from 'next/link'
+import Image from 'next/image'
 import { cn } from '@/lib/utils'
 import { WorkspaceSidebarItem, type NavItem } from './WorkspaceSidebarItem'
 
@@ -12,12 +13,14 @@ interface NavGroup {
 interface Props {
   workspaceId: string
   workspaceName: string
+  workspaceLogoUrl?: string | null
+  workspaceBrandColor?: string
   navGroups: NavGroup[]
   collapsed?: boolean
   onOpenOnboarding?: () => void
 }
 
-export function WorkspaceSidebar({ workspaceId, workspaceName, navGroups, collapsed = false, onOpenOnboarding }: Props) {
+export function WorkspaceSidebar({ workspaceId, workspaceName, workspaceLogoUrl, workspaceBrandColor = '#3B82F6', navGroups, collapsed = false, onOpenOnboarding }: Props) {
   return (
     <aside
       className={cn(
@@ -31,25 +34,24 @@ export function WorkspaceSidebar({ workspaceId, workspaceName, navGroups, collap
         'h-14 flex items-center border-b border-border shrink-0',
         collapsed ? 'justify-center px-2' : 'px-4 gap-3',
       )}>
-        {/* Brand mark */}
-        <div className="shrink-0 w-7 h-7">
-          <svg viewBox="0 0 200 200" xmlns="http://www.w3.org/2000/svg" aria-label="MITIKUS" width="28" height="28">
-            <defs>
-              <linearGradient id="mg" x1="10" y1="10" x2="190" y2="190" gradientUnits="userSpaceOnUse">
-                <stop offset="0%"   stopColor="#FFD040"/>
-                <stop offset="28%"  stopColor="#FF7028"/>
-                <stop offset="50%"  stopColor="#FF2878"/>
-                <stop offset="72%"  stopColor="#8B28FF"/>
-                <stop offset="100%" stopColor="#1820B8"/>
-              </linearGradient>
-              <clipPath id="mc"><circle cx="100" cy="100" r="87"/></clipPath>
-            </defs>
-            <circle cx="100" cy="100" r="90" fill="none" stroke="url(#mg)" strokeWidth="5.5"/>
-            <g clipPath="url(#mc)">
-              <polygon points="-10,0   192,95  192,100 -10,98"  fill="url(#mg)"/>
-              <polygon points="-10,102 192,100 192,105 -10,200" fill="url(#mg)"/>
-            </g>
-          </svg>
+        {/* Workspace logo / initial */}
+        <div className="shrink-0 w-7 h-7 rounded-lg overflow-hidden">
+          {workspaceLogoUrl ? (
+            <Image
+              src={workspaceLogoUrl}
+              alt={workspaceName}
+              width={28}
+              height={28}
+              className="object-contain w-full h-full"
+            />
+          ) : (
+            <div
+              className="w-full h-full flex items-center justify-center text-white text-xs font-bold"
+              style={{ backgroundColor: workspaceBrandColor }}
+            >
+              {workspaceName.charAt(0).toUpperCase()}
+            </div>
+          )}
         </div>
         {!collapsed && (
           <Link

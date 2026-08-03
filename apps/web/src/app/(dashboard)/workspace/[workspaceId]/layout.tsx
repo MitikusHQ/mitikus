@@ -24,7 +24,7 @@ export default async function WorkspaceLayout({ children, params }: Props) {
   const [workspace, pendingCount, taskCount] = await Promise.all([
     db.workspace.findFirst({
       where: { id: workspaceId, orgId: user.orgId },
-      select: { id: true, name: true },
+      select: { id: true, name: true, logoUrl: true, brandColor: true },
     }),
     getPendingCount(workspaceId, user.id).catch(() => 0),
     getMyPendingTaskCount(workspaceId, user.id).catch(() => 0),
@@ -188,6 +188,8 @@ export default async function WorkspaceLayout({ children, params }: Props) {
     <WorkspaceShell
       workspaceId={workspaceId}
       workspaceName={workspace.name}
+      workspaceLogoUrl={workspace.logoUrl ?? null}
+      workspaceBrandColor={workspace.brandColor ?? '#3B82F6'}
       navGroups={navGroups}
       myId={user.id}
     >

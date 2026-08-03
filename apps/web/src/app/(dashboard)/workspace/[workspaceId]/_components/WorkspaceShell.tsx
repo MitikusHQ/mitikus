@@ -18,6 +18,8 @@ interface NavGroup {
 interface Props {
   workspaceId: string
   workspaceName: string
+  workspaceLogoUrl?: string | null
+  workspaceBrandColor?: string
   navGroups: NavGroup[]
   myId: string
   children: React.ReactNode
@@ -35,7 +37,7 @@ function useIsFullscreen(workspaceId: string): boolean {
   return segments.length === 1
 }
 
-export function WorkspaceShell({ workspaceId, workspaceName, navGroups, myId, children }: Props) {
+export function WorkspaceShell({ workspaceId, workspaceName, workspaceLogoUrl, workspaceBrandColor, navGroups, myId, children }: Props) {
   const [sidebarCollapsed, setSidebarCollapsed] = useState(false)
   const [mobileOpen, setMobileOpen] = useState(false)
   const [teamPanelOpen, setTeamPanelOpen] = useState(false)
@@ -75,6 +77,8 @@ export function WorkspaceShell({ workspaceId, workspaceName, navGroups, myId, ch
         <WorkspaceSidebar
           workspaceId={workspaceId}
           workspaceName={workspaceName}
+          workspaceLogoUrl={workspaceLogoUrl}
+          workspaceBrandColor={workspaceBrandColor}
           navGroups={navGroups}
           collapsed={sidebarCollapsed}
           onOpenOnboarding={() => setOnboardingOpen(true)}
