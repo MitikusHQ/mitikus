@@ -104,6 +104,40 @@ export default async function WorkflowsPage({ params }: Props) {
           + Nuevo flujo
         </Link>
       </div>
+      {/* Cómo funciona */}
+      <div className="rounded-xl border bg-muted/30 px-6 py-5">
+        <p className="text-xs font-semibold uppercase tracking-widest text-muted-foreground/60 mb-4">¿Cómo funciona un flujo?</p>
+        <div className="grid gap-4 sm:grid-cols-3">
+          <div className="flex gap-3">
+            <div className="w-8 h-8 rounded-lg bg-primary/10 flex items-center justify-center text-base shrink-0">1</div>
+            <div>
+              <p className="text-sm font-medium">Elige las herramientas</p>
+              <p className="text-xs text-muted-foreground mt-0.5 leading-relaxed">
+                Combina cualquier herramienta instalada en tu workspace: analizadores, generadores, extractores de datos…
+              </p>
+            </div>
+          </div>
+          <div className="flex gap-3">
+            <div className="w-8 h-8 rounded-lg bg-primary/10 flex items-center justify-center text-base shrink-0">2</div>
+            <div>
+              <p className="text-sm font-medium">Conecta los pasos</p>
+              <p className="text-xs text-muted-foreground mt-0.5 leading-relaxed">
+                El resultado de cada herramienta pasa automáticamente como entrada a la siguiente. Sin copiar ni pegar.
+              </p>
+            </div>
+          </div>
+          <div className="flex gap-3">
+            <div className="w-8 h-8 rounded-lg bg-primary/10 flex items-center justify-center text-base shrink-0">3</div>
+            <div>
+              <p className="text-sm font-medium">Ejecútalo en un clic</p>
+              <p className="text-xs text-muted-foreground mt-0.5 leading-relaxed">
+                Introduce el dato inicial y el flujo hace el resto. Revisa el historial de cada ejecución cuando quieras.
+              </p>
+            </div>
+          </div>
+        </div>
+      </div>
+
       {/* Templates */}
       <div>
         <div className="flex items-center justify-between mb-4">

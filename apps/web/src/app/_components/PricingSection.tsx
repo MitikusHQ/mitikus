@@ -20,7 +20,7 @@ const PLANS = [
     annual:   31,
     label:    null,
     period:   '/mes',
-    forWhom:  'Autónomos o equipos pequeños de hasta 2 personas.',
+    forWhom:  'Profesionales independientes o equipos pequeños de hasta 2 personas.',
     cta:      'Contratar',
     ctaHref:  '/sign-up',
     features: ['Hasta 2 usuarios', 'Mi Office completo', 'Arkos IA', 'Misiones ilimitadas', 'Firma digital OTP', 'Soporte por email'],

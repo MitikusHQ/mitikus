@@ -20,7 +20,7 @@ const SECTORS = [
 ]
 
 const SIZES = [
-  { value: 'micro', label: 'Solo yo (autónomo)' },
+  { value: 'micro', label: 'Solo yo' },
   { value: 'small', label: '2–20 personas' },
   { value: 'medium', label: '20–100 personas' },
   { value: 'large', label: 'Más de 100' },
@@ -65,9 +65,9 @@ function toSlug(name: string): string {
 
 const PLAN_HINT: Record<string, { plan: string; color: string; msg: string; link: string }> = {
   micro: {
-    plan: 'Autónomo',
+    plan: 'Solo',
     color: 'bg-blue-50 border-blue-200 text-blue-700 dark:bg-blue-900/20 dark:border-blue-800 dark:text-blue-300',
-    msg: 'El plan Autónomo (29 €/mes) está hecho para ti — 1 usuario, 1 workspace y todas las herramientas incluidas.',
+    msg: 'El plan Solo (29 €/mes) está hecho para ti — 1 usuario, 1 workspace y todas las herramientas incluidas.',
     link: '/pricing',
   },
   small: {

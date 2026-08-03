@@ -151,7 +151,7 @@
     "workspace": "Workspace",
     "system": "Sistema (global)",
     "estimatedGlobal": "Coste estimado (global)",
-    "resetsAt": "Los límites se reinician automáticamente a las 00:00 UTC. Para cambiarlos permanentemente, edita las variables de entorno en .env.local.",
+    "resetsAt": "Los límites se reinician automáticamente a las 00:00 UTC.",
     "remaining": "Puedes generar {daily} herramientas más hoy (límite personal) y {workspace} en este workspace.",
     "accountType": "Tipo de cuenta",
     "aiToday": "IA generaciones hoy",

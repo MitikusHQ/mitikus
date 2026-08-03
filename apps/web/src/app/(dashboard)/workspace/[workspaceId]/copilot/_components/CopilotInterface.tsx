@@ -53,6 +53,13 @@ interface Props {
   initialMessage?:     string
 }
 
+const QUICK_START_PROMPTS = [
+  'Somos una agencia de diseño freelance especializada en branding',
+  'Soy consultor de RRHH independiente con clientes en pymes',
+  'Tenemos una tienda online de productos artesanales',
+  'Somos un despacho de abogados con 3 socios',
+]
+
 // ── Main component ─────────────────────────────────────────────────
 
 export function CopilotInterface({
@@ -243,8 +250,39 @@ export function CopilotInterface({
       {/* ── Chat history ─────────────────────────────────────── */}
       <div className="flex-1 overflow-y-auto p-5 space-y-5" style={{ maxHeight: 520 }}>
 
-        {/* Estado inicial — sugerencias */}
-        {showInitialSuggestions && (
+        {/* Estado inicial — sin contexto de empresa */}
+        {showInitialSuggestions && initialContext.isEmpty && (
+          <div className="space-y-4">
+            <div className="rounded-xl border border-primary/20 bg-primary/5 p-5 space-y-3">
+              <div className="flex items-start gap-3">
+                <div className="w-8 h-8 rounded-full bg-primary/15 flex items-center justify-center shrink-0">
+                  <span className="text-sm font-bold text-primary">A</span>
+                </div>
+                <div>
+                  <p className="text-sm font-medium">¡Hola! Soy Arkos, tu copiloto estratégico.</p>
+                  <p className="text-sm text-muted-foreground mt-1">
+                    Para ayudarte de verdad necesito conocer tu negocio. <strong>Descríbeme en una frase a qué te dedicas</strong> y empezamos.
+                  </p>
+                </div>
+              </div>
+            </div>
+            <div className="space-y-2">
+              <p className="text-xs text-muted-foreground font-medium uppercase tracking-wide">Ejemplos — elige uno o escribe el tuyo</p>
+              {QUICK_START_PROMPTS.map((prompt) => (
+                <button
+                  key={prompt}
+                  onClick={() => { setInput(prompt); textareaRef.current?.focus() }}
+                  className="w-full text-left rounded-lg border px-4 py-2.5 text-sm hover:bg-muted/50 hover:border-primary/40 transition-colors"
+                >
+                  {prompt}
+                </button>
+              ))}
+            </div>
+          </div>
+        )}
+
+        {/* Estado inicial — con contexto, mostrar sugerencias */}
+        {showInitialSuggestions && !initialContext.isEmpty && (
           <div className="space-y-4">
             <p className="text-sm text-muted-foreground">
               Dime en qué objetivo quieres trabajar hoy o elige una sugerencia. Lo convertiré en una misión con pasos claros.
@@ -367,7 +405,9 @@ export function CopilotInterface({
             placeholder={
               ui.phase === 'clarifying'
                 ? 'Responde o elige una opción arriba…'
-                : 'Describe el objetivo…'
+                : initialContext.isEmpty && messages.length === 0
+                  ? 'Ej: Somos una agencia de marketing con 5 personas…'
+                  : 'Describe el objetivo…'
             }
             rows={2}
             className="flex-1 resize-none rounded-md border bg-background px-3 py-2 text-sm placeholder:text-muted-foreground focus:outline-none focus:ring-1 focus:ring-ring"

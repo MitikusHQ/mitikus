@@ -37,7 +37,7 @@ const UNLIMITED = Number.POSITIVE_INFINITY
 export const PLAN_CATALOG: Record<PlanTier, PlanDefinition> = {
   AUTONOMO: {
     tier: 'AUTONOMO',
-    name: 'Autónomo',
+    name: 'Solo',
     priceMonthlyEUR: 29,
     stripePriceEnvVar: 'STRIPE_PRICE_AUTONOMO_MONTHLY',
     limits: {

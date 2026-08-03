@@ -151,7 +151,7 @@
     "workspace": "Workspace",
     "system": "System (global)",
     "estimatedGlobal": "Estimated cost (global)",
-    "resetsAt": "Limits reset automatically at 00:00 UTC. To change them permanently, edit the environment variables in .env.local.",
+    "resetsAt": "Limits reset automatically at 00:00 UTC.",
     "remaining": "You can generate {daily} more tools today (personal limit) and {workspace} in this workspace.",
     "accountType": "Account type",
     "aiToday": "AI generations today",

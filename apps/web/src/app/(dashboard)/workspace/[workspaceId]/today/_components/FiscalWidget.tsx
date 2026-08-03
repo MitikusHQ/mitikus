@@ -4,12 +4,37 @@ import type { FiscalEventWithStatus } from '@/lib/fiscal-calendar'
 interface Props {
   workspaceId: string
   events: FiscalEventWithStatus[]
+  hasProfile: boolean
 }
 
-export function FiscalWidget({ workspaceId, events }: Props) {
+export function FiscalWidget({ workspaceId, events, hasProfile }: Props) {
   const next = events.filter((e) => e.status === 'proximo' || e.status === 'pendiente')
     .sort((a, b) => a.deadline.getTime() - b.deadline.getTime())
     .slice(0, 3)
+
+  if (!hasProfile) {
+    return (
+      <section>
+        <h2 className="text-sm font-semibold text-muted-foreground uppercase tracking-wide mb-3">
+          Fiscal
+        </h2>
+        <div className="rounded-xl border border-dashed p-5 flex items-center justify-between gap-4">
+          <div>
+            <p className="text-sm font-medium">Configura tu perfil fiscal</p>
+            <p className="text-xs text-muted-foreground mt-0.5">
+              Activa el calendario de obligaciones tributarias para tu forma jurídica.
+            </p>
+          </div>
+          <Link
+            href={`/workspace/${workspaceId}/fiscal`}
+            className="shrink-0 rounded-lg bg-primary px-3 py-1.5 text-xs font-medium text-primary-foreground hover:bg-primary/90 transition-colors"
+          >
+            Configurar →
+          </Link>
+        </div>
+      </section>
+    )
+  }
 
   if (next.length === 0) return null
 

@@ -12,6 +12,7 @@ import { ContractsWidget } from './_components/ContractsWidget'
 import { NotebooksWidget } from './_components/NotebooksWidget'
 import { FiscalWidget } from './_components/FiscalWidget'
 import { InvoicesWidget } from './_components/InvoicesWidget'
+import { OnboardingChecklist } from './_components/OnboardingChecklist'
 import { db } from '@/lib/db'
 import { getFiscalEvents, type LegalForm } from '@/lib/fiscal-calendar'
 import { getInvoices } from '@/app/actions/invoices'
@@ -45,7 +46,7 @@ const statusLabels: Record<string, { label: string; className: string }> = {
 
 export default async function TodayPage({ params }: Props) {
   const [{ workspaceId }, user] = await Promise.all([params, requireUser()])
-  const [data, todayEntry, myTasks, contracts, notebooks, fiscalProfile, invoices] = await Promise.all([
+  const [data, todayEntry, myTasks, contracts, notebooks, fiscalProfile, invoices, onboardingCounts] = await Promise.all([
     getTodayData(workspaceId, user.id),
     getTodayEntry(workspaceId, user.id),
     getMyTasks(workspaceId, user.id),
@@ -53,6 +54,12 @@ export default async function TodayPage({ params }: Props) {
     getNotebooks(workspaceId),
     db.companyProfile.findUnique({ where: { workspaceId }, select: { legalForm: true, country: true } }),
     getInvoices(workspaceId).catch(() => []),
+    Promise.all([
+      db.client.count({ where: { workspaceId } }),
+      db.companyObjective.count({ where: { workspaceId } }),
+      db.task.count({ where: { workspaceId } }),
+      db.invoice.count({ where: { workspaceId } }),
+    ]),
   ])
 
   const fiscalEvents = (fiscalProfile?.legalForm || fiscalProfile?.country)
@@ -61,6 +68,46 @@ export default async function TodayPage({ params }: Props) {
 
   const isEmpty = data.pendingSteps.length === 0 && data.pendingWorkflows.length === 0
 
+  const [clientCount, missionCount, taskCount, invoiceCount] = onboardingCounts
+  const base = `/workspace/${workspaceId}`
+  const onboardingSteps = [
+    {
+      id: 'arkos',
+      label: 'Describe tu negocio a Arkos',
+      description: 'Cuéntale qué hace tu empresa para que pueda ayudarte a planificar.',
+      href: `${base}/copilot`,
+      done: missionCount > 0,
+    },
+    {
+      id: 'client',
+      label: 'Añade tu primer cliente',
+      description: 'Registra la empresa o persona a quien prestas servicio.',
+      href: `${base}/clients`,
+      done: clientCount > 0,
+    },
+    {
+      id: 'task',
+      label: 'Crea tu primera tarea',
+      description: 'Organiza el trabajo pendiente con etiquetas y prioridades.',
+      href: `${base}/tasks`,
+      done: taskCount > 0,
+    },
+    {
+      id: 'invoice',
+      label: 'Emite tu primera factura',
+      description: 'Genera un PDF listo para enviar a tu cliente.',
+      href: `${base}/invoices`,
+      done: invoiceCount > 0,
+    },
+    {
+      id: 'fiscal',
+      label: 'Activa el calendario fiscal',
+      description: 'Configura tu forma jurídica para ver tus obligaciones tributarias.',
+      href: `${base}/fiscal`,
+      done: !!fiscalProfile?.legalForm,
+    },
+  ]
+
   return (
     <div className="max-w-3xl mx-auto px-6 py-8 space-y-8">
 
@@ -68,6 +115,8 @@ export default async function TodayPage({ params }: Props) {
         <h1 className="text-2xl font-semibold">{greeting()}, {user.name?.split(' ')[0] ?? 'equipo'}</h1>
         <p className="text-sm text-muted-foreground mt-0.5 capitalize">{todayLabel()}</p>
       </div>
+
+      <OnboardingChecklist workspaceId={workspaceId} steps={onboardingSteps} />
 
       <div>
         <div className="flex items-center justify-between mb-2">
@@ -113,10 +162,16 @@ export default async function TodayPage({ params }: Props) {
       )}
 
       {isEmpty && (
-        <div className="rounded-2xl border border-dashed p-12 flex flex-col items-center text-center gap-3">
+        <div className="rounded-2xl border border-dashed p-10 flex flex-col items-center text-center gap-3">
           <span className="text-3xl">✅</span>
           <p className="font-medium">Todo al día. Buen trabajo.</p>
           <p className="text-sm text-muted-foreground">No tienes pasos ni workflows pendientes.</p>
+          <Link
+            href={`/workspace/${workspaceId}/copilot`}
+            className="mt-1 inline-flex items-center gap-1.5 rounded-lg bg-primary/10 text-primary px-4 py-2 text-xs font-medium hover:bg-primary/20 transition-colors"
+          >
+            Pedir a Arkos una nueva misión →
+          </Link>
         </div>
       )}
 
@@ -128,7 +183,7 @@ export default async function TodayPage({ params }: Props) {
         <WorkflowsBlock workflows={data.pendingWorkflows} workspaceId={workspaceId} />
       )}
 
-      <FiscalWidget workspaceId={workspaceId} events={fiscalEvents} />
+      <FiscalWidget workspaceId={workspaceId} events={fiscalEvents} hasProfile={!!fiscalProfile} />
       <InvoicesWidget workspaceId={workspaceId} invoices={invoices} />
       <ContractsWidget workspaceId={workspaceId} contracts={contracts} />
       <NotebooksWidget workspaceId={workspaceId} notebooks={notebooks} />

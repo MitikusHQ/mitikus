@@ -14,6 +14,7 @@ interface Props {
   sidebarCollapsed: boolean
   teamPanelOpen: boolean
   onToggleTeamPanel: () => void
+  onOpenOnboarding: () => void
 }
 
 // Mapa ruta → label de sección. Orden: más específico primero.
@@ -96,7 +97,7 @@ function resolveSubLabel(segments: string[]): string | null {
   return labels[last] ?? null
 }
 
-export function WorkspaceTopbar({ workspaceId, workspaceName, onToggleSidebar, sidebarCollapsed, teamPanelOpen, onToggleTeamPanel }: Props) {
+export function WorkspaceTopbar({ workspaceId, workspaceName, onToggleSidebar, sidebarCollapsed, teamPanelOpen, onToggleTeamPanel, onOpenOnboarding }: Props) {
   const breadcrumbs = useBreadcrumb(workspaceId, workspaceName)
 
   return (
@@ -162,6 +163,19 @@ export function WorkspaceTopbar({ workspaceId, workspaceName, onToggleSidebar, s
             <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2" />
             <circle cx="9" cy="7" r="4" />
             <path d="M23 21v-2a4 4 0 0 0-3-3.87M16 3.13a4 4 0 0 1 0 7.75" />
+          </svg>
+        </button>
+        <button
+          type="button"
+          onClick={onOpenOnboarding}
+          aria-label="Ver tour de bienvenida"
+          title="Tour de bienvenida"
+          className="p-2 rounded-md text-muted-foreground hover:text-foreground hover:bg-muted transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+        >
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden>
+            <circle cx="12" cy="12" r="10"/>
+            <path d="M9.09 9a3 3 0 0 1 5.83 1c0 2-3 3-3 3"/>
+            <path d="M12 17h.01"/>
           </svg>
         </button>
         <NotificationBell workspaceId={workspaceId} />

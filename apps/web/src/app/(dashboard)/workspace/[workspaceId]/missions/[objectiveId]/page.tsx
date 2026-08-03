@@ -172,8 +172,8 @@ export default async function MissionPage({ params }: Props) {
 
       {/* Breadcrumb */}
       <nav className="flex items-center gap-1.5 text-sm text-muted-foreground">
-        <Link href={`/workspace/${workspaceId}`} className="hover:text-foreground transition-colors">
-          Panel
+        <Link href={`/workspace/${workspaceId}/missions`} className="hover:text-foreground transition-colors">
+          Misiones
         </Link>
         <span className="text-muted-foreground/40">›</span>
         <span className="text-foreground font-medium truncate">{objective.label}</span>

@@ -21,7 +21,14 @@ interface Props {
 export default async function AnalyticsPage({ params, searchParams }: Props) {
   const [{ workspaceId }, sp, user] = await Promise.all([params, searchParams, requireUser()])
 
-  if (!can(user, 'view_usage')) notFound()
+  if (!can(user, 'view_usage')) {
+    return (
+      <div className="max-w-2xl mx-auto px-6 py-16 text-center space-y-3">
+        <p className="text-lg font-semibold">Acceso restringido</p>
+        <p className="text-sm text-muted-foreground">Solo los administradores del workspace pueden ver la analítica.</p>
+      </div>
+    )
+  }
 
   const workspace = await db.workspace.findFirst({
     where: { id: workspaceId, orgId: user.orgId },

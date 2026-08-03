@@ -1,4 +1,4 @@
-'use client'
+﻿'use client'
 
 import { useState } from 'react'
 import type { InvoiceData } from '@/app/actions/invoices'
@@ -100,9 +100,9 @@ export function InvoicesClient({ workspaceId, initialInvoices, clients }: Props)
           { label: 'Pendiente de cobro', value: fmt(totalPendiente), accent: true  },
           { label: 'Cobrado total',      value: fmt(totalPagado),    accent: false },
         ].map(s => (
-          <div key={s.label} className="bg-[var(--color-surface)] border border-[var(--color-border)] rounded-xl p-4">
-            <div className="text-xs text-[var(--color-text-secondary)] mb-1">{s.label}</div>
-            <div className={`text-lg font-semibold font-mono ${s.accent ? 'text-amber-600 dark:text-amber-400' : 'text-[var(--color-text-primary)]'}`}>
+          <div key={s.label} className="bg-background border border-border rounded-xl p-4">
+            <div className="text-xs text-muted-foreground mb-1">{s.label}</div>
+            <div className={`text-lg font-semibold font-mono ${s.accent ? 'text-amber-600 dark:text-amber-400' : 'text-foreground'}`}>
               {s.value}
             </div>
           </div>
@@ -112,30 +112,30 @@ export function InvoicesClient({ workspaceId, initialInvoices, clients }: Props)
       {/* Main grid */}
       <div className="grid grid-cols-1 lg:grid-cols-5 gap-4">
         {/* List */}
-        <div className="lg:col-span-2 bg-[var(--color-surface)] border border-[var(--color-border)] rounded-xl overflow-hidden flex flex-col">
-          <div className="flex items-center justify-between px-4 py-3 border-b border-[var(--color-border)]">
-            <span className="text-sm font-medium text-[var(--color-text-primary)]">
+        <div className="lg:col-span-2 bg-background border border-border rounded-xl overflow-hidden flex flex-col">
+          <div className="flex items-center justify-between px-4 py-3 border-b border-border">
+            <span className="text-sm font-medium text-foreground">
               {invoices.length} factura{invoices.length !== 1 ? 's' : ''}
             </span>
             <button
               onClick={() => { setEditing(null); setShowModal(true) }}
-              className="flex items-center gap-1.5 px-3 py-1.5 text-xs font-medium bg-[var(--color-accent)] text-white rounded-lg hover:opacity-90 transition-opacity"
+              className="flex items-center gap-1.5 px-3 py-1.5 text-xs font-medium bg-primary text-white rounded-lg hover:opacity-90 transition-opacity"
             >
               <span>+</span> Nueva factura
             </button>
           </div>
 
           {invoices.length === 0 ? (
-            <div className="flex-1 flex flex-col items-center justify-center py-16 text-[var(--color-text-secondary)]">
+            <div className="flex-1 flex flex-col items-center justify-center py-16 text-muted-foreground">
               <svg width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" className="mb-3 opacity-30"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/></svg>
               <p className="text-sm">No hay facturas todavía</p>
               <button onClick={() => { setEditing(null); setShowModal(true) }}
-                className="mt-3 text-xs text-[var(--color-accent)] hover:underline">
+                className="mt-3 text-xs text-primary hover:underline">
                 Crear primera factura
               </button>
             </div>
           ) : (
-            <div className="flex-1 overflow-y-auto divide-y divide-[var(--color-border)]">
+            <div className="flex-1 overflow-y-auto divide-y divide-border">
               {invoices.map(inv => {
                 const s = STATUS_LABELS[inv.status] ?? STATUS_LABELS['borrador']!
                 const isActive = selected?.id === inv.id
@@ -143,17 +143,17 @@ export function InvoicesClient({ workspaceId, initialInvoices, clients }: Props)
                   <button
                     key={inv.id}
                     onClick={() => setSelected(inv)}
-                    className={`w-full text-left px-4 py-3 hover:bg-[var(--color-surface-raised)] transition-colors ${isActive ? 'bg-[var(--color-surface-raised)]' : ''}`}
+                    className={`w-full text-left px-4 py-3 hover:bg-muted/50 transition-colors ${isActive ? 'bg-muted/50' : ''}`}
                   >
                     <div className="flex items-center justify-between mb-1">
-                      <span className="text-sm font-medium text-[var(--color-text-primary)]">{inv.number}</span>
+                      <span className="text-sm font-medium text-foreground">{inv.number}</span>
                       <span className={`text-xs px-2 py-0.5 rounded-full font-medium ${s.color}`}>{s.label}</span>
                     </div>
                     <div className="flex items-center justify-between">
-                      <span className="text-xs text-[var(--color-text-secondary)]">
+                      <span className="text-xs text-muted-foreground">
                         {inv.clientName ?? 'Sin cliente'} · {new Date(inv.date).toLocaleDateString('es-ES')}
                       </span>
-                      <span className="text-sm font-mono font-semibold text-[var(--color-text-primary)]">
+                      <span className="text-sm font-mono font-semibold text-foreground">
                         {fmt(inv.total, inv.currency)}
                       </span>
                     </div>
@@ -165,22 +165,22 @@ export function InvoicesClient({ workspaceId, initialInvoices, clients }: Props)
         </div>
 
         {/* Detail */}
-        <div className="lg:col-span-3 bg-[var(--color-surface)] border border-[var(--color-border)] rounded-xl overflow-hidden">
+        <div className="lg:col-span-3 bg-background border border-border rounded-xl overflow-hidden">
           {!selected ? (
-            <div className="flex flex-col items-center justify-center h-full py-24 text-[var(--color-text-secondary)]">
+            <div className="flex flex-col items-center justify-center h-full py-24 text-muted-foreground">
               <svg width="36" height="36" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" className="mb-3 opacity-30"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/></svg>
               <p className="text-sm">Selecciona una factura para ver el detalle</p>
             </div>
           ) : (
             <div className="flex flex-col h-full">
               {/* Detail header */}
-              <div className="flex items-start justify-between px-5 py-4 border-b border-[var(--color-border)]">
+              <div className="flex items-start justify-between px-5 py-4 border-b border-border">
                 <div>
                   <div className="flex items-center gap-3 mb-1">
-                    <h3 className="font-semibold text-[var(--color-text-primary)]">{selected.number}</h3>
+                    <h3 className="font-semibold text-foreground">{selected.number}</h3>
                     <span className={`text-xs px-2 py-0.5 rounded-full font-medium ${st?.color}`}>{st?.label}</span>
                   </div>
-                  <p className="text-sm text-[var(--color-text-secondary)]">
+                  <p className="text-sm text-muted-foreground">
                     {selected.clientName ?? 'Sin cliente'} · {new Date(selected.date).toLocaleDateString('es-ES')}
                     {selected.dueDate && ` · Vence ${new Date(selected.dueDate).toLocaleDateString('es-ES')}`}
                   </p>
@@ -190,21 +190,21 @@ export function InvoicesClient({ workspaceId, initialInvoices, clients }: Props)
                     href={`/api/workspace/${workspaceId}/invoices/${selected.id}/pdf`}
                     target="_blank"
                     rel="noopener noreferrer"
-                    className="flex items-center gap-1.5 px-3 py-1.5 text-xs font-medium border border-[var(--color-border)] rounded-lg text-[var(--color-text-secondary)] hover:text-[var(--color-text-primary)] transition-colors"
+                    className="flex items-center gap-1.5 px-3 py-1.5 text-xs font-medium border border-border rounded-lg text-muted-foreground hover:text-foreground transition-colors"
                   >
                     <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
                     PDF
                   </a>
                   <button
                     onClick={() => openEmailModal(selected)}
-                    className="flex items-center gap-1.5 px-3 py-1.5 text-xs font-medium border border-[var(--color-border)] rounded-lg text-[var(--color-text-secondary)] hover:text-[var(--color-text-primary)] transition-colors"
+                    className="flex items-center gap-1.5 px-3 py-1.5 text-xs font-medium border border-border rounded-lg text-muted-foreground hover:text-foreground transition-colors"
                   >
                     <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"/><polyline points="22,6 12,13 2,6"/></svg>
                     Enviar
                   </button>
                   <button
                     onClick={() => { setEditing(selected); setShowModal(true) }}
-                    className="flex items-center gap-1.5 px-3 py-1.5 text-xs font-medium border border-[var(--color-border)] rounded-lg text-[var(--color-text-secondary)] hover:text-[var(--color-text-primary)] transition-colors"
+                    className="flex items-center gap-1.5 px-3 py-1.5 text-xs font-medium border border-border rounded-lg text-muted-foreground hover:text-foreground transition-colors"
                   >
                     Editar
                   </button>
@@ -220,9 +220,9 @@ export function InvoicesClient({ workspaceId, initialInvoices, clients }: Props)
 
               {/* Items table */}
               <div className="flex-1 overflow-y-auto px-5 py-4">
-                <div className="border border-[var(--color-border)] rounded-lg overflow-hidden mb-4">
+                <div className="border border-border rounded-lg overflow-hidden mb-4">
                   <table className="w-full text-sm">
-                    <thead className="bg-[var(--color-surface-raised)] text-[var(--color-text-secondary)] text-xs">
+                    <thead className="bg-muted/50 text-muted-foreground text-xs">
                       <tr>
                         <th className="text-left px-3 py-2 font-medium">Descripción</th>
                         <th className="text-right px-3 py-2 font-medium">Cant.</th>
@@ -232,11 +232,11 @@ export function InvoicesClient({ workspaceId, initialInvoices, clients }: Props)
                     </thead>
                     <tbody>
                       {selected.items.map((item, idx) => (
-                        <tr key={idx} className="border-t border-[var(--color-border)]">
-                          <td className="px-3 py-2 text-[var(--color-text-primary)]">{item.description}</td>
-                          <td className="px-3 py-2 text-right text-[var(--color-text-secondary)] font-mono">{item.qty}</td>
-                          <td className="px-3 py-2 text-right text-[var(--color-text-secondary)] font-mono">{item.unitPrice.toFixed(2)}</td>
-                          <td className="px-3 py-2 text-right text-[var(--color-text-primary)] font-mono">{item.total.toFixed(2)} {selected.currency}</td>
+                        <tr key={idx} className="border-t border-border">
+                          <td className="px-3 py-2 text-foreground">{item.description}</td>
+                          <td className="px-3 py-2 text-right text-muted-foreground font-mono">{item.qty}</td>
+                          <td className="px-3 py-2 text-right text-muted-foreground font-mono">{item.unitPrice.toFixed(2)}</td>
+                          <td className="px-3 py-2 text-right text-foreground font-mono">{item.total.toFixed(2)} {selected.currency}</td>
                         </tr>
                       ))}
                     </tbody>
@@ -246,13 +246,13 @@ export function InvoicesClient({ workspaceId, initialInvoices, clients }: Props)
                 {/* Totals */}
                 <div className="flex justify-end mb-4">
                   <div className="w-56 space-y-1 text-sm">
-                    <div className="flex justify-between text-[var(--color-text-secondary)]">
+                    <div className="flex justify-between text-muted-foreground">
                       <span>Subtotal</span><span className="font-mono">{fmt(selected.subtotal, selected.currency)}</span>
                     </div>
-                    <div className="flex justify-between text-[var(--color-text-secondary)]">
+                    <div className="flex justify-between text-muted-foreground">
                       <span>IVA ({selected.taxRate}%)</span><span className="font-mono">{fmt(selected.tax, selected.currency)}</span>
                     </div>
-                    <div className="flex justify-between font-semibold text-[var(--color-text-primary)] border-t border-[var(--color-border)] pt-1">
+                    <div className="flex justify-between font-semibold text-foreground border-t border-border pt-1">
                       <span>Total</span><span className="font-mono">{fmt(selected.total, selected.currency)}</span>
                     </div>
                   </div>
@@ -260,13 +260,13 @@ export function InvoicesClient({ workspaceId, initialInvoices, clients }: Props)
 
                 {/* Estado rápido */}
                 <div className="flex items-center gap-3">
-                  <span className="text-xs text-[var(--color-text-secondary)]">Cambiar estado:</span>
+                  <span className="text-xs text-muted-foreground">Cambiar estado:</span>
                   {Object.entries(STATUS_LABELS).map(([key, { label, color }]) => (
                     <button
                       key={key}
                       onClick={() => handleStatusChange(selected, key)}
                       disabled={selected.status === key}
-                      className={`text-xs px-2.5 py-1 rounded-full font-medium transition-opacity ${color} ${selected.status === key ? 'opacity-100 ring-2 ring-offset-1 ring-[var(--color-accent)]' : 'opacity-60 hover:opacity-100'}`}
+                      className={`text-xs px-2.5 py-1 rounded-full font-medium transition-opacity ${color} ${selected.status === key ? 'opacity-100 ring-2 ring-offset-1 ring-primary' : 'opacity-60 hover:opacity-100'}`}
                     >
                       {label}
                     </button>
@@ -274,7 +274,7 @@ export function InvoicesClient({ workspaceId, initialInvoices, clients }: Props)
                 </div>
 
                 {selected.notes && (
-                  <div className="mt-4 p-3 bg-[var(--color-surface-raised)] rounded-lg text-sm text-[var(--color-text-secondary)]">
+                  <div className="mt-4 p-3 bg-muted/50 rounded-lg text-sm text-muted-foreground">
                     {selected.notes}
                   </div>
                 )}
@@ -286,26 +286,26 @@ export function InvoicesClient({ workspaceId, initialInvoices, clients }: Props)
 
       {showEmailModal && selected && (
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/40">
-          <div className="bg-[var(--color-surface)] border border-[var(--color-border)] rounded-xl shadow-xl w-full max-w-sm p-6 space-y-4">
-            <h3 className="font-semibold text-[var(--color-text-primary)]">Enviar factura al cliente</h3>
+          <div className="bg-background border border-border rounded-xl shadow-xl w-full max-w-sm p-6 space-y-4">
+            <h3 className="font-semibold text-foreground">Enviar factura al cliente</h3>
             {emailSent ? (
               <div className="text-sm text-emerald-600 dark:text-emerald-400 py-4 text-center">
                 ✓ Estado actualizado a &ldquo;Enviada&rdquo;.<br/>
-                <span className="text-xs text-[var(--color-text-secondary)]">Configura Resend para envío real de emails.</span>
+                <span className="text-xs text-muted-foreground">Configura Resend para envío real de emails.</span>
               </div>
             ) : (
               <>
                 <div>
-                  <label className="text-xs font-medium text-[var(--color-text-secondary)] block mb-1">Email del cliente</label>
+                  <label className="text-xs font-medium text-muted-foreground block mb-1">Email del cliente</label>
                   <input
                     type="email"
                     value={emailTo}
                     onChange={(e) => setEmailTo(e.target.value)}
                     placeholder="cliente@empresa.com"
-                    className="w-full px-3 py-2 text-sm border border-[var(--color-border)] rounded-lg bg-[var(--color-surface)] text-[var(--color-text-primary)] focus:outline-none focus:ring-1 focus:ring-[var(--color-accent)]"
+                    className="w-full px-3 py-2 text-sm border border-border rounded-lg bg-background text-foreground focus:outline-none focus:ring-1 focus:ring-primary"
                   />
                 </div>
-                <p className="text-xs text-[var(--color-text-secondary)]">
+                <p className="text-xs text-muted-foreground">
                   Se adjuntará el PDF de la factura <strong>{selected.number}</strong> y el estado cambiará a &ldquo;Enviada&rdquo;.
                   El envío real de email requiere configurar Resend.
                 </p>
@@ -314,7 +314,7 @@ export function InvoicesClient({ workspaceId, initialInvoices, clients }: Props)
             <div className="flex justify-end gap-2 pt-1">
               <button
                 onClick={() => setShowEmailModal(false)}
-                className="px-4 py-2 text-xs font-medium border border-[var(--color-border)] rounded-lg text-[var(--color-text-secondary)] hover:text-[var(--color-text-primary)] transition-colors"
+                className="px-4 py-2 text-xs font-medium border border-border rounded-lg text-muted-foreground hover:text-foreground transition-colors"
               >
                 {emailSent ? 'Cerrar' : 'Cancelar'}
               </button>
@@ -322,7 +322,7 @@ export function InvoicesClient({ workspaceId, initialInvoices, clients }: Props)
                 <button
                   onClick={handleSendEmail}
                   disabled={emailSending || !emailTo}
-                  className="px-4 py-2 text-xs font-medium bg-[var(--color-accent)] text-white rounded-lg hover:opacity-90 transition-opacity disabled:opacity-50"
+                  className="px-4 py-2 text-xs font-medium bg-primary text-white rounded-lg hover:opacity-90 transition-opacity disabled:opacity-50"
                 >
                   {emailSending ? 'Guardando...' : 'Marcar como enviada'}
                 </button>

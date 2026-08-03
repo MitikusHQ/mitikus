@@ -214,22 +214,24 @@ export default async function WorkspacePage({ params, searchParams }: Props) {
           </div>
         ) : (
           <div className="space-y-3">
-            {sortedMissions.map(({ obj, state, action, intelligence, steps, total, done, progress }, index) => (
-              <MissionCard
-                key={obj.id}
-                obj={obj}
-                workspaceId={workspaceId}
-                state={state}
-                isExpanded={index === 0 && blockedCount === 0}
-                nextActionText={intelligence.nextActionText ?? action.text}
-                whatItUnlocks={index === 0 && blockedCount === 0 ? (intelligence.whatItUnlocks ?? null) : null}
-                estimatedMinutes={index === 0 && blockedCount === 0 ? remainingMinutes(steps) : null}
-                total={total}
-                done={done}
-                progress={progress}
-                reasons={reasonsById.get(obj.id) ?? []}
-              />
-            ))}
+            {sortedMissions
+              .filter((m) => !(blockedCount > 0 && m.state === 'blocked'))
+              .map(({ obj, state, action, intelligence, steps, total, done, progress }, index) => (
+                <MissionCard
+                  key={obj.id}
+                  obj={obj}
+                  workspaceId={workspaceId}
+                  state={state}
+                  isExpanded={index === 0}
+                  nextActionText={intelligence.nextActionText ?? action.text}
+                  whatItUnlocks={index === 0 ? (intelligence.whatItUnlocks ?? null) : null}
+                  estimatedMinutes={index === 0 ? remainingMinutes(steps) : null}
+                  total={total}
+                  done={done}
+                  progress={progress}
+                  reasons={reasonsById.get(obj.id) ?? []}
+                />
+              ))}
           </div>
         )}
       </section>

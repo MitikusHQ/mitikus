@@ -23,15 +23,19 @@ export default async function ReceiptsPage({ params }: Props) {
   return (
     <>
       <div className="px-6 py-2.5 border-b bg-background print:hidden">
-        <Link
-          href={`/workspace/${workspaceId}`}
-          className="inline-flex items-center gap-1.5 text-sm text-muted-foreground hover:text-foreground transition-colors"
-        >
-          <svg className="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-            <path d="M15 18l-6-6 6-6"/>
+        <nav aria-label="Migas de pan" className="flex items-center gap-1.5 text-sm text-muted-foreground">
+          <Link href={`/workspace/${workspaceId}/office`} className="hover:text-foreground transition-colors">
+            Mi Office
+          </Link>
+          <svg className="w-3.5 h-3.5 opacity-40" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+            <path d="M9 18l6-6-6-6"/>
           </svg>
-          Panel
-        </Link>
+          <span className="text-foreground font-medium">Gastos</span>
+        </nav>
+      </div>
+      <div className="px-6 pt-6 pb-2 print:hidden">
+        <h1 className="text-xl font-semibold">Gastos</h1>
+        <p className="text-xs text-muted-foreground mt-0.5">Escanea tickets y facturas — la IA extrae los datos automáticamente</p>
       </div>
       <ReceiptsClient workspaceId={workspaceId} initialReceipts={receipts} />
     </>

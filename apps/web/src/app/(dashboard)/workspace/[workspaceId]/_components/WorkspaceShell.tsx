@@ -6,6 +6,7 @@ import { cn } from '@/lib/utils'
 import { WorkspaceSidebar } from './WorkspaceSidebar'
 import { WorkspaceTopbar } from './WorkspaceTopbar'
 import { TeamPanel } from './TeamPanel'
+import { OnboardingModal, ONBOARDING_STORAGE_KEY } from './OnboardingModal'
 import { Icons } from './WorkspaceIcons'
 import type { NavItem } from './WorkspaceSidebarItem'
 
@@ -38,6 +39,7 @@ export function WorkspaceShell({ workspaceId, workspaceName, navGroups, myId, ch
   const [sidebarCollapsed, setSidebarCollapsed] = useState(false)
   const [mobileOpen, setMobileOpen] = useState(false)
   const [teamPanelOpen, setTeamPanelOpen] = useState(false)
+  const [onboardingOpen, setOnboardingOpen] = useState(false)
   const isFullscreen = useIsFullscreen(workspaceId)
 
   // Close mobile nav on route change
@@ -50,6 +52,12 @@ export function WorkspaceShell({ workspaceId, workspaceName, navGroups, myId, ch
   useEffect(() => {
     const stored = localStorage.getItem('sidebar-collapsed')
     if (stored === 'true') setSidebarCollapsed(true)
+  }, [])
+
+  // Show onboarding on first visit
+  useEffect(() => {
+    const seen = localStorage.getItem(ONBOARDING_STORAGE_KEY)
+    if (!seen) setOnboardingOpen(true)
   }, [])
 
   function toggleSidebar() {
@@ -69,6 +77,7 @@ export function WorkspaceShell({ workspaceId, workspaceName, navGroups, myId, ch
           workspaceName={workspaceName}
           navGroups={navGroups}
           collapsed={sidebarCollapsed}
+          onOpenOnboarding={() => setOnboardingOpen(true)}
         />
       </div>
 
@@ -86,6 +95,7 @@ export function WorkspaceShell({ workspaceId, workspaceName, navGroups, myId, ch
               workspaceName={workspaceName}
               navGroups={navGroups}
               collapsed={false}
+              onOpenOnboarding={() => setOnboardingOpen(true)}
             />
           </div>
         </div>
@@ -108,6 +118,7 @@ export function WorkspaceShell({ workspaceId, workspaceName, navGroups, myId, ch
           sidebarCollapsed={sidebarCollapsed}
           teamPanelOpen={teamPanelOpen}
           onToggleTeamPanel={() => setTeamPanelOpen((p) => !p)}
+          onOpenOnboarding={() => setOnboardingOpen(true)}
         />
 
         {/* Mobile: hamburger alternative (small screens already use overlay above) */}
@@ -147,6 +158,11 @@ export function WorkspaceShell({ workspaceId, workspaceName, navGroups, myId, ch
           )}
         </div>
       </div>
+
+      <OnboardingModal
+        open={onboardingOpen}
+        onClose={() => setOnboardingOpen(false)}
+      />
     </div>
   )
 }

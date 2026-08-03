@@ -169,7 +169,7 @@ export default async function UsagePage({ params }: Props) {
 
   return (
     <div className="max-w-3xl mx-auto px-6 py-8 space-y-8">
-      <h1 className="text-xl font-semibold">Créditos</h1>
+      <h1 className="text-xl font-semibold">Uso del plan</h1>
 
         {/* Tipo de cuenta y plan */}
         <section>
@@ -213,7 +213,7 @@ export default async function UsagePage({ params }: Props) {
 
         {/* Límites del plan */}
         <section className="space-y-4">
-          <h2 className="text-base font-semibold">Créditos IA de tu plan</h2>
+          <h2 className="text-base font-semibold">Uso IA de tu plan</h2>
           <div className="rounded-lg border bg-card p-5 space-y-5">
             {catalogPlan ? (
               <>
@@ -359,7 +359,6 @@ export default async function UsagePage({ params }: Props) {
 
           <p className="text-xs text-muted-foreground">
             Los límites se reinician automáticamente a las 00:00 UTC.
-            Para cambiarlos permanentemente, edita las variables de entorno en .env.local.
           </p>
         </section>
 

@@ -30,8 +30,8 @@ export default async function InvoicesPage({ params }: Props) {
   return (
     <div className="p-6 max-w-6xl mx-auto">
       <div className="mb-6">
-        <h1 className="text-xl font-semibold text-[var(--color-text-primary)]">Facturas</h1>
-        <p className="text-sm text-[var(--color-text-secondary)] mt-1">
+        <h1 className="text-xl font-semibold">Facturas</h1>
+        <p className="text-sm text-muted-foreground mt-1">
           Crea y gestiona tus facturas. Descarga el PDF listo para enviar.
         </p>
       </div>

@@ -30,6 +30,13 @@ enum PlanTier {
   ENTERPRISE
 }
 
+enum LeadStatus {
+  NUEVO
+  CONTACTADO
+  CUALIFICADO
+  PERDIDO
+}
+
 enum SubscriptionStatus {
   TRIALING   // periodo de prueba, sin tarjeta o sin cobrar todavía
   ACTIVE     // suscripción al día
@@ -285,12 +292,14 @@ model User {
 // ============================================================
 
 model Workspace {
-  id        String   @id @default(cuid())
-  orgId     String
-  name      String
-  slug      String
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
+  id         String   @id @default(cuid())
+  orgId      String
+  name       String
+  slug       String
+  logoUrl    String?  // URL del logo de la empresa (Vercel Blob)
+  brandColor String?  // Color primario de marca (hex, e.g. "#3B82F6")
+  createdAt  DateTime @default(now())
+  updatedAt  DateTime @updatedAt
 
   // Relaciones
   org            Organization   @relation(fields: [orgId], references: [id], onDelete: Cascade)
@@ -326,6 +335,7 @@ model Workspace {
   resourceActivities   ResourceActivity[]
   receipts             Receipt[]
   invoices             Invoice[]
+  workspaceLeads       WorkspaceLead[]
 
   @@unique([orgId, slug])
   @@index([orgId])
@@ -1928,4 +1938,27 @@ model Invoice {
   @@index([workspaceId, createdAt])
   @@index([clientId])
   @@map("invoices")
+}
+
+// ============================================================
+// WORKSPACE LEAD — potencial cliente captado via formulario público del workspace
+
+model WorkspaceLead {
+  id          String     @id @default(cuid())
+  workspaceId String
+  workspace   Workspace  @relation(fields: [workspaceId], references: [id], onDelete: Cascade)
+  name        String
+  email       String
+  company     String?
+  phone       String?
+  message     String?    @db.Text
+  status      LeadStatus @default(NUEVO)
+  notes       String?    @db.Text
+  convertedToClientId String? // id del Client si se convirtió
+  createdAt   DateTime   @default(now())
+  updatedAt   DateTime   @updatedAt
+
+  @@index([workspaceId, createdAt])
+  @@index([workspaceId, status])
+  @@map("workspace_leads")
 }

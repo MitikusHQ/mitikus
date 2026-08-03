@@ -64,6 +64,12 @@ export default async function WorkspaceLayout({ children, params }: Props) {
       description: 'Las empresas o personas a las que prestas servicio',
     },
     {
+      label: 'Leads',
+      href: `${base}/leads`,
+      icon: Icons.leads,
+      description: 'Potenciales clientes captados desde tu formulario público',
+    },
+    {
       label: 'Tareas',
       href: `${base}/tasks`,
       icon: Icons.tasks,
@@ -120,7 +126,7 @@ export default async function WorkspaceLayout({ children, params }: Props) {
       description: 'Escanea tickets y facturas con la cámara — la IA extrae los datos',
     },
     {
-      label: 'Analytics',
+      label: 'Analítica',
       href: `${base}/analytics`,
       icon: Icons.analytics,
       description: 'Actividad, ejecuciones y costes de tu workspace',
@@ -132,7 +138,7 @@ export default async function WorkspaceLayout({ children, params }: Props) {
   // Audit — VIEWER+ (can view_usage)
   if (can(user, 'view_usage')) {
     adminItems.push({
-      label: 'Créditos',
+      label: 'Uso del plan',
       href: `${base}/usage`,
       icon: Icons.usage,
       description: 'Cuánto has generado este mes y cuánto te queda de tu plan',
@@ -156,6 +162,12 @@ export default async function WorkspaceLayout({ children, params }: Props) {
   }
 
   const profileItems: NavItem[] = [
+    {
+      label: 'Soporte',
+      href: `${base}/support`,
+      icon: Icons.support,
+      description: 'Asistente de ayuda y contacto con el equipo MITIKUS',
+    },
     {
       label: 'Mi perfil',
       href: `${base}/profile`,

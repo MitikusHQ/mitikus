@@ -13,15 +13,15 @@ const inter = Inter({ subsets: ['latin'] })
 export const metadata: Metadata = {
   metadataBase: new URL('https://www.mitikus.com'),
   title: {
-    default: 'MITIKUS — Auditorías profesionales en 8 minutos',
+    default: 'MITIKUS — Tu negocio, all in one!',
     template: '%s · MITIKUS',
   },
   description:
-    'La plataforma que convierte tus auditorías IT, RGPD e ISO 27001 en procesos repetibles. Genera informes profesionales en minutos, no en horas.',
+    'El hub de productividad para profesionales, pymes y equipos. Gestiona clientes, documentos, facturas, contratos y tu equipo desde un único lugar.',
   openGraph: {
-    title: 'MITIKUS — Auditorías profesionales en 8 minutos',
+    title: 'MITIKUS — Tu negocio, all in one!',
     description:
-      'La plataforma que convierte tus auditorías IT, RGPD e ISO 27001 en procesos repetibles. Genera informes profesionales en minutos, no en horas.',
+      'El hub de productividad para profesionales, pymes y equipos. Gestiona clientes, documentos, facturas, contratos y tu equipo desde un único lugar.',
     url: 'https://www.mitikus.com',
     siteName: 'MITIKUS',
     type: 'website',
@@ -29,9 +29,9 @@ export const metadata: Metadata = {
   },
   twitter: {
     card: 'summary_large_image',
-    title: 'MITIKUS — Auditorías profesionales en 8 minutos',
+    title: 'MITIKUS — Tu negocio, all in one!',
     description:
-      'La plataforma que convierte tus auditorías IT, RGPD e ISO 27001 en procesos repetibles.',
+      'El hub de productividad para profesionales, pymes y equipos. Gestiona clientes, documentos, facturas, contratos y tu equipo desde un único lugar.',
   },
   icons: {
     icon: [

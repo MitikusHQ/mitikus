@@ -26,7 +26,12 @@ export default async function AuditPage({ params, searchParams }: Props) {
   ])
 
   if (!can(user, 'view_usage')) {
-    notFound()
+    return (
+      <div className="max-w-2xl mx-auto px-6 py-16 text-center space-y-3">
+        <p className="text-lg font-semibold">Acceso restringido</p>
+        <p className="text-sm text-muted-foreground">Solo los administradores del workspace pueden ver el registro de auditoría.</p>
+      </div>
+    )
   }
 
   const workspace = await db.workspace.findFirst({
@@ -53,6 +58,8 @@ export default async function AuditPage({ params, searchParams }: Props) {
 
   const logs = 'error' in logsResult ? [] : logsResult.logs
   const total = 'error' in logsResult ? 0 : logsResult.total
+  const totalFailures = 'error' in logsResult ? 0 : logsResult.totalFailures
+  const totalDenied = 'error' in logsResult ? 0 : logsResult.totalDenied
   const actorOptions = 'error' in filterOpts ? { actors: [] } : filterOpts
 
   const totalPages = Math.ceil(total / limit)
@@ -60,11 +67,23 @@ export default async function AuditPage({ params, searchParams }: Props) {
 
   return (
     <div className="max-w-5xl mx-auto px-6 py-8 space-y-8">
-      <div>
-        <h1 className="text-xl font-semibold">Auditoría</h1>
-        <p className="text-xs text-muted-foreground mt-0.5">
-          Rastro de auditoría · {total.toLocaleString('es-ES')} eventos
-        </p>
+      <div className="flex items-start justify-between gap-4">
+        <div>
+          <h1 className="text-xl font-semibold">Auditoría</h1>
+          <p className="text-xs text-muted-foreground mt-0.5">
+            Rastro de auditoría · {total.toLocaleString('es-ES')} eventos
+          </p>
+        </div>
+        <a
+          href={`/api/workspace/${workspaceId}/audit/export`}
+          download="auditoria.csv"
+          className="shrink-0 inline-flex items-center gap-1.5 rounded-lg border px-3 py-1.5 text-xs font-medium hover:bg-muted transition-colors"
+        >
+          <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden>
+            <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/>
+          </svg>
+          Exportar CSV
+        </a>
       </div>
 
         {/* Filtros */}
@@ -80,12 +99,12 @@ export default async function AuditPage({ params, searchParams }: Props) {
           <StatCard label="Total eventos" value={total.toLocaleString('es-ES')} />
           <StatCard
             label="Errores"
-            value={logs.filter((l) => l.result === 'failure').length.toString()}
+            value={totalFailures.toLocaleString('es-ES')}
             danger
           />
           <StatCard
             label="Denegados"
-            value={logs.filter((l) => l.result === 'denied').length.toString()}
+            value={totalDenied.toLocaleString('es-ES')}
             warning
           />
         </div>

@@ -32,6 +32,8 @@ export interface AuditFilters {
 export interface AuditListResult {
   logs: AuditLogRow[]
   total: number
+  totalFailures: number
+  totalDenied: number
 }
 
 // Solo EDITOR o superior puede ver el audit trail del workspace
@@ -69,7 +71,12 @@ export async function listAuditLogs(
         : {}),
     }
 
-    const [logs, total] = await Promise.all([
+    const baseWhere = {
+      orgId: user.orgId,
+      ...(workspaceId ? { workspaceId } : {}),
+    }
+
+    const [logs, total, totalFailures, totalDenied] = await Promise.all([
       db.auditLog.findMany({
         where,
         orderBy: { createdAt: 'desc' },
@@ -80,9 +87,13 @@ export async function listAuditLogs(
         },
       }),
       db.auditLog.count({ where }),
+      db.auditLog.count({ where: { ...baseWhere, result: 'failure' } }),
+      db.auditLog.count({ where: { ...baseWhere, result: 'denied' } }),
     ])
 
     return {
+      totalFailures,
+      totalDenied,
       logs: logs.map((log) => ({
         id: log.id,
         orgId: log.orgId,

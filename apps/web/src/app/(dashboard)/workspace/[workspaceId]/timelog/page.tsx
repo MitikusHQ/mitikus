@@ -1,4 +1,6 @@
 import { requireUser } from '@/lib/auth'
+import { notFound } from 'next/navigation'
+import { db } from '@/lib/db'
 import { getTodayEntry, getWeekEntries } from '@/app/actions/timelog'
 import { ClockWidget } from '../today/_components/ClockWidget'
 import { WeekTable } from './_components/WeekTable'
@@ -18,6 +20,9 @@ function getMonday(date: Date): Date {
 
 export default async function TimelogPage({ params }: Props) {
   const [{ workspaceId }, user] = await Promise.all([params, requireUser()])
+
+  const workspace = await db.workspace.findFirst({ where: { id: workspaceId, orgId: user.orgId } })
+  if (!workspace) notFound()
 
   const weekStart = getMonday(new Date())
 

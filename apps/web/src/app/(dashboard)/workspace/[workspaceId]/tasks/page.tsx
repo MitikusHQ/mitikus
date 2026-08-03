@@ -1,4 +1,6 @@
+import { notFound } from 'next/navigation'
 import { requireUser } from '@/lib/auth'
+import { db } from '@/lib/db'
 import { getTasks } from '@/app/actions/tasks'
 import { TaskList } from './_components/TaskList'
 
@@ -9,6 +11,9 @@ interface Props {
 
 export default async function TasksPage({ params, searchParams }: Props) {
   const [{ workspaceId }, sp, user] = await Promise.all([params, searchParams, requireUser()])
+
+  const workspace = await db.workspace.findFirst({ where: { id: workspaceId, orgId: user.orgId } })
+  if (!workspace) notFound()
 
   const tasks = await getTasks(workspaceId, user.id, {
     status: sp.status,
