@@ -103,10 +103,22 @@ export function WorkspaceSidebar({ workspaceId, workspaceName, workspaceLogoUrl,
         )}
         {!collapsed && (
           <p className="px-3 text-[10px] text-muted-foreground/50 truncate flex items-center gap-1">
-            <svg width="10" height="10" viewBox="0 0 24 24" fill="none" aria-hidden className="shrink-0 opacity-60">
-              <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2z" fill="#F97316"/>
-              <path d="M12 6c-3.31 0-6 2.69-6 6s2.69 6 6 6 6-2.69 6-6-2.69-6-6-6z" fill="#3B82F6"/>
-              <path d="M12 9c-1.66 0-3 1.34-3 3s1.34 3 3 3 3-1.34 3-3-1.34-3-3-3z" fill="#F97316"/>
+            <svg width="10" height="10" viewBox="0 0 200 200" xmlns="http://www.w3.org/2000/svg" aria-hidden className="shrink-0">
+              <defs>
+                <linearGradient id="mitikus-g-footer" x1="10" y1="10" x2="190" y2="190" gradientUnits="userSpaceOnUse">
+                  <stop offset="0%" stopColor="#FFD040"/>
+                  <stop offset="28%" stopColor="#FF7028"/>
+                  <stop offset="50%" stopColor="#FF2878"/>
+                  <stop offset="72%" stopColor="#8B28FF"/>
+                  <stop offset="100%" stopColor="#1820B8"/>
+                </linearGradient>
+                <clipPath id="mitikus-c-footer"><circle cx="100" cy="100" r="87"/></clipPath>
+              </defs>
+              <circle cx="100" cy="100" r="90" fill="none" stroke="url(#mitikus-g-footer)" strokeWidth="5.5"/>
+              <g clipPath="url(#mitikus-c-footer)">
+                <polygon points="-10,0 192,95 192,100 -10,98" fill="url(#mitikus-g-footer)"/>
+                <polygon points="-10,102 192,100 192,105 -10,200" fill="url(#mitikus-g-footer)"/>
+              </g>
             </svg>
             Powered by <span className="font-semibold">MITIKUS</span>
           </p>
