@@ -6,10 +6,14 @@ import { setLegalForm } from '@/app/actions/fiscal'
 import { LEGAL_FORM_LABELS, type LegalForm } from '@/lib/fiscal-calendar'
 
 const OPTIONS: { value: LegalForm; emoji: string; description: string }[] = [
-  { value: 'autonomo', emoji: '🧑‍💼', description: 'Trabajas por cuenta propia con NIF/NIE' },
-  { value: 'sl',       emoji: '🏢', description: 'Sociedad de responsabilidad limitada' },
-  { value: 'sa',       emoji: '🏦', description: 'Sociedad anónima con capital en acciones' },
-  { value: 'otro',     emoji: '📋', description: 'Cooperativa, asociación u otra forma' },
+  { value: 'autonomo',    emoji: '🧑‍💼', description: 'Trabajas por cuenta propia con NIF/NIE' },
+  { value: 'sl',          emoji: '🏢', description: 'Sociedad de responsabilidad limitada' },
+  { value: 'sa',          emoji: '🏦', description: 'Sociedad anónima con capital en acciones' },
+  { value: 'comunidad',   emoji: '🤝', description: 'Comunidad de bienes' },
+  { value: 'cooperativa', emoji: '🔄', description: 'Cooperativa de trabajo, consumidores, etc.' },
+  { value: 'asociacion',  emoji: '🌐', description: 'Asociación sin ánimo de lucro' },
+  { value: 'fundacion',   emoji: '🏛️', description: 'Fundación' },
+  { value: 'otro',        emoji: '🤖', description: 'No sé / otro — la IA lo identifica' },
 ]
 
 export function LegalFormPicker({ workspaceId }: { workspaceId: string }) {

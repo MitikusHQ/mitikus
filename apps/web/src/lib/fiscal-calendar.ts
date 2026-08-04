@@ -1,6 +1,6 @@
 // Calendario fiscal multi-país 2025-2026
 
-export type LegalForm = 'autonomo' | 'sl' | 'sa' | 'comunidad' | 'otro'
+export type LegalForm = 'autonomo' | 'sl' | 'sa' | 'comunidad' | 'cooperativa' | 'asociacion' | 'fundacion' | 'otro'
 
 export type Country = 'ES' | 'FR' | 'PT' | 'IT' | 'BE' | 'DE' | 'US' | 'CA' | 'IL'
 
@@ -227,11 +227,14 @@ export function getFiscalEvents(country: string, legalForm?: string | null): Fis
 }
 
 export const LEGAL_FORM_LABELS: Record<LegalForm, string> = {
-  autonomo:  'Autónomo',
-  sl:        'Sociedad Limitada (SL)',
-  sa:        'Sociedad Anónima (SA)',
-  comunidad: 'Comunidad de bienes',
-  otro:      'Otro tipo',
+  autonomo:    'Autónomo',
+  sl:          'Sociedad Limitada (SL)',
+  sa:          'Sociedad Anónima (SA)',
+  comunidad:   'Comunidad de bienes',
+  cooperativa: 'Cooperativa',
+  asociacion:  'Asociación',
+  fundacion:   'Fundación',
+  otro:        'Otro (identificar con IA)',
 }
 
 export const COUNTRY_LABELS: Record<Country, string> = {
