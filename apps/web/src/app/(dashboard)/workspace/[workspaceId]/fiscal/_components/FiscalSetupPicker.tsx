@@ -16,7 +16,7 @@ const LEGAL_FORMS: { value: LegalForm; description: string }[] = [
   { value: 'cooperativa', description: 'Cooperativa de trabajo, consumidores, etc.' },
   { value: 'asociacion',  description: 'Asociación sin ánimo de lucro' },
   { value: 'fundacion',   description: 'Fundación' },
-  { value: 'otro',        description: 'No sé / otro tipo — la IA lo identifica' },
+  { value: 'otro',        description: 'Otro tipo de entidad' },
 ]
 
 export function FiscalSetupPicker({ workspaceId }: { workspaceId: string }) {
@@ -66,10 +66,10 @@ export function FiscalSetupPicker({ workspaceId }: { workspaceId: string }) {
     return (
       <div className="max-w-lg mx-auto py-12 px-6 space-y-6">
         <div className="text-center space-y-2">
-          <div className="text-3xl">🤖</div>
-          <h2 className="text-lg font-semibold">Identificar forma jurídica con IA</h2>
+          <div className="text-3xl">🗂️</div>
+          <h2 className="text-lg font-semibold">¿Qué tipo de entidad eres?</h2>
           <p className="text-sm text-muted-foreground">
-            Describe tu entidad y Claude te dirá qué forma jurídica es.
+            Descríbela brevemente y la identificaremos automáticamente.
           </p>
         </div>
 
@@ -86,7 +86,7 @@ export function FiscalSetupPicker({ workspaceId }: { workspaceId: string }) {
             disabled={aiLoading || !aiInput.trim()}
             className="w-full rounded-md bg-primary px-4 py-2.5 text-sm font-medium text-primary-foreground shadow hover:bg-primary/90 disabled:opacity-50 transition-colors"
           >
-            {aiLoading ? 'Identificando…' : 'Identificar con IA →'}
+            {aiLoading ? 'Identificando…' : 'Continuar →'}
           </button>
         </div>
 

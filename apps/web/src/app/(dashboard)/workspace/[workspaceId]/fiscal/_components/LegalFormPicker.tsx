@@ -13,7 +13,7 @@ const OPTIONS: { value: LegalForm; emoji: string; description: string }[] = [
   { value: 'cooperativa', emoji: '🔄', description: 'Cooperativa de trabajo, consumidores, etc.' },
   { value: 'asociacion',  emoji: '🌐', description: 'Asociación sin ánimo de lucro' },
   { value: 'fundacion',   emoji: '🏛️', description: 'Fundación' },
-  { value: 'otro',        emoji: '🤖', description: 'No sé / otro — la IA lo identifica' },
+  { value: 'otro',        emoji: '📋', description: 'Otro tipo de entidad' },
 ]
 
 export function LegalFormPicker({ workspaceId }: { workspaceId: string }) {

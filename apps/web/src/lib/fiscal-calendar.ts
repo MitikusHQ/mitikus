@@ -234,7 +234,7 @@ export const LEGAL_FORM_LABELS: Record<LegalForm, string> = {
   cooperativa: 'Cooperativa',
   asociacion:  'Asociación',
   fundacion:   'Fundación',
-  otro:        'Otro (identificar con IA)',
+  otro:        'Otro',
 }
 
 export const COUNTRY_LABELS: Record<Country, string> = {
