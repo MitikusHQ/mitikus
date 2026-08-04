@@ -12,7 +12,7 @@ import { getLocale } from '@/i18n/locale'
 import { PricingSection } from './_components/PricingSection'
 
 export const metadata: Metadata = {
-  title: 'MITIKUS — Crea, gestiona y entrega documentos de cliente con IA',
+  title: 'MITIKUS — Tu espacio de trabajo, todo en uno',
   description:
     'La plataforma para profesionales, pymes y equipos que crean, gestionan y entregan documentos, contratos e informes de cliente. Propuestas, contratos con firma digital, facturas y presentaciones — todo en un solo lugar.',
   keywords: [
@@ -21,7 +21,7 @@ export const metadata: Metadata = {
     'presentaciones clientes', 'software gestión documentos cliente',
   ],
   openGraph: {
-    title: 'MITIKUS — Crea, gestiona y entrega documentos de cliente con IA',
+    title: 'MITIKUS — Tu espacio de trabajo, todo en uno',
     description:
       'Propuestas, contratos con firma digital, facturas y presentaciones — para profesionales y equipos que quieren entregar más rápido.',
     type: 'website',
@@ -32,7 +32,7 @@ export const metadata: Metadata = {
   },
   twitter: {
     card: 'summary_large_image',
-    title: 'MITIKUS — El espacio de trabajo completo para tu equipo',
+    title: 'MITIKUS — Tu espacio de trabajo, todo en uno',
     description: 'Documentos, contratos, hojas de cálculo, presentaciones y IA en un solo lugar.',
     images: ['https://www.mitikus.com/api/og'],
   },
