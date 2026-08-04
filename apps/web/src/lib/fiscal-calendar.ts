@@ -201,12 +201,21 @@ const EVENTS_BY_COUNTRY: Record<Country, FiscalEvent[]> = {
 
 // ── Funciones públicas ────────────────────────────────────────────────────────
 
+// Formas jurídicas que heredan las obligaciones de 'otro' hasta tener datos específicos
+const LEGALFORM_FALLBACK: Record<string, string> = {
+  cooperativa: 'otro',
+  asociacion:  'otro',
+  fundacion:   'otro',
+}
+
 export function getFiscalEvents(country: string, legalForm?: string | null): FiscalEventWithStatus[] {
   const countryKey = (country as Country) in EVENTS_BY_COUNTRY ? (country as Country) : 'ES'
   const events = EVENTS_BY_COUNTRY[countryKey]
 
-  const filtered = countryKey === 'ES' && legalForm
-    ? events.filter((e) => e.aplica.length === 0 || e.aplica.includes(legalForm))
+  const effectiveForm = legalForm ? (LEGALFORM_FALLBACK[legalForm] ?? legalForm) : legalForm
+
+  const filtered = countryKey === 'ES' && effectiveForm
+    ? events.filter((e) => e.aplica.length === 0 || e.aplica.includes(effectiveForm))
     : events
 
   const now = new Date()
