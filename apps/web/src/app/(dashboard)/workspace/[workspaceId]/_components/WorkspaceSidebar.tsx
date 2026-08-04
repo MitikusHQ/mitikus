@@ -102,8 +102,8 @@ export function WorkspaceSidebar({ workspaceId, workspaceName, workspaceLogoUrl,
           </button>
         )}
         {!collapsed && (
-          <p className="px-3 text-[10px] text-muted-foreground/50 truncate flex items-center gap-1">
-            <svg width="10" height="10" viewBox="0 0 200 200" xmlns="http://www.w3.org/2000/svg" aria-hidden className="shrink-0">
+          <p className="px-3 text-[10px] text-muted-foreground/50 truncate flex items-center gap-1.5">
+            <svg width="16" height="16" viewBox="0 0 200 200" xmlns="http://www.w3.org/2000/svg" aria-hidden className="shrink-0">
               <defs>
                 <linearGradient id="mitikus-g-footer" x1="10" y1="10" x2="190" y2="190" gradientUnits="userSpaceOnUse">
                   <stop offset="0%" stopColor="#FFD040"/>
