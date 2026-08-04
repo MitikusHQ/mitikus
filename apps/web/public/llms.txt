@@ -1,44 +1,23 @@
 # MITIKUS
 
-> Plataforma de inteligencia operativa para consultoras IT de 3 a 15 personas. Convierte auditorías técnicas, checklists e informes de cliente en procesos guiados con IA, reduciendo el tiempo de redacción de horas a minutos.
+> Plataforma todo-en-uno para profesionales independientes y pequeños equipos. Gestiona clientes, proyectos, facturación y cumplimiento fiscal desde un único lugar.
 
-## Qué hace MITIKUS
+## Producto
 
-MITIKUS es un sistema operativo de trabajo para equipos IT pequeños. El usuario describe un objetivo (auditar infraestructura de un cliente, generar un informe de seguridad, preparar una propuesta técnica), y la IA genera un plan de misión paso a paso con las herramientas adecuadas en cada punto. El equipo ejecuta, revisa y entrega sin partir de cero.
+MITIKUS es una herramienta SaaS dirigida a autónomos, consultores y pequeñas empresas españolas. Ofrece:
 
-Pensado para consultoras IT boutique y freelance técnico, no para grandes departamentos corporativos.
+- **Mi Office**: espacio de trabajo centralizado por cliente o proyecto
+- **Calendario fiscal**: obligaciones tributarias personalizadas por forma jurídica (autónomo, SL, SA, cooperativa, asociación, fundación…)
+- **Facturación**: emisión de facturas con cumplimiento Verifactu (RD 1007/2023)
+- **Gestión de equipo**: espacios colaborativos con roles y permisos
+- **Asistente IA**: redacción de documentos, propuestas y síntesis de información
 
 ## Páginas principales
 
-- [Inicio](https://www.mitikus.com/): Descripción del producto, cómo funciona y formulario de acceso.
-- [Herramientas](https://www.mitikus.com/tools): Catálogo de herramientas IA disponibles (auditorías, informes, propuestas, seguridad).
-- [Iniciar sesión](https://www.mitikus.com/sign-in): Acceso para usuarios registrados.
-- [Crear cuenta](https://www.mitikus.com/sign-up): Registro de nuevas organizaciones.
-- [Privacidad](https://www.mitikus.com/privacy): Política de privacidad y RGPD.
-
-## Funcionalidades clave
-
-- **Copilot de negocio**: el usuario describe en lenguaje natural lo que quiere conseguir; la IA genera un plan de misión con pasos concretos y herramientas asignadas.
-- **Misiones con pasos**: objetivos de trabajo estructurados en pasos asignables a miembros del equipo.
-- **Herramientas IA**: plantillas con variables de entrada que generan outputs estructurados (informes, checklists, propuestas, correos, diagnósticos).
-- **Contexto de empresa**: la plataforma aprende los datos del cliente (sector, servicios, mercados) y los inyecta automáticamente en cada herramienta.
-- **Workspaces**: cada cliente o proyecto tiene su propio espacio de trabajo aislado.
-- **Historial de ejecuciones**: todas las generaciones quedan registradas para auditoría y reutilización.
-
-## Audiencia objetivo
-
-- Consultoras IT independientes (3-15 personas)
-- Freelance técnico que trabaja con varios clientes a la vez
-- Equipos IT de PYMEs que necesitan estandarizar procesos de entrega
-
-## Tecnología
-
-- Next.js 15 (App Router), TypeScript, Tailwind CSS
-- Modelos: Claude (Anthropic) y GPT-4 (OpenAI), seleccionables por herramienta
-- Autenticación: Clerk
-- Base de datos: PostgreSQL vía Prisma
+- https://www.mitikus.com — Landing page principal
+- https://www.mitikus.com/sign-up — Registro
+- https://www.mitikus.com/sign-in — Acceso
 
 ## Contacto
 
-- Web: https://www.mitikus.com
-- Email: hola@mitikus.com
+Para integraciones o consultas: borjaprietomark82@gmail.com

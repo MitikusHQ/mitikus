@@ -648,7 +648,7 @@ function MockupArkos() {
         </div>
         <div className="mt-auto border rounded-lg p-2 flex items-center gap-2">
           <span className="text-xs text-muted-foreground flex-1">Escribe tu objetivo...</span>
-          <div className="w-6 h-6 rounded bg-primary flex items-center justify-center">
+          <div className="w-6 h-6 rounded bg-primary flex items-center justify-center" aria-hidden="true">
             <svg width="10" height="10" viewBox="0 0 10 10" fill="none"><path d="M2 5h6M6 3l2 2-2 2" stroke="white" strokeWidth="1.2" strokeLinecap="round"/></svg>
           </div>
         </div>
@@ -754,8 +754,8 @@ function TestimonialCard({
           {initials}
         </div>
         <div className="min-w-0">
-          <p className="text-sm font-semibold truncate">{name}</p>
-          <p className="text-xs text-muted-foreground truncate">{role} · {company}</p>
+          <p className="text-sm font-semibold">{name}</p>
+          <p className="text-xs text-muted-foreground">{role} · {company}</p>
         </div>
       </div>
     </div>
