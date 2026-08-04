@@ -121,7 +121,7 @@ export default async function HomePage() {
       {/* ── HERO ── */}
       <section className="max-w-4xl mx-auto px-6 pt-16 pb-12 text-center">
         <h1 className="text-3xl sm:text-5xl font-bold tracking-tight mb-4 leading-tight">
-          Crea, gestiona y entrega<br className="hidden sm:block" /> documentos de cliente con IA.
+          Tu espacio de trabajo,<br className="hidden sm:block" /> todo en uno.
         </h1>
         <p className="text-lg text-muted-foreground mb-8 max-w-2xl mx-auto">
           La plataforma para profesionales y equipos que quieren entregar propuestas, contratos, informes
