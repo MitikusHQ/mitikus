@@ -1,6 +1,6 @@
 'use client'
 
-import { useTransition } from 'react'
+import { useState } from 'react'
 import { useRouter } from 'next/navigation'
 import { setLegalForm } from '@/app/actions/fiscal'
 import { LEGAL_FORM_LABELS, type LegalForm } from '@/lib/fiscal-calendar'
@@ -14,13 +14,17 @@ const OPTIONS: { value: LegalForm; emoji: string; description: string }[] = [
 
 export function LegalFormPicker({ workspaceId }: { workspaceId: string }) {
   const router = useRouter()
-  const [isPending, startTransition] = useTransition()
+  const [isPending, setIsPending] = useState(false)
 
-  function handleSelect(value: LegalForm) {
-    startTransition(async () => {
+  async function handleSelect(value: LegalForm) {
+    setIsPending(true)
+    try {
       await setLegalForm(workspaceId, value)
+      router.push(`/workspace/${workspaceId}/fiscal`)
       router.refresh()
-    })
+    } finally {
+      setIsPending(false)
+    }
   }
 
   return (

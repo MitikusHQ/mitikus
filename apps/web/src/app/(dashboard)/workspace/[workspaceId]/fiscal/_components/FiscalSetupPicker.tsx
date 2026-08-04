@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useTransition } from 'react'
+import { useState } from 'react'
 import { useRouter } from 'next/navigation'
 import { COUNTRY_LABELS, LEGAL_FORM_LABELS, type Country, type LegalForm } from '@/lib/fiscal-calendar'
 import { setFiscalConfig } from '@/app/actions/fiscal'
@@ -17,14 +17,18 @@ const LEGAL_FORMS: { value: LegalForm; description: string }[] = [
 
 export function FiscalSetupPicker({ workspaceId }: { workspaceId: string }) {
   const router = useRouter()
-  const [isPending, startTransition] = useTransition()
+  const [isPending, setIsPending] = useState(false)
   const [country, setCountry] = useState<Country>('ES')
 
-  function handleConfirm(legalForm?: LegalForm) {
-    startTransition(async () => {
+  async function handleConfirm(legalForm?: LegalForm) {
+    setIsPending(true)
+    try {
       await setFiscalConfig(workspaceId, country, legalForm)
+      router.push(`/workspace/${workspaceId}/fiscal`)
       router.refresh()
-    })
+    } finally {
+      setIsPending(false)
+    }
   }
 
   return (
