@@ -37,6 +37,13 @@ enum LeadStatus {
   PERDIDO
 }
 
+enum FileType {
+  DOC
+  SHEET
+  PDF
+  IMAGE
+}
+
 enum SubscriptionStatus {
   TRIALING   // periodo de prueba, sin tarjeta o sin cobrar todavía
   ACTIVE     // suscripción al día
@@ -336,6 +343,8 @@ model Workspace {
   receipts             Receipt[]
   invoices             Invoice[]
   workspaceLeads       WorkspaceLead[]
+  folders              Folder[]
+  workspaceFiles       WorkspaceFile[]
 
   @@unique([orgId, slug])
   @@index([orgId])
@@ -1961,4 +1970,48 @@ model WorkspaceLead {
   @@index([workspaceId, createdAt])
   @@index([workspaceId, status])
   @@map("workspace_leads")
+}
+
+// ============================================================
+// FILES MODULE — carpetas y archivos del workspace (Vercel Blob)
+// ============================================================
+
+model Folder {
+  id          String   @id @default(cuid())
+  workspaceId String
+  name        String
+  parentId    String?
+
+  workspace Workspace @relation(fields: [workspaceId], references: [id], onDelete: Cascade)
+  parent    Folder?   @relation("FolderTree", fields: [parentId], references: [id], onDelete: NoAction, onUpdate: NoAction)
+  children  Folder[]  @relation("FolderTree")
+  files     WorkspaceFile[]
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([workspaceId])
+  @@index([parentId])
+  @@map("folders")
+}
+
+model WorkspaceFile {
+  id          String   @id @default(cuid())
+  workspaceId String
+  folderId    String?
+  name        String
+  type        FileType
+  url         String
+  size        Int
+  mimeType    String
+
+  workspace Workspace @relation(fields: [workspaceId], references: [id], onDelete: Cascade)
+  folder    Folder?   @relation(fields: [folderId], references: [id], onDelete: SetNull)
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([workspaceId])
+  @@index([folderId])
+  @@map("workspace_files")
 }

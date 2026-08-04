@@ -31,6 +31,7 @@ export default async function MyOfficePage({ params }: Props) {
             { href: `${base}/presentations`, emoji: '🖥️', title: 'Presentaciones',   subtitle: 'Crea y comparte' },
             { href: `${base}/notebooks`,     emoji: '🧠', title: 'Notebooks',        subtitle: 'Sintetiza con IA' },
             { href: `${base}/receipts`,      emoji: '📷', title: 'Gastos',           subtitle: 'OCR por cámara' },
+            { href: `${base}/office/files`, emoji: '🗂️', title: 'Archivos',          subtitle: 'Carpetas y ficheros' },
           ].map((tool) => (
             <Link
               key={tool.title}
