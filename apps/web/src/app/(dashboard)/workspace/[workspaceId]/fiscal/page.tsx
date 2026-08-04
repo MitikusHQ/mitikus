@@ -50,7 +50,7 @@ export default async function FiscalPage({ params }: Props) {
   ])
   const configurableModels = new Set(
     effectiveCountry === 'ES'
-      ? ['303', '130', '111', '115', '390', '190', '100', '200']
+      ? ['303', '130', '111', '115', '202', '390', '190', '347', '184', '100', '200']
       : getCountryModels(effectiveCountry)
   )
 
