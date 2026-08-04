@@ -425,66 +425,6 @@ export default async function HomePage() {
         </div>
       </section>
 
-      {/* ── PRECIOS ── */}
-      <section id="precios" className="bg-muted/30 border-y">
-        <div className="max-w-4xl mx-auto px-6 py-14">
-          <h2 className="text-2xl font-bold text-center mb-2">Precios claros, sin sorpresas</h2>
-          <p className="text-center text-muted-foreground mb-10">
-            Desde 29 €/mes. Sin permanencia. Cancela cuando quieras.
-          </p>
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
-            {[
-              { name: 'Solo', price: 29, users: 1, workspaces: 1, badge: 'Para profesionales' },
-              { name: 'Starter', price: 49, users: 2, workspaces: 1 },
-              { name: 'Professional', price: 149, users: 5, workspaces: 3, popular: true },
-              { name: 'Business', price: 349, users: 15, workspaces: 10 },
-            ].map((plan) => (
-              <div
-                key={plan.name}
-                className={`rounded-xl border bg-card p-5 flex flex-col gap-3 relative ${plan.popular ? 'border-primary shadow-sm' : plan.badge ? 'border-primary/30' : ''}`}
-              >
-                {plan.popular && (
-                  <span className="absolute -top-3 left-1/2 -translate-x-1/2 rounded-full bg-primary px-3 py-0.5 text-[11px] font-semibold text-primary-foreground whitespace-nowrap">
-                    Más popular
-                  </span>
-                )}
-                {plan.badge && !plan.popular && (
-                  <span className="absolute -top-3 left-1/2 -translate-x-1/2 rounded-full bg-primary/10 border border-primary/20 px-3 py-0.5 text-[11px] font-semibold text-primary whitespace-nowrap">
-                    {plan.badge}
-                  </span>
-                )}
-                <div>
-                  <p className="font-semibold text-sm">{plan.name}</p>
-                  <div className="flex items-baseline gap-0.5 mt-1">
-                    <span className="text-2xl font-bold">€{plan.price}</span>
-                    <span className="text-xs text-muted-foreground">/mes</span>
-                  </div>
-                </div>
-                <ul className="text-xs text-muted-foreground space-y-1 flex-1">
-                  <li>{plan.users === 1 ? '1 usuario' : `Hasta ${plan.users} usuarios`}</li>
-                  <li>{plan.workspaces === 1 ? '1 workspace' : `${plan.workspaces} workspaces`}</li>
-                  {plan.name === 'Solo'
-                    ? <><li>Facturación + fiscal</li><li>Arkos IA incluido</li></>
-                    : <li>Todas las herramientas incluidas</li>
-                  }
-                </ul>
-                <a
-                  href="/sign-up"
-                  className={`text-center rounded-lg py-2 text-xs font-medium transition-colors ${plan.popular ? 'bg-primary text-primary-foreground hover:bg-primary/90' : 'border border-input hover:bg-muted'}`}
-                >
-                  Empezar gratis
-                </a>
-              </div>
-            ))}
-          </div>
-          <p className="text-center mt-6 text-xs text-muted-foreground">
-            ¿Necesitas más?{' '}
-            <a href="/pricing" className="underline hover:text-foreground transition-colors">
-              Ver todos los detalles de cada plan →
-            </a>
-          </p>
-        </div>
-      </section>
 
       {/* ── CTA FINAL ── */}
       <section>
