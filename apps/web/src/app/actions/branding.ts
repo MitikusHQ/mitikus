@@ -12,6 +12,19 @@ export async function updateUserAvatar(avatarUrl: string) {
   return { ok: true }
 }
 
+export async function removeWorkspaceLogo(workspaceId: string) {
+  const user = await requireUser()
+  if (!can(user, 'manage_members')) {
+    throw new Error('Sin permisos para editar el workspace')
+  }
+  await db.workspace.update({
+    where: { id: workspaceId, orgId: user.orgId },
+    data: { logoUrl: null },
+  })
+  revalidatePath(`/workspace/${workspaceId}`, 'layout')
+  return { ok: true }
+}
+
 export async function updateWorkspaceBranding(
   workspaceId: string,
   data: { name?: string; logoUrl?: string; brandColor?: string },
