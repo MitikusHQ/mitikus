@@ -239,6 +239,7 @@ model User {
   email     String   @unique
   name      String?
   avatarUrl String?  // URL foto de perfil (Cloudinary)
+  jobTitle  String?  // Cargo libre: "CEO", "Diseñadora", etc.
   orgId     String
   role      OrgRole  @default(MEMBER)
   // Beta access control

@@ -12,6 +12,13 @@ export async function updateUserAvatar(avatarUrl: string) {
   return { ok: true }
 }
 
+export async function updateUserJobTitle(jobTitle: string) {
+  const user = await requireUser()
+  await db.user.update({ where: { id: user.id }, data: { jobTitle: jobTitle.trim() || null } })
+  revalidatePath('/', 'layout')
+  return { ok: true }
+}
+
 export async function removeWorkspaceLogo(workspaceId: string) {
   const user = await requireUser()
   if (!can(user, 'manage_members')) {

@@ -17,6 +17,8 @@ export default async function ProfilePage() {
         name={user.name ?? user.email}
         email={user.email}
         avatarUrl={user.avatarUrl ?? null}
+        jobTitle={user.jobTitle ?? null}
+        role={user.role}
       />
     </div>
   )
