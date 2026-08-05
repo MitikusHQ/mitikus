@@ -1,0 +1,69 @@
+'use client'
+
+import { useState } from 'react'
+import { type Locale } from '@/i18n/config'
+import { LocaleSelector } from '@/app/(dashboard)/_components/LocaleSelector'
+import { ThemeToggle } from '@/app/(dashboard)/_components/ThemeToggle'
+
+interface LandingNavProps {
+  locale: Locale
+}
+
+export function LandingNav({ locale }: LandingNavProps) {
+  const [open, setOpen] = useState(false)
+
+  return (
+    <div className="flex items-center gap-2">
+      {/* Desktop nav */}
+      <nav className="hidden md:flex items-center gap-4" aria-label="Navegación principal">
+        <LocaleSelector currentLocale={locale} />
+        <ThemeToggle />
+        <a href="/sign-in" className="text-sm text-muted-foreground hover:text-foreground transition-colors">
+          Iniciar sesión
+        </a>
+      </nav>
+
+      {/* CTA siempre visible */}
+      <a
+        href="/sign-up"
+        className="text-sm font-medium bg-primary text-primary-foreground px-3 py-1.5 md:px-4 md:py-2 rounded-md hover:bg-primary/90 transition-colors whitespace-nowrap"
+      >
+        Empezar gratis
+      </a>
+
+      {/* Hamburger — solo móvil */}
+      <button
+        type="button"
+        aria-label={open ? 'Cerrar menú' : 'Abrir menú'}
+        aria-expanded={open}
+        aria-controls="mobile-menu"
+        onClick={() => setOpen(v => !v)}
+        className="md:hidden flex flex-col items-center justify-center w-9 h-9 rounded-md hover:bg-muted/60 transition-colors"
+      >
+        <span className={`block w-5 h-0.5 bg-foreground transition-transform duration-200 ${open ? 'rotate-45 translate-y-1' : ''}`} />
+        <span className={`block w-5 h-0.5 bg-foreground mt-1 transition-opacity duration-200 ${open ? 'opacity-0' : ''}`} />
+        <span className={`block w-5 h-0.5 bg-foreground mt-1 transition-transform duration-200 ${open ? '-rotate-45 -translate-y-2.5' : ''}`} />
+      </button>
+
+      {/* Mobile menu */}
+      {open && (
+        <div
+          id="mobile-menu"
+          className="md:hidden absolute top-full left-0 right-0 border-b bg-background/98 backdrop-blur-sm shadow-md px-6 py-4 flex flex-col gap-3"
+        >
+          <div className="flex items-center gap-3">
+            <LocaleSelector currentLocale={locale} />
+            <ThemeToggle />
+          </div>
+          <a
+            href="/sign-in"
+            className="text-sm text-muted-foreground hover:text-foreground transition-colors py-1"
+            onClick={() => setOpen(false)}
+          >
+            Iniciar sesión
+          </a>
+        </div>
+      )}
+    </div>
+  )
+}

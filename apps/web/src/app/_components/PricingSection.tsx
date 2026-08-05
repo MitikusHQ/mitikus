@@ -88,6 +88,7 @@ export function PricingSection() {
         <button
           type="button"
           role="switch"
+          aria-label="Cambiar a facturación anual"
           aria-checked={annual}
           onClick={() => setAnnual((v) => !v)}
           className={`relative w-11 h-6 rounded-full transition-colors focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary ${

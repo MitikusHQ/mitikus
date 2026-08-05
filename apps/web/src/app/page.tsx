@@ -4,17 +4,16 @@ import { auth } from '@clerk/nextjs/server'
 import { redirect } from 'next/navigation'
 import { cookies } from 'next/headers'
 import { db } from '@/lib/db'
-import { ThemeToggle } from './(dashboard)/_components/ThemeToggle'
-import { LocaleSelector } from './(dashboard)/_components/LocaleSelector'
 import { ScrollReveal } from './_components/ScrollReveal'
 import { CookieBanner } from './_components/CookieBanner'
 import { getLocale } from '@/i18n/locale'
 import { PricingSection } from './_components/PricingSection'
+import { LandingNav } from './_components/LandingNav'
 
 export const metadata: Metadata = {
   title: 'MITIKUS — Tu espacio de trabajo, todo en uno',
   description:
-    'La plataforma para profesionales, pymes y equipos que crean, gestionan y entregan documentos, contratos e informes de cliente. Propuestas, contratos con firma digital, facturas y presentaciones — todo en un solo lugar.',
+    'Propuestas, contratos con firma digital, facturas y presentaciones para profesionales y equipos — todo en un solo lugar. Prueba gratis 15 días.',
   keywords: [
     'gestión documental profesionales', 'contratos firma digital pymes',
     'crear propuestas comerciales IA', 'facturación online pymes',
@@ -78,7 +77,7 @@ export default async function HomePage() {
       <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }} />
 
       {/* ── NAV ── */}
-      <header className="border-b sticky top-0 z-50 bg-background/95 backdrop-blur-sm">
+      <header className="border-b sticky top-0 z-50 bg-background/95 backdrop-blur-sm relative">
         <div className="max-w-5xl mx-auto px-6 py-4 flex items-center justify-between">
           <div className="flex items-center gap-2.5">
             <svg width="44" height="44" viewBox="0 0 200 200" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
@@ -102,19 +101,7 @@ export default async function HomePage() {
               MITIKUS
             </span>
           </div>
-          <nav className="flex items-center gap-2 sm:gap-4" aria-label="Navegación principal">
-            <LocaleSelector currentLocale={locale} />
-            <ThemeToggle />
-            <a href="/sign-in" className="hidden sm:inline text-sm text-muted-foreground hover:text-foreground transition-colors">
-              Iniciar sesión
-            </a>
-            <a
-              href="/sign-up"
-              className="text-sm font-medium bg-primary text-primary-foreground px-3 py-1.5 sm:px-4 sm:py-2 rounded-md hover:bg-primary/90 transition-colors whitespace-nowrap"
-            >
-              Empezar gratis
-            </a>
-          </nav>
+          <LandingNav locale={locale} />
         </div>
       </header>
 
@@ -516,7 +503,7 @@ function MockupOfficeHub() {
           <div className="w-6 h-6 rounded-full bg-primary/20 flex items-center justify-center flex-shrink-0">
             <svg width="12" height="12" viewBox="0 0 12 12" fill="none"><circle cx="6" cy="6" r="5" stroke="currentColor" strokeWidth="1.2" className="text-primary"/><path d="M4 6l1.5 1.5L8 4" stroke="currentColor" strokeWidth="1.2" strokeLinecap="round" className="text-primary"/></svg>
           </div>
-          <span className="text-[11px] text-muted-foreground">Arkos listo para ayudarte en cualquier herramienta</span>
+          <span className="text-[11px] text-foreground/70">Arkos listo para ayudarte en cualquier herramienta</span>
         </div>
       </div>
     </div>
@@ -558,7 +545,7 @@ function MockupTeam() {
     { name: 'Laura García', role: 'Propietaria', initials: 'LG', color: 'bg-violet-100 text-violet-700 dark:bg-violet-900/30 dark:text-violet-400' },
     { name: 'Marcos Ruiz', role: 'Administrador', initials: 'MR', color: 'bg-blue-100 text-blue-700 dark:bg-blue-900/30 dark:text-blue-400' },
     { name: 'Ana Pérez', role: 'Editora', initials: 'AP', color: 'bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-400' },
-    { name: 'invite@empresa.com', role: 'Pendiente', initials: '···', color: 'bg-muted text-muted-foreground' },
+    { name: 'Invitación pendiente', role: 'Pendiente', initials: '···', color: 'bg-muted text-muted-foreground' },
   ]
   return (
     <div className="rounded-xl border bg-card overflow-hidden shadow-sm">
