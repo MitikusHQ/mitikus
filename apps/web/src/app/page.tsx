@@ -443,36 +443,37 @@ export default async function HomePage() {
       </section>
 
       <footer className="border-t">
-        <div className="max-w-5xl mx-auto px-6 py-8 flex flex-col sm:flex-row items-center justify-between gap-2 text-xs text-muted-foreground">
-          <span className="flex items-center gap-2">
-            <svg width="20" height="20" viewBox="0 0 200 200" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
-              <defs>
-                <linearGradient id="flg" x1="10" y1="10" x2="190" y2="190" gradientUnits="userSpaceOnUse">
-                  <stop offset="0%"   stopColor="#FFD040"/>
-                  <stop offset="28%"  stopColor="#FF7028"/>
-                  <stop offset="50%"  stopColor="#FF2878"/>
-                  <stop offset="72%"  stopColor="#8B28FF"/>
-                  <stop offset="100%" stopColor="#1820B8"/>
-                </linearGradient>
-                <clipPath id="flc"><circle cx="100" cy="100" r="87"/></clipPath>
-              </defs>
-              <circle cx="100" cy="100" r="90" fill="none" stroke="url(#flg)" strokeWidth="5.5"/>
-              <g clipPath="url(#flc)">
-                <polygon points="-10,0   192,95  192,100 -10,98"  fill="url(#flg)"/>
-                <polygon points="-10,102 192,100 192,105 -10,200" fill="url(#flg)"/>
-              </g>
-            </svg>
-            MITIKUS — las herramientas que necesita tu equipo, en un solo lugar.
-          </span>
-          <div className="flex flex-wrap items-center gap-3 justify-center sm:justify-end">
-            <a href="/privacy" className="hover:text-foreground transition-colors">Política de privacidad</a>
-            <span>·</span>
-            <a href="/terms" className="hover:text-foreground transition-colors">Términos de uso</a>
-            <span>·</span>
-            <a href="/dpa" className="hover:text-foreground transition-colors">DPA (Tratamiento de datos)</a>
-            <span>·</span>
-            <span>© {new Date().getFullYear()} MITIKUS</span>
+        <div className="max-w-5xl mx-auto px-6 py-8 space-y-4 text-xs text-muted-foreground">
+          <div className="flex flex-col sm:flex-row items-center justify-between gap-4">
+            <span className="flex items-center gap-2 shrink-0">
+              <svg width="20" height="20" viewBox="0 0 200 200" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+                <defs>
+                  <linearGradient id="flg" x1="10" y1="10" x2="190" y2="190" gradientUnits="userSpaceOnUse">
+                    <stop offset="0%"   stopColor="#FFD040"/>
+                    <stop offset="28%"  stopColor="#FF7028"/>
+                    <stop offset="50%"  stopColor="#FF2878"/>
+                    <stop offset="72%"  stopColor="#8B28FF"/>
+                    <stop offset="100%" stopColor="#1820B8"/>
+                  </linearGradient>
+                  <clipPath id="flc"><circle cx="100" cy="100" r="87"/></clipPath>
+                </defs>
+                <circle cx="100" cy="100" r="90" fill="none" stroke="url(#flg)" strokeWidth="5.5"/>
+                <g clipPath="url(#flc)">
+                  <polygon points="-10,0   192,95  192,100 -10,98"  fill="url(#flg)"/>
+                  <polygon points="-10,102 192,100 192,105 -10,200" fill="url(#flg)"/>
+                </g>
+              </svg>
+              MITIKUS — las herramientas que necesita tu equipo, en un solo lugar.
+            </span>
+            <div className="flex flex-wrap items-center gap-3 justify-center">
+              <a href="/privacy" className="hover:text-foreground transition-colors">Política de privacidad</a>
+              <span>·</span>
+              <a href="/terms" className="hover:text-foreground transition-colors">Términos de uso</a>
+              <span>·</span>
+              <a href="/dpa" className="hover:text-foreground transition-colors">DPA (Tratamiento de datos)</a>
+            </div>
           </div>
+          <p className="text-center">© {new Date().getFullYear()} MITIKUS</p>
         </div>
       </footer>
       <CookieBanner initialShow={!hasConsentCookie} />
