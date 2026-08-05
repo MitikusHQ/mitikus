@@ -444,7 +444,7 @@ export default async function HomePage() {
 
       <footer className="border-t">
         <div className="max-w-5xl mx-auto px-6 py-8 space-y-4 text-xs text-muted-foreground">
-          <div className="flex flex-col sm:flex-row items-center justify-between gap-4">
+          <div className="flex flex-col sm:flex-row items-center justify-center gap-6">
             <span className="flex items-center gap-2 shrink-0">
               <svg width="20" height="20" viewBox="0 0 200 200" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
                 <defs>
@@ -463,7 +463,7 @@ export default async function HomePage() {
                   <polygon points="-10,102 192,100 192,105 -10,200" fill="url(#flg)"/>
                 </g>
               </svg>
-              MITIKUS — las herramientas que necesita tu equipo, en un solo lugar.
+              MITIKUS — Las herramientas que necesita tu equipo, en un solo lugar.
             </span>
             <div className="flex flex-wrap items-center gap-3 justify-center">
               <a href="/privacy" className="hover:text-foreground transition-colors">Política de privacidad</a>
