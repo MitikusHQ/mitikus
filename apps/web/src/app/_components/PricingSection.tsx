@@ -12,7 +12,7 @@ const PLANS = [
     forWhom:  'Prueba con un proyecto real antes de decidir.',
     cta:      'Empezar gratis',
     ctaHref:  '/sign-up',
-    features: ['1 usuario', 'Mi Office completo', 'Arkos IA (limitado)', '5 misiones activas', 'Soporte por email'],
+    features: ['1 usuario', '1 workspace', 'Mi Office completo', 'Arkos IA (limitado)', '5 misiones activas', 'Soporte por email'],
   },
   {
     name:     'Autónomo',
@@ -23,7 +23,7 @@ const PLANS = [
     forWhom:  'Autónomo o profesional independiente que trabaja solo.',
     cta:      'Contratar',
     ctaHref:  '/sign-up',
-    features: ['1 usuario', 'Mi Office completo', 'Arkos IA', 'Misiones ilimitadas', 'Firma digital OTP', 'Facturación + fiscal', 'Soporte por email'],
+    features: ['1 usuario', '1 workspace', 'Mi Office completo', 'Arkos IA', 'Misiones ilimitadas', 'Firma digital OTP', 'Facturación + fiscal', 'Soporte por email'],
   },
   {
     name:     'Starter',
@@ -34,7 +34,7 @@ const PLANS = [
     forWhom:  'Profesionales independientes o equipos pequeños de hasta 2 personas.',
     cta:      'Contratar',
     ctaHref:  '/sign-up',
-    features: ['Hasta 2 usuarios', 'Mi Office completo', 'Arkos IA', 'Misiones ilimitadas', 'Firma digital OTP', 'Soporte por email'],
+    features: ['Hasta 2 usuarios', '1 workspace', 'Mi Office completo', 'Arkos IA', 'Misiones ilimitadas', 'Firma digital OTP', 'Soporte por email'],
   },
   {
     name:        'Professional',
@@ -46,7 +46,7 @@ const PLANS = [
     cta:         'Contratar',
     ctaHref:     '/sign-up',
     highlighted: true,
-    features:    ['Hasta 15 usuarios', 'Mi Office completo', 'Arkos IA avanzado', 'Misiones + Flujos', 'Firma digital OTP', 'Historial de auditoría', 'Soporte prioritario'],
+    features:    ['Hasta 15 usuarios', '3 workspaces', 'Mi Office completo', 'Arkos IA avanzado', 'Misiones + Flujos', 'Firma digital OTP', 'Historial de auditoría', 'Soporte prioritario'],
   },
   {
     name:     'Business',
@@ -57,7 +57,7 @@ const PLANS = [
     forWhom:  'Empresas en crecimiento, varios equipos o sedes.',
     cta:      'Contratar',
     ctaHref:  '/sign-up',
-    features: ['Hasta 50 usuarios', 'Todo lo de Professional', 'Varios workspaces', 'Analytics avanzados', 'Soporte dedicado'],
+    features: ['Hasta 50 usuarios', 'Workspaces ilimitados', 'Todo lo de Professional', 'Analytics avanzados', 'Soporte dedicado'],
   },
   {
     name:     'Enterprise',
