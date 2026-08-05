@@ -62,17 +62,13 @@ function useBreadcrumb(workspaceId: string, workspaceName: string) {
   }
 
   const sectionHref = `${base}${match!.segment}`
-  const crumbs = [
-    { label: workspaceName, href: base },
-    { label: sectionLabel, href: sectionHref },
-  ]
+  const crumbs = [{ label: sectionLabel, href: sectionHref }]
 
   // Sub-level (e.g. tools/[id], workflows/[id]/history)
   const subPath = pathname.slice(sectionHref.length)
   if (subPath && subPath !== '/') {
     const subSegments = subPath.split('/').filter(Boolean)
     if (subSegments.length >= 2) {
-      // Has a child sub-page (e.g. /history, /run, /settings)
       const subLabel = resolveSubLabel(subSegments)
       if (subLabel) {
         crumbs.push({ label: subLabel, href: pathname })
