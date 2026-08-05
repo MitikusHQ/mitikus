@@ -1,45 +1,22 @@
-import Link from 'next/link'
+import type { Metadata } from 'next'
 import { requireUser } from '@/lib/auth'
-import { db } from '@/lib/db'
-import { notFound } from 'next/navigation'
-import { UserProfileClient } from './_components/UserProfileClient'
-import { WorkspaceBrandingClient } from './_components/WorkspaceBrandingClient'
+import { ProfileClient } from './_components/ProfileClient'
 
-interface Props {
-  params: Promise<{ workspaceId: string }>
-}
+export const metadata: Metadata = { title: 'Mi perfil — MITIKUS' }
 
-export default async function ProfilePage({ params }: Props) {
-  const [{ workspaceId }, user] = await Promise.all([params, requireUser()])
-
-  const workspace = await db.workspace.findFirst({ where: { id: workspaceId, orgId: user.orgId } })
-  if (!workspace) notFound()
-
-  const base = `/workspace/${workspaceId}`
-
+export default async function ProfilePage() {
+  const user = await requireUser()
   return (
-    <div className="p-6 max-w-2xl mx-auto space-y-10">
-      <Link
-        href={base}
-        className="inline-flex items-center gap-1.5 text-sm text-muted-foreground hover:text-foreground transition-colors"
-      >
-        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" aria-hidden>
-          <polyline points="15 18 9 12 15 6"/>
-        </svg>
-        Volver
-      </Link>
-
-      <h1 className="text-xl font-semibold">Mi perfil</h1>
-
-      <UserProfileClient base={base} workspaceId={workspaceId} userName={user.name} userEmail={user.email} userRole={user.role} />
-
-      <hr className="border-border" />
-
-      <WorkspaceBrandingClient
-        workspaceId={workspaceId}
-        logoUrl={workspace.logoUrl ?? null}
-        brandColor={workspace.brandColor ?? null}
-        workspaceName={workspace.name}
+    <div className="max-w-2xl mx-auto px-6 py-10">
+      <h1 className="text-2xl font-bold mb-1">Mi perfil</h1>
+      <p className="text-muted-foreground text-sm mb-8">
+        Tu foto de perfil y datos personales dentro de MITIKUS.
+      </p>
+      <ProfileClient
+        userId={user.id}
+        name={user.name ?? user.email}
+        email={user.email}
+        avatarUrl={user.avatarUrl ?? null}
       />
     </div>
   )

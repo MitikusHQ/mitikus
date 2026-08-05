@@ -20,6 +20,7 @@ interface Props {
   workspaceName: string
   workspaceLogoUrl?: string | null
   workspaceBrandColor?: string
+  userAvatarUrl?: string | null
   navGroups: NavGroup[]
   myId: string
   children: React.ReactNode
@@ -37,7 +38,7 @@ function useIsFullscreen(workspaceId: string): boolean {
   return segments.length === 1
 }
 
-export function WorkspaceShell({ workspaceId, workspaceName, workspaceLogoUrl, workspaceBrandColor, navGroups, myId, children }: Props) {
+export function WorkspaceShell({ workspaceId, workspaceName, workspaceLogoUrl, workspaceBrandColor, userAvatarUrl, navGroups, myId, children }: Props) {
   const [sidebarCollapsed, setSidebarCollapsed] = useState(false)
   const [mobileOpen, setMobileOpen] = useState(false)
   const [teamPanelOpen, setTeamPanelOpen] = useState(false)
@@ -111,6 +112,7 @@ export function WorkspaceShell({ workspaceId, workspaceName, workspaceLogoUrl, w
         <WorkspaceTopbar
           workspaceId={workspaceId}
           workspaceName={workspaceName}
+          userAvatarUrl={userAvatarUrl}
           onToggleSidebar={() => {
             // On mobile: toggle drawer; on desktop: toggle collapse
             if (window.innerWidth < 768) {

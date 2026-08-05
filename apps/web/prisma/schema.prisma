@@ -238,6 +238,7 @@ model User {
   clerkId   String   @unique
   email     String   @unique
   name      String?
+  avatarUrl String?  // URL foto de perfil (Cloudinary)
   orgId     String
   role      OrgRole  @default(MEMBER)
   // Beta access control

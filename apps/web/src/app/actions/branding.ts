@@ -2,24 +2,28 @@
 
 import { db } from '@/lib/db'
 import { requireUser } from '@/lib/auth'
+import { can } from '@/lib/permissions'
 import { revalidatePath } from 'next/cache'
 
-export async function updateWorkspaceBranding(workspaceId: string, data: { brandColor?: string; logoUrl?: string | null }) {
+export async function updateUserAvatar(avatarUrl: string) {
   const user = await requireUser()
-  const ws = await db.workspace.findFirst({ where: { id: workspaceId, orgId: user.orgId } })
-  if (!ws) throw new Error('No autorizado')
-
-  await db.workspace.update({ where: { id: workspaceId }, data })
-  revalidatePath(`/workspace/${workspaceId}`)
-  revalidatePath(`/leads/${workspaceId}`)
+  await db.user.update({ where: { id: user.id }, data: { avatarUrl } })
+  revalidatePath('/', 'layout')
+  return { ok: true }
 }
 
-export async function removeWorkspaceLogo(workspaceId: string) {
+export async function updateWorkspaceBranding(
+  workspaceId: string,
+  data: { name?: string; logoUrl?: string; brandColor?: string },
+) {
   const user = await requireUser()
-  const ws = await db.workspace.findFirst({ where: { id: workspaceId, orgId: user.orgId } })
-  if (!ws) throw new Error('No autorizado')
-
-  await db.workspace.update({ where: { id: workspaceId }, data: { logoUrl: null } })
-  revalidatePath(`/workspace/${workspaceId}`)
-  revalidatePath(`/leads/${workspaceId}`)
+  if (!can(user, 'manage_members')) {
+    throw new Error('Sin permisos para editar el workspace')
+  }
+  await db.workspace.update({
+    where: { id: workspaceId, orgId: user.orgId },
+    data,
+  })
+  revalidatePath(`/workspace/${workspaceId}`, 'layout')
+  return { ok: true }
 }

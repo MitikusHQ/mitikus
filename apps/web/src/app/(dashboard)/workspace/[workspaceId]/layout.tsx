@@ -163,6 +163,12 @@ export default async function WorkspaceLayout({ children, params }: Props) {
 
   const profileItems: NavItem[] = [
     {
+      label: 'Ajustes',
+      href: `${base}/settings`,
+      icon: Icons.settings,
+      description: 'Logo, color de marca y nombre del workspace',
+    },
+    {
       label: 'Soporte',
       href: `${base}/support`,
       icon: Icons.support,
@@ -172,7 +178,7 @@ export default async function WorkspaceLayout({ children, params }: Props) {
       label: 'Mi perfil',
       href: `${base}/profile`,
       icon: Icons.profile,
-      description: 'Tu perfil, control horario y preferencias personales',
+      description: 'Tu foto de perfil y preferencias personales',
     },
   ]
 
@@ -190,6 +196,7 @@ export default async function WorkspaceLayout({ children, params }: Props) {
       workspaceName={workspace.name}
       workspaceLogoUrl={workspace.logoUrl ?? null}
       workspaceBrandColor={workspace.brandColor ?? '#3B82F6'}
+      userAvatarUrl={user.avatarUrl ?? null}
       navGroups={navGroups}
       myId={user.id}
     >

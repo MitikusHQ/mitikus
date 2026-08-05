@@ -10,6 +10,7 @@ import { NotificationBell } from './NotificationBell'
 interface Props {
   workspaceId: string
   workspaceName: string
+  userAvatarUrl?: string | null
   onToggleSidebar: () => void
   sidebarCollapsed: boolean
   teamPanelOpen: boolean
@@ -97,7 +98,7 @@ function resolveSubLabel(segments: string[]): string | null {
   return labels[last] ?? null
 }
 
-export function WorkspaceTopbar({ workspaceId, workspaceName, onToggleSidebar, sidebarCollapsed, teamPanelOpen, onToggleTeamPanel, onOpenOnboarding }: Props) {
+export function WorkspaceTopbar({ workspaceId, workspaceName, userAvatarUrl, onToggleSidebar, sidebarCollapsed, teamPanelOpen, onToggleTeamPanel, onOpenOnboarding }: Props) {
   const breadcrumbs = useBreadcrumb(workspaceId, workspaceName)
 
   return (
@@ -179,7 +180,7 @@ export function WorkspaceTopbar({ workspaceId, workspaceName, onToggleSidebar, s
           </svg>
         </button>
         <NotificationBell workspaceId={workspaceId} />
-        <UserNav />
+        <UserNav avatarUrl={userAvatarUrl} workspaceId={workspaceId} />
       </div>
     </header>
   )
