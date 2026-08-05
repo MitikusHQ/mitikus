@@ -15,6 +15,17 @@ const PLANS = [
     features: ['1 usuario', 'Mi Office completo', 'Arkos IA (limitado)', '5 misiones activas', 'Soporte por email'],
   },
   {
+    name:     'Solo',
+    monthly:  29,
+    annual:   23,
+    label:    null,
+    period:   '/mes',
+    forWhom:  'Autónomo o profesional independiente que trabaja solo.',
+    cta:      'Contratar',
+    ctaHref:  '/sign-up',
+    features: ['1 usuario', 'Mi Office completo', 'Arkos IA', 'Misiones ilimitadas', 'Firma digital OTP', 'Facturación + fiscal', 'Soporte por email'],
+  },
+  {
     name:     'Starter',
     monthly:  39,
     annual:   31,
@@ -97,7 +108,7 @@ export function PricingSection() {
         </span>
       </div>
 
-      <div className="grid sm:grid-cols-2 lg:grid-cols-5 gap-4">
+      <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-4">
         {PLANS.map((plan) => {
           const price = plan.label
             ? plan.label
