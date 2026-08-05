@@ -3,7 +3,7 @@ import Link from 'next/link'
 
 export const metadata: Metadata = {
   title: 'Términos de uso — MITIKUS',
-  description: 'Condiciones generales del servicio MITIKUS para consultoras IT.',
+  description: 'Condiciones generales del servicio MITIKUS.',
 }
 
 export default function TermsPage() {
