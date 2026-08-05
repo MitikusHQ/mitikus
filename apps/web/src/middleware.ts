@@ -13,7 +13,6 @@ const isPublicRoute = createRouteMatcher([
   '/forgot-password(.*)',
   '/sso-callback(.*)',
   '/onboarding',
-  '/setup-mfa',
   '/privacy',
   '/terms',
   '/dpa',
@@ -34,33 +33,9 @@ const isPublicRoute = createRouteMatcher([
   '/pricing',
 ])
 
-// Rutas que un usuario autenticado pero sin MFA puede visitar
-const isMfaExempt = createRouteMatcher([
-  '/setup-mfa',
-  '/sign-in(.*)',
-  '/sign-up(.*)',
-  '/sso-callback(.*)',
-  '/api/(.*)',
-])
-
-// Segundo factor completado si la sesión incluye totp o phone_code
-function hasCompletedMfa(sessionClaims: Record<string, unknown> | null): boolean {
-  const fac = sessionClaims?.fac
-  if (!Array.isArray(fac)) return false
-  return fac.some((f: unknown) => typeof f === 'string' && ['totp', 'phone_code'].includes(f))
-}
-
 export default clerkMiddleware(async (auth, req) => {
   if (!isPublicRoute(req)) {
     await auth.protect()
-  }
-
-  // Forzar MFA en todas las rutas protegidas
-  if (!isMfaExempt(req)) {
-    const { userId, sessionClaims } = await auth()
-    if (userId && !hasCompletedMfa(sessionClaims as Record<string, unknown> | null)) {
-      return NextResponse.redirect(new URL('/setup-mfa', req.url))
-    }
   }
 
   const cookieLocale = req.cookies.get(LOCALE_COOKIE)?.value ?? null
