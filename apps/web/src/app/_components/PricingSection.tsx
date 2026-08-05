@@ -15,9 +15,9 @@ const PLANS = [
     features: ['1 usuario', 'Mi Office completo', 'Arkos IA (limitado)', '5 misiones activas', 'Soporte por email'],
   },
   {
-    name:     'Solo',
+    name:     'Autónomo',
     monthly:  29,
-    annual:   23,
+    annual:   26,
     label:    null,
     period:   '/mes',
     forWhom:  'Autónomo o profesional independiente que trabaja solo.',
@@ -28,7 +28,7 @@ const PLANS = [
   {
     name:     'Starter',
     monthly:  39,
-    annual:   31,
+    annual:   35,
     label:    null,
     period:   '/mes',
     forWhom:  'Profesionales independientes o equipos pequeños de hasta 2 personas.',
@@ -39,7 +39,7 @@ const PLANS = [
   {
     name:        'Professional',
     monthly:     149,
-    annual:      119,
+    annual:      134,
     label:       null,
     period:      '/mes',
     forWhom:     'Equipos de hasta 15 personas con todas las herramientas.',
@@ -51,7 +51,7 @@ const PLANS = [
   {
     name:     'Business',
     monthly:  349,
-    annual:   279,
+    annual:   314,
     label:    null,
     period:   '/mes',
     forWhom:  'Empresas en crecimiento, varios equipos o sedes.',
@@ -104,7 +104,7 @@ export function PricingSection() {
           Anual
         </span>
         <span className="text-xs font-semibold px-2 py-0.5 rounded-full bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-400">
-          −20%
+          −10%
         </span>
       </div>
 
