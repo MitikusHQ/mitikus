@@ -57,7 +57,7 @@ const PLANS = [
     forWhom:  'Empresas en crecimiento, varios equipos o sedes.',
     cta:      'Contratar',
     ctaHref:  '/sign-up',
-    features: ['Hasta 50 usuarios', 'Workspaces ilimitados', 'Todo lo de Professional', 'Analytics avanzados', 'Soporte dedicado'],
+    features: ['Hasta 50 usuarios', '10 workspaces', 'Todo lo de Professional', 'Analytics avanzados', 'Soporte dedicado'],
   },
   {
     name:     'Enterprise',
@@ -68,7 +68,7 @@ const PLANS = [
     forWhom:  'SSO, integraciones personalizadas o condiciones específicas.',
     cta:      'Hablar con nosotros',
     ctaHref:  '/sign-up',
-    features: ['Usuarios ilimitados', 'Todo lo de Business', 'SSO empresarial', 'Integraciones a medida', 'SLA garantizado', 'Gestor de cuenta'],
+    features: ['Usuarios a medida', 'Workspaces a medida', 'Todo lo de Business', 'SSO empresarial', 'Integraciones a medida', 'SLA garantizado', 'Gestor de cuenta'],
   },
 ]
 
