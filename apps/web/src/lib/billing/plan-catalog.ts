@@ -14,6 +14,7 @@ export interface PlanLimits {
   maxActiveMissions:     number
   aiGenerationsPerMonth: number
   maxToolsInstalled:     number
+  brainQueriesPerMonth:  number
 }
 
 export interface PlanFeatures {
@@ -46,6 +47,7 @@ export const PLAN_CATALOG: Record<PlanTier, PlanDefinition> = {
       maxActiveMissions: 5,
       aiGenerationsPerMonth: 100,
       maxToolsInstalled: 5,
+      brainQueriesPerMonth: 20,
     },
     features: {
       aiRecommendations: true,
@@ -64,6 +66,7 @@ export const PLAN_CATALOG: Record<PlanTier, PlanDefinition> = {
       maxActiveMissions: 5,
       aiGenerationsPerMonth: 100,
       maxToolsInstalled: 5,
+      brainQueriesPerMonth: 50,
     },
     features: {
       aiRecommendations: true,
@@ -82,6 +85,7 @@ export const PLAN_CATALOG: Record<PlanTier, PlanDefinition> = {
       maxActiveMissions: 30,
       aiGenerationsPerMonth: 500,
       maxToolsInstalled: 20,
+      brainQueriesPerMonth: 200,
     },
     features: {
       aiRecommendations: true,
@@ -100,6 +104,7 @@ export const PLAN_CATALOG: Record<PlanTier, PlanDefinition> = {
       maxActiveMissions: UNLIMITED,
       aiGenerationsPerMonth: 2000,
       maxToolsInstalled: UNLIMITED,
+      brainQueriesPerMonth: UNLIMITED,
     },
     features: {
       aiRecommendations: true,
@@ -118,6 +123,7 @@ export const PLAN_CATALOG: Record<PlanTier, PlanDefinition> = {
       maxActiveMissions: UNLIMITED,
       aiGenerationsPerMonth: UNLIMITED,
       maxToolsInstalled: UNLIMITED,
+      brainQueriesPerMonth: UNLIMITED,
     },
     features: {
       aiRecommendations: true,

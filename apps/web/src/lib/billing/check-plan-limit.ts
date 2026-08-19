@@ -13,6 +13,7 @@ const LIMIT_LABELS: Record<keyof PlanLimits, string> = {
   maxActiveMissions: 'misiones activas',
   aiGenerationsPerMonth: 'generaciones IA este mes',
   maxToolsInstalled: 'herramientas instaladas',
+  brainQueriesPerMonth: 'consultas Brain este mes',
 }
 
 async function countCurrent(
@@ -42,6 +43,9 @@ async function countCurrent(
       start.setUTCDate(1)
       start.setUTCHours(0, 0, 0, 0)
       return db.toolExecution.count({ where: { workspace: { orgId }, createdAt: { gte: start } } })
+    }
+    case 'brainQueriesPerMonth': {
+      return 0
     }
   }
 }
