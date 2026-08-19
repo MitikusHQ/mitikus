@@ -1059,6 +1059,7 @@ model CompanyProfile {
   digitalMaturity String @default("emerging") // emerging|developing|advanced|leading
 
   // Fiscal
+  nif       String? // NIF/CIF del emisor — requerido para Verifactu
   legalForm String? // autonomo|sl|sa|otro
 
   // Organización interna
@@ -1947,7 +1948,19 @@ model Invoice {
   createdAt   DateTime  @default(now())
   updatedAt   DateTime  @updatedAt
 
+  // Verifactu — RD 1007/2023
+  // serie + number = NumSerieFactura para la AEAT
+  serie           String    @default("A")
+  tipoFactura     String    @default("F1")   // F1 normal | F2 simplificada | R1-R5 rectificativas
+  huella          String?                    // SHA-256 de esta factura (calculado al emitir)
+  huellaAnterior  String?                    // SHA-256 de la factura anterior del mismo emisor
+  fechaGeneracion DateTime?                  // timestamp exacto usado en el cálculo del hash
+  enviadaAEAT     Boolean   @default(false)
+  respuestaAEAT   Json?                      // respuesta del webservice AEAT si se envía
+  qrUrl           String?                    // URL de verificación AEAT (primeros 28 chars de huella)
+
   @@index([workspaceId, createdAt])
+  @@index([workspaceId, huella])
   @@index([clientId])
   @@map("invoices")
 }

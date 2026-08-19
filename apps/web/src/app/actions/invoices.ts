@@ -3,6 +3,12 @@
 import { auth } from '@clerk/nextjs/server'
 import { db } from '@/lib/db'
 import { revalidatePath } from 'next/cache'
+import {
+  calcularHuella,
+  generarURLVerificacion,
+  formatFechaAEAT,
+  formatTimestampAEAT,
+} from '@/lib/verifactu'
 
 export interface InvoiceItem {
   description: string
@@ -27,6 +33,14 @@ export interface InvoiceData {
   currency:    string
   notes:       string | null
   createdAt:   string
+  // Verifactu
+  serie:          string
+  tipoFactura:    string
+  huella:         string | null
+  huellaAnterior: string | null
+  fechaGeneracion: string | null
+  enviadaAEAT:    boolean
+  qrUrl:          string | null
 }
 
 export interface InvoiceInput {
@@ -56,6 +70,8 @@ function mapInvoice(r: {
   id: string; number: string; clientId: string | null; client: { name: string } | null;
   date: Date; dueDate: Date | null; status: string; items: unknown; subtotal: number;
   taxRate: number; tax: number; total: number; currency: string; notes: string | null; createdAt: Date;
+  serie: string; tipoFactura: string; huella: string | null; huellaAnterior: string | null;
+  fechaGeneracion: Date | null; enviadaAEAT: boolean; qrUrl: string | null;
 }): InvoiceData {
   return {
     id:         r.id,
@@ -73,6 +89,13 @@ function mapInvoice(r: {
     currency:   r.currency,
     notes:      r.notes,
     createdAt:  r.createdAt.toISOString(),
+    serie:           r.serie,
+    tipoFactura:     r.tipoFactura,
+    huella:          r.huella,
+    huellaAnterior:  r.huellaAnterior,
+    fechaGeneracion: r.fechaGeneracion?.toISOString() ?? null,
+    enviadaAEAT:     r.enviadaAEAT,
+    qrUrl:           r.qrUrl,
   }
 }
 
@@ -166,6 +189,76 @@ export async function deleteInvoice(workspaceId: string, invoiceId: string): Pro
   await requireAuth()
   await db.invoice.deleteMany({ where: { id: invoiceId, workspaceId } })
   revalidatePath(`/workspace/${workspaceId}/invoices`)
+}
+
+/**
+ * Emite una factura: calcula la huella Verifactu, genera el QR y actualiza el estado a "enviada".
+ * Debe llamarse ANTES de generar el PDF — el PDF sin huella no es legalmente válido.
+ *
+ * @param emisorNif - NIF del emisor (autónomo/empresa). Obtener de CompanyProfile cuando esté disponible.
+ */
+export async function emitirFactura(
+  workspaceId: string,
+  invoiceId: string,
+  emisorNif: string,
+): Promise<InvoiceData> {
+  await requireAuth()
+
+  const factura = await db.invoice.findFirst({
+    where: { id: invoiceId, workspaceId },
+  })
+  if (!factura) throw new Error('Factura no encontrada')
+  if (factura.huella) throw new Error('Esta factura ya ha sido emitida')
+
+  // 1. Obtener hash de la factura anterior del mismo workspace (encadenamiento)
+  const anterior = await db.invoice.findFirst({
+    where:   { workspaceId, huella: { not: null } },
+    orderBy: { fechaGeneracion: 'desc' },
+    select:  { huella: true, number: true, serie: true, date: true },
+  })
+
+  // 2. Preparar datos para el hash
+  const fechaGeneracion = new Date()
+  const numSerie = `${factura.serie}/${factura.number}`
+  const fechaStr = formatFechaAEAT(factura.date)
+
+  const huella = calcularHuella(
+    {
+      emisorNif,
+      numSerie,
+      fecha:          fechaStr,
+      tipoFactura:    factura.tipoFactura,
+      cuotaIVA:       factura.tax,
+      importeTotal:   factura.total,
+      fechaGeneracion: formatTimestampAEAT(fechaGeneracion),
+    },
+    anterior?.huella ?? null,
+  )
+
+  // 3. Generar URL de verificación para el QR
+  const qrUrl = generarURLVerificacion(
+    emisorNif,
+    numSerie,
+    fechaStr,
+    factura.total,
+    huella,
+  )
+
+  // 4. Persistir huella + marcar como enviada ANTES de entregar el PDF
+  const updated = await db.invoice.update({
+    where: { id: invoiceId },
+    data: {
+      huella,
+      huellaAnterior:  anterior?.huella ?? null,
+      fechaGeneracion,
+      qrUrl,
+      status: 'enviada',
+    },
+    include: includeClient,
+  })
+
+  revalidatePath(`/workspace/${workspaceId}/invoices`)
+  return mapInvoice(updated)
 }
 
 export async function getInvoiceStats(workspaceId: string) {

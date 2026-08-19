@@ -3,6 +3,7 @@ import { db } from '@/lib/db'
 import { notFound } from 'next/navigation'
 import Link from 'next/link'
 import { LegalFormPicker } from '../_components/LegalFormPicker'
+import { NifForm } from '../_components/NifForm'
 
 interface Props {
   params: Promise<{ workspaceId: string }>
@@ -11,9 +12,10 @@ interface Props {
 export default async function FiscalConfigPage({ params }: Props) {
   const [{ workspaceId }, user] = await Promise.all([params, requireUser()])
 
-  const workspace = await db.workspace.findFirst({
-    where: { id: workspaceId, orgId: user.orgId },
-  })
+  const [workspace, profile] = await Promise.all([
+    db.workspace.findFirst({ where: { id: workspaceId, orgId: user.orgId } }),
+    db.companyProfile.findUnique({ where: { workspaceId }, select: { nif: true } }),
+  ])
   if (!workspace) notFound()
 
   return (
@@ -24,7 +26,10 @@ export default async function FiscalConfigPage({ params }: Props) {
           Calendario Fiscal
         </Link>
       </div>
-      <LegalFormPicker workspaceId={workspaceId} />
+      <div className="max-w-lg mx-auto py-8 px-6 space-y-8">
+        <NifForm workspaceId={workspaceId} currentNif={profile?.nif ?? null} />
+        <LegalFormPicker workspaceId={workspaceId} />
+      </div>
     </>
   )
 }

@@ -23,3 +23,17 @@ export async function setFiscalConfig(workspaceId: string, country: Country, leg
 export async function setLegalForm(workspaceId: string, legalForm: LegalForm) {
   return setFiscalConfig(workspaceId, 'ES', legalForm)
 }
+
+export async function updateNif(workspaceId: string, nif: string) {
+  const user = await requireUser()
+  const workspace = await db.workspace.findFirst({
+    where: { id: workspaceId, orgId: user.orgId },
+  })
+  if (!workspace) throw new Error('Workspace no encontrado')
+
+  await db.companyProfile.upsert({
+    where:  { workspaceId },
+    create: { workspaceId, nif: nif.trim().toUpperCase() || null },
+    update: { nif: nif.trim().toUpperCase() || null },
+  })
+}
