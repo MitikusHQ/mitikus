@@ -31,6 +31,7 @@ const SECTION_LABELS: Array<{ segment: string; label: string }> = [
   { segment: '/generate',  label: 'Generar herramienta' },
   { segment: '/import',    label: 'Importar' },
   { segment: '/copilot',   label: 'Arkos' },
+  { segment: '/brain',     label: 'Brain' },
   { segment: '/tasks',    label: 'Tareas' },
   { segment: '/today',    label: 'Mi día' },
   { segment: '/timelog',  label: 'Control horario' },

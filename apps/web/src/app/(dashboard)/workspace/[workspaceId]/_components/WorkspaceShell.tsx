@@ -8,6 +8,7 @@ import { WorkspaceTopbar } from './WorkspaceTopbar'
 import { TeamPanel } from './TeamPanel'
 import { OnboardingModal, ONBOARDING_STORAGE_KEY } from './OnboardingModal'
 import { Icons } from './WorkspaceIcons'
+import { BrainOverlay } from '@/components/BrainOverlay'
 import type { NavItem } from './WorkspaceSidebarItem'
 
 interface NavGroup {
@@ -169,6 +170,8 @@ export function WorkspaceShell({ workspaceId, workspaceName, workspaceLogoUrl, w
         open={onboardingOpen}
         onClose={() => setOnboardingOpen(false)}
       />
+
+      <BrainOverlay workspaceId={workspaceId} />
     </div>
   )
 }

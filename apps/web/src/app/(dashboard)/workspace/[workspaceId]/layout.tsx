@@ -53,6 +53,12 @@ export default async function WorkspaceLayout({ children, params }: Props) {
       icon: Icons.copilot,
       description: 'Tu asesor estratégico — cuéntale tus objetivos y te ayuda a planificarlos',
     },
+    {
+      label: 'Brain',
+      href: `${base}/brain`,
+      icon: Icons.brain,
+      description: 'Consulta la memoria del workspace — documentos, objetivos y decisiones',
+    },
   ].filter(() => canView)
 
   // Trabajo — operativa del negocio
