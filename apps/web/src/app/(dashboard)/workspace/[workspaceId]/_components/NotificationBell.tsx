@@ -4,6 +4,7 @@ import { useState, useEffect, useRef } from 'react'
 import Link from 'next/link'
 import type { NotificationData } from '@/app/actions/tasks'
 import { getNotifications, getUnreadCount, markNotificationRead, markAllNotificationsRead } from '@/app/actions/tasks'
+import { sendDesktopNotification } from '@/lib/desktop-bridge'
 
 interface Props {
   workspaceId: string
@@ -43,6 +44,11 @@ export function NotificationBell({ workspaceId }: Props) {
     setOpen(true)
     const list = await getNotifications(workspaceId)
     setNotifications(list)
+    // En app de escritorio: enviar notificación nativa para la más reciente no leída
+    const latest = list.find((n) => !n.readAt)
+    if (latest) {
+      void sendDesktopNotification('MITIKUS', latest.message ?? 'Tienes notificaciones nuevas')
+    }
   }
 
   async function handleMarkRead(id: string) {
