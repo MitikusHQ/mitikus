@@ -1,7 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { auth } from '@clerk/nextjs/server'
 import { db } from '@/lib/db'
-import { checkPlanLimit } from '@/lib/billing/check-plan-limit'
 import { queryBrain } from '@/lib/brain/brain-service'
 
 export const runtime = 'nodejs'
@@ -49,14 +48,6 @@ export async function POST(req: NextRequest) {
   })
   if (!workspace) {
     return NextResponse.json({ error: 'Workspace no encontrado' }, { status: 404 })
-  }
-
-  const limitCheck = await checkPlanLimit(user.orgId, 'brainQueriesPerMonth')
-  if (!limitCheck.allowed) {
-    return NextResponse.json(
-      { error: limitCheck.message },
-      { status: 429 },
-    )
   }
 
   const result = await queryBrain(workspaceId, query.trim())
