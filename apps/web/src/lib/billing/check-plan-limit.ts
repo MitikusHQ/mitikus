@@ -45,7 +45,10 @@ async function countCurrent(
       return db.toolExecution.count({ where: { workspace: { orgId }, createdAt: { gte: start } } })
     }
     case 'brainQueriesPerMonth': {
-      return 0
+      const start = new Date()
+      start.setUTCDate(1)
+      start.setUTCHours(0, 0, 0, 0)
+      return db.brainQuery.count({ where: { orgId, createdAt: { gte: start } } })
     }
   }
 }

@@ -347,6 +347,7 @@ model Workspace {
   workspaceLeads       WorkspaceLead[]
   folders              Folder[]
   workspaceFiles       WorkspaceFile[]
+  brainQueries         BrainQuery[]
 
   @@unique([orgId, slug])
   @@index([orgId])
@@ -2016,4 +2017,20 @@ model WorkspaceFile {
   @@index([workspaceId])
   @@index([folderId])
   @@map("workspace_files")
+}
+
+model BrainQuery {
+  id          String   @id @default(cuid())
+  workspaceId String
+  orgId       String
+  userId      String
+  query       String
+  sources     Int      @default(0)
+  createdAt   DateTime @default(now())
+
+  workspace Workspace @relation(fields: [workspaceId], references: [id], onDelete: Cascade)
+
+  @@index([orgId, createdAt])
+  @@index([workspaceId])
+  @@map("brain_queries")
 }
