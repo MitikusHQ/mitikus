@@ -20,8 +20,9 @@ Reglas:
 export async function queryBrain(
   workspaceId: string,
   query: string,
+  orgId: string,
 ): Promise<BrainResult> {
-  const sources = await searchWorkspace(workspaceId, query)
+  const sources = await searchWorkspace(workspaceId, query, orgId)
 
   if (sources.length === 0) {
     return {

@@ -56,7 +56,7 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({ error: limitCheck.message }, { status: 429 })
   }
 
-  const result = await queryBrain(workspaceId, query.trim())
+  const result = await queryBrain(workspaceId, query.trim(), user.orgId)
 
   await db.brainQuery.create({
     data: {
