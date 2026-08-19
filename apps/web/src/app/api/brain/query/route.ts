@@ -42,6 +42,12 @@ export async function POST(req: NextRequest) {
       { status: 400 },
     )
   }
+  if (query.trim().length > 500) {
+    return NextResponse.json(
+      { error: 'La consulta no puede superar los 500 caracteres' },
+      { status: 400 },
+    )
+  }
 
   const workspace = await db.workspace.findFirst({
     where: { id: workspaceId, orgId: user.orgId },

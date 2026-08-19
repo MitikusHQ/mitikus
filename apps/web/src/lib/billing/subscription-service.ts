@@ -79,6 +79,16 @@ export async function activateSubscription(params: {
   stripeEventId?: string
 }): Promise<Subscription> {
   const existing = await getOrCreateSubscription(params.orgId)
+
+  // Comprobar duplicado ANTES de mutar la DB — evita revertir estado por reenvío de Stripe
+  if (params.stripeEventId) {
+    const alreadyProcessed = await db.billingEvent.findFirst({
+      where: { stripeEventId: params.stripeEventId },
+      select: { id: true },
+    })
+    if (alreadyProcessed) return existing
+  }
+
   const cancelScheduled = params.cancelAtPeriodEnd ?? false
 
   const updated = await db.subscription.update({
@@ -98,7 +108,7 @@ export async function activateSubscription(params: {
     },
   })
 
-  const isProcessed = await logBillingEvent({
+  await logBillingEvent({
     subscriptionId: updated.id,
     orgId: params.orgId,
     type: 'activated',
@@ -108,7 +118,6 @@ export async function activateSubscription(params: {
     toStatus: updated.status,
     stripeEventId: params.stripeEventId,
   })
-  if (!isProcessed) return existing // webhook duplicado — no reaplicar
 
   return updated
 }

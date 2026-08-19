@@ -33,7 +33,8 @@ export interface PlanDefinition {
   features: PlanFeatures
 }
 
-const UNLIMITED = Number.POSITIVE_INFINITY
+// MAX_SAFE_INTEGER en lugar de Infinity: evita que JSON.stringify serialice como null
+const UNLIMITED = Number.MAX_SAFE_INTEGER
 
 export const PLAN_CATALOG: Record<PlanTier, PlanDefinition> = {
   AUTONOMO: {

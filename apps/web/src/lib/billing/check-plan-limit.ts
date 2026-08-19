@@ -1,7 +1,6 @@
 import { db } from '@/lib/db'
-import { PLAN_CATALOG } from '@/lib/billing/plan-catalog'
+import { getEntitlements } from '@/lib/billing/entitlements'
 import type { PlanLimits } from '@/lib/billing/plan-catalog'
-import type { PlanTier } from '@prisma/client'
 
 type LimitResult =
   | { allowed: true }
@@ -37,7 +36,7 @@ async function countCurrent(
       if (!workspaceId) throw new Error('workspaceId requerido para maxToolsInstalled')
       return db.toolInstance.count({ where: { workspaceId, status: 'ACTIVE' } })
     case 'maxActiveMissions':
-      return db.companyObjective.count({ where: { profile: { workspace: { orgId } }, status: 'active' } })
+      return db.companyObjective.count({ where: { workspace: { orgId }, status: 'active' } })
     case 'aiGenerationsPerMonth': {
       const start = new Date()
       start.setUTCDate(1)
@@ -54,39 +53,37 @@ async function countCurrent(
 }
 
 /**
- * Comprueba si la org puede crear un recurso más del tipo indicado.
- * Infinity en el límite siempre devuelve allowed: true.
- *
- * @param orgId      ID de la organización
- * @param limitKey   Campo de PlanLimits a comprobar
- * @param workspaceId  Requerido solo para maxToolsInstalled
+ * Comprueba si la org puede usar un recurso más del tipo indicado.
+ * Lee el plan real desde Subscription.tier via getEntitlements.
  */
 export async function checkPlanLimit(
   orgId: string,
   limitKey: keyof PlanLimits,
   workspaceId?: string,
 ): Promise<LimitResult> {
-  const org = await db.organization.findUnique({
-    where: { id: orgId },
-    select: { plan: true },
-  })
-  if (!org) return { allowed: false, limit: 0, current: 0, message: 'Organización no encontrada.' }
+  const ent = await getEntitlements(orgId)
 
-  const plan = org.plan as PlanTier
-  // FREE no está en PLAN_CATALOG — usar límites de trial como fallback
-  const limit = PLAN_CATALOG[plan]?.limits[limitKey] ?? (limitKey === 'brainQueriesPerMonth' ? 5 : 0)
+  if (ent.blocked) {
+    return {
+      allowed: false,
+      limit: 0,
+      current: 0,
+      message: 'Suscripción inactiva. Reactiva tu plan para continuar.',
+    }
+  }
 
-  if (!Number.isFinite(limit)) return { allowed: true }
+  const limit = ent.limits[limitKey]
+
+  if (limit >= Number.MAX_SAFE_INTEGER) return { allowed: true }
 
   const current = await countCurrent(orgId, limitKey, workspaceId)
   if (current < limit) return { allowed: true }
 
-  const planName = PLAN_CATALOG[plan]?.name ?? plan
   const label = LIMIT_LABELS[limitKey]
   return {
     allowed: false,
     limit,
     current,
-    message: `Has alcanzado el límite de ${label} de tu plan ${planName} (${limit}). Actualiza tu plan para continuar.`,
+    message: `Has alcanzado el límite de ${label} de tu plan (${limit}). Actualiza tu plan para continuar.`,
   }
 }

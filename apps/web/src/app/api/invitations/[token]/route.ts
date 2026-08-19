@@ -33,7 +33,7 @@ export async function DELETE(
       action: 'org.invitation_revoked',
       entityType: 'member',
       entityId: invitation.id,
-      metadata: { token },
+      metadata: { invitationId: invitation.id, email: invitation.email },
     })
 
     return NextResponse.json({ ok: true })

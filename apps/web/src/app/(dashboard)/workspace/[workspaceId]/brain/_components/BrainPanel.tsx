@@ -172,7 +172,7 @@ export function BrainPanel({ workspaceId, compact = false, onNavigateToFull }: P
               <p className="text-xs font-semibold uppercase tracking-widest text-muted-foreground/60">Fuentes</p>
               {result.sources.map((source, i) => (
                 <div
-                  key={source.id}
+                  key={`${source.type}-${source.id}`}
                   className="rounded-lg border border-border bg-card/50 px-3 py-2.5 space-y-1"
                 >
                   <div className="flex items-center gap-2">

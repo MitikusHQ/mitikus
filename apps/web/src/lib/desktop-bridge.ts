@@ -24,7 +24,13 @@ export async function sendDesktopNotification(title: string, body?: string): Pro
   }
 }
 
-/** Verdadero si corre dentro de la app de escritorio Tauri. */
+/**
+ * Verdadero si corre dentro de la app de escritorio Tauri.
+ * IMPORTANTE: no usar directamente en render condicional de componentes —
+ * causa hydration mismatch (SSR → false, cliente → true).
+ * Usa en su lugar: const [isDesktop, setIsDesktop] = useState(false)
+ *                  useEffect(() => { setIsDesktop(isDesktopApp()) }, [])
+ */
 export function isDesktopApp(): boolean {
   return typeof window !== 'undefined' && Boolean(window.__TAURI__)
 }

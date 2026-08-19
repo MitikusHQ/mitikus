@@ -144,6 +144,7 @@ model Organization {
   auditLogs    AuditLog[]
   subscription Subscription?
   invitations  OrgInvitation[]
+  brainQueries BrainQuery[]
 
   @@map("organizations")
 }
@@ -291,6 +292,7 @@ model User {
   presence             UserPresence?
   conversationMembers  ConversationMember[]
   sentMessages         DirectMessage[]    @relation("SentMessages")
+  brainQueries         BrainQuery[]
 
   @@index([orgId])
   @@map("users")
@@ -2041,9 +2043,12 @@ model BrainQuery {
   sources     Int      @default(0)
   createdAt   DateTime @default(now())
 
-  workspace Workspace @relation(fields: [workspaceId], references: [id], onDelete: Cascade)
+  workspace    Workspace    @relation(fields: [workspaceId], references: [id], onDelete: Cascade)
+  organization Organization @relation(fields: [orgId], references: [id], onDelete: Cascade)
+  user         User         @relation(fields: [userId], references: [id], onDelete: Cascade)
 
   @@index([orgId, createdAt])
   @@index([workspaceId])
+  @@index([userId])
   @@map("brain_queries")
 }

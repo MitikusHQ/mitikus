@@ -17,10 +17,10 @@ export function BrainOverlay({ workspaceId }: Props) {
       e.preventDefault()
       setOpen((prev) => !prev)
     }
-    if (e.key === 'Escape' && open) {
+    if (e.key === 'Escape') {
       setOpen(false)
     }
-  }, [open])
+  }, [])
 
   useEffect(() => {
     document.addEventListener('keydown', handleKeyDown)
