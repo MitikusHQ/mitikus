@@ -59,7 +59,7 @@ export async function getEntitlements(orgId: string): Promise<Entitlements> {
         maxActiveMissions: trialLimits.maxToolsInstalled, // aproximación razonable en trial
         aiGenerationsPerMonth: trialLimits.aiGenerationsPerMonth,
         maxToolsInstalled: trialLimits.maxToolsInstalled,
-        brainQueriesPerMonth: 0,
+        brainQueriesPerMonth: 5,
       },
       features: { aiRecommendations: true, prioritySupport: false, customBranding: false },
     }

@@ -70,7 +70,8 @@ export async function checkPlanLimit(
   if (!org) return { allowed: false, limit: 0, current: 0, message: 'Organización no encontrada.' }
 
   const plan = org.plan as PlanTier
-  const limit = PLAN_CATALOG[plan]?.limits[limitKey] ?? 0
+  // FREE no está en PLAN_CATALOG — usar límites de trial como fallback
+  const limit = PLAN_CATALOG[plan]?.limits[limitKey] ?? (limitKey === 'brainQueriesPerMonth' ? 5 : 0)
 
   if (!Number.isFinite(limit)) return { allowed: true }
 
