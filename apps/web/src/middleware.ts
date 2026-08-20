@@ -5,6 +5,7 @@ import {
   LOCALE_HEADER,
 } from './i18n/config'
 import { resolveLocale } from './i18n/detect-locale'
+import { ratelimit } from './lib/rate-limit'
 
 const isPublicRoute = createRouteMatcher([
   '/',
@@ -32,7 +33,37 @@ const isPublicRoute = createRouteMatcher([
   '/pricing',
 ])
 
+const isRateLimitedRoute = createRouteMatcher(['/api/(.*)'])
+const isRateLimitExempt = createRouteMatcher([
+  '/api/health',
+  '/api/og',
+  '/api/webhooks/(.*)',
+  '/api/leads',
+])
+
 export default clerkMiddleware(async (auth, req) => {
+  if (ratelimit && isRateLimitedRoute(req) && !isRateLimitExempt(req)) {
+    const ip =
+      req.headers.get('x-forwarded-for')?.split(',')[0]?.trim() ??
+      req.headers.get('x-real-ip') ??
+      '127.0.0.1'
+
+    const { success } = await ratelimit.limit(ip)
+
+    if (!success) {
+      return new NextResponse(
+        JSON.stringify({ error: 'Demasiadas solicitudes. Inténtalo en un momento.' }),
+        {
+          status: 429,
+          headers: {
+            'Content-Type': 'application/json',
+            'Retry-After': '60',
+          },
+        },
+      )
+    }
+  }
+
   if (!isPublicRoute(req)) {
     await auth.protect()
   }
@@ -43,14 +74,10 @@ export default clerkMiddleware(async (auth, req) => {
     req.headers.get('cf-ipcountry') ??
     null
 
-  // Locale activo: cookie → España=es → 'en'
   const resolvedLocale = resolveLocale({ cookieLocale, country })
 
   const res = NextResponse.next()
   res.headers.set(LOCALE_HEADER, resolvedLocale)
-
-  // La cookie de locale NUNCA se escribe aquí.
-  // Solo se persiste cuando el usuario elige explícitamente (setLocale server action).
 
   return res
 })
