@@ -1,3 +1,4 @@
+import * as Sentry from '@sentry/nextjs'
 import { db } from '@/lib/db'
 import { getEntitlements } from '@/lib/billing/entitlements'
 import type { PlanLimits } from '@/lib/billing/plan-catalog'
@@ -97,20 +98,24 @@ export async function checkPlanLimit(
 
   const lockObj = hash32(`${orgId}:${limitKey}`)
 
-  return db.$transaction(async (tx) => {
-    // Advisory lock transaccional: se libera automáticamente al finalizar la transacción.
-    // Serializa comprobaciones concurrentes del mismo límite para esta org.
-    await tx.$queryRaw`SELECT pg_advisory_xact_lock(${PLAN_LIMIT_LOCK_NS}::int4, ${lockObj}::int4)`
-
-    const current = await countCurrent(tx, orgId, limitKey, workspaceId)
-    if (current < limit) return { allowed: true } as LimitResult
-
-    const label = LIMIT_LABELS[limitKey]
-    return {
-      allowed: false,
-      limit,
-      current,
-      message: `Has alcanzado el límite de ${label} de tu plan (${limit}). Actualiza tu plan para continuar.`,
-    } as LimitResult
-  })
+  try {
+    return await db.$transaction(async (tx) => {
+      await tx.$queryRaw`SELECT pg_advisory_xact_lock(${PLAN_LIMIT_LOCK_NS}::int4, ${lockObj}::int4)`
+      const current = await countCurrent(tx, orgId, limitKey, workspaceId)
+      if (current < limit) return { allowed: true } as LimitResult
+      const label = LIMIT_LABELS[limitKey]
+      return {
+        allowed: false,
+        limit,
+        current,
+        message: `Has alcanzado el límite de ${label} de tu plan (${limit}). Actualiza tu plan para continuar.`,
+      } as LimitResult
+    })
+  } catch (err) {
+    Sentry.captureException(err, {
+      tags: { component: 'check-plan-limit' },
+      extra: { orgId, limitKey, workspaceId },
+    })
+    throw err
+  }
 }
