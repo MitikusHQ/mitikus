@@ -122,6 +122,7 @@ export default async function UsagePage({ params }: Props) {
 
   // Estadísticas en paralelo
   const today = startOfTodayUTC()
+  const monthStart = startOfMonthUTC()
   const [
     todayStats,
     userUsage,
@@ -130,6 +131,7 @@ export default async function UsagePage({ params }: Props) {
     globalUsage,
     globalCostEUR,
     installedToolsCount,
+    brainQueriesThisMonth,
     recentErrors,
     totalSearches,
     toolsReused,
@@ -155,6 +157,7 @@ export default async function UsagePage({ params }: Props) {
     getGlobalUsageToday(),
     getGlobalCostToday(),
     db.toolInstance.count({ where: { workspaceId, status: 'ACTIVE' } }),
+    db.brainQuery.count({ where: { orgId: user.orgId, createdAt: { gte: monthStart } } }),
     isAdmin ? getRecentErrors(user.orgId) : Promise.resolve([]),
     db.registrySearch.count({ where: { orgId: user.orgId } }),
     db.registrySearch.count({ where: { orgId: user.orgId, action: { in: ['install', 'fork'] } } }),
@@ -220,18 +223,26 @@ export default async function UsagePage({ params }: Props) {
                 <UsageBar
                   label="Generaciones IA este mes"
                   current={userMonthlyUsage}
-                  limit={Number.isFinite(planLimits.aiGenerationsPerMonth) ? planLimits.aiGenerationsPerMonth : 99999}
-                  format={Number.isFinite(planLimits.aiGenerationsPerMonth)
+                  limit={planLimits.aiGenerationsPerMonth < Number.MAX_SAFE_INTEGER ? planLimits.aiGenerationsPerMonth : 99999}
+                  format={planLimits.aiGenerationsPerMonth < Number.MAX_SAFE_INTEGER
                     ? undefined
                     : () => `${userMonthlyUsage} (ilimitado)`}
                 />
                 <UsageBar
                   label="Herramientas instaladas"
                   current={installedToolsCount}
-                  limit={Number.isFinite(planLimits.maxToolsInstalled) ? planLimits.maxToolsInstalled : 99999}
-                  format={Number.isFinite(planLimits.maxToolsInstalled)
+                  limit={planLimits.maxToolsInstalled < Number.MAX_SAFE_INTEGER ? planLimits.maxToolsInstalled : 99999}
+                  format={planLimits.maxToolsInstalled < Number.MAX_SAFE_INTEGER
                     ? undefined
                     : () => `${installedToolsCount} (ilimitado)`}
+                />
+                <UsageBar
+                  label="Consultas Brain este mes"
+                  current={brainQueriesThisMonth}
+                  limit={planLimits.brainQueriesPerMonth < Number.MAX_SAFE_INTEGER ? planLimits.brainQueriesPerMonth : 99999}
+                  format={planLimits.brainQueriesPerMonth < Number.MAX_SAFE_INTEGER
+                    ? undefined
+                    : () => `${brainQueriesThisMonth} (ilimitado)`}
                 />
               </>
             ) : (
@@ -255,19 +266,27 @@ export default async function UsagePage({ params }: Props) {
             )}
           </div>
           {catalogPlan && (
-            <div className="rounded-lg border bg-muted/40 px-5 py-4 grid grid-cols-2 sm:grid-cols-4 gap-4 text-center">
+            <div className="rounded-lg border bg-muted/40 px-5 py-4 grid grid-cols-2 sm:grid-cols-5 gap-4 text-center">
               <div>
                 <p className="text-xs text-muted-foreground">Generaciones/mes</p>
                 <p className="font-semibold text-sm mt-0.5">
-                  {Number.isFinite(catalogPlan.limits.aiGenerationsPerMonth)
+                  {catalogPlan.limits.aiGenerationsPerMonth < Number.MAX_SAFE_INTEGER
                     ? catalogPlan.limits.aiGenerationsPerMonth.toLocaleString('es-ES')
+                    : '∞'}
+                </p>
+              </div>
+              <div>
+                <p className="text-xs text-muted-foreground">Brain/mes</p>
+                <p className="font-semibold text-sm mt-0.5">
+                  {catalogPlan.limits.brainQueriesPerMonth < Number.MAX_SAFE_INTEGER
+                    ? catalogPlan.limits.brainQueriesPerMonth
                     : '∞'}
                 </p>
               </div>
               <div>
                 <p className="text-xs text-muted-foreground">Herramientas</p>
                 <p className="font-semibold text-sm mt-0.5">
-                  {Number.isFinite(catalogPlan.limits.maxToolsInstalled)
+                  {catalogPlan.limits.maxToolsInstalled < Number.MAX_SAFE_INTEGER
                     ? catalogPlan.limits.maxToolsInstalled
                     : '∞'}
                 </p>
@@ -275,13 +294,13 @@ export default async function UsagePage({ params }: Props) {
               <div>
                 <p className="text-xs text-muted-foreground">Usuarios</p>
                 <p className="font-semibold text-sm mt-0.5">
-                  {Number.isFinite(catalogPlan.limits.maxUsers) ? catalogPlan.limits.maxUsers : '∞'}
+                  {catalogPlan.limits.maxUsers < Number.MAX_SAFE_INTEGER ? catalogPlan.limits.maxUsers : '∞'}
                 </p>
               </div>
               <div>
                 <p className="text-xs text-muted-foreground">Workspaces</p>
                 <p className="font-semibold text-sm mt-0.5">
-                  {Number.isFinite(catalogPlan.limits.maxWorkspaces) ? catalogPlan.limits.maxWorkspaces : '∞'}
+                  {catalogPlan.limits.maxWorkspaces < Number.MAX_SAFE_INTEGER ? catalogPlan.limits.maxWorkspaces : '∞'}
                 </p>
               </div>
             </div>
