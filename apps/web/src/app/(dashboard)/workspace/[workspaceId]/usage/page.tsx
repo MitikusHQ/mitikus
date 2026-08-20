@@ -239,8 +239,8 @@ export default async function UsagePage({ params }: Props) {
                 <UsageBar
                   label="Consultas Brain este mes"
                   current={brainQueriesThisMonth}
-                  limit={planLimits.brainQueriesPerMonth < Number.MAX_SAFE_INTEGER ? planLimits.brainQueriesPerMonth : 99999}
-                  format={planLimits.brainQueriesPerMonth < Number.MAX_SAFE_INTEGER
+                  limit={catalogPlan.limits.brainQueriesPerMonth < Number.MAX_SAFE_INTEGER ? catalogPlan.limits.brainQueriesPerMonth : 99999}
+                  format={catalogPlan.limits.brainQueriesPerMonth < Number.MAX_SAFE_INTEGER
                     ? undefined
                     : () => `${brainQueriesThisMonth} (ilimitado)`}
                 />
