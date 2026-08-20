@@ -1,3 +1,4 @@
+import * as Sentry from '@sentry/nextjs'
 import Anthropic from '@anthropic-ai/sdk'
 import { searchWorkspace, type BrainFragment } from './brain-search'
 
@@ -37,17 +38,30 @@ export async function queryBrain(
 
   const userMessage = `Contexto del workspace:\n\n${contextBlock}\n\n---\n\nPregunta: ${query}`
 
-  const message = await client.messages.create({
-    model: 'claude-sonnet-4-6',
-    max_tokens: 1024,
-    system: SYSTEM_PROMPT,
-    messages: [{ role: 'user', content: userMessage }],
-  })
+  try {
+    const message = await client.messages.create({
+      model: 'claude-sonnet-4-6',
+      max_tokens: 1024,
+      system: SYSTEM_PROMPT,
+      messages: [{ role: 'user', content: userMessage }],
+    })
 
-  const answer = message.content
-    .filter((block) => block.type === 'text')
-    .map((block) => (block as { type: 'text'; text: string }).text)
-    .join('')
+    const answer = message.content
+      .filter((block) => block.type === 'text')
+      .map((block) => (block as { type: 'text'; text: string }).text)
+      .join('')
 
-  return { answer, sources }
+    return { answer, sources }
+  } catch (err) {
+    Sentry.captureException(err, {
+      tags: { component: 'brain-service' },
+      extra: {
+        workspaceId,
+        orgId,
+        query: query.slice(0, 100),
+        sourcesCount: sources.length,
+      },
+    })
+    throw err
+  }
 }
