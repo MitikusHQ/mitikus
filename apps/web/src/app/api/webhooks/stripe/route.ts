@@ -7,6 +7,7 @@
  * Ruta pública (ya cubierta por /api/webhooks/(.*) en middleware.ts).
  */
 
+import * as Sentry from '@sentry/nextjs'
 import { NextResponse } from 'next/server'
 import { db } from '@/lib/db'
 import { constructWebhookEvent, type Stripe } from '@/lib/billing/stripe-provider'
@@ -134,6 +135,13 @@ export async function POST(req: Request) {
     }
   } catch (err) {
     // Devolver 500 hace que Stripe reintente — correcto si fue un fallo transitorio (DB caída, etc.)
+    Sentry.captureException(err, {
+      tags: { component: 'stripe-webhook' },
+      extra: {
+        eventType: event?.type ?? 'unknown',
+        stripeEventId: event?.id ?? 'unknown',
+      },
+    })
     console.error('[stripe webhook] error procesando evento', event.type, err)
     return NextResponse.json({ error: 'Internal error processing webhook' }, { status: 500 })
   }
