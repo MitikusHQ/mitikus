@@ -1,4 +1,5 @@
 import type { NextConfig } from 'next'
+import { withSentryConfig } from '@sentry/nextjs'
 
 // Security headers aplicados a todas las rutas.
 // Nota: HSTS se configura a nivel de proxy/CDN (Vercel/Railway lo gestiona).
@@ -50,4 +51,12 @@ const nextConfig: NextConfig = {
   },
 }
 
-export default nextConfig
+export default withSentryConfig(nextConfig, {
+  org: process.env.SENTRY_ORG,
+  project: process.env.SENTRY_PROJECT,
+  silent: !process.env.CI,
+  widenClientFileUpload: false,
+  sourcemaps: { disable: true },
+  disableLogger: true,
+  automaticVercelMonitors: false,
+})
