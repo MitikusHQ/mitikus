@@ -1,5 +1,20 @@
 import { Resend } from 'resend'
 
+function requireResend() {
+  if (!process.env.RESEND_API_KEY) {
+    throw new Error('RESEND_API_KEY no está configurada.')
+  }
+  return new Resend(process.env.RESEND_API_KEY)
+}
+
+function escHtml(value: string) {
+  return value
+    .replace(/&/g, '&amp;')
+    .replace(/</g, '&lt;')
+    .replace(/>/g, '&gt;')
+    .replace(/"/g, '&quot;')
+}
+
 export async function sendTagNotificationEmail({
   to,
   taggerName,
@@ -74,6 +89,64 @@ export async function sendFiscalReminderEmail({
         <p style="margin-top:24px;font-size:12px;color:#888">MITIKUS · <a href="https://mitikus.com" style="color:#888">mitikus.com</a></p>
       </div>
     `,
+  })
+}
+
+export async function sendInvoiceEmail({
+  to,
+  clientName,
+  workspaceName,
+  fromName,
+  replyTo,
+  invoiceNumber,
+  total,
+  currency,
+  pdfBase64,
+}: {
+  to: string
+  clientName: string | null
+  workspaceName: string
+  fromName: string
+  replyTo: string | null
+  invoiceNumber: string
+  total: string
+  currency: string
+  pdfBase64: string
+}): Promise<void> {
+  const resend = requireResend()
+  const greeting = clientName ? `Hola, ${escHtml(clientName)}.` : 'Hola.'
+  const fromEmail = process.env.RESEND_INVOICE_FROM_EMAIL ?? process.env.RESEND_FROM_EMAIL ?? 'notificaciones@mitikus.com'
+
+  await resend.emails.send({
+    from: `${fromName} <${fromEmail}>`,
+    to,
+    ...(replyTo ? { replyTo } : {}),
+    subject: `Factura ${invoiceNumber} — ${workspaceName}`,
+    html: `
+      <div style="font-family:sans-serif;max-width:560px;margin:0 auto;padding:24px">
+        <p style="font-size:15px;color:#111;margin:0 0 12px">${greeting}</p>
+        <p style="font-size:15px;color:#111;margin:0 0 16px">
+          <strong>${escHtml(workspaceName)}</strong> te envía la factura <strong>${escHtml(invoiceNumber)}</strong>.
+        </p>
+        <div style="margin:16px 0;padding:14px 16px;background:#f8fafc;border:1px solid #e2e8f0;border-radius:8px">
+          <p style="margin:0;color:#64748b;font-size:12px;text-transform:uppercase;letter-spacing:.08em">Total</p>
+          <p style="margin:4px 0 0;color:#0f172a;font-size:22px;font-weight:800">${escHtml(total)} ${escHtml(currency)}</p>
+        </div>
+        <p style="font-size:14px;color:#475569;margin:0">
+          Encontrarás la factura en PDF adjunta a este email.
+        </p>
+        <p style="margin-top:24px;font-size:12px;color:#888">
+          Enviado con MITIKUS · <a href="https://mitikus.com" style="color:#888">mitikus.com</a>
+        </p>
+      </div>
+    `,
+    attachments: [
+      {
+        filename: `factura-${invoiceNumber}.pdf`,
+        content: pdfBase64,
+        contentType: 'application/pdf',
+      },
+    ],
   })
 }
 
@@ -645,6 +718,62 @@ export async function sendPostActivationEmail({
             MITIKUS · <a href="https://mitikus.com" style="color:#94a3b8">mitikus.com</a>
           </p>
         </div>
+      </div>
+    `,
+  })
+}
+
+export async function sendStorageAlertEmail({
+  to,
+  workspaceName,
+  usedGB,
+  limitGB,
+  level,
+  filesUrl,
+}: {
+  to: string
+  workspaceName: string
+  usedGB: number
+  limitGB: number
+  level: 80 | 100
+  filesUrl: string
+}): Promise<void> {
+  if (!process.env.RESEND_API_KEY) return
+
+  const resend = new Resend(process.env.RESEND_API_KEY)
+  const pct = Math.round((usedGB / limitGB) * 100)
+  const isAtLimit = level === 100
+  const accentColor = isAtLimit ? '#dc2626' : '#d97706'
+  const subject = isAtLimit
+    ? `⚠️ Almacenamiento lleno en "${workspaceName}"`
+    : `Aviso: almacenamiento al ${pct}% en "${workspaceName}"`
+  const headline = isAtLimit
+    ? 'Has alcanzado el límite de almacenamiento'
+    : `Has usado el ${pct}% del almacenamiento`
+  const bodyText = isAtLimit
+    ? `El workspace <strong>${workspaceName}</strong> ha alcanzado su límite de <strong>${limitGB} GB</strong>. No se podrán subir más archivos hasta que liberes espacio.`
+    : `El workspace <strong>${workspaceName}</strong> ha usado <strong>${usedGB.toFixed(2)} GB</strong> de ${limitGB} GB disponibles. Considera liberar espacio pronto.`
+
+  await resend.emails.send({
+    from: 'MITIKUS <noreply@mitikus.com>',
+    to,
+    subject,
+    html: `
+      <div style="font-family:sans-serif;max-width:480px;margin:0 auto;padding:24px;background:#fff">
+        <div style="background:${accentColor};border-radius:8px;padding:16px 20px;margin-bottom:20px">
+          <p style="margin:0;font-size:16px;font-weight:700;color:#fff">${headline}</p>
+        </div>
+        <p style="font-size:15px;color:#111;line-height:1.6">${bodyText}</p>
+        <div style="margin:20px 0;background:#f5f5f5;border-radius:8px;padding:12px 16px">
+          <p style="margin:0 0 6px;font-size:13px;color:#555">Almacenamiento usado: <strong>${usedGB.toFixed(2)} GB / ${limitGB} GB</strong></p>
+          <div style="height:8px;background:#e5e7eb;border-radius:4px;overflow:hidden">
+            <div style="height:100%;width:${Math.min(100, pct)}%;background:${accentColor};border-radius:4px"></div>
+          </div>
+        </div>
+        <a href="${filesUrl}" style="display:inline-block;padding:10px 20px;background:#1d4ed8;color:#fff;border-radius:6px;text-decoration:none;font-size:14px">
+          Gestionar archivos
+        </a>
+        <p style="margin-top:24px;font-size:12px;color:#888">MITIKUS &middot; <a href="https://mitikus.com" style="color:#888">mitikus.com</a></p>
       </div>
     `,
   })

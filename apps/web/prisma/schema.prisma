@@ -327,6 +327,10 @@ model Workspace {
   // Permissions: restrict tool/mission creation to Admins and Owners only
   restrictCreationToAdmins Boolean @default(false)
 
+  // Storage alerts: throttle notifications so we don't spam the owner
+  storageAlert80SentAt  DateTime?
+  storageAlert100SentAt DateTime?
+
   // CLOUD3 — persisted link to MITIKUS AI Core project (nullable for backward compat)
   // Eliminates the provisional name-based mapping from INTG6/INTG7.
   // Set once on first mount; never changes unless manually reset.

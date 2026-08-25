@@ -4,6 +4,7 @@ import { requireUser } from '@/lib/auth'
 import { db } from '@/lib/db'
 import { FileType } from '@prisma/client'
 import { checkPlanLimit } from '@/lib/billing/check-plan-limit'
+import { checkStorageAlerts } from '@/lib/storage-alerts'
 
 const MIME_TO_TYPE: Record<string, FileType> = {
   'application/pdf': FileType.PDF,
@@ -79,6 +80,9 @@ export async function POST(
       folder: { select: { id: true, name: true } },
     },
   })
+
+  // Fire-and-forget: check storage thresholds and email owner if needed
+  void checkStorageAlerts(workspaceId, user.orgId)
 
   return NextResponse.json(saved)
 }
