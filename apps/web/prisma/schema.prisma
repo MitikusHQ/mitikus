@@ -1113,10 +1113,28 @@ model CompanyProfile {
   tradeRegistry       String? @db.Text // Registro mercantil/colegial u otros datos societarios opcionales
   iban                String?
   defaultPaymentNotes String? @db.Text // Texto de pago por defecto para facturas
-  emailSendMode       String  @default("mitikus") // mitikus | gmail | outlook | domain
-  emailSenderName     String? // Nombre visible en correos enviados desde MITIKUS
+  emailSendMode       String  @default("mitikus") // mitikus | custom_smtp | gmail | outlook
+  emailSenderName     String? // Nombre visible en correos enviados
   emailReplyTo        String? // Email al que responderán clientes
-  emailSignature      String? @db.Text // Firma o cierre por defecto en correos enviados desde MITIKUS
+  emailSignature      String? @db.Text // Firma o cierre por defecto
+
+  // SMTP propio por workspace (custom_smtp mode)
+  smtpHost              String?
+  smtpPort              Int?
+  smtpSecure            Boolean  @default(false)
+  smtpUser              String?
+  smtpPasswordEncrypted String?  // AES-256-GCM via MITIKUS_ENCRYPTION_KEY
+
+  // IMAP propio por workspace
+  imapHost              String?
+  imapPort              Int?
+  imapSecure            Boolean  @default(false)
+  imapUser              String?
+  imapPasswordEncrypted String?  // AES-256-GCM via MITIKUS_ENCRYPTION_KEY
+
+  // OAuth providers (pendiente de implementar)
+  gmailConnectedAt      DateTime?
+  outlookConnectedAt    DateTime?
 
   // Organización interna
   departments Json @default("[]")  // string[]

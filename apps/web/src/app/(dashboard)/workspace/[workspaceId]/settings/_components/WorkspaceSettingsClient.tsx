@@ -31,6 +31,14 @@ interface Workspace {
     emailSenderName: string | null
     emailReplyTo: string | null
     emailSignature: string | null
+    smtpHost: string | null
+    smtpPort: number | null
+    smtpSecure: boolean
+    smtpUser: string | null
+    imapHost: string | null
+    imapPort: number | null
+    imapSecure: boolean
+    imapUser: string | null
   } | null
 }
 
@@ -83,6 +91,16 @@ export function WorkspaceSettingsClient({ workspace, userRole }: { workspace: Wo
     senderName: workspace.companyProfile?.emailSenderName ?? workspace.companyProfile?.fiscalName ?? workspace.name,
     replyTo: workspace.companyProfile?.emailReplyTo ?? workspace.companyProfile?.fiscalEmail ?? '',
     signature: workspace.companyProfile?.emailSignature ?? '',
+    smtpHost: workspace.companyProfile?.smtpHost ?? '',
+    smtpPort: workspace.companyProfile?.smtpPort ?? 587,
+    smtpSecure: workspace.companyProfile?.smtpSecure ?? false,
+    smtpUser: workspace.companyProfile?.smtpUser ?? '',
+    smtpPassword: '',
+    imapHost: workspace.companyProfile?.imapHost ?? '',
+    imapPort: workspace.companyProfile?.imapPort ?? 993,
+    imapSecure: workspace.companyProfile?.imapSecure ?? true,
+    imapUser: workspace.companyProfile?.imapUser ?? '',
+    imapPassword: '',
   })
   const [emailSaving, setEmailSaving] = useState(false)
   const [emailSaved, setEmailSaved] = useState(false)
@@ -168,6 +186,16 @@ export function WorkspaceSettingsClient({ workspace, userRole }: { workspace: Wo
         emailSenderName: emailSettings.senderName,
         emailReplyTo: emailSettings.replyTo,
         emailSignature: emailSettings.signature,
+        smtpHost: emailSettings.smtpHost,
+        smtpPort: emailSettings.smtpPort,
+        smtpSecure: emailSettings.smtpSecure,
+        smtpUser: emailSettings.smtpUser,
+        smtpPassword: emailSettings.smtpPassword || undefined,
+        imapHost: emailSettings.imapHost,
+        imapPort: emailSettings.imapPort,
+        imapSecure: emailSettings.imapSecure,
+        imapUser: emailSettings.imapUser,
+        imapPassword: emailSettings.imapPassword || undefined,
       })
       setEmailSaved(true)
       setTimeout(() => setEmailSaved(false), 2000)
@@ -305,22 +333,47 @@ export function WorkspaceSettingsClient({ workspace, userRole }: { workspace: Wo
         )}
       </section>
 
-      {/* Identidad de envío */}
-      <section className="rounded-xl border bg-card p-6 space-y-4">
+      {/* Correo y envíos */}
+      <section className="rounded-xl border bg-card p-6 space-y-5">
         <div>
-          <h2 className="font-semibold text-sm">Identidad de envío</h2>
+          <h2 className="font-semibold text-sm">Correo y envíos</h2>
           <p className="text-xs text-muted-foreground mt-0.5">
-            Define cómo te verán tus clientes cuando MITIKUS prepare emails por ti.
+            Elige cómo salen los correos desde este workspace.
           </p>
         </div>
 
-        <div className="rounded-lg border border-primary/30 bg-primary/10 p-4">
-          <div className="text-sm font-semibold text-foreground">Correo gestionado por MITIKUS</div>
-          <p className="mt-1 text-xs leading-5 text-muted-foreground">
-            MITIKUS prepara el envío con tu nombre visible y tu email de respuesta. El motor propio de envío procesará la cola sin pedirle al cliente que configure otra plataforma.
-          </p>
+        {/* Selector de proveedor */}
+        <div className="grid gap-2 sm:grid-cols-2">
+          {(
+            [
+              { id: 'mitikus', label: 'MITIKUS', desc: 'MITIKUS envía por ti. Las respuestas llegan al email que indiques.', soon: false },
+              { id: 'custom_smtp', label: 'SMTP propio', desc: 'Tu servidor de correo: hosting, corporativo o webmail.', soon: false },
+              { id: 'gmail', label: 'Gmail', desc: 'Conecta tu cuenta de Google.', soon: true },
+              { id: 'outlook', label: 'Outlook / Microsoft 365', desc: 'Conecta tu cuenta Microsoft.', soon: true },
+            ] as const
+          ).map((opt) => (
+            <button
+              key={opt.id}
+              type="button"
+              disabled={opt.soon}
+              onClick={() => !opt.soon && setEmailSettings((prev) => ({ ...prev, mode: opt.id }))}
+              className={`text-left rounded-lg border p-3 transition-colors ${opt.soon ? 'opacity-50 cursor-not-allowed' : 'cursor-pointer hover:border-primary/60'} ${emailSettings.mode === opt.id && !opt.soon ? 'border-primary bg-primary/5' : 'border-border'}`}
+            >
+              <div className="flex items-center justify-between">
+                <span className="text-sm font-medium">{opt.label}</span>
+                {opt.soon && <span className="text-[10px] font-medium uppercase tracking-wide text-muted-foreground bg-muted px-1.5 py-0.5 rounded">Próximamente</span>}
+                {emailSettings.mode === opt.id && !opt.soon && (
+                  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" className="text-primary shrink-0">
+                    <polyline points="20 6 9 17 4 12"/>
+                  </svg>
+                )}
+              </div>
+              <p className="text-xs text-muted-foreground mt-0.5 leading-4">{opt.desc}</p>
+            </button>
+          ))}
         </div>
 
+        {/* Campos comunes */}
         <div className="rounded-lg border border-border bg-background p-4 space-y-3">
           <div className="grid gap-3 sm:grid-cols-2">
             <label className="space-y-1 text-xs font-medium text-muted-foreground">
@@ -329,7 +382,7 @@ export function WorkspaceSettingsClient({ workspace, userRole }: { workspace: Wo
                 type="text"
                 value={emailSettings.senderName}
                 onChange={(e) => setEmailSettings((prev) => ({ ...prev, senderName: e.target.value }))}
-                placeholder="Borja-Prieto"
+                placeholder="Tu empresa"
                 className="w-full rounded-md border border-input bg-background px-3 py-2 text-sm text-foreground focus:outline-none focus:ring-2 focus:ring-primary"
               />
             </label>
@@ -339,7 +392,7 @@ export function WorkspaceSettingsClient({ workspace, userRole }: { workspace: Wo
                 type="email"
                 value={emailSettings.replyTo}
                 onChange={(e) => setEmailSettings((prev) => ({ ...prev, replyTo: e.target.value }))}
-                placeholder="borja@mitikus.com"
+                placeholder="tu@empresa.com"
                 className="w-full rounded-md border border-input bg-background px-3 py-2 text-sm text-foreground focus:outline-none focus:ring-2 focus:ring-primary"
               />
             </label>
@@ -350,15 +403,77 @@ export function WorkspaceSettingsClient({ workspace, userRole }: { workspace: Wo
             <textarea
               value={emailSettings.signature}
               onChange={(e) => setEmailSettings((prev) => ({ ...prev, signature: e.target.value }))}
-              placeholder="Gracias,&#10;Borja"
+              placeholder={`Gracias,\n${workspace.name}`}
               rows={3}
               className="w-full rounded-md border border-input bg-background px-3 py-2 text-sm text-foreground focus:outline-none focus:ring-2 focus:ring-primary"
             />
           </label>
 
-          <div className="rounded-md bg-muted/50 px-3 py-2 text-xs text-muted-foreground">
-            Las respuestas llegarán al email indicado. La entrega real se gestionará desde la infraestructura de correo de MITIKUS.
-          </div>
+          {emailSettings.mode === 'mitikus' && (
+            <p className="text-xs text-muted-foreground bg-muted/50 rounded-md px-3 py-2">
+              Las respuestas llegarán al email indicado. La entrega real se gestiona desde la infraestructura de MITIKUS.
+            </p>
+          )}
+
+          {/* Campos SMTP propio */}
+          {emailSettings.mode === 'custom_smtp' && (
+            <div className="space-y-3 pt-1 border-t border-border">
+              <p className="text-xs font-semibold text-foreground pt-2">Configuración SMTP (salida)</p>
+              <div className="grid gap-3 sm:grid-cols-3">
+                <label className="sm:col-span-2 space-y-1 text-xs font-medium text-muted-foreground">
+                  Servidor SMTP
+                  <input type="text" value={emailSettings.smtpHost} onChange={(e) => setEmailSettings((prev) => ({ ...prev, smtpHost: e.target.value }))} placeholder="smtp.tuempresa.com" className="w-full rounded-md border border-input bg-background px-3 py-2 text-sm text-foreground focus:outline-none focus:ring-2 focus:ring-primary" />
+                </label>
+                <label className="space-y-1 text-xs font-medium text-muted-foreground">
+                  Puerto
+                  <input type="number" value={emailSettings.smtpPort} onChange={(e) => setEmailSettings((prev) => ({ ...prev, smtpPort: Number(e.target.value) }))} placeholder="587" className="w-full rounded-md border border-input bg-background px-3 py-2 text-sm text-foreground focus:outline-none focus:ring-2 focus:ring-primary" />
+                </label>
+              </div>
+              <div className="grid gap-3 sm:grid-cols-2">
+                <label className="space-y-1 text-xs font-medium text-muted-foreground">
+                  Usuario / email
+                  <input type="email" value={emailSettings.smtpUser} onChange={(e) => setEmailSettings((prev) => ({ ...prev, smtpUser: e.target.value }))} placeholder="correo@tuempresa.com" className="w-full rounded-md border border-input bg-background px-3 py-2 text-sm text-foreground focus:outline-none focus:ring-2 focus:ring-primary" />
+                </label>
+                <label className="space-y-1 text-xs font-medium text-muted-foreground">
+                  Contraseña
+                  <input type="password" value={emailSettings.smtpPassword} onChange={(e) => setEmailSettings((prev) => ({ ...prev, smtpPassword: e.target.value }))} placeholder="Déjalo vacío para no cambiarla" autoComplete="new-password" className="w-full rounded-md border border-input bg-background px-3 py-2 text-sm text-foreground focus:outline-none focus:ring-2 focus:ring-primary" />
+                </label>
+              </div>
+              <label className="flex items-center gap-2 text-xs font-medium text-muted-foreground cursor-pointer">
+                <input type="checkbox" checked={emailSettings.smtpSecure} onChange={(e) => setEmailSettings((prev) => ({ ...prev, smtpSecure: e.target.checked }))} className="h-4 w-4 rounded border-border" />
+                Usar TLS directo (puerto 465)
+              </label>
+
+              <p className="text-xs font-semibold text-foreground pt-2 border-t border-border">Configuración IMAP (bandeja de entrada)</p>
+              <div className="grid gap-3 sm:grid-cols-3">
+                <label className="sm:col-span-2 space-y-1 text-xs font-medium text-muted-foreground">
+                  Servidor IMAP
+                  <input type="text" value={emailSettings.imapHost} onChange={(e) => setEmailSettings((prev) => ({ ...prev, imapHost: e.target.value }))} placeholder="imap.tuempresa.com" className="w-full rounded-md border border-input bg-background px-3 py-2 text-sm text-foreground focus:outline-none focus:ring-2 focus:ring-primary" />
+                </label>
+                <label className="space-y-1 text-xs font-medium text-muted-foreground">
+                  Puerto IMAP
+                  <input type="number" value={emailSettings.imapPort} onChange={(e) => setEmailSettings((prev) => ({ ...prev, imapPort: Number(e.target.value) }))} placeholder="993" className="w-full rounded-md border border-input bg-background px-3 py-2 text-sm text-foreground focus:outline-none focus:ring-2 focus:ring-primary" />
+                </label>
+              </div>
+              <div className="grid gap-3 sm:grid-cols-2">
+                <label className="space-y-1 text-xs font-medium text-muted-foreground">
+                  Usuario IMAP
+                  <input type="email" value={emailSettings.imapUser} onChange={(e) => setEmailSettings((prev) => ({ ...prev, imapUser: e.target.value }))} placeholder="correo@tuempresa.com" className="w-full rounded-md border border-input bg-background px-3 py-2 text-sm text-foreground focus:outline-none focus:ring-2 focus:ring-primary" />
+                </label>
+                <label className="space-y-1 text-xs font-medium text-muted-foreground">
+                  Contraseña IMAP
+                  <input type="password" value={emailSettings.imapPassword} onChange={(e) => setEmailSettings((prev) => ({ ...prev, imapPassword: e.target.value }))} placeholder="Déjalo vacío para no cambiarla" autoComplete="new-password" className="w-full rounded-md border border-input bg-background px-3 py-2 text-sm text-foreground focus:outline-none focus:ring-2 focus:ring-primary" />
+                </label>
+              </div>
+              <label className="flex items-center gap-2 text-xs font-medium text-muted-foreground cursor-pointer">
+                <input type="checkbox" checked={emailSettings.imapSecure} onChange={(e) => setEmailSettings((prev) => ({ ...prev, imapSecure: e.target.checked }))} className="h-4 w-4 rounded border-border" />
+                Usar TLS (IMAPS, recomendado)
+              </label>
+              <p className="text-xs text-muted-foreground bg-amber-50 dark:bg-amber-950/30 border border-amber-200 dark:border-amber-800 rounded-md px-3 py-2">
+                Las contraseñas se cifran con AES-256-GCM antes de guardarse. Nunca se muestran en texto plano.
+              </p>
+            </div>
+          )}
 
           {emailError && (
             <p className="rounded-md border border-red-500/30 bg-red-500/10 px-3 py-2 text-xs text-red-300">
