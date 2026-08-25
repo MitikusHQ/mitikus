@@ -5,6 +5,7 @@ import { can } from '@/lib/permissions'
 import { runToolExecution } from '@/lib/execution-engine'
 import { recordAIUsage } from '@/lib/ai-usage'
 import { checkAllLimits } from '@/lib/ai-rate-limit'
+import { checkPlanLimit } from '@/lib/billing/check-plan-limit'
 import { validateToolSchema } from '@protools/schema'
 import type { Prisma } from '@prisma/client'
 import { audit } from '@/lib/audit'
@@ -79,6 +80,11 @@ export async function POST(req: NextRequest) {
       { error: `Límite de IA alcanzado: ${limitFailed.reason}` },
       { status: 429 },
     )
+  }
+
+  const sharedLimit = await checkPlanLimit(user.orgId, 'brainQueriesPerMonth')
+  if (!sharedLimit.allowed) {
+    return NextResponse.json({ error: sharedLimit.message }, { status: 429 })
   }
 
   const schemaResult = validateToolSchema(instance.toolDefinition.schema)

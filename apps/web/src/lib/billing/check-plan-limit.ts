@@ -64,7 +64,11 @@ async function countCurrent(
       const start = new Date()
       start.setUTCDate(1)
       start.setUTCHours(0, 0, 0, 0)
-      return tx.brainQuery.count({ where: { orgId, createdAt: { gte: start } } })
+      const [brainCount, toolCount] = await Promise.all([
+        tx.brainQuery.count({ where: { orgId, createdAt: { gte: start } } }),
+        tx.toolExecution.count({ where: { workspace: { orgId }, status: { not: 'RUNNING' }, createdAt: { gte: start } } }),
+      ])
+      return brainCount + toolCount
     }
   }
 }
@@ -100,7 +104,7 @@ export async function checkPlanLimit(
 
   try {
     return await db.$transaction(async (tx) => {
-      await tx.$queryRaw`SELECT pg_advisory_xact_lock(${PLAN_LIMIT_LOCK_NS}::int4, ${lockObj}::int4)`
+      await tx.$executeRaw`SELECT pg_advisory_xact_lock(${PLAN_LIMIT_LOCK_NS}::int4, ${lockObj}::int4)`
       const current = await countCurrent(tx, orgId, limitKey, workspaceId)
       if (current < limit) return { allowed: true } as LimitResult
       const label = LIMIT_LABELS[limitKey]
@@ -119,3 +123,4 @@ export async function checkPlanLimit(
     throw err
   }
 }
+
