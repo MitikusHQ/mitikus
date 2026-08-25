@@ -7,6 +7,7 @@ import type { TableConfig, DataSchema } from '@protools/schema'
 import { DeleteButton } from './_components/DeleteButton'
 import { CapabilityNav } from './_components/CapabilityNav'
 import { ToolSectionNav } from './_components/ToolSectionNav'
+import { SocialMediaPostsView } from './_components/SocialMediaPostsView'
 import { buildCapabilityTabs } from '@/lib/capability-tabs'
 import { getLocale } from '@/i18n/locale'
 import { formatDate, formatRelativeDate } from '@/lib/format-date'
@@ -133,7 +134,11 @@ export default async function ToolRunnerPage({ params }: Props) {
   })
 
   const tabs = buildCapabilityTabs(schema, workspaceId, instanceId)
-  const hasFormCap = schema.capabilities.some((c) => c.type === 'FORM')
+  const formCap = schema.capabilities.find((c) => c.type === 'FORM')
+  const hasFormCap = Boolean(formCap)
+  const createLabel = formCap?.label ?? 'Nueva entrada'
+  const isSocialMedia = instance.toolDefinition.slug === 'social-media-manager'
+  const aiLabel = isSocialMedia ? 'Ideas con IA' : undefined
   const firstNonTableTab = tabs.find((t) => t.type !== 'TABLE')
 
   return (
@@ -159,13 +164,13 @@ export default async function ToolRunnerPage({ params }: Props) {
               href={`/workspace/${workspaceId}/tools/${instanceId}/records/new`}
               className="rounded-md bg-primary px-4 py-2 text-sm font-medium text-primary-foreground shadow hover:bg-primary/90 transition-colors"
             >
-              + Nueva entrada
+              + {createLabel}
             </Link>
           </div>
         )}
       </div>
 
-      <ToolSectionNav workspaceId={workspaceId} instanceId={instanceId} />
+      <ToolSectionNav workspaceId={workspaceId} instanceId={instanceId} aiLabel={aiLabel} />
       <CapabilityNav tabs={tabs} active="TABLE" />
 
         {records.length === 0 ? (
@@ -176,7 +181,7 @@ export default async function ToolRunnerPage({ params }: Props) {
                 href={`/workspace/${workspaceId}/tools/${instanceId}/records/new`}
                 className="inline-flex items-center rounded-md bg-primary px-4 py-2 text-sm font-medium text-primary-foreground shadow hover:bg-primary/90 transition-colors"
               >
-                Crear primer registro
+                {createLabel}
               </Link>
             ) : firstNonTableTab ? (
               <Link
@@ -187,6 +192,27 @@ export default async function ToolRunnerPage({ params }: Props) {
               </Link>
             ) : null}
           </div>
+        ) : isSocialMedia ? (
+          <SocialMediaPostsView
+            records={records.map((r) => {
+              const d = (r.data ?? {}) as Record<string, unknown>
+              return {
+                id: r.id,
+                titulo: String(d.titulo ?? ''),
+                cliente_o_marca: d.cliente_o_marca ? String(d.cliente_o_marca) : undefined,
+                plataforma: d.plataforma ? String(d.plataforma) : undefined,
+                formato: d.formato ? String(d.formato) : undefined,
+                estado: d.estado ? String(d.estado) : undefined,
+                fecha_prevista: d.fecha_prevista ? String(d.fecha_prevista) : undefined,
+                copy: d.copy ? String(d.copy) : undefined,
+                revision: d.revision ? String(d.revision) : undefined,
+                createdAt: r.createdAt,
+              }
+            })}
+            workspaceId={workspaceId}
+            instanceId={instanceId}
+            locale={locale}
+          />
         ) : (
           <div className="rounded-lg border overflow-hidden">
             <div className="overflow-x-auto">
@@ -305,3 +331,6 @@ export default async function ToolRunnerPage({ params }: Props) {
     </div>
   )
 }
+
+
+
