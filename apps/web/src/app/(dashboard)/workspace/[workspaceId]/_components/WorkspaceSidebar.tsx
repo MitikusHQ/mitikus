@@ -1,7 +1,9 @@
 'use client'
 
+import { Fragment, useEffect, useState } from 'react'
 import Link from 'next/link'
 import { cn } from '@/lib/utils'
+import { getLogoImageStyle, getLogoTextStyle } from '@/lib/logo-crop'
 import { WorkspaceSidebarItem, type NavItem } from './WorkspaceSidebarItem'
 
 interface NavGroup {
@@ -14,12 +16,29 @@ interface Props {
   workspaceName: string
   workspaceLogoUrl?: string | null
   workspaceBrandColor?: string
+  workspaceLogoShowName?: boolean
+  workspaceLogoCrop?: { x: number; y: number; zoom: number }
+  workspaceLogoText?: { x: number; y: number; size: number; color: string; font: string }
   navGroups: NavGroup[]
   collapsed?: boolean
   onOpenOnboarding?: () => void
 }
 
-export function WorkspaceSidebar({ workspaceId, workspaceName, workspaceLogoUrl, workspaceBrandColor = '#3B82F6', navGroups, collapsed = false, onOpenOnboarding }: Props) {
+export function WorkspaceSidebar({ workspaceId, workspaceName, workspaceLogoUrl, workspaceBrandColor = '#3B82F6', workspaceLogoShowName = false, workspaceLogoCrop, workspaceLogoText, navGroups, collapsed = false, onOpenOnboarding }: Props) {
+  const logoCrop = workspaceLogoCrop ?? { x: 0, y: 0, zoom: 1 }
+  const logoText = workspaceLogoText ?? { x: 12, y: 12, size: 16, color: '#FFFFFF', font: 'Inter' }
+  const [logoSize, setLogoSize] = useState<{ width: number; height: number } | null>(null)
+  useEffect(() => {
+    if (!workspaceLogoUrl) { setLogoSize(null); return }
+    const img = new Image()
+    img.onload = () => setLogoSize({ width: img.naturalWidth, height: img.naturalHeight })
+    img.onerror = () => setLogoSize(null)
+    img.src = workspaceLogoUrl
+  }, [workspaceLogoUrl])
+  const logoFrame = { width: 208, height: 40 }
+  const logoImageStyle = getLogoImageStyle(logoSize, logoCrop, logoFrame)
+  const logoTextStyle = getLogoTextStyle(logoText, logoFrame)
+
   return (
     <aside
       className={cn(
@@ -34,27 +53,63 @@ export function WorkspaceSidebar({ workspaceId, workspaceName, workspaceLogoUrl,
         collapsed ? 'justify-center px-2' : 'px-4 gap-3',
       )}>
         {/* Workspace logo / initial */}
-        <div className="shrink-0 w-7 h-7 rounded-lg overflow-hidden">
-          {workspaceLogoUrl ? (
-            // eslint-disable-next-line @next/next/no-img-element
-            <img src={workspaceLogoUrl} alt={workspaceName} className="object-contain w-full h-full" />
-          ) : (
-            <div
-              className="w-full h-full flex items-center justify-center text-white text-xs font-bold"
-              style={{ backgroundColor: workspaceBrandColor }}
-            >
-              {workspaceName.charAt(0).toUpperCase()}
-            </div>
-          )}
-        </div>
-        {!collapsed && (
+        {workspaceLogoUrl && !collapsed ? (
           <Link
             href={`/workspace/${workspaceId}`}
-            className="font-semibold text-sm text-foreground truncate hover:text-primary transition-colors"
+            className="relative flex h-10 min-w-0 flex-1 items-center overflow-hidden rounded-lg border border-border bg-muted hover:border-primary/60 transition-colors"
             title={workspaceName}
           >
-            {workspaceName}
+            {/* eslint-disable-next-line @next/next/no-img-element */}
+            <img
+              src={workspaceLogoUrl}
+              alt={workspaceName}
+              className="absolute max-w-none select-none"
+              onLoad={(e) => {
+                const img = e.currentTarget
+                setLogoSize({ width: img.naturalWidth, height: img.naturalHeight })
+              }}
+              style={{
+                ...logoImageStyle,
+              }}
+            />
+            {workspaceLogoShowName && (
+              <span className="absolute inset-0 bg-gradient-to-r from-black/45 via-black/15 to-transparent">
+                <span
+                  className="absolute max-w-[calc(100%-16px)] truncate font-bold text-white [text-shadow:0_1px_8px_rgba(0,0,0,0.85)]"
+                  style={{
+                    ...logoTextStyle,
+                  }}
+                >
+                  {workspaceName}
+                </span>
+              </span>
+            )}
           </Link>
+        ) : (
+          <>
+            <div className="shrink-0 w-7 h-7 rounded-lg overflow-hidden">
+              {workspaceLogoUrl ? (
+                // eslint-disable-next-line @next/next/no-img-element
+                <img src={workspaceLogoUrl} alt={workspaceName} className="object-cover w-full h-full" />
+              ) : (
+                <div
+                  className="w-full h-full flex items-center justify-center text-white text-xs font-bold"
+                  style={{ backgroundColor: workspaceBrandColor }}
+                >
+                  {workspaceName.charAt(0).toUpperCase()}
+                </div>
+              )}
+            </div>
+            {!collapsed && (
+              <Link
+                href={`/workspace/${workspaceId}`}
+                className="font-semibold text-sm text-foreground truncate hover:text-primary transition-colors"
+                title={workspaceName}
+              >
+                {workspaceName}
+              </Link>
+            )}
+          </>
         )}
       </div>
 
@@ -71,11 +126,11 @@ export function WorkspaceSidebar({ workspaceId, workspaceName, workspaceLogoUrl,
               )}
               <ul className="space-y-0.5">
                 {group.items.map((item, ii) => (
-                  <>
-                    <li key={item.href}>
+                  <Fragment key={item.href}>
+                    <li>
                       <WorkspaceSidebarItem item={item} collapsed={collapsed} />
                     </li>
-                    {isLastGroup && ii === 0 && onOpenOnboarding && (
+                    {isLastGroup && ii === group.items.length - 1 && onOpenOnboarding && (
                       <li key="tour">
                         <button
                           type="button"
@@ -95,7 +150,7 @@ export function WorkspaceSidebar({ workspaceId, workspaceName, workspaceLogoUrl,
                         </button>
                       </li>
                     )}
-                  </>
+                  </Fragment>
                 ))}
               </ul>
             </div>
