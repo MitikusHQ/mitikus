@@ -1,6 +1,8 @@
 'use server'
 
 import { requireUser } from '@/lib/auth'
+import { roleAtLeast } from '@/lib/permissions'
+import { db } from '@/lib/db'
 import { createObjective } from '@/lib/business-memory/company-objectives'
 import { createStep } from '@/lib/missions/mission-steps'
 import { MISSION_TEMPLATES } from '@/lib/missions/templates'
@@ -10,6 +12,16 @@ export async function createMissionFromTemplate(
   templateId: string,
 ): Promise<{ objectiveId: string }> {
   const user = await requireUser()
+
+  const workspace = await db.workspace.findFirst({
+    where: { id: workspaceId, orgId: user.orgId },
+    select: { id: true, restrictCreationToAdmins: true },
+  })
+  if (!workspace) throw new Error('Workspace no encontrado')
+
+  if (workspace.restrictCreationToAdmins && !roleAtLeast(user.role, 'ADMIN')) {
+    throw new Error('Solo los Administradores y Owners pueden crear misiones en este workspace.')
+  }
 
   const template = MISSION_TEMPLATES.find((t) => t.id === templateId)
   if (!template) throw new Error('Plantilla no encontrada')

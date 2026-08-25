@@ -5,6 +5,8 @@ import { useRouter } from 'next/navigation'
 import { ImageUploader } from '@/app/_components/ImageUploader'
 import { updateWorkspaceBranding } from '@/app/actions/branding'
 import { updateEmailSettings } from '@/app/actions/fiscal'
+import { updateWorkspacePermissionSettings } from '@/app/actions/workspace-settings'
+import type { OrgRole } from '@prisma/client'
 import { LOGO_CROP_REFERENCE_FRAME, clamp, getLogoImageStyle, getLogoTextStyle } from '@/lib/logo-crop'
 
 interface Workspace {
@@ -13,6 +15,7 @@ interface Workspace {
   logoUrl: string | null
   brandColor: string | null
   logoShowName: boolean
+  restrictCreationToAdmins: boolean
   logoCropX: number
   logoCropY: number
   logoCropZoom: number
@@ -47,7 +50,7 @@ const LOGO_TEXT_FONTS = [
   'Courier New',
 ]
 
-export function WorkspaceSettingsClient({ workspace }: { workspace: Workspace }) {
+export function WorkspaceSettingsClient({ workspace, userRole }: { workspace: Workspace; userRole: OrgRole }) {
   const router = useRouter()
   const [name, setName] = useState(workspace.name)
   const [logoUrl, setLogoUrl] = useState(workspace.logoUrl ?? '')
@@ -84,6 +87,10 @@ export function WorkspaceSettingsClient({ workspace }: { workspace: Workspace })
   const [emailSaving, setEmailSaving] = useState(false)
   const [emailSaved, setEmailSaved] = useState(false)
   const [emailError, setEmailError] = useState<string | null>(null)
+  const [restrictCreation, setRestrictCreation] = useState(workspace.restrictCreationToAdmins)
+  const [permSaving, setPermSaving] = useState(false)
+  const [permSaved, setPermSaved] = useState(false)
+  const isOwner = userRole === 'OWNER'
   const logoFrame = LOGO_CROP_REFERENCE_FRAME
   const logoSafeZoom = Math.max(1, logoCrop.zoom)
   const logoImageStyle = getLogoImageStyle(logoPreviewSize, { ...logoCrop, zoom: logoSafeZoom }, logoFrame)
@@ -137,6 +144,18 @@ export function WorkspaceSettingsClient({ workspace }: { workspace: Workspace })
     setSaved(true)
     setTimeout(() => setSaved(false), 2000)
     router.refresh()
+  }
+
+  async function handlePermSave(value: boolean) {
+    setPermSaving(true)
+    try {
+      await updateWorkspacePermissionSettings(workspace.id, value)
+      setRestrictCreation(value)
+      setPermSaved(true)
+      setTimeout(() => setPermSaved(false), 2000)
+    } finally {
+      setPermSaving(false)
+    }
   }
 
   async function handleEmailSave() {
@@ -412,6 +431,41 @@ export function WorkspaceSettingsClient({ workspace }: { workspace: Workspace })
           </div>
           <span className="text-xs text-muted-foreground">Vista previa de la inicial</span>
         </div>
+      </section>
+
+      {/* Permisos de creación */}
+      <section className="rounded-xl border bg-card p-6 space-y-4">
+        <div>
+          <h2 className="font-semibold text-sm">Permisos de creación</h2>
+          <p className="text-xs text-muted-foreground mt-0.5">
+            Controla quién puede instalar herramientas y crear misiones en este workspace.
+          </p>
+        </div>
+        <label className={`flex items-start gap-3 rounded-lg border border-border px-4 py-3 ${isOwner ? 'cursor-pointer hover:bg-muted/50 transition-colors' : 'opacity-60 cursor-not-allowed'}`}>
+          <div className="relative mt-0.5 shrink-0">
+            <input
+              type="checkbox"
+              checked={restrictCreation}
+              disabled={!isOwner || permSaving}
+              onChange={(e) => handlePermSave(e.target.checked)}
+              className="peer sr-only"
+            />
+            <div className={`h-5 w-9 rounded-full transition-colors ${restrictCreation ? 'bg-primary' : 'bg-muted-foreground/30'}`} />
+            <div className={`absolute top-0.5 left-0.5 h-4 w-4 rounded-full bg-white shadow transition-transform ${restrictCreation ? 'translate-x-4' : 'translate-x-0'}`} />
+          </div>
+          <div>
+            <span className="text-sm font-medium">Solo Admins y Owners pueden crear</span>
+            <p className="text-xs text-muted-foreground mt-0.5">
+              {restrictCreation
+                ? 'Activo — Editores y rangos inferiores no pueden instalar herramientas ni crear misiones.'
+                : 'Desactivado — Todos los Editores pueden instalar herramientas y crear misiones.'}
+            </p>
+            {!isOwner && (
+              <p className="text-xs text-amber-600 dark:text-amber-400 mt-1">Solo el Owner del workspace puede cambiar este ajuste.</p>
+            )}
+            {permSaved && <p className="text-xs text-green-600 dark:text-green-400 mt-1">✓ Guardado</p>}
+          </div>
+        </label>
       </section>
 
       {/* Guardar */}

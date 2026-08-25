@@ -5,7 +5,7 @@ import { redirect } from 'next/navigation'
 import { db } from '@/lib/db'
 import { getPlanLimits } from '@/lib/plan-limits'
 import { checkPlanLimit } from '@/lib/billing/check-plan-limit'
-import { assertCan } from '@/lib/permissions'
+import { assertCan, roleAtLeast } from '@/lib/permissions'
 import { audit } from '@/lib/audit'
 
 export type InstallToolState = { error: string } | null
@@ -36,8 +36,13 @@ export async function installTool(
 
   const workspace = await db.workspace.findFirst({
     where: { id: workspaceId, orgId: user.orgId },
+    select: { id: true, restrictCreationToAdmins: true },
   })
   if (!workspace) return { error: 'Workspace no encontrado o sin acceso.' }
+
+  if (workspace.restrictCreationToAdmins && !roleAtLeast(user.role, 'ADMIN')) {
+    return { error: 'Solo los Administradores y Owners pueden instalar herramientas en este workspace.' }
+  }
 
   const toolDef = await db.toolDefinition.findUnique({
     where: { id: toolDefinitionId },
@@ -105,8 +110,15 @@ export async function quickInstallTool(
 
   assertCan(user, 'install_tool', { orgId: user.orgId, userId: user.id, workspaceId, entityType: 'tool_instance' })
 
-  const workspace = await db.workspace.findFirst({ where: { id: workspaceId, orgId: user.orgId } })
+  const workspace = await db.workspace.findFirst({
+    where: { id: workspaceId, orgId: user.orgId },
+    select: { id: true, restrictCreationToAdmins: true },
+  })
   if (!workspace) return { error: 'Workspace no encontrado.' }
+
+  if (workspace.restrictCreationToAdmins && !roleAtLeast(user.role, 'ADMIN')) {
+    return { error: 'Solo los Administradores y Owners pueden instalar herramientas en este workspace.' }
+  }
 
   const toolDef = await db.toolDefinition.findFirst({ where: { slug } })
   if (!toolDef) return { error: 'Herramienta no encontrada.' }

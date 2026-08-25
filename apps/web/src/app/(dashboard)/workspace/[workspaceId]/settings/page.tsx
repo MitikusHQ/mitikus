@@ -15,7 +15,32 @@ export default async function WorkspaceSettingsPage({ params }: Props) {
 
   const workspace = await db.workspace.findFirst({
     where: { id: workspaceId, orgId: user.orgId },
-    select: { id: true, name: true, logoUrl: true, brandColor: true },
+    select: {
+      id: true,
+      name: true,
+      logoUrl: true,
+      brandColor: true,
+      logoShowName: true,
+      logoCropX: true,
+      logoCropY: true,
+      logoCropZoom: true,
+      logoTextX: true,
+      logoTextY: true,
+      logoTextSize: true,
+      logoTextColor: true,
+      logoTextFont: true,
+      restrictCreationToAdmins: true,
+      companyProfile: {
+        select: {
+          fiscalName: true,
+          fiscalEmail: true,
+          emailSendMode: true,
+          emailSenderName: true,
+          emailReplyTo: true,
+          emailSignature: true,
+        },
+      },
+    },
   })
 
   if (!workspace) notFound()
@@ -24,9 +49,9 @@ export default async function WorkspaceSettingsPage({ params }: Props) {
     <div className="max-w-2xl mx-auto px-6 py-10">
       <h1 className="text-2xl font-bold mb-1">Ajustes del workspace</h1>
       <p className="text-muted-foreground text-sm mb-8">
-        Personaliza el nombre, logo y color de marca de tu espacio de trabajo.
+        Personaliza marca, datos visibles y envíos de tu espacio de trabajo.
       </p>
-      <WorkspaceSettingsClient workspace={workspace} />
+      <WorkspaceSettingsClient workspace={workspace} userRole={user.role} />
     </div>
   )
 }

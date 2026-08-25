@@ -42,6 +42,7 @@ enum FileType {
   SHEET
   PDF
   IMAGE
+  OTHER
 }
 
 enum SubscriptionStatus {
@@ -145,6 +146,8 @@ model Organization {
   subscription Subscription?
   invitations  OrgInvitation[]
   brainQueries BrainQuery[]
+  memoryItems  MemoryItem[]
+  mailMessages MailMessage[]
 
   @@map("organizations")
 }
@@ -293,6 +296,8 @@ model User {
   conversationMembers  ConversationMember[]
   sentMessages         DirectMessage[]    @relation("SentMessages")
   brainQueries         BrainQuery[]
+  memoryItems          MemoryItem[]
+  mailMessages         MailMessage[]
 
   @@index([orgId])
   @@map("users")
@@ -309,6 +314,24 @@ model Workspace {
   slug       String
   logoUrl    String?  // URL del logo de la empresa (Vercel Blob)
   brandColor String?  // Color primario de marca (hex, e.g. "#3B82F6")
+  logoShowName Boolean @default(false) // Mostrar nombre del workspace sobre el logo en la barra lateral
+  logoCropX Float @default(0) // Posición horizontal del logo en el marco lateral
+  logoCropY Float @default(0) // Posición vertical del logo en el marco lateral
+  logoCropZoom Float @default(1) // Zoom visual del logo en el marco lateral
+  logoTextX Float @default(12) // Posición horizontal del nombre sobre el logo
+  logoTextY Float @default(20) // Posición vertical del nombre sobre el logo
+  logoTextSize Float @default(14) // Tamaño del nombre sobre el logo
+  logoTextColor String @default("#FFFFFF") // Color del nombre sobre el logo
+  logoTextFont String @default("Inter") // Fuente del nombre sobre el logo
+
+  // Permissions: restrict tool/mission creation to Admins and Owners only
+  restrictCreationToAdmins Boolean @default(false)
+
+  // CLOUD3 — persisted link to MITIKUS AI Core project (nullable for backward compat)
+  // Eliminates the provisional name-based mapping from INTG6/INTG7.
+  // Set once on first mount; never changes unless manually reset.
+  coreProjectId Int?
+
   createdAt  DateTime @default(now())
   updatedAt  DateTime @updatedAt
 
@@ -350,6 +373,8 @@ model Workspace {
   folders              Folder[]
   workspaceFiles       WorkspaceFile[]
   brainQueries         BrainQuery[]
+  memoryItems          MemoryItem[]
+  mailMessages         MailMessage[]
 
   @@unique([orgId, slug])
   @@index([orgId])
@@ -364,7 +389,16 @@ model Client {
   id          String   @id @default(cuid())
   workspaceId String
   name        String
+  clientType  String   @default("client") // client | company | freelancer | individual | patient | student | athlete | event
+  contactName String?  // Persona de contacto, opcional para empresas; vacío en autónomos/particulares
   email       String?
+  phone       String?
+  taxId       String?  // NIF/CIF del cliente
+  fiscalAddress String? @db.Text // Domicilio fiscal del destinatario
+  postalCode    String?
+  city          String?
+  province      String?
+  country       String?
   sector      String?
   notes       String?
   isArchived  Boolean  @default(false)
@@ -379,6 +413,7 @@ model Client {
   timeImputations TimeImputation[]
   tasks           Task[]
   invoices        Invoice[]
+  workspaceFiles  WorkspaceFile[]
 
   @@index([workspaceId])
   @@map("clients")
@@ -1061,8 +1096,23 @@ model CompanyProfile {
   digitalMaturity String @default("emerging") // emerging|developing|advanced|leading
 
   // Fiscal
-  nif       String? // NIF/CIF del emisor — requerido para Verifactu
-  legalForm String? // autonomo|sl|sa|otro
+  nif                 String? // NIF/CIF del emisor — requerido para Verifactu
+  legalForm           String? // autonomo|sl|sa|otro
+  fiscalName          String? // Nombre fiscal o razón social que aparece en facturas
+  fiscalAddress       String? @db.Text // Dirección fiscal completa del emisor
+  fiscalPostalCode    String?
+  fiscalCity          String?
+  fiscalProvince      String?
+  fiscalCountry       String?
+  fiscalEmail         String?
+  fiscalPhone         String?
+  tradeRegistry       String? @db.Text // Registro mercantil/colegial u otros datos societarios opcionales
+  iban                String?
+  defaultPaymentNotes String? @db.Text // Texto de pago por defecto para facturas
+  emailSendMode       String  @default("mitikus") // mitikus | gmail | outlook | domain
+  emailSenderName     String? // Nombre visible en correos enviados desde MITIKUS
+  emailReplyTo        String? // Email al que responderán clientes
+  emailSignature      String? @db.Text // Firma o cierre por defecto en correos enviados desde MITIKUS
 
   // Organización interna
   departments Json @default("[]")  // string[]
@@ -1938,6 +1988,7 @@ model Invoice {
   client      Client?   @relation(fields: [clientId], references: [id], onDelete: SetNull)
   number      String    // e.g. "2026-001"
   date        DateTime  @default(now())
+  operationDate DateTime? // Fecha de operación/devengo si difiere de la emisión
   dueDate     DateTime?
   status      String    @default("borrador") // borrador | enviada | pagada | vencida | cancelada
   items       Json      @default("[]")
@@ -1947,6 +1998,9 @@ model Invoice {
   total       Float     @default(0)
   currency    String    @default("EUR")
   notes       String?
+  paymentMethod String? // transferencia | tarjeta | efectivo | domiciliacion | otro
+  purchaseOrder String? // Pedido, expediente, presupuesto o referencia del cliente
+  legalNote     String? @db.Text // Menciones legales: exención, inversión sujeto pasivo, régimen especial, etc.
   createdAt   DateTime  @default(now())
   updatedAt   DateTime  @updatedAt
 
@@ -1960,11 +2014,52 @@ model Invoice {
   enviadaAEAT     Boolean   @default(false)
   respuestaAEAT   Json?                      // respuesta del webservice AEAT si se envía
   qrUrl           String?                    // URL de verificación AEAT (primeros 28 chars de huella)
+  mailMessages    MailMessage[]
 
   @@index([workspaceId, createdAt])
   @@index([workspaceId, huella])
   @@index([clientId])
   @@map("invoices")
+}
+
+model MailMessage {
+  id          String   @id @default(cuid())
+  workspaceId String
+  orgId       String
+  userId      String?
+  invoiceId   String?
+  direction   String   @default("outbound") // outbound | inbound
+  toEmail     String
+  ccEmail     String?
+  bccEmail    String?
+  fromEmail   String?
+  fromName    String
+  replyTo     String?
+  subject     String
+  body        String   @db.Text
+  status      String   @default("queued") // queued | sending | sent | failed | canceled | received | draft | spam | trash
+  provider    String   @default("mitikus-mail")
+  externalMessageId String?
+  imapMailbox String?
+  imapUid     Int?
+  rawHeaders  String?  @db.Text
+  lastError   String?  @db.Text
+  sentAt      DateTime?
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  workspace Workspace    @relation(fields: [workspaceId], references: [id], onDelete: Cascade)
+  org       Organization @relation(fields: [orgId], references: [id], onDelete: Cascade)
+  user      User?        @relation(fields: [userId], references: [id], onDelete: SetNull)
+  invoice   Invoice?     @relation(fields: [invoiceId], references: [id], onDelete: SetNull)
+
+  @@index([workspaceId, createdAt])
+  @@index([orgId, createdAt])
+  @@index([status, createdAt])
+  @@index([direction, createdAt])
+  @@index([fromEmail])
+  @@index([invoiceId])
+  @@map("mail_messages")
 }
 
 // ============================================================
@@ -2017,6 +2112,7 @@ model WorkspaceFile {
   id          String   @id @default(cuid())
   workspaceId String
   folderId    String?
+  clientId    String?
   name        String
   type        FileType
   url         String
@@ -2025,12 +2121,14 @@ model WorkspaceFile {
 
   workspace Workspace @relation(fields: [workspaceId], references: [id], onDelete: Cascade)
   folder    Folder?   @relation(fields: [folderId], references: [id], onDelete: SetNull)
+  client    Client?   @relation(fields: [clientId], references: [id], onDelete: SetNull)
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 
   @@index([workspaceId])
   @@index([folderId])
+  @@index([clientId])
   @@map("workspace_files")
 }
 
@@ -2040,15 +2138,76 @@ model BrainQuery {
   orgId       String
   userId      String
   query       String
-  sources     Int      @default(0)
+
+  // CLOUD2 — audit log fields (all nullable/default-safe for backward compat)
+  normalizedQuery String?        // query as processed (cloud: same as query; Core: may differ)
+  mode            String?        // "evidence" | "insufficient" | "orientation"
+  answer          String?        @db.Text
+  evidenceCount   Int?           // explicit count from result (mirrors sources for cloud)
+  warnings        Json?          // string[] — stored verbatim, never rewritten
+  metadata        Json?          // reserved for future use
+
+  sources     Int      @default(0)  // legacy count field — kept for UI compat
   createdAt   DateTime @default(now())
 
   workspace    Workspace    @relation(fields: [workspaceId], references: [id], onDelete: Cascade)
   organization Organization @relation(fields: [orgId], references: [id], onDelete: Cascade)
   user         User         @relation(fields: [userId], references: [id], onDelete: Cascade)
+  sourcesList  BrainSource[]
 
   @@index([orgId, createdAt])
   @@index([workspaceId])
   @@index([userId])
+  @@index([mode])
   @@map("brain_queries")
 }
+
+// CLOUD2 — individual evidence source for a BrainQuery
+// origin values: "cloud-memory" (cloud Brain) | "local-memory" (Core) | "external-research" (future)
+model BrainSource {
+  id           String   @id @default(cuid())
+  brainQueryId String
+  sourceType   String   // "document" | "memory" | "conversation" | "tool" | "note" (Core)
+  sourceId     String   // id of the original record in MITIKUS DB or Core
+  title        String
+  excerpt      String   @db.Text
+  score        Float?   // relevance score from FTS or Core
+  origin       String   @default("cloud-memory") // "cloud-memory" | "local-memory"
+  createdAt    DateTime @default(now())
+
+  brainQuery BrainQuery @relation(fields: [brainQueryId], references: [id], onDelete: Cascade)
+
+  @@index([brainQueryId])
+  @@index([origin])
+  @@map("brain_sources")
+}
+
+// ============================================================
+// CLOUD5 — MemoryItem: cloud source of truth for free-form workspace memory
+// The Core SQLite index is derived from these records; it is not the owner.
+// ============================================================
+
+model MemoryItem {
+  id          String   @id @default(cuid())
+  workspaceId String
+  orgId       String
+  userId      String?  // null if created by system/import
+  title       String
+  content     String   @db.Text
+  type        String   @default("note")    // note | decision | hypothesis | context
+  status      String   @default("active")  // active | archived
+  source      String   @default("manual")  // manual | import | core-sync (future)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  workspace Workspace    @relation(fields: [workspaceId], references: [id], onDelete: Cascade)
+  org       Organization @relation(fields: [orgId], references: [id], onDelete: Cascade)
+  user      User?        @relation(fields: [userId], references: [id], onDelete: SetNull)
+
+  @@index([workspaceId, createdAt])
+  @@index([orgId, createdAt])
+  @@index([status])
+  @@map("memory_items")
+}
+
+
