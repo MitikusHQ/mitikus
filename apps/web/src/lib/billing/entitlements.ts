@@ -27,7 +27,7 @@ export interface Entitlements {
 const ZERO_LIMITS: PlanLimits = {
   maxUsers: 0, maxWorkspaces: 0, maxActiveMissions: 0,
   aiGenerationsPerMonth: 0, maxToolsInstalled: 0,
-  brainQueriesPerMonth: 0,
+  brainQueriesPerMonth: 0, maxStorageGB: 0,
 }
 const NO_FEATURES: PlanFeatures = {
   aiRecommendations: false, prioritySupport: false, customBranding: false,
@@ -60,6 +60,7 @@ export async function getEntitlements(orgId: string): Promise<Entitlements> {
         aiGenerationsPerMonth: trialLimits.aiGenerationsPerMonth,
         maxToolsInstalled: trialLimits.maxToolsInstalled,
         brainQueriesPerMonth: 5,
+        maxStorageGB: 5,
       },
       features: { aiRecommendations: true, prioritySupport: false, customBranding: false },
     }
@@ -93,6 +94,7 @@ const RESOURCE_LABELS: Record<LimitedResource, string> = {
   aiGenerationsPerMonth: 'generaciones de IA este mes',
   maxToolsInstalled: 'herramientas instaladas',
   brainQueriesPerMonth: 'consultas Brain este mes',
+  maxStorageGB: 'GB de almacenamiento',
 }
 
 /** Comprueba si una organización puede tener `currentCount + 1` unidades de un recurso. */

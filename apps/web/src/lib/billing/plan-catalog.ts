@@ -15,6 +15,7 @@ export interface PlanLimits {
   aiGenerationsPerMonth: number
   maxToolsInstalled:     number
   brainQueriesPerMonth:  number
+  maxStorageGB:          number
 }
 
 export interface PlanFeatures {
@@ -49,6 +50,7 @@ export const PLAN_CATALOG: Record<PlanTier, PlanDefinition> = {
       aiGenerationsPerMonth: 100,
       maxToolsInstalled: 5,
       brainQueriesPerMonth: 20,
+      maxStorageGB: 5,
     },
     features: {
       aiRecommendations: true,
@@ -68,6 +70,7 @@ export const PLAN_CATALOG: Record<PlanTier, PlanDefinition> = {
       aiGenerationsPerMonth: 100,
       maxToolsInstalled: 5,
       brainQueriesPerMonth: 50,
+      maxStorageGB: 5,
     },
     features: {
       aiRecommendations: true,
@@ -87,6 +90,7 @@ export const PLAN_CATALOG: Record<PlanTier, PlanDefinition> = {
       aiGenerationsPerMonth: 500,
       maxToolsInstalled: 20,
       brainQueriesPerMonth: 200,
+      maxStorageGB: 5,
     },
     features: {
       aiRecommendations: true,
@@ -106,6 +110,7 @@ export const PLAN_CATALOG: Record<PlanTier, PlanDefinition> = {
       aiGenerationsPerMonth: 2000,
       maxToolsInstalled: UNLIMITED,
       brainQueriesPerMonth: UNLIMITED,
+      maxStorageGB: 5,
     },
     features: {
       aiRecommendations: true,
@@ -125,6 +130,7 @@ export const PLAN_CATALOG: Record<PlanTier, PlanDefinition> = {
       aiGenerationsPerMonth: UNLIMITED,
       maxToolsInstalled: UNLIMITED,
       brainQueriesPerMonth: UNLIMITED,
+      maxStorageGB: UNLIMITED,
     },
     features: {
       aiRecommendations: true,

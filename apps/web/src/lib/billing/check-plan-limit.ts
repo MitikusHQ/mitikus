@@ -17,6 +17,7 @@ const LIMIT_LABELS: Record<keyof PlanLimits, string> = {
   aiGenerationsPerMonth: 'generaciones IA este mes',
   maxToolsInstalled: 'herramientas instaladas',
   brainQueriesPerMonth: 'consultas Brain este mes',
+  maxStorageGB: 'GB de almacenamiento',
 }
 
 // djb2 hash → signed 32-bit int (PostgreSQL pg_advisory_xact_lock expects int4)
@@ -59,6 +60,16 @@ async function countCurrent(
       start.setUTCDate(1)
       start.setUTCHours(0, 0, 0, 0)
       return tx.toolExecution.count({ where: { workspace: { orgId }, createdAt: { gte: start } } })
+    }
+    case 'maxStorageGB': {
+      if (!workspaceId) throw new Error('workspaceId requerido para maxStorageGB')
+      const agg = await tx.workspaceFile.aggregate({
+        where: { workspaceId },
+        _sum: { size: true },
+      })
+      const totalBytes = agg._sum.size ?? 0
+      // Devolvemos GB (float) — el caller compara contra el límite en GB
+      return totalBytes / (1024 * 1024 * 1024)
     }
     case 'brainQueriesPerMonth': {
       const start = new Date()

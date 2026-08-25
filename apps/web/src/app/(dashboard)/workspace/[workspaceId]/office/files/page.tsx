@@ -3,6 +3,7 @@ import { db } from '@/lib/db'
 import { notFound } from 'next/navigation'
 import { getFolderTree, getFiles } from '@/app/actions/files'
 import { FilesClient } from './_components/FilesClient'
+import { getEntitlements } from '@/lib/billing/entitlements'
 
 interface Props {
   params: Promise<{ workspaceId: string }>
@@ -17,10 +18,18 @@ export default async function FilesPage({ params }: Props) {
   })
   if (!workspace) notFound()
 
-  const [folders, files] = await Promise.all([
+  const [folders, files, storageAgg, entitlements] = await Promise.all([
     getFolderTree(workspaceId),
     getFiles(workspaceId, null),
+    db.workspaceFile.aggregate({
+      where: { workspaceId },
+      _sum: { size: true },
+    }),
+    getEntitlements(user.orgId),
   ])
+
+  const usedBytes = storageAgg._sum.size ?? 0
+  const limitGB = entitlements.limits.maxStorageGB
 
   return (
     <div className="flex flex-col h-[calc(100vh-56px)]">
@@ -32,6 +41,8 @@ export default async function FilesPage({ params }: Props) {
         workspaceId={workspaceId}
         initialFolders={folders}
         initialFiles={files}
+        usedBytes={usedBytes}
+        limitGB={limitGB}
       />
     </div>
   )

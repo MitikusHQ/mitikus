@@ -12,6 +12,8 @@ interface Props {
   workspaceId: string
   initialFolders: FolderData[]
   initialFiles: FileData[]
+  usedBytes: number
+  limitGB: number
 }
 
 function findFolderName(folders: FolderData[], id: string): string | null {
@@ -23,7 +25,14 @@ function findFolderName(folders: FolderData[], id: string): string | null {
   return null
 }
 
-export function FilesClient({ workspaceId, initialFolders, initialFiles }: Props) {
+function formatBytes(bytes: number): string {
+  if (bytes < 1024) return `${bytes} B`
+  if (bytes < 1024 * 1024) return `${(bytes / 1024).toFixed(1)} KB`
+  if (bytes < 1024 * 1024 * 1024) return `${(bytes / (1024 * 1024)).toFixed(1)} MB`
+  return `${(bytes / (1024 * 1024 * 1024)).toFixed(2)} GB`
+}
+
+export function FilesClient({ workspaceId, initialFolders, initialFiles, usedBytes, limitGB }: Props) {
   const [folders] = useState<FolderData[]>(initialFolders)
   const [files, setFiles] = useState<FileData[]>(initialFiles)
   const [activeFolderId, setActiveFolderId] = useState<string | null>(null)
@@ -48,6 +57,11 @@ export function FilesClient({ workspaceId, initialFolders, initialFiles }: Props
   const breadcrumb = activeFolderId === null
     ? 'Raíz'
     : (findFolderName(folders, activeFolderId) ?? 'Raíz')
+
+  const limitBytes = limitGB * 1024 * 1024 * 1024
+  const usedPct = limitBytes > 0 ? Math.min(100, (usedBytes / limitBytes) * 100) : 0
+  const isNearLimit = usedPct >= 80
+  const isAtLimit = usedPct >= 100
 
   return (
     <div className="flex flex-1 overflow-hidden">
@@ -84,6 +98,30 @@ export function FilesClient({ workspaceId, initialFolders, initialFiles }: Props
         {/* Upload zone */}
         <div className="px-4 pt-3 pb-2 shrink-0">
           <UploadZone workspaceId={workspaceId} folderId={activeFolderId} onUploaded={refresh} />
+        </div>
+
+        {/* Storage bar */}
+        <div className="px-4 pb-2 shrink-0">
+          <div className="flex items-center justify-between mb-1">
+            <span className="text-xs text-muted-foreground">
+              Almacenamiento: <span className={isNearLimit ? 'font-semibold text-amber-600 dark:text-amber-400' : ''}>{formatBytes(usedBytes)}</span>
+              {' '}/ {limitGB >= Number.MAX_SAFE_INTEGER ? '∞' : `${limitGB} GB`}
+            </span>
+            {isAtLimit && (
+              <span className="text-xs font-medium text-destructive">Límite alcanzado</span>
+            )}
+            {isNearLimit && !isAtLimit && (
+              <span className="text-xs font-medium text-amber-600 dark:text-amber-400">Casi lleno</span>
+            )}
+          </div>
+          {limitGB < Number.MAX_SAFE_INTEGER && (
+            <div className="h-1.5 w-full rounded-full bg-muted overflow-hidden">
+              <div
+                className={`h-full rounded-full transition-all ${isAtLimit ? 'bg-destructive' : isNearLimit ? 'bg-amber-500' : 'bg-primary'}`}
+                style={{ width: `${usedPct}%` }}
+              />
+            </div>
+          )}
         </div>
 
         {/* File list */}
