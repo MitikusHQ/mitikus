@@ -95,11 +95,11 @@ MITIKUS genera facturas electrónicas para autónomos y pymes en España. El RD 
 | Sistema de huella encadenada (`huellaAnterior`) | ✅ Implementado | |
 | Inmutabilidad de registros emitidos | ✅ Implementado (LEGAL1) | |
 | **Remisión en tiempo real a AEAT** | ❌ No implementado | Requiere certificado digital del emisor + webservice AEAT |
-| **Facturas rectificativas (tipos R1-R5)** | ❌ No implementado | Solo hay `tipoFactura` en schema, sin flujo completo |
+| **Facturas rectificativas (tipos R1-R5)** | ✅ Implementado (LEGAL2) | Acción `createRectificativeInvoice`, UI con diálogo de motivo |
 | **Alta en SIF (Sistema de Información de Facturación)** | ❌ No implementado | Gestión de certificados digitales por cliente |
 | **Registro `respuestaAEAT`** | ❌ Pendiente de uso | El campo existe en schema pero no se usa |
-| **Numeración correlativa garantizada** | ⚠️ Parcial | `getNextInvoiceNumber()` puede tener race conditions bajo concurrencia |
-| **Validación de NIF emisor** | ⚠️ Parcial | El NIF se pasa en runtime pero no se valida formato (ES+8dígitos+letra) |
+| **Numeración correlativa garantizada** | ✅ Implementado (ARCH1) | `getNextInvoiceNumber()` usa `SELECT FOR UPDATE` dentro de transacción |
+| **Validación de NIF emisor** | ✅ Implementado (LEGAL3) | `validarNifEspanol()` valida NIF/NIE/CIF antes de calcular hash |
 | **Especificación técnica AEAT definitiva** | ⚠️ Pendiente | AEAT puede publicar modificaciones antes de enero 2027 |
 
 ---

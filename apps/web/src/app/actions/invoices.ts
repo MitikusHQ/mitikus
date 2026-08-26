@@ -220,14 +220,25 @@ export async function getInvoice(workspaceId: string, invoiceId: string): Promis
 export async function getNextInvoiceNumber(workspaceId: string): Promise<string> {
   await assertWorkspaceAccess(workspaceId)
   const year = new Date().getFullYear()
-  const count = await db.invoice.count({
-    where: {
+  const prefix = `${year}-`
+
+  // ARCH1: SELECT FOR UPDATE dentro de una transacción para evitar race conditions
+  // bajo concurrencia. El lock row-level impide que dos sesiones simultáneas
+  // obtengan el mismo número correlativo.
+  const result = await db.$transaction(async (tx) => {
+    // Bloqueamos las filas del workspace+año antes de contar
+    await tx.$queryRawUnsafe(
+      `SELECT id FROM "Invoice" WHERE "workspaceId" = $1 AND number LIKE $2 FOR UPDATE`,
       workspaceId,
-      number: { startsWith: `${year}-` },
-    },
+      `${prefix}%`,
+    )
+    const count = await tx.invoice.count({
+      where: { workspaceId, number: { startsWith: prefix } },
+    })
+    return String(count + 1).padStart(3, '0')
   })
-  const seq = String(count + 1).padStart(3, '0')
-  return `${year}-${seq}`
+
+  return `${prefix}${result}`
 }
 
 export async function createInvoice(workspaceId: string, data: InvoiceInput): Promise<InvoiceData> {
@@ -328,12 +339,28 @@ export async function deleteInvoice(workspaceId: string, invoiceId: string): Pro
  *
  * @param emisorNif - NIF del emisor (autónomo/empresa). Obtener de CompanyProfile cuando esté disponible.
  */
+// LEGAL3: Valida formato NIF/CIF español (7-8 dígitos + letra, con o sin prefijo ES)
+function validarNifEspanol(nif: string): boolean {
+  const clean = nif.trim().toUpperCase().replace(/^ES/, '')
+  // NIF (personas físicas): 8 dígitos + letra control
+  // NIE (extranjeros): X/Y/Z + 7 dígitos + letra control
+  // CIF (personas jurídicas): letra + 7 dígitos + dígito/letra control
+  return /^[0-9]{8}[A-Z]$/.test(clean)
+      || /^[XYZ][0-9]{7}[A-Z]$/.test(clean)
+      || /^[ABCDEFGHJKLMNPQRSUVW][0-9]{7}[0-9A-J]$/.test(clean)
+}
+
 export async function emitirFactura(
   workspaceId: string,
   invoiceId: string,
   emisorNif: string,
 ): Promise<InvoiceData> {
   await assertInvoiceEdit(workspaceId)  // Emitir = acción irreversible, requiere EDITOR
+
+  // LEGAL3: El NIF emisor debe tener formato válido antes de calcular el hash
+  if (!validarNifEspanol(emisorNif)) {
+    throw new Error(`NIF/CIF emisor inválido: "${emisorNif}". Configura un NIF/CIF español válido en el perfil fiscal del workspace antes de emitir facturas.`)
+  }
 
   const factura = await db.invoice.findFirst({
     where: { id: invoiceId, workspaceId },
