@@ -3,10 +3,25 @@ import { can } from '@/lib/permissions'
 import { getLocale } from '@/i18n/locale'
 import Link from 'next/link'
 import { LocaleSelector } from './_components/LocaleSelector'
+import { BillingPortalButton } from './_components/BillingPortalButton'
+import { getEntitlements } from '@/lib/billing/entitlements'
+
+const TIER_LABEL: Record<string, string> = {
+  AUTONOMO: 'Autónomo', STARTER: 'Starter', PROFESSIONAL: 'Professional',
+  BUSINESS: 'Business', ENTERPRISE: 'Enterprise',
+}
+const STATUS_LABEL: Record<string, string> = {
+  TRIALING: 'Periodo de prueba', ACTIVE: 'Activa', PAST_DUE: 'Pago pendiente',
+  CANCELLED: 'Cancelada', EXPIRED: 'Expirada', BLOCKED: 'Bloqueada',
+}
+const STATUS_COLOR: Record<string, string> = {
+  TRIALING: 'text-amber-600', ACTIVE: 'text-emerald-600', PAST_DUE: 'text-orange-600',
+  CANCELLED: 'text-muted-foreground', EXPIRED: 'text-muted-foreground', BLOCKED: 'text-destructive',
+}
 
 export default async function SettingsPage() {
   const user = await requireUser()
-  const locale = await getLocale()
+  const [locale, entitlements] = await Promise.all([getLocale(), getEntitlements(user.orgId)])
   const workspaceId = user.org?.workspaces?.[0]?.id
 
   const sections = [
@@ -83,6 +98,37 @@ export default async function SettingsPage() {
         )}
       </div>
 
+      {/* Sección suscripción */}
+      <div className="rounded-xl border bg-card p-5 space-y-4">
+        <div className="flex items-start gap-4">
+          <div className="mt-0.5 shrink-0 text-muted-foreground">
+            <svg className="w-5 h-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5">
+              <rect x="1" y="4" width="22" height="16" rx="2" ry="2"/>
+              <line x1="1" y1="10" x2="23" y2="10"/>
+            </svg>
+          </div>
+          <div className="flex-1">
+            <div className="font-medium text-sm">Suscripción</div>
+            <div className="flex items-center gap-2 mt-1">
+              <span className="text-sm font-semibold">{TIER_LABEL[entitlements.tier] ?? entitlements.tier}</span>
+              <span className={`text-xs ${STATUS_COLOR[entitlements.status] ?? 'text-muted-foreground'}`}>
+                · {STATUS_LABEL[entitlements.status] ?? entitlements.status}
+              </span>
+            </div>
+            {entitlements.isTrial && (
+              <p className="text-xs text-muted-foreground mt-0.5">
+                Periodo de prueba activo. Activa un plan para continuar cuando termine.
+              </p>
+            )}
+          </div>
+        </div>
+        <BillingPortalButton />
+        <p className="text-xs text-muted-foreground">
+          Aquí puedes cambiar de plan, actualizar tu método de pago, cancelar la suscripción y descargar tus facturas de Stripe.
+        </p>
+      </div>
+
+      {/* Idioma */}
       <div className="rounded-xl border bg-card p-5 space-y-4">
         <div className="flex items-start gap-4">
           <div className="mt-0.5 shrink-0 text-muted-foreground">

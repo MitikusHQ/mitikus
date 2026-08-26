@@ -155,6 +155,19 @@ export async function createStorageAddonCheckout(params: {
   return { url: session.url }
 }
 
+/** Abre el Billing Portal de Stripe para que el usuario gestione su suscripción. */
+export async function createBillingPortalSession(params: {
+  stripeCustomerId: string
+  returnUrl: string
+}): Promise<{ url: string }> {
+  const stripe = getStripeClient()
+  const session = await stripe.billingPortal.sessions.create({
+    customer: params.stripeCustomerId,
+    return_url: params.returnUrl,
+  })
+  return { url: session.url }
+}
+
 /** Verifica la firma del webhook y devuelve el evento — lanza si la firma no es válida. */
 export function constructWebhookEvent(payload: string | Buffer, signature: string): Stripe.Event {
   const stripe = getStripeClient()
