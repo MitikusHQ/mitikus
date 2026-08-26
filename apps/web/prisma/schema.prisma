@@ -213,6 +213,22 @@ model Subscription {
   @@map("subscriptions")
 }
 
+// Solicitud de exportación RGPD — generada al cancelar la suscripción.
+// zipData almacena el ZIP en memoria (datos estructurados, sin binarios).
+// expiresAt: 30 días desde la generación.
+model DataExportRequest {
+  id        String   @id @default(cuid())
+  orgId     String   @unique
+  status    String   @default("PENDING") // PENDING | PROCESSING | DONE | FAILED
+  zipData   Bytes?
+  expiresAt DateTime?
+  error     String?
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@map("data_export_requests")
+}
+
 // Registro append-only de todo evento de billing — auditoría completa (Fase 8).
 model BillingEvent {
   id             String @id @default(cuid())

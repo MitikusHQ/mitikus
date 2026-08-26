@@ -20,6 +20,7 @@ import {
   updateExtraStorageGB,
   incrementTokenVersion,
 } from '@/lib/billing/subscription-service'
+import { triggerOrgDataExport } from '@/lib/rgpd/export-service'
 
 export const runtime = 'nodejs'
 
@@ -107,6 +108,7 @@ export async function POST(req: Request) {
         } else if (subscription.status === 'canceled' || subscription.status === 'unpaid') {
           await finalizeCancellation(orgId, event.id)
           await incrementTokenVersion(orgId).catch(() => {})
+          triggerOrgDataExport(orgId).catch(() => {})
         }
         break
       }
@@ -120,6 +122,7 @@ export async function POST(req: Request) {
         if (!orgId) break
         await finalizeCancellation(orgId, event.id)
         await incrementTokenVersion(orgId).catch(() => {})
+        triggerOrgDataExport(orgId).catch(() => {})
         break
       }
 
