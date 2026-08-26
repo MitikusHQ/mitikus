@@ -77,7 +77,7 @@ async function countCurrent(
       start.setUTCHours(0, 0, 0, 0)
       const [brainCount, toolCount] = await Promise.all([
         tx.brainQuery.count({ where: { orgId, createdAt: { gte: start } } }),
-        tx.toolExecution.count({ where: { workspace: { orgId }, status: { not: 'RUNNING' }, createdAt: { gte: start } } }),
+        tx.toolExecution.count({ where: { workspace: { orgId }, status: { not: 'RUNNING' }, createdAt: { gte: start }, workflowNodeExecution: { is: null } } }),
       ])
       return brainCount + toolCount
     }

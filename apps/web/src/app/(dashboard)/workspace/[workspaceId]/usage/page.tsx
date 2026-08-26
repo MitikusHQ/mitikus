@@ -157,7 +157,10 @@ export default async function UsagePage({ params }: Props) {
     getGlobalUsageToday(),
     getGlobalCostToday(),
     db.toolInstance.count({ where: { workspaceId, status: 'ACTIVE' } }),
-    db.brainQuery.count({ where: { orgId: user.orgId, createdAt: { gte: monthStart } } }),
+    Promise.all([
+      db.brainQuery.count({ where: { orgId: user.orgId, createdAt: { gte: monthStart } } }),
+      db.toolExecution.count({ where: { workspace: { orgId: user.orgId }, status: { not: 'RUNNING' }, createdAt: { gte: monthStart }, workflowNodeExecution: { is: null } } }),
+    ]).then(([b, t]) => b + t),
     isAdmin ? getRecentErrors(user.orgId) : Promise.resolve([]),
     db.registrySearch.count({ where: { orgId: user.orgId } }),
     db.registrySearch.count({ where: { orgId: user.orgId, action: { in: ['install', 'fork'] } } }),
