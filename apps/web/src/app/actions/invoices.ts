@@ -61,6 +61,8 @@ export interface InvoiceData {
   fechaGeneracion: string | null
   enviadaAEAT:    boolean
   qrUrl:          string | null
+  // Rectificativa
+  rectificaId:    string | null
   mailMessages:   InvoiceMailMessage[]
 }
 
@@ -130,6 +132,7 @@ function mapInvoice(r: {
   paymentMethod: string | null; purchaseOrder: string | null; legalNote: string | null; createdAt: Date;
   serie: string; tipoFactura: string; huella: string | null; huellaAnterior: string | null;
   fechaGeneracion: Date | null; enviadaAEAT: boolean; qrUrl: string | null;
+  rectificaId: string | null;
   mailMessages?: Array<{ id: string; direction: string; fromName: string; fromEmail: string | null; toEmail: string; subject: string; body: string; status: string; createdAt: Date; sentAt: Date | null }>;
 }): InvoiceData {
   return {
@@ -159,6 +162,7 @@ function mapInvoice(r: {
     fechaGeneracion: r.fechaGeneracion?.toISOString() ?? null,
     enviadaAEAT:     r.enviadaAEAT,
     qrUrl:           r.qrUrl,
+    rectificaId:     r.rectificaId,
     mailMessages:    (r.mailMessages ?? []).map((message) => ({
       id:        message.id,
       direction: message.direction,
@@ -512,6 +516,81 @@ export async function getInvoiceStats(workspaceId: string) {
   const countPendiente  = allInvoices.filter(i => i.status === 'enviada').length
 
   return { totalPendiente, totalPagado, totalMes, countPendiente }
+}
+
+/**
+ * Crea una factura rectificativa (tipo R1) en estado borrador a partir de una factura emitida.
+ * Los importes se copian en negativo para que el usuario los revise antes de emitir.
+ * La factura original debe estar en estado inmutable (enviada, pagada, vencida, cancelada).
+ */
+export async function createRectificativeInvoice(
+  workspaceId: string,
+  originalInvoiceId: string,
+  motivo: string,
+): Promise<InvoiceData> {
+  await assertInvoiceEdit(workspaceId) // Crear rectificativa requiere EDITOR+
+
+  const original = await db.invoice.findFirst({
+    where: { id: originalInvoiceId, workspaceId },
+    include: includeClient,
+  })
+  if (!original) throw new Error('Factura original no encontrada')
+  if (!IMMUTABLE_STATUSES.includes(original.status)) {
+    throw new Error('Solo se pueden rectificar facturas ya emitidas')
+  }
+
+  // Número correlativo para la nueva factura
+  const year = new Date().getFullYear()
+  const count = await db.invoice.count({
+    where: { workspaceId, number: { startsWith: `${year}-` } },
+  })
+  const seq = String(count + 1).padStart(3, '0')
+  const newNumber = `${year}-${seq}`
+
+  // Los items se copian con totales en negativo — el usuario revisará el borrador
+  const originalItems = (original.items as unknown as InvoiceItem[]) ?? []
+  const rectItems: InvoiceItem[] = originalItems.map(item => ({
+    description: item.description,
+    qty:         item.qty,
+    unitPrice:   item.unitPrice,
+    total:       -Math.abs(item.total),
+  }))
+
+  const rectSubtotal = -Math.abs(original.subtotal)
+  const rectTax      = -Math.abs(original.tax)
+  const rectTotal    = -Math.abs(original.total)
+
+  const legalNote = [
+    `Factura rectificativa de: ${original.number}`,
+    `Motivo: ${motivo.trim()}`,
+    original.legalNote ? `Nota original: ${original.legalNote}` : null,
+  ].filter(Boolean).join('\n')
+
+  const r = await db.invoice.create({
+    data: {
+      workspaceId,
+      number:        newNumber,
+      clientId:      original.clientId,
+      date:          new Date(),
+      status:        'borrador',
+      tipoFactura:   'R1',
+      serie:         original.serie,
+      items:         rectItems as object[],
+      subtotal:      rectSubtotal,
+      taxRate:       original.taxRate,
+      tax:           rectTax,
+      total:         rectTotal,
+      currency:      original.currency,
+      notes:         original.notes,
+      paymentMethod: original.paymentMethod,
+      legalNote,
+      rectificaId:   original.id,
+    },
+    include: includeClient,
+  })
+
+  revalidatePath(`/workspace/${workspaceId}/invoices`)
+  return mapInvoice(r)
 }
 
 export async function syncInvoiceRepliesForWorkspace(workspaceId: string) {

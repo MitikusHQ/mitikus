@@ -2,7 +2,7 @@
 
 import { useState } from 'react'
 import type { InvoiceData } from '@/app/actions/invoices'
-import { updateInvoice, deleteInvoice, sendInvoiceToClient, syncInvoiceRepliesForWorkspace } from '@/app/actions/invoices'
+import { updateInvoice, deleteInvoice, sendInvoiceToClient, syncInvoiceRepliesForWorkspace, createRectificativeInvoice } from '@/app/actions/invoices'
 import { InvoiceModal } from './InvoiceModal'
 
 interface Client { id: string; name: string; contactName?: string | null; email?: string; taxId?: string | null }
@@ -42,6 +42,10 @@ export function InvoicesClient({ workspaceId, initialInvoices, clients, defaultP
   const [emailError, setEmailError]       = useState<string | null>(null)
   const [syncingReplies, setSyncingReplies] = useState(false)
   const [syncMessage, setSyncMessage] = useState<string | null>(null)
+  const [showRectModal, setShowRectModal] = useState(false)
+  const [rectMotivo, setRectMotivo]       = useState('')
+  const [creatingRect, setCreatingRect]   = useState(false)
+  const [rectError, setRectError]         = useState<string | null>(null)
 
   // Stats
   const now = new Date()
@@ -121,6 +125,25 @@ export function InvoicesClient({ workspaceId, initialInvoices, clients, defaultP
     setInvoices(prev => prev.filter(i => i.id !== inv.id))
     if (selected?.id === inv.id) setSelected(null)
     setDeleting(null)
+  }
+
+  async function handleCreateRectificative() {
+    if (!selected || creatingRect) return
+    const motivo = rectMotivo.trim()
+    if (!motivo) { setRectError('Indica el motivo de la rectificación'); return }
+    setCreatingRect(true)
+    setRectError(null)
+    try {
+      const rect = await createRectificativeInvoice(workspaceId, selected.id, motivo)
+      setInvoices(prev => [rect, ...prev])
+      setSelected(rect)
+      setShowRectModal(false)
+      setRectMotivo('')
+    } catch (e) {
+      setRectError(e instanceof Error ? e.message : 'Error desconocido')
+    } finally {
+      setCreatingRect(false)
+    }
   }
 
   const st = selected ? (STATUS_LABELS[selected.status] ?? STATUS_LABELS['borrador']!) : null
@@ -251,6 +274,14 @@ export function InvoicesClient({ workspaceId, initialInvoices, clients, defaultP
                   >
                     {IMMUTABLE_STATUSES.includes(selected.status) ? 'Ver detalle' : 'Editar'}
                   </button>
+                  {IMMUTABLE_STATUSES.includes(selected.status) && (
+                  <button
+                    onClick={() => { setRectMotivo(''); setRectError(null); setShowRectModal(true) }}
+                    className="flex shrink-0 items-center gap-1.5 px-3 py-1.5 text-xs font-medium border border-blue-200 dark:border-blue-800 rounded-lg text-blue-700 dark:text-blue-400 hover:bg-blue-50 dark:hover:bg-blue-900/20 transition-colors"
+                  >
+                    Crear rectificativa
+                  </button>
+                  )}
                   {!IMMUTABLE_STATUSES.includes(selected.status) && (
                   <button
                     onClick={() => handleDelete(selected)}
@@ -369,6 +400,44 @@ export function InvoicesClient({ workspaceId, initialInvoices, clients, defaultP
           )}
         </div>
       </div>
+
+      {showRectModal && selected && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/40">
+          <div className="bg-background border border-border rounded-xl shadow-xl w-full max-w-sm p-6 space-y-4">
+            <h3 className="font-semibold text-foreground">Crear factura rectificativa</h3>
+            <p className="text-sm text-muted-foreground">
+              Se creará una factura rectificativa (tipo R1) en borrador referenciando la factura{' '}
+              <strong>{selected.number}</strong>. Los importes se copiarán en negativo para que los revises.
+            </p>
+            <div>
+              <label className="text-xs font-medium text-muted-foreground block mb-1">Motivo de la rectificación</label>
+              <textarea
+                value={rectMotivo}
+                onChange={(e) => setRectMotivo(e.target.value)}
+                placeholder="Ej: Error en importe, devolución parcial de servicio..."
+                rows={3}
+                className="w-full px-3 py-2 text-sm border border-border rounded-lg bg-background text-foreground focus:outline-none focus:ring-1 focus:ring-primary resize-none"
+              />
+            </div>
+            {rectError && <p className="text-xs text-red-600 dark:text-red-400">{rectError}</p>}
+            <div className="flex gap-2 justify-end pt-1">
+              <button
+                onClick={() => setShowRectModal(false)}
+                className="px-4 py-2 text-sm border border-border rounded-lg text-muted-foreground hover:text-foreground transition-colors"
+              >
+                Cancelar
+              </button>
+              <button
+                onClick={handleCreateRectificative}
+                disabled={creatingRect}
+                className="px-4 py-2 text-sm font-medium bg-primary text-white rounded-lg hover:opacity-90 disabled:opacity-50 transition-opacity"
+              >
+                {creatingRect ? 'Creando...' : 'Crear rectificativa'}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
 
       {showEmailModal && selected && (
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/40">
