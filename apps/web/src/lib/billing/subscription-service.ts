@@ -270,6 +270,17 @@ export async function reactivate(params: {
   return activateSubscription(params)
 }
 
+/**
+ * Incrementa tokenVersion para invalidar todos los tokens de licencia emitidos
+ * para esta org. Se llama al cancelar, expirar o bloquear la suscripción.
+ */
+export async function incrementTokenVersion(orgId: string): Promise<void> {
+  await db.subscription.update({
+    where: { orgId },
+    data: { tokenVersion: { increment: 1 } },
+  })
+}
+
 /** Actualiza los GB extra de almacenamiento adquiridos vía add-on de Stripe. */
 export async function updateExtraStorageGB(orgId: string, extraStorageGB: number): Promise<void> {
   await db.subscription.update({

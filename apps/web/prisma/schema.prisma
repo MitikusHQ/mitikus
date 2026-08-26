@@ -200,6 +200,9 @@ model Subscription {
   // Add-ons comprados — se suman al límite base del plan
   extraStorageGB Int @default(0) // GB extra de almacenamiento (€2/GB/mes vía Stripe)
 
+  // Token de licencia para app de escritorio — se incrementa para invalidar tokens emitidos
+  tokenVersion   Int @default(0)
+
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 

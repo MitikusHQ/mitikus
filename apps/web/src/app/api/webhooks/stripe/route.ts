@@ -18,6 +18,7 @@ import {
   recoverPastDue,
   finalizeCancellation,
   updateExtraStorageGB,
+  incrementTokenVersion,
 } from '@/lib/billing/subscription-service'
 
 export const runtime = 'nodejs'
@@ -105,6 +106,7 @@ export async function POST(req: Request) {
           await markPastDue(orgId, event.id)
         } else if (subscription.status === 'canceled' || subscription.status === 'unpaid') {
           await finalizeCancellation(orgId, event.id)
+          await incrementTokenVersion(orgId).catch(() => {})
         }
         break
       }
@@ -117,6 +119,7 @@ export async function POST(req: Request) {
         )
         if (!orgId) break
         await finalizeCancellation(orgId, event.id)
+        await incrementTokenVersion(orgId).catch(() => {})
         break
       }
 
