@@ -3,12 +3,15 @@
 import { auth } from '@clerk/nextjs/server'
 import { db } from '@/lib/db'
 import { revalidatePath } from 'next/cache'
+import { deliverMailMessage } from '@/lib/mail/delivery'
+import { syncInboxReplies } from '@/lib/mail/inbox-sync'
 import {
   calcularHuella,
   generarURLVerificacion,
   formatFechaAEAT,
   formatTimestampAEAT,
 } from '@/lib/verifactu'
+import { assertCan } from '@/lib/permissions'
 
 export interface InvoiceItem {
   description: string
@@ -17,12 +20,26 @@ export interface InvoiceItem {
   total:       number
 }
 
+export interface InvoiceMailMessage {
+  id: string
+  direction: string
+  fromName: string
+  fromEmail: string | null
+  toEmail: string
+  subject: string
+  body: string
+  status: string
+  createdAt: string
+  sentAt: string | null
+}
+
 export interface InvoiceData {
   id:          string
   number:      string
   clientId:    string | null
   clientName:  string | null
   date:        string
+  operationDate: string | null
   dueDate:     string | null
   status:      string
   items:       InvoiceItem[]
@@ -32,6 +49,9 @@ export interface InvoiceData {
   total:       number
   currency:    string
   notes:       string | null
+  paymentMethod: string | null
+  purchaseOrder: string | null
+  legalNote:    string | null
   createdAt:   string
   // Verifactu
   serie:          string
@@ -41,12 +61,14 @@ export interface InvoiceData {
   fechaGeneracion: string | null
   enviadaAEAT:    boolean
   qrUrl:          string | null
+  mailMessages:   InvoiceMailMessage[]
 }
 
 export interface InvoiceInput {
   number:      string
   clientId?:   string | null
   date:        string
+  operationDate?: string | null
   dueDate?:    string | null
   status?:     string
   items:       InvoiceItem[]
@@ -56,6 +78,9 @@ export interface InvoiceInput {
   total:       number
   currency?:   string
   notes?:      string | null
+  paymentMethod?: string | null
+  purchaseOrder?: string | null
+  legalNote?:    string | null
 }
 
 async function requireAuth() {
@@ -66,12 +91,46 @@ async function requireAuth() {
   return user
 }
 
+async function assertWorkspaceAccess(workspaceId: string) {
+  const user = await requireAuth()
+  const workspace = await db.workspace.findFirst({
+    where: { id: workspaceId, orgId: user.orgId },
+    select: { id: true },
+  })
+  if (!workspace) throw new Error('Workspace not found')
+  return user
+}
+
+async function assertInvoiceWrite(workspaceId: string) {
+  const user = await assertWorkspaceAccess(workspaceId)
+  assertCan(user, 'create_invoice')
+  return user
+}
+
+async function assertInvoiceEdit(workspaceId: string) {
+  const user = await assertWorkspaceAccess(workspaceId)
+  assertCan(user, 'delete_invoice')  // EDITOR+ — para emitir, enviar y eliminar
+  return user
+}
+
+function repairMailText(value: string | null) {
+  if (!value || !/[ÃÂ]/.test(value)) return value
+  try {
+    const repaired = Buffer.from(value, 'latin1').toString('utf8')
+    return repaired.includes('�') ? value : repaired
+  } catch {
+    return value
+  }
+}
+
 function mapInvoice(r: {
   id: string; number: string; clientId: string | null; client: { name: string } | null;
-  date: Date; dueDate: Date | null; status: string; items: unknown; subtotal: number;
-  taxRate: number; tax: number; total: number; currency: string; notes: string | null; createdAt: Date;
+  date: Date; operationDate: Date | null; dueDate: Date | null; status: string; items: unknown; subtotal: number;
+  taxRate: number; tax: number; total: number; currency: string; notes: string | null;
+  paymentMethod: string | null; purchaseOrder: string | null; legalNote: string | null; createdAt: Date;
   serie: string; tipoFactura: string; huella: string | null; huellaAnterior: string | null;
   fechaGeneracion: Date | null; enviadaAEAT: boolean; qrUrl: string | null;
+  mailMessages?: Array<{ id: string; direction: string; fromName: string; fromEmail: string | null; toEmail: string; subject: string; body: string; status: string; createdAt: Date; sentAt: Date | null }>;
 }): InvoiceData {
   return {
     id:         r.id,
@@ -79,6 +138,7 @@ function mapInvoice(r: {
     clientId:   r.clientId,
     clientName: r.client?.name ?? null,
     date:       r.date.toISOString(),
+    operationDate: r.operationDate?.toISOString() ?? null,
     dueDate:    r.dueDate?.toISOString() ?? null,
     status:     r.status,
     items:      (r.items as unknown as InvoiceItem[]) ?? [],
@@ -88,6 +148,9 @@ function mapInvoice(r: {
     total:      r.total,
     currency:   r.currency,
     notes:      r.notes,
+    paymentMethod: r.paymentMethod,
+    purchaseOrder: r.purchaseOrder,
+    legalNote:     r.legalNote,
     createdAt:  r.createdAt.toISOString(),
     serie:           r.serie,
     tipoFactura:     r.tipoFactura,
@@ -96,13 +159,43 @@ function mapInvoice(r: {
     fechaGeneracion: r.fechaGeneracion?.toISOString() ?? null,
     enviadaAEAT:     r.enviadaAEAT,
     qrUrl:           r.qrUrl,
+    mailMessages:    (r.mailMessages ?? []).map((message) => ({
+      id:        message.id,
+      direction: message.direction,
+      fromName:  repairMailText(message.fromName) ?? message.fromName,
+      fromEmail: message.fromEmail,
+      toEmail:   message.toEmail,
+      subject:   repairMailText(message.subject) ?? message.subject,
+      body:      repairMailText(message.body) ?? message.body,
+      status:    message.status,
+      createdAt: message.createdAt.toISOString(),
+      sentAt:    message.sentAt?.toISOString() ?? null,
+    })),
   }
 }
 
-const includeClient = { client: { select: { name: true } } }
+const includeClient = {
+  client: { select: { name: true } },
+  mailMessages: {
+    orderBy: { createdAt: 'desc' as const },
+    take: 10,
+    select: {
+      id: true,
+      direction: true,
+      fromName: true,
+      fromEmail: true,
+      toEmail: true,
+      subject: true,
+      body: true,
+      status: true,
+      createdAt: true,
+      sentAt: true,
+    },
+  },
+}
 
 export async function getInvoices(workspaceId: string): Promise<InvoiceData[]> {
-  await requireAuth()
+  await assertWorkspaceAccess(workspaceId)
   const rows = await db.invoice.findMany({
     where:   { workspaceId },
     include: includeClient,
@@ -112,7 +205,7 @@ export async function getInvoices(workspaceId: string): Promise<InvoiceData[]> {
 }
 
 export async function getInvoice(workspaceId: string, invoiceId: string): Promise<InvoiceData | null> {
-  await requireAuth()
+  await assertWorkspaceAccess(workspaceId)
   const r = await db.invoice.findFirst({
     where:   { id: invoiceId, workspaceId },
     include: includeClient,
@@ -121,7 +214,7 @@ export async function getInvoice(workspaceId: string, invoiceId: string): Promis
 }
 
 export async function getNextInvoiceNumber(workspaceId: string): Promise<string> {
-  await requireAuth()
+  await assertWorkspaceAccess(workspaceId)
   const year = new Date().getFullYear()
   const count = await db.invoice.count({
     where: {
@@ -134,13 +227,14 @@ export async function getNextInvoiceNumber(workspaceId: string): Promise<string>
 }
 
 export async function createInvoice(workspaceId: string, data: InvoiceInput): Promise<InvoiceData> {
-  await requireAuth()
+  await assertInvoiceWrite(workspaceId)
   const r = await db.invoice.create({
     data: {
       workspaceId,
       number:   data.number,
       clientId: data.clientId ?? null,
       date:     new Date(data.date),
+      operationDate: data.operationDate ? new Date(data.operationDate) : null,
       dueDate:  data.dueDate ? new Date(data.dueDate) : null,
       status:   data.status ?? 'borrador',
       items:    (data.items ?? []) as object[],
@@ -150,6 +244,9 @@ export async function createInvoice(workspaceId: string, data: InvoiceInput): Pr
       total:    data.total,
       currency: data.currency ?? 'EUR',
       notes:    data.notes ?? null,
+      paymentMethod: data.paymentMethod ?? null,
+      purchaseOrder: data.purchaseOrder ?? null,
+      legalNote:     data.legalNote ?? null,
     },
     include: includeClient,
   })
@@ -162,13 +259,20 @@ export async function updateInvoice(
   invoiceId: string,
   data: Partial<InvoiceInput>,
 ): Promise<InvoiceData> {
-  await requireAuth()
+  await assertInvoiceWrite(workspaceId)
+  const existing = await db.invoice.findFirst({
+    where: { id: invoiceId, workspaceId },
+    select: { id: true },
+  })
+  if (!existing) throw new Error('Factura no encontrada')
+
   const r = await db.invoice.update({
     where:   { id: invoiceId },
     data: {
       ...(data.number   !== undefined && { number:   data.number }),
       ...(data.clientId !== undefined && { clientId: data.clientId }),
       ...(data.date     !== undefined && { date:     new Date(data.date) }),
+      ...(data.operationDate !== undefined && { operationDate: data.operationDate ? new Date(data.operationDate) : null }),
       ...(data.dueDate  !== undefined && { dueDate:  data.dueDate ? new Date(data.dueDate) : null }),
       ...(data.status   !== undefined && { status:   data.status }),
       ...(data.items    !== undefined && { items:    (data.items ?? []) as object[] }),
@@ -178,6 +282,9 @@ export async function updateInvoice(
       ...(data.total    !== undefined && { total:    data.total }),
       ...(data.currency !== undefined && { currency: data.currency }),
       ...(data.notes    !== undefined && { notes:    data.notes }),
+      ...(data.paymentMethod !== undefined && { paymentMethod: data.paymentMethod }),
+      ...(data.purchaseOrder !== undefined && { purchaseOrder: data.purchaseOrder }),
+      ...(data.legalNote     !== undefined && { legalNote: data.legalNote }),
     },
     include: includeClient,
   })
@@ -186,7 +293,7 @@ export async function updateInvoice(
 }
 
 export async function deleteInvoice(workspaceId: string, invoiceId: string): Promise<void> {
-  await requireAuth()
+  await assertInvoiceEdit(workspaceId)
   await db.invoice.deleteMany({ where: { id: invoiceId, workspaceId } })
   revalidatePath(`/workspace/${workspaceId}/invoices`)
 }
@@ -202,7 +309,7 @@ export async function emitirFactura(
   invoiceId: string,
   emisorNif: string,
 ): Promise<InvoiceData> {
-  await requireAuth()
+  await assertInvoiceEdit(workspaceId)  // Emitir = acción irreversible, requiere EDITOR
 
   const factura = await db.invoice.findFirst({
     where: { id: invoiceId, workspaceId },
@@ -261,8 +368,113 @@ export async function emitirFactura(
   return mapInvoice(updated)
 }
 
+export async function sendInvoiceToClient(
+  workspaceId: string,
+  invoiceId: string,
+  recipientEmail: string,
+  recipientName?: string,
+): Promise<{ success: true; invoice: InvoiceData } | { error: string }> {
+  const user = await assertInvoiceEdit(workspaceId)  // Enviar a cliente requiere EDITOR
+  const email = recipientEmail.trim()
+  if (!email || !email.includes('@')) return { error: 'Introduce un email válido.' }
+
+  const invoice = await db.invoice.findFirst({
+    where: { id: invoiceId, workspaceId },
+    include: {
+      client: {
+        select: {
+          name: true,
+          contactName: true,
+          email: true,
+          phone: true,
+          taxId: true,
+          fiscalAddress: true,
+          postalCode: true,
+          city: true,
+          province: true,
+          country: true,
+        },
+      },
+      workspace: {
+        select: {
+          name: true,
+          companyProfile: {
+            select: {
+              fiscalName: true,
+              nif: true,
+              fiscalAddress: true,
+              fiscalPostalCode: true,
+              fiscalCity: true,
+              fiscalProvince: true,
+              fiscalCountry: true,
+              fiscalEmail: true,
+              fiscalPhone: true,
+              iban: true,
+              defaultPaymentNotes: true,
+              emailSenderName: true,
+              emailReplyTo: true,
+              emailSignature: true,
+            },
+          },
+        },
+      },
+    },
+  })
+  if (!invoice) return { error: 'Factura no encontrada.' }
+
+  const profile = invoice.workspace.companyProfile
+  const issuerName = profile?.fiscalName || invoice.workspace.name
+  const fromName = profile?.emailSenderName || issuerName
+  const replyTo = profile?.emailReplyTo || profile?.fiscalEmail || null
+  const total = invoice.total.toLocaleString('es-ES', {
+    minimumFractionDigits: 2,
+    maximumFractionDigits: 2,
+  })
+
+  const greetingName = recipientName?.trim() || invoice.client?.contactName?.trim() || invoice.client?.name || ''
+
+  const body = [
+    `Hola${greetingName ? ` ${greetingName}` : ''},`,
+    '',
+    `Te enviamos la factura ${invoice.number} por importe de ${total} ${invoice.currency}.`,
+    'Adjuntamos el PDF de la factura para que puedas revisarla y guardarla.',
+    '',
+    profile?.emailSignature || `Gracias,\n${fromName}`,
+  ].join('\n')
+
+  const mailMessage = await db.mailMessage.create({
+    data: {
+      workspaceId,
+      orgId: user.orgId,
+      userId: user.id,
+      invoiceId,
+      toEmail: email,
+      fromName,
+      replyTo,
+      subject: `Factura ${invoice.number} - ${issuerName}`,
+      body,
+      status: 'queued',
+      provider: 'mitikus-mail',
+    },
+  })
+
+  const delivery = await deliverMailMessage(mailMessage.id)
+  if (!delivery.ok) {
+    revalidatePath(`/workspace/${workspaceId}/invoices`)
+    return { error: `La factura quedó preparada, pero no se pudo enviar todavía: ${delivery.error}` }
+  }
+
+  const sentInvoice = await db.invoice.findFirst({
+    where: { id: invoiceId, workspaceId },
+    include: includeClient,
+  })
+
+  revalidatePath(`/workspace/${workspaceId}/invoices`)
+  return { success: true, invoice: mapInvoice(sentInvoice ?? invoice) }
+}
+
 export async function getInvoiceStats(workspaceId: string) {
-  await requireAuth()
+  await assertWorkspaceAccess(workspaceId)
   const now = new Date()
   const startOfMonth = new Date(now.getFullYear(), now.getMonth(), 1)
 
@@ -280,4 +492,11 @@ export async function getInvoiceStats(workspaceId: string) {
   const countPendiente  = allInvoices.filter(i => i.status === 'enviada').length
 
   return { totalPendiente, totalPagado, totalMes, countPendiente }
+}
+
+export async function syncInvoiceRepliesForWorkspace(workspaceId: string) {
+  await assertWorkspaceAccess(workspaceId)
+  const result = await syncInboxReplies(50)
+  revalidatePath(`/workspace/${workspaceId}/invoices`)
+  return result
 }

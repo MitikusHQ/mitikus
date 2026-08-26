@@ -6,6 +6,7 @@ import { revalidatePath } from 'next/cache'
 import { randomInt } from 'crypto'
 import bcrypt from 'bcryptjs'
 import { logActivity } from './activity'
+import { assertCan } from '@/lib/permissions'
 
 export interface ContractData {
   id:               string
@@ -33,6 +34,18 @@ async function getAuthUser() {
   if (!clerkId) throw new Error('Unauthorized')
   const user = await db.user.findUnique({ where: { clerkId } })
   if (!user) throw new Error('User not found')
+  return user
+}
+
+async function getAuthUserCanCreate() {
+  const user = await getAuthUser()
+  assertCan(user, 'create_contract')
+  return user
+}
+
+async function getAuthUserCanDelete() {
+  const user = await getAuthUser()
+  assertCan(user, 'delete_contract')
   return user
 }
 
@@ -123,7 +136,7 @@ export async function signInternalContract(
   dataUrl:      string,
   accepted:     boolean,
 ): Promise<void> {
-  await getAuthUser()
+  await getAuthUserCanCreate()  // sign_contract = EDITOR+
   const base64 = dataUrl.split(',')[1]
   if (!base64) throw new Error('Invalid signature data URL')
   const buffer = Buffer.from(base64, 'base64')
@@ -145,7 +158,7 @@ export async function sendContractToClient(
   clientName:  string,
   clientEmail: string,
 ): Promise<void> {
-  const user = await getAuthUser()
+  const user = await getAuthUserCanCreate()  // send_contract = EDITOR+
   const contract = await db.contract.findFirst({
     where:  { id: contractId, workspaceId },
     select: { id: true, title: true, shareToken: true, internalSignedAt: true, status: true },
@@ -182,7 +195,7 @@ export async function deleteContract(
   contractId:  string,
   workspaceId: string,
 ): Promise<void> {
-  await getAuthUser()
+  await getAuthUserCanDelete()
   await db.contract.deleteMany({ where: { id: contractId, workspaceId } })
   revalidatePath(`/workspace/${workspaceId}/contracts`)
 }

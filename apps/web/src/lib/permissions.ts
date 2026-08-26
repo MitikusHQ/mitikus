@@ -51,6 +51,21 @@ export type PermissionAction =
   | 'create_workflow'
   | 'edit_workflow'
   | 'delete_workflow'
+  // Facturación y contratos
+  | 'create_invoice'
+  | 'edit_invoice'
+  | 'delete_invoice'
+  | 'send_invoice'
+  | 'create_contract'
+  | 'sign_contract'
+  | 'send_contract'
+  | 'delete_contract'
+  // Clientes
+  | 'create_client'
+  | 'edit_client'
+  | 'archive_client'
+  // Configuración fiscal y de workspace
+  | 'manage_fiscal_settings'
   // Organización
   | 'manage_members'
   | 'create_workspace'
@@ -83,6 +98,26 @@ const ACTION_MIN_LEVEL: Record<PermissionAction, number> = {
   create_workflow: ROLE_LEVEL.EDITOR,
   edit_workflow:   ROLE_LEVEL.EDITOR,
   delete_workflow: ROLE_LEVEL.EDITOR,
+
+  // Facturación — OPERATOR crea/edita; EDITOR emite, envía y borra
+  create_invoice: ROLE_LEVEL.OPERATOR,
+  edit_invoice:   ROLE_LEVEL.OPERATOR,
+  delete_invoice: ROLE_LEVEL.EDITOR,
+  send_invoice:   ROLE_LEVEL.EDITOR,
+
+  // Contratos — EDITOR para todo (acciones con consecuencias legales)
+  create_contract: ROLE_LEVEL.EDITOR,
+  sign_contract:   ROLE_LEVEL.EDITOR,
+  send_contract:   ROLE_LEVEL.EDITOR,
+  delete_contract: ROLE_LEVEL.EDITOR,
+
+  // Clientes — OPERATOR crea/edita; EDITOR archiva
+  create_client:  ROLE_LEVEL.OPERATOR,
+  edit_client:    ROLE_LEVEL.OPERATOR,
+  archive_client: ROLE_LEVEL.EDITOR,
+
+  // Datos fiscales — ADMIN (afectan a todas las facturas)
+  manage_fiscal_settings: ROLE_LEVEL.ADMIN,
 
   // Organización — ADMIN+
   manage_members:   ROLE_LEVEL.ADMIN,

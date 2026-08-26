@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { auth } from '@clerk/nextjs/server'
 import { db } from '@/lib/db'
+import { can } from '@/lib/permissions'
 
 const MAX_SIZE = 10 * 1024 * 1024 // 10 MB
 
@@ -10,6 +11,7 @@ export async function POST(req: NextRequest): Promise<NextResponse> {
 
   const user = await db.user.findUnique({ where: { clerkId } })
   if (!user) return NextResponse.json({ error: 'User not found' }, { status: 401 })
+  if (!can(user, 'create_contract')) return NextResponse.json({ error: 'Sin permisos para crear contratos' }, { status: 403 })
 
   let formData: FormData
   try {

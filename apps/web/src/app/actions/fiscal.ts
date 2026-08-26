@@ -3,10 +3,12 @@
 import { requireUser } from '@/lib/auth'
 import { db } from '@/lib/db'
 import { encryptSafe } from '@/lib/crypto'
+import { assertCan } from '@/lib/permissions'
 import type { LegalForm, Country } from '@/lib/fiscal-calendar'
 
 export async function setFiscalConfig(workspaceId: string, country: Country, legalForm?: LegalForm) {
   const user = await requireUser()
+  assertCan(user, 'manage_fiscal_settings')
 
   const workspace = await db.workspace.findFirst({
     where: { id: workspaceId, orgId: user.orgId },
@@ -27,6 +29,8 @@ export async function setLegalForm(workspaceId: string, legalForm: LegalForm) {
 
 export async function updateNif(workspaceId: string, nif: string) {
   const user = await requireUser()
+  assertCan(user, 'manage_fiscal_settings')
+
   const workspace = await db.workspace.findFirst({
     where: { id: workspaceId, orgId: user.orgId },
   })
@@ -73,6 +77,8 @@ export interface EmailSettingsInput {
 
 export async function updateBillingProfile(workspaceId: string, input: BillingProfileInput) {
   const user = await requireUser()
+  assertCan(user, 'manage_fiscal_settings')
+
   const workspace = await db.workspace.findFirst({
     where: { id: workspaceId, orgId: user.orgId },
   })
@@ -102,6 +108,8 @@ export async function updateBillingProfile(workspaceId: string, input: BillingPr
 
 export async function updateEmailSettings(workspaceId: string, input: EmailSettingsInput) {
   const user = await requireUser()
+  assertCan(user, 'manage_fiscal_settings')
+
   const workspace = await db.workspace.findFirst({
     where: { id: workspaceId, orgId: user.orgId },
   })
