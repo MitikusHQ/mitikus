@@ -2045,6 +2045,9 @@ model Invoice {
   paymentMethod String? // transferencia | tarjeta | efectivo | domiciliacion | otro
   purchaseOrder String? // Pedido, expediente, presupuesto o referencia del cliente
   legalNote     String? @db.Text // Menciones legales: exención, inversión sujeto pasivo, régimen especial, etc.
+  // Notificaciones automáticas
+  overdueNotifiedAt DateTime? // null = aún no se ha enviado aviso de vencimiento
+
   createdAt   DateTime  @default(now())
   updatedAt   DateTime  @updatedAt
 

@@ -723,6 +723,75 @@ export async function sendPostActivationEmail({
   })
 }
 
+export async function sendInvoiceOverdueEmail({
+  to,
+  ownerName,
+  workspaceName,
+  overdueInvoices,
+  invoicesUrl,
+}: {
+  to: string
+  ownerName: string | null
+  workspaceName: string
+  overdueInvoices: { number: string; clientName: string | null; total: number; currency: string; dueDate: Date }[]
+  invoicesUrl: string
+}): Promise<void> {
+  if (!process.env.RESEND_API_KEY) return
+  const resend = new Resend(process.env.RESEND_API_KEY)
+  const greeting = ownerName ? `Hola, ${ownerName.split(' ')[0]}.` : 'Hola.'
+  const count = overdueInvoices.length
+  const rows = overdueInvoices.map((inv) => {
+    const fmt = new Intl.DateTimeFormat('es-ES', { day: '2-digit', month: 'short' }).format(inv.dueDate)
+    const total = `${inv.total.toLocaleString('es-ES', { minimumFractionDigits: 2 })} ${inv.currency}`
+    return `<tr>
+      <td style="padding:6px 10px;font-size:13px;color:#111;border-bottom:1px solid #f0f0f0">${escHtml(inv.number)}</td>
+      <td style="padding:6px 10px;font-size:13px;color:#555;border-bottom:1px solid #f0f0f0">${escHtml(inv.clientName ?? '—')}</td>
+      <td style="padding:6px 10px;font-size:13px;color:#111;border-bottom:1px solid #f0f0f0;text-align:right;font-variant-numeric:tabular-nums">${total}</td>
+      <td style="padding:6px 10px;font-size:13px;color:#dc2626;border-bottom:1px solid #f0f0f0">${fmt}</td>
+    </tr>`
+  }).join('')
+
+  await resend.emails.send({
+    from: 'MITIKUS <notificaciones@mitikus.com>',
+    to,
+    subject: `${count === 1 ? '1 factura ha vencido' : `${count} facturas han vencido`} en "${workspaceName}"`,
+    html: `
+      <div style="font-family:sans-serif;max-width:560px;margin:0 auto;padding:0">
+        <div style="background:#0f172a;padding:16px 24px;border-radius:8px 8px 0 0">
+          <span style="color:#fff;font-size:14px;font-weight:700;letter-spacing:.08em">MITIKUS</span>
+        </div>
+        <div style="padding:28px 24px;background:#fff;border:1px solid #e2e8f0;border-top:none;border-radius:0 0 8px 8px">
+          <p style="font-size:15px;color:#0f172a;margin:0 0 8px">${greeting}</p>
+          <p style="font-size:15px;color:#334155;margin:0 0 20px;line-height:1.6">
+            ${count === 1 ? 'La siguiente factura de' : `Las siguientes ${count} facturas de`}
+            <strong>${escHtml(workspaceName)}</strong> ha${count === 1 ? '' : 'n'} superado la fecha de vencimiento:
+          </p>
+          <table style="width:100%;border-collapse:collapse;margin-bottom:24px">
+            <thead>
+              <tr style="background:#f8fafc">
+                <th style="padding:6px 10px;font-size:11px;text-transform:uppercase;letter-spacing:.06em;color:#64748b;text-align:left;border-bottom:2px solid #e2e8f0">Nº</th>
+                <th style="padding:6px 10px;font-size:11px;text-transform:uppercase;letter-spacing:.06em;color:#64748b;text-align:left;border-bottom:2px solid #e2e8f0">Cliente</th>
+                <th style="padding:6px 10px;font-size:11px;text-transform:uppercase;letter-spacing:.06em;color:#64748b;text-align:right;border-bottom:2px solid #e2e8f0">Total</th>
+                <th style="padding:6px 10px;font-size:11px;text-transform:uppercase;letter-spacing:.06em;color:#64748b;text-align:left;border-bottom:2px solid #e2e8f0">Vencía</th>
+              </tr>
+            </thead>
+            <tbody>${rows}</tbody>
+          </table>
+          <div style="text-align:center;margin:0 0 20px">
+            <a href="${invoicesUrl}"
+               style="display:inline-block;padding:12px 24px;background:#0f172a;color:#fff;border-radius:8px;text-decoration:none;font-size:14px;font-weight:600">
+              Ver facturas →
+            </a>
+          </div>
+          <p style="font-size:12px;color:#94a3b8;text-align:center;margin:0">
+            MITIKUS · <a href="https://mitikus.com" style="color:#94a3b8">mitikus.com</a>
+          </p>
+        </div>
+      </div>
+    `,
+  })
+}
+
 export async function sendStorageAlertEmail({
   to,
   workspaceName,
