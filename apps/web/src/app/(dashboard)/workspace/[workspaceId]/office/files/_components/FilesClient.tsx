@@ -1,6 +1,58 @@
 'use client'
 
 import { useState, useCallback, useTransition, useRef } from 'react'
+
+function StorageAddonButton({ workspaceId }: { workspaceId: string }) {
+  const [gb, setGb] = useState(5)
+  const [loading, setLoading] = useState(false)
+  const [error, setError] = useState<string | null>(null)
+
+  async function handleBuy() {
+    setLoading(true)
+    setError(null)
+    try {
+      const res = await fetch('/api/billing/storage-addon', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ gb, workspaceId }),
+      })
+      const data = await res.json() as { url?: string; error?: string }
+      if (!res.ok || data.error) { setError(data.error ?? 'Error al procesar la compra.'); return }
+      if (data.url && data.url !== window.location.href) window.location.href = data.url
+      else window.location.reload()
+    } catch {
+      setError('Error de red. Inténtalo de nuevo.')
+    } finally {
+      setLoading(false)
+    }
+  }
+
+  return (
+    <div className="mt-2 rounded-md border border-amber-200 dark:border-amber-800 bg-amber-50 dark:bg-amber-950/30 px-3 py-2 flex flex-col gap-1.5">
+      <p className="text-xs font-medium text-amber-800 dark:text-amber-300">Amplía tu almacenamiento — €2/GB/mes</p>
+      <div className="flex items-center gap-2">
+        <select
+          value={gb}
+          onChange={(e) => setGb(Number(e.target.value))}
+          className="text-xs rounded border border-input bg-background px-2 py-1 focus:outline-none"
+        >
+          {[5, 10, 20, 50, 100].map((n) => (
+            <option key={n} value={n}>{n} GB — {(n * 2).toFixed(0)} €/mes</option>
+          ))}
+        </select>
+        <button
+          type="button"
+          onClick={handleBuy}
+          disabled={loading}
+          className="text-xs px-3 py-1 rounded bg-amber-600 text-white hover:bg-amber-700 disabled:opacity-60 transition-colors"
+        >
+          {loading ? 'Procesando…' : 'Añadir almacenamiento'}
+        </button>
+      </div>
+      {error && <p className="text-xs text-destructive">{error}</p>}
+    </div>
+  )
+}
 import { FolderTree } from './FolderTree'
 import { FilePanel } from './FilePanel'
 import { UploadZone } from './UploadZone'
@@ -160,6 +212,9 @@ export function FilesClient({ workspaceId, initialFolders, initialFiles, usedByt
                 style={{ width: `${usedPct}%` }}
               />
             </div>
+          )}
+          {isNearLimit && limitGB < Number.MAX_SAFE_INTEGER && (
+            <StorageAddonButton workspaceId={workspaceId} />
           )}
         </div>
 

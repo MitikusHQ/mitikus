@@ -17,6 +17,7 @@ import {
   markPastDue,
   recoverPastDue,
   finalizeCancellation,
+  updateExtraStorageGB,
 } from '@/lib/billing/subscription-service'
 
 export const runtime = 'nodejs'
@@ -70,11 +71,23 @@ export async function POST(req: Request) {
         )
         if (!orgId) break
 
-        const priceId = subscription.items.data[0]?.price.id
+        // Detectar GB extra de almacenamiento en cualquier item de la suscripción
+        const storageAddonPriceId = process.env.STRIPE_STORAGE_ADDON_PRICE_ID
+        if (storageAddonPriceId && orgId) {
+          const extraGB = subscription.items.data
+            .filter((i) => i.price.id === storageAddonPriceId)
+            .reduce((sum, i) => sum + (i.quantity ?? 0), 0)
+          await updateExtraStorageGB(orgId, extraGB).catch((err) => {
+            console.error('[stripe webhook] error actualizando extraStorageGB', err)
+          })
+        }
+
+        const priceId = subscription.items.data.find((i) => i.price.id !== storageAddonPriceId)?.price.id
+          ?? subscription.items.data[0]?.price.id
         const tier = priceId ? getTierFromStripePriceId(priceId) : null
         if (!tier || !priceId) break
 
-        const item = subscription.items.data[0]
+        const item = subscription.items.data.find((i) => i.price.id === priceId) ?? subscription.items.data[0]
         if (subscription.status === 'active' || subscription.status === 'trialing') {
           await activateSubscription({
             orgId,

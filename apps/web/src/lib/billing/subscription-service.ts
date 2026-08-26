@@ -270,6 +270,14 @@ export async function reactivate(params: {
   return activateSubscription(params)
 }
 
+/** Actualiza los GB extra de almacenamiento adquiridos vía add-on de Stripe. */
+export async function updateExtraStorageGB(orgId: string, extraStorageGB: number): Promise<void> {
+  await db.subscription.update({
+    where: { orgId },
+    data: { extraStorageGB },
+  })
+}
+
 /** Bloqueo manual — abuso o fraude. No es alcanzable desde ningún webhook de Stripe. */
 export async function blockSubscription(orgId: string, reason: string): Promise<Subscription> {
   const existing = await getOrCreateSubscription(orgId)

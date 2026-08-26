@@ -98,6 +98,63 @@ export async function reactivateSubscription(stripeSubscriptionId: string): Prom
   await stripe.subscriptions.update(stripeSubscriptionId, { cancel_at_period_end: false })
 }
 
+/**
+ * Crea una checkout session para añadir GB extra a la suscripción existente.
+ * El precio en Stripe debe ser recurrente (€2/unidad/mes).
+ * Variable de entorno: STRIPE_STORAGE_ADDON_PRICE_ID
+ */
+export async function createStorageAddonCheckout(params: {
+  orgId: string
+  stripeCustomerId: string
+  stripeSubscriptionId: string | null
+  gb: number
+  successUrl: string
+  cancelUrl: string
+}): Promise<{ url: string }> {
+  const stripe = getStripeClient()
+  const priceId = process.env.STRIPE_STORAGE_ADDON_PRICE_ID
+  if (!priceId) throw new Error('STRIPE_STORAGE_ADDON_PRICE_ID no está configurada.')
+
+  if (params.stripeSubscriptionId) {
+    // Cliente ya tiene suscripción activa → añadir item directamente
+    const sub = await stripe.subscriptions.retrieve(params.stripeSubscriptionId)
+    const existingItem = sub.items.data.find((i) => i.price.id === priceId)
+
+    if (existingItem) {
+      // Ya tiene storage addon — actualizar cantidad sumando
+      await stripe.subscriptions.update(params.stripeSubscriptionId, {
+        items: [{ id: existingItem.id, quantity: (existingItem.quantity ?? 0) + params.gb }],
+        proration_behavior: 'create_prorations',
+        metadata: { protoolsOrgId: params.orgId },
+      })
+      // No hay URL de checkout — la compra se procesa directamente
+      return { url: params.successUrl }
+    }
+    // Añadir item nuevo
+    await stripe.subscriptions.update(params.stripeSubscriptionId, {
+      items: [{ price: priceId, quantity: params.gb }],
+      proration_behavior: 'create_prorations',
+      metadata: { protoolsOrgId: params.orgId },
+    })
+    return { url: params.successUrl }
+  }
+
+  // Sin suscripción base → checkout normal (poco frecuente, fallback)
+  const session = await stripe.checkout.sessions.create({
+    mode: 'subscription',
+    customer: params.stripeCustomerId,
+    line_items: [{ price: priceId, quantity: params.gb }],
+    success_url: params.successUrl,
+    cancel_url: params.cancelUrl,
+    client_reference_id: params.orgId,
+    subscription_data: { metadata: { protoolsOrgId: params.orgId } },
+    metadata: { protoolsOrgId: params.orgId },
+  })
+
+  if (!session.url) throw new Error('Stripe no devolvió una URL de checkout.')
+  return { url: session.url }
+}
+
 /** Verifica la firma del webhook y devuelve el evento — lanza si la firma no es válida. */
 export function constructWebhookEvent(payload: string | Buffer, signature: string): Stripe.Event {
   const stripe = getStripeClient()

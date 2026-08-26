@@ -68,12 +68,18 @@ export async function getEntitlements(orgId: string): Promise<Entitlements> {
 
   // PAST_DUE: se mantienen los límites del plan (periodo de gracia), no se castiga todavía
   const plan = getPlanDefinition(sub.tier)
+  const extraStorageGB = (sub as { extraStorageGB?: number }).extraStorageGB ?? 0
   return {
     tier: sub.tier,
     status,
     isTrial: status === 'TRIALING',
     blocked: false,
-    limits: plan.limits,
+    limits: {
+      ...plan.limits,
+      maxStorageGB: plan.limits.maxStorageGB < Number.MAX_SAFE_INTEGER
+        ? plan.limits.maxStorageGB + extraStorageGB
+        : plan.limits.maxStorageGB,
+    },
     features: plan.features,
   }
 }
