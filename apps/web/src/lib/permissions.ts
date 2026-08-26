@@ -64,6 +64,9 @@ export type PermissionAction =
   | 'create_client'
   | 'edit_client'
   | 'archive_client'
+  // Archivos
+  | 'manage_files'
+  | 'delete_file'
   // Configuración fiscal y de workspace
   | 'manage_fiscal_settings'
   // Organización
@@ -115,6 +118,10 @@ const ACTION_MIN_LEVEL: Record<PermissionAction, number> = {
   create_client:  ROLE_LEVEL.OPERATOR,
   edit_client:    ROLE_LEVEL.OPERATOR,
   archive_client: ROLE_LEVEL.EDITOR,
+
+  // Archivos — OPERATOR sube/mueve; EDITOR borra y gestiona carpetas
+  manage_files: ROLE_LEVEL.OPERATOR,
+  delete_file:  ROLE_LEVEL.EDITOR,
 
   // Datos fiscales — ADMIN (afectan a todas las facturas)
   manage_fiscal_settings: ROLE_LEVEL.ADMIN,

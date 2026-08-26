@@ -4,6 +4,7 @@ import { auth } from '@clerk/nextjs/server'
 import { redirect } from 'next/navigation'
 import { db } from '@/lib/db'
 import { checkEntitlement } from '@/lib/billing/entitlements'
+import { can } from '@/lib/permissions'
 
 export type WorkspaceActionState = { error: string } | null
 export type WorkspaceWithProfileState =
@@ -34,9 +35,10 @@ export async function createWorkspace(
 
   const user = await db.user.findUnique({
     where: { clerkId: userId },
-    select: { id: true, orgId: true },
+    select: { id: true, orgId: true, role: true },
   })
   if (!user) redirect('/onboarding')
+  if (!can(user, 'create_workspace')) return { error: 'Solo los administradores pueden crear workspaces.' }
 
   const currentWs = await db.workspace.count({ where: { orgId: user.orgId } })
   const limitCheck = await checkEntitlement(user.orgId, 'maxWorkspaces', currentWs)
@@ -73,9 +75,10 @@ export async function createWorkspaceWithProfile(
 
   const user = await db.user.findUnique({
     where: { clerkId: userId },
-    select: { id: true, orgId: true },
+    select: { id: true, orgId: true, role: true },
   })
   if (!user) redirect('/onboarding')
+  if (!can(user, 'create_workspace')) return { error: 'Solo los administradores pueden crear workspaces.' }
 
   const currentWs2 = await db.workspace.count({ where: { orgId: user.orgId } })
   const limitCheck = await checkEntitlement(user.orgId, 'maxWorkspaces', currentWs2)

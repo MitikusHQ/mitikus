@@ -5,6 +5,7 @@ import { db } from '@/lib/db'
 import { FileType } from '@prisma/client'
 import { checkPlanLimit } from '@/lib/billing/check-plan-limit'
 import { checkStorageAlerts } from '@/lib/storage-alerts'
+import { can } from '@/lib/permissions'
 
 const MIME_TO_TYPE: Record<string, FileType> = {
   'application/pdf': FileType.PDF,
@@ -30,6 +31,7 @@ export async function POST(
 
   const workspace = await db.workspace.findFirst({ where: { id: workspaceId, orgId: user.orgId } })
   if (!workspace) return NextResponse.json({ error: 'No autorizado' }, { status: 403 })
+  if (!can(user, 'manage_files')) return NextResponse.json({ error: 'Sin permisos para subir archivos' }, { status: 403 })
 
   const formData = await req.formData()
   const file = formData.get('file') as File | null
