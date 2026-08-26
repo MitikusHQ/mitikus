@@ -29,6 +29,7 @@ import { supplierEvaluation } from './purchasing/supplier-evaluation'
 import { supplierHomologation } from './purchasing/supplier-homologation'
 import { goodsReception } from './purchasing/goods-reception'
 import { offerComparison } from './purchasing/offer-comparison'
+import { purchaseRequest } from './purchasing/purchase-request'
 
 // Sales
 import { crmLeads } from './sales/crm-leads'
@@ -42,6 +43,7 @@ import { salesForecast } from './sales/sales-forecast'
 import { editorialPlan } from './marketing/editorial-plan'
 import { campaignBrief } from './marketing/campaign-brief'
 import { socialMediaAudit } from './marketing/social-media-audit'
+import { socialMediaManager } from './marketing/social-media-manager'
 import { seoChecklist } from './marketing/seo-checklist'
 import { campaignEvaluation } from './marketing/campaign-evaluation'
 
@@ -99,11 +101,12 @@ export const allOfficialTools: OfficialToolDefinition[] = [
   productionChecklist,
   qualityInspection,
 
-  // Purchasing (18-21)
+  // Purchasing (18-22)
   supplierEvaluation,
   supplierHomologation,
   goodsReception,
   offerComparison,
+  purchaseRequest,
 
   // Sales (22-27)
   crmLeads,
@@ -113,27 +116,28 @@ export const allOfficialTools: OfficialToolDefinition[] = [
   salesPipeline,
   salesForecast,
 
-  // Marketing (28-32)
+  // Marketing (28-33)
   editorialPlan,
   campaignBrief,
   socialMediaAudit,
+  socialMediaManager,
   seoChecklist,
   campaignEvaluation,
 
-  // Consulting (33-37)
+  // Consulting (34-38)
   swotAnalysis,
   digitalMaturity,
   companyDiagnosis,
   processMap,
   strategicPlan,
 
-  // Security (38-41)
+  // Security (39-42)
   prlChecklist,
   incidentReport,
   evacuationChecklist,
   epiInspection,
 
-  // IT (42-47)
+  // IT (43-48)
   hardwareInventory,
   softwareInventory,
   itIncidents,
@@ -141,7 +145,7 @@ export const allOfficialTools: OfficialToolDefinition[] = [
   backupVerification,
   accessControl,
 
-  // Administration (48-51)
+  // Administration (49-52)
   expenseControl,
   assetInventory,
   contractReview,
@@ -150,3 +154,7 @@ export const allOfficialTools: OfficialToolDefinition[] = [
 
 export type { OfficialToolDefinition } from './_types'
 export { oid } from './_helpers'
+
+
+
+

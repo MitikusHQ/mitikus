@@ -6,7 +6,7 @@ interface Tab {
   href: string
 }
 
-const RELEVANT_TYPES: CapabilityType[] = ['TABLE', 'FORM', 'CHECKLIST', 'SCORING']
+const RELEVANT_TYPES: CapabilityType[] = ['TABLE', 'FORM', 'CHECKLIST', 'SCORING', 'APPROVAL_FLOW']
 
 export function buildCapabilityTabs(
   schema: ValidatedToolSchema,
@@ -22,6 +22,7 @@ export function buildCapabilityTabs(
       if (cap.type === 'FORM') href = `${base}/records/new`
       else if (cap.type === 'CHECKLIST') href = `${base}/checklist/new`
       else if (cap.type === 'SCORING') href = `${base}/scoring/new`
+      else if (cap.type === 'APPROVAL_FLOW') href = `${base}/approval/new`
 
       return { type: cap.type, label: cap.label, href }
     })

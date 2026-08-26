@@ -240,10 +240,28 @@ export default async function ToolRunnerPage({ params }: Props) {
                     const isScoring = data._type === 'scoring'
                     const isEven = idx % 2 === 0
 
+                    const isApproval = data._type === 'approval_flow'
+
                     let typeBadge: React.ReactNode = (
                       <span className="text-xs text-muted-foreground">Formulario</span>
                     )
-                    if (isChecklist) {
+                    if (isApproval) {
+                      const approvalStatus = (data._status as string) ?? 'pending'
+                      const approvalCls: Record<string, string> = {
+                        pending:  'bg-amber-100 text-amber-800 dark:bg-amber-900/30 dark:text-amber-400',
+                        approved: 'bg-green-100 text-green-800 dark:bg-green-900/30 dark:text-green-400',
+                        rejected: 'bg-red-100 text-red-800 dark:bg-red-900/30 dark:text-red-400',
+                        on_hold:  'bg-gray-100 text-gray-600 dark:bg-gray-800 dark:text-gray-400',
+                      }
+                      const approvalLabel: Record<string, string> = {
+                        pending: 'Pendiente', approved: 'Aprobada', rejected: 'Rechazada', on_hold: 'En espera',
+                      }
+                      typeBadge = (
+                        <span className={cn('inline-flex items-center rounded-full px-2 py-0.5 text-xs font-medium', approvalCls[approvalStatus] ?? approvalCls.pending)}>
+                          {approvalLabel[approvalStatus] ?? approvalStatus}
+                        </span>
+                      )
+                    } else if (isChecklist) {
                       const items = (data._items ?? {}) as Record<string, boolean>
                       const total = Object.keys(items).length
                       const done = Object.values(items).filter(Boolean).length
@@ -309,7 +327,10 @@ export default async function ToolRunnerPage({ params }: Props) {
                         <td className="px-4 py-3">
                           <div className="flex items-center justify-end gap-3">
                             <Link
-                              href={`/workspace/${workspaceId}/tools/${instanceId}/records/${record.id}`}
+                              href={isApproval
+                                ? `/workspace/${workspaceId}/tools/${instanceId}/approval/${record.id}`
+                                : `/workspace/${workspaceId}/tools/${instanceId}/records/${record.id}`
+                              }
                               className="text-xs text-primary hover:underline whitespace-nowrap"
                             >
                               Ver

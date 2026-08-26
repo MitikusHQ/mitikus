@@ -23,6 +23,7 @@ export const CAPABILITY_TYPES = [
   'CHECKLIST',
   'SCORING',
   'PDF_EXPORT',
+  'APPROVAL_FLOW',
 ] as const
 
 export type CapabilityType = (typeof CAPABILITY_TYPES)[number]
@@ -213,6 +214,24 @@ export interface PdfExportConfig {
   scope: 'single_record' | 'all_records'
 }
 
+// ─── APPROVAL_FLOW ───────────────────────────────────────────
+
+export type ApprovalStatus = 'pending' | 'approved' | 'rejected' | 'on_hold'
+
+export interface ApprovalFlowConfig {
+  /** Roles que pueden crear solicitudes (default: todos los miembros) */
+  submitterRoles: ('OWNER' | 'ADMIN' | 'EDITOR' | 'MEMBER' | 'OPERATOR' | 'VIEWER')[]
+  /** Roles que pueden aprobar o rechazar (default: ADMIN y OWNER) */
+  approverRoles: ('OWNER' | 'ADMIN' | 'EDITOR')[]
+  /** Si se requiere comentario al rechazar */
+  requireCommentOnRejection: boolean
+  /** Importe (en el campo indicado) por debajo del cual se aprueba automáticamente */
+  autoApproveAmountField?: string
+  autoApproveBelow?: number
+  /** Etiquetas personalizadas para los estados */
+  statusLabels?: Partial<Record<ApprovalStatus, string>>
+}
+
 // ─── UNION de todas las configs ───────────────────────────────
 
 export type CapabilityConfigData =
@@ -221,6 +240,7 @@ export type CapabilityConfigData =
   | ChecklistConfig
   | ScoringConfig
   | PdfExportConfig
+  | ApprovalFlowConfig
 
 // ============================================================
 // CAPABILITY CONFIG (instancia de una capability en un tool)
@@ -388,6 +408,18 @@ const pdfExportConfigSchema = z.object({
   scope: z.enum(['single_record', 'all_records']),
 })
 
+const workspaceRoleSchema = z.enum(['OWNER', 'ADMIN', 'EDITOR', 'MEMBER', 'OPERATOR', 'VIEWER'])
+const approverRoleSchema  = z.enum(['OWNER', 'ADMIN', 'EDITOR'])
+
+const approvalFlowConfigSchema = z.object({
+  submitterRoles:            z.array(workspaceRoleSchema).min(1),
+  approverRoles:             z.array(approverRoleSchema).min(1),
+  requireCommentOnRejection: z.boolean(),
+  autoApproveAmountField:    z.string().optional(),
+  autoApproveBelow:          z.number().positive().optional(),
+  statusLabels:              z.record(z.enum(['pending', 'approved', 'rejected', 'on_hold']), z.string()).optional(),
+})
+
 const capabilityConfigSchema = z.object({
   type: capabilityTypeSchema,
   instanceId: z.string().min(1).regex(/^[a-z0-9-]+$/, 'instanceId debe ser kebab-case'),
@@ -398,6 +430,7 @@ const capabilityConfigSchema = z.object({
     checklistConfigSchema,
     scoringConfigSchema,
     pdfExportConfigSchema,
+    approvalFlowConfigSchema,
   ]),
   isDefault: z.boolean().optional(),
 })
