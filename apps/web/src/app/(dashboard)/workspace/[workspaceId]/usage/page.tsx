@@ -16,6 +16,7 @@ import { AdminPanel } from './_components/AdminPanel'
 import { getPlanLimits, startOfMonthUTC } from '@/lib/plan-limits'
 import { trialPlanLabel, emailTypeLabel } from '@/lib/email-classification'
 import { PLAN_CATALOG } from '@/lib/billing/plan-catalog'
+import { getEntitlements } from '@/lib/billing/entitlements'
 import type { PlanTier } from '@prisma/client'
 
 interface Props {
@@ -136,6 +137,11 @@ export default async function UsagePage({ params }: Props) {
     totalSearches,
     toolsReused,
     toolsGenerated,
+    storageAgg,
+    contractsTotal,
+    invoicesTotal,
+    invoicesTotalEUR,
+    entitlements,
   ] = await Promise.all([
     db.aIUsage.aggregate({
       where: {
@@ -165,7 +171,26 @@ export default async function UsagePage({ params }: Props) {
     db.registrySearch.count({ where: { orgId: user.orgId } }),
     db.registrySearch.count({ where: { orgId: user.orgId, action: { in: ['install', 'fork'] } } }),
     db.registrySearch.count({ where: { orgId: user.orgId, action: 'generate' } }),
+    // Almacenamiento — suma de todos los archivos del workspace
+    db.workspaceFile.aggregate({
+      where: { workspaceId },
+      _sum: { size: true },
+      _count: true,
+    }),
+    // Contratos e facturas
+    db.contract.count({ where: { workspaceId } }),
+    db.invoice.count({ where: { workspaceId } }),
+    db.invoice.aggregate({ where: { workspaceId }, _sum: { total: true } }),
+    // Entitlements para límite real de almacenamiento
+    getEntitlements(user.orgId),
   ])
+
+  const storageBytesUsed = storageAgg._sum.size ?? 0
+  const storageGBUsed = storageBytesUsed / (1024 ** 3)
+  const storageLimitGB = entitlements.limits.maxStorageGB < Number.MAX_SAFE_INTEGER
+    ? entitlements.limits.maxStorageGB
+    : 0 // 0 = ilimitado
+  const invoicesSumEUR = invoicesTotalEUR._sum.total ?? 0
 
   const inputTokens = todayStats._sum.inputTokens ?? 0
   const outputTokens = todayStats._sum.outputTokens ?? 0
@@ -335,6 +360,75 @@ export default async function UsagePage({ params }: Props) {
             </div>
           )}
         </section>
+
+        {/* Almacenamiento */}
+        <section className="space-y-4">
+          <h2 className="text-base font-semibold">Almacenamiento</h2>
+          <div className="rounded-lg border bg-card p-5 space-y-4">
+            {storageLimitGB > 0 ? (
+              <UsageBar
+                label="Archivos en este workspace"
+                current={storageGBUsed}
+                limit={storageLimitGB}
+                format={(n) => `${n < 0.01 ? '<0.01' : n.toFixed(2)} GB`}
+              />
+            ) : (
+              <div className="flex items-center justify-between text-sm">
+                <span className="font-medium">Archivos en este workspace</span>
+                <span className="font-mono text-xs text-muted-foreground">
+                  {storageGBUsed < 0.01 ? '<0.01' : storageGBUsed.toFixed(2)} GB · {storageAgg._count} archivos
+                </span>
+              </div>
+            )}
+            <div className="flex items-center justify-between text-xs text-muted-foreground pt-1 border-t">
+              <span>{storageAgg._count} archivo{storageAgg._count !== 1 ? 's' : ''} almacenado{storageAgg._count !== 1 ? 's' : ''}</span>
+              <Link href={`/workspace/${workspaceId}/office/files`} className="hover:text-foreground transition-colors">
+                Gestionar archivos →
+              </Link>
+            </div>
+          </div>
+        </section>
+
+        {/* Actividad del workspace */}
+        <section className="space-y-4">
+          <h2 className="text-base font-semibold">Actividad acumulada</h2>
+          <div className="grid gap-3 sm:grid-cols-3">
+            <StatCard label="Contratos creados" value={String(contractsTotal)} />
+            <StatCard label="Facturas emitidas" value={String(invoicesTotal)} />
+            <StatCard
+              label="Total facturado"
+              value={invoicesSumEUR > 0 ? `${invoicesSumEUR.toLocaleString('es-ES', { minimumFractionDigits: 2, maximumFractionDigits: 2 })} €` : '—'}
+            />
+          </div>
+          {(contractsTotal > 0 || invoicesTotal > 0) && (
+            <div className="flex gap-3 text-xs">
+              <Link href={`/workspace/${workspaceId}/contracts`} className="text-muted-foreground hover:text-foreground transition-colors">
+                Ver contratos →
+              </Link>
+              <Link href={`/workspace/${workspaceId}/invoices`} className="text-muted-foreground hover:text-foreground transition-colors">
+                Ver facturas →
+              </Link>
+            </div>
+          )}
+        </section>
+
+        {/* Upgrade CTA — solo si no tiene plan activo de pago */}
+        {(!catalogPlan || subscription?.status === 'TRIALING') && (
+          <section className="rounded-lg border border-primary/20 bg-primary/5 px-5 py-4 flex items-center justify-between gap-4 flex-wrap">
+            <div>
+              <p className="text-sm font-semibold">Activa un plan para eliminar los límites</p>
+              <p className="text-xs text-muted-foreground mt-0.5">
+                Más generaciones IA, más almacenamiento, más usuarios y acceso al Brain.
+              </p>
+            </div>
+            <Link
+              href="/settings"
+              className="shrink-0 text-sm font-semibold px-4 py-2 rounded-lg bg-primary text-primary-foreground hover:bg-primary/90 transition-colors"
+            >
+              Ver planes →
+            </Link>
+          </section>
+        )}
 
         {/* Estadísticas de hoy */}
         <section className="space-y-4">

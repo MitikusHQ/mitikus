@@ -17,12 +17,16 @@ interface Step {
 }
 
 export async function OnboardingChecklist({ workspaceId, userId }: Props) {
-  const [context, toolCount, executionCount, clientCount, objectiveCount] = await Promise.all([
+  const [context, toolCount, executionCount, clientCount, objectiveCount, fiscalProfile] = await Promise.all([
     getBusinessContext(workspaceId),
     db.toolInstance.count({ where: { workspaceId, status: 'ACTIVE' } }),
     db.toolExecution.count({ where: { workspaceId, status: 'COMPLETED' } }),
     db.client.count({ where: { workspaceId, isArchived: false } }),
     db.companyObjective.count({ where: { workspaceId } }),
+    db.companyProfile.findUnique({
+      where: { workspaceId },
+      select: { companyName: true, nif: true },
+    }),
   ])
 
   const firstTool = toolCount > 0
@@ -73,6 +77,14 @@ export async function OnboardingChecklist({ workspaceId, userId }: Props) {
       href:        `/workspace/${workspaceId}/clients/new`,
       cta:         'Añadir cliente →',
       done:        clientCount > 0,
+    },
+    {
+      id:          'fiscal',
+      label:       'Configura los datos fiscales',
+      description: 'Añade el nombre de empresa y NIF para emitir facturas válidas.',
+      href:        `/workspace/${workspaceId}/settings`,
+      cta:         'Configurar →',
+      done:        !!(fiscalProfile?.companyName && fiscalProfile?.nif),
     },
   ]
 
