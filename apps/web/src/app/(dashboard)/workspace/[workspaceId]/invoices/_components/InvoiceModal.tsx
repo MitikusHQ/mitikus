@@ -4,33 +4,60 @@ import { useState, useEffect, useCallback } from 'react'
 import type { InvoiceData, InvoiceItem, InvoiceInput } from '@/app/actions/invoices'
 import { createInvoice, updateInvoice, getNextInvoiceNumber } from '@/app/actions/invoices'
 
-interface Client { id: string; name: string }
+interface Client {
+  id: string
+  name: string
+  taxId?: string | null
+  fiscalAddress?: string | null
+  postalCode?: string | null
+  city?: string | null
+  province?: string | null
+  country?: string | null
+}
 
 interface Props {
   workspaceId: string
   clients: Client[]
   invoice?: InvoiceData | null
+  defaultPaymentNotes?: string
   onClose: () => void
   onSaved: (inv: InvoiceData) => void
 }
 
 const EMPTY_ITEM: InvoiceItem = { description: '', qty: 1, unitPrice: 0, total: 0 }
 
-export function InvoiceModal({ workspaceId, clients, invoice, onClose, onSaved }: Props) {
+const IMMUTABLE_STATUSES = ['enviada', 'pagada', 'vencida', 'cancelada']
+
+export function InvoiceModal({ workspaceId, clients, invoice, defaultPaymentNotes = '', onClose, onSaved }: Props) {
+  const isImmutable = !!invoice && IMMUTABLE_STATUSES.includes(invoice.status)
   const [number, setNumber]   = useState(invoice?.number ?? '')
   const [clientId, setClientId] = useState(invoice?.clientId ?? '')
   const [date, setDate]       = useState(invoice?.date ? invoice.date.slice(0, 10) : new Date().toISOString().slice(0, 10))
+  const [operationDate, setOperationDate] = useState(invoice?.operationDate ? invoice.operationDate.slice(0, 10) : '')
   const [dueDate, setDueDate] = useState(invoice?.dueDate ? invoice.dueDate.slice(0, 10) : '')
   const [status, setStatus]   = useState(invoice?.status ?? 'borrador')
   const [items, setItems]     = useState<InvoiceItem[]>(invoice?.items?.length ? invoice.items : [{ ...EMPTY_ITEM }])
   const [taxRate, setTaxRate] = useState(invoice?.taxRate ?? 21)
   const [currency, setCurrency] = useState(invoice?.currency ?? 'EUR')
-  const [notes, setNotes]     = useState(invoice?.notes ?? '')
+  const [notes, setNotes]     = useState(invoice ? (invoice.notes ?? '') : defaultPaymentNotes)
+  const [paymentMethod, setPaymentMethod] = useState(invoice?.paymentMethod ?? 'transferencia')
+  const [purchaseOrder, setPurchaseOrder] = useState(invoice?.purchaseOrder ?? '')
+  const [legalNote, setLegalNote] = useState(invoice?.legalNote ?? '')
   const [saving, setSaving]   = useState(false)
+  const [error, setError] = useState<string | null>(null)
 
   const subtotal = items.reduce((s, i) => s + i.total, 0)
   const tax      = Math.round(subtotal * taxRate) / 100
   const total    = subtotal + tax
+  const selectedClient = clients.find((client) => client.id === clientId)
+  const clientFiscalMissing = selectedClient
+    ? [
+        !selectedClient.taxId && 'NIF/CIF',
+        !selectedClient.fiscalAddress && 'domicilio fiscal',
+        !selectedClient.city && 'ciudad',
+        !selectedClient.country && 'país',
+      ].filter(Boolean).join(', ')
+    : ''
 
   useEffect(() => {
     if (!invoice) {
@@ -53,13 +80,15 @@ export function InvoiceModal({ workspaceId, clients, invoice, onClose, onSaved }
   const removeItem = (idx: number) => setItems(prev => prev.filter((_, i) => i !== idx))
 
   async function handleSave() {
-    if (!number.trim()) return
+    if (saving || !number.trim()) return
     setSaving(true)
+    setError(null)
     try {
       const payload: InvoiceInput = {
         number,
         clientId: clientId || null,
         date,
+        operationDate: operationDate || null,
         dueDate: dueDate || null,
         status,
         items,
@@ -69,11 +98,16 @@ export function InvoiceModal({ workspaceId, clients, invoice, onClose, onSaved }
         total,
         currency,
         notes: notes || null,
+        paymentMethod: paymentMethod || null,
+        purchaseOrder: purchaseOrder || null,
+        legalNote: legalNote || null,
       }
       const saved = invoice
         ? await updateInvoice(workspaceId, invoice.id, payload)
         : await createInvoice(workspaceId, payload)
       onSaved(saved)
+    } catch {
+      setError('No se ha podido guardar la factura. Revisa tu sesión y vuelve a intentarlo.')
     } finally {
       setSaving(false)
     }
@@ -92,6 +126,15 @@ export function InvoiceModal({ workspaceId, clients, invoice, onClose, onSaved }
 
         {/* Body */}
         <div className="overflow-y-auto flex-1 px-6 py-4 space-y-4">
+          {isImmutable && (
+            <div className="flex items-start gap-2 rounded-lg border border-amber-200 bg-amber-50 px-4 py-3 text-sm text-amber-800 dark:border-amber-800/40 dark:bg-amber-900/20 dark:text-amber-300">
+              <span className="mt-0.5 shrink-0">⚠️</span>
+              <span>
+                Esta factura ya fue emitida y no puede modificarse.{' '}
+                Para corregirla, cierra este panel y crea una <strong>factura rectificativa</strong>.
+              </span>
+            </div>
+          )}
           {/* Row 1 */}
           <div className="grid grid-cols-2 gap-4">
             <div>
@@ -112,6 +155,13 @@ export function InvoiceModal({ workspaceId, clients, invoice, onClose, onSaved }
                 <option value="">— Sin cliente —</option>
                 {clients.map(c => <option key={c.id} value={c.id}>{c.name}</option>)}
               </select>
+              {selectedClient && (
+                <p className="mt-1 text-xs text-muted-foreground">
+                  {clientFiscalMissing
+                    ? `Faltan para factura completa: ${clientFiscalMissing}.`
+                    : 'Datos fiscales del cliente completos.'}
+                </p>
+              )}
             </div>
           </div>
 
@@ -121,6 +171,12 @@ export function InvoiceModal({ workspaceId, clients, invoice, onClose, onSaved }
               <label className="block text-xs font-medium text-muted-foreground mb-1">Fecha</label>
               <input type="date" value={date} onChange={e => setDate(e.target.value)}
                 className="w-full text-sm border border-border rounded-lg px-3 py-2 bg-background text-foreground focus:outline-none focus:ring-2 focus:ring-primary" />
+            </div>
+            <div>
+              <label className="block text-xs font-medium text-muted-foreground mb-1">Fecha operación</label>
+              <input type="date" value={operationDate} onChange={e => setOperationDate(e.target.value)}
+                className="w-full text-sm border border-border rounded-lg px-3 py-2 bg-background text-foreground focus:outline-none focus:ring-2 focus:ring-primary" />
+              <p className="mt-1 text-[11px] text-muted-foreground">Solo si difiere de la fecha de emisión.</p>
             </div>
             <div>
               <label className="block text-xs font-medium text-muted-foreground mb-1">Vencimiento</label>
@@ -137,6 +193,29 @@ export function InvoiceModal({ workspaceId, clients, invoice, onClose, onSaved }
                 <option value="vencida">Vencida</option>
                 <option value="cancelada">Cancelada</option>
               </select>
+            </div>
+          </div>
+
+          <div className="grid grid-cols-2 gap-4">
+            <div>
+              <label className="block text-xs font-medium text-muted-foreground mb-1">Forma de pago</label>
+              <select value={paymentMethod} onChange={e => setPaymentMethod(e.target.value)}
+                className="w-full text-sm border border-border rounded-lg px-3 py-2 bg-background text-foreground focus:outline-none focus:ring-2 focus:ring-primary">
+                <option value="transferencia">Transferencia</option>
+                <option value="tarjeta">Tarjeta</option>
+                <option value="efectivo">Efectivo</option>
+                <option value="domiciliacion">Domiciliación</option>
+                <option value="otro">Otro</option>
+              </select>
+            </div>
+            <div>
+              <label className="block text-xs font-medium text-muted-foreground mb-1">Pedido / referencia</label>
+              <input
+                value={purchaseOrder}
+                onChange={e => setPurchaseOrder(e.target.value)}
+                placeholder="Pedido, presupuesto o expediente"
+                className="w-full text-sm border border-border rounded-lg px-3 py-2 bg-background text-foreground focus:outline-none focus:ring-2 focus:ring-primary"
+              />
             </div>
           </div>
 
@@ -224,18 +303,34 @@ export function InvoiceModal({ workspaceId, clients, invoice, onClose, onSaved }
               placeholder="Condiciones de pago, IBAN, etc."
               className="w-full text-sm border border-border rounded-lg px-3 py-2 bg-background text-foreground focus:outline-none focus:ring-2 focus:ring-primary resize-none" />
           </div>
+
+          <div>
+            <label className="block text-xs font-medium text-muted-foreground mb-1">Mención legal especial</label>
+            <textarea value={legalNote} onChange={e => setLegalNote(e.target.value)} rows={2}
+              placeholder="Operación exenta, inversión del sujeto pasivo, régimen especial, factura rectificativa..."
+              className="w-full text-sm border border-border rounded-lg px-3 py-2 bg-background text-foreground focus:outline-none focus:ring-2 focus:ring-primary resize-none" />
+          </div>
         </div>
 
         {/* Footer */}
-        <div className="flex justify-end gap-3 px-6 py-4 border-t border-border">
+        <div className="flex flex-col gap-3 px-6 py-4 border-t border-border">
+          {error && (
+            <p className="rounded-md border border-red-500/30 bg-red-500/10 px-3 py-2 text-sm text-red-300">
+              {error}
+            </p>
+          )}
+          <div className="flex justify-end gap-3">
           <button onClick={onClose}
             className="px-4 py-2 text-sm text-muted-foreground hover:text-foreground transition-colors">
-            Cancelar
+            {isImmutable ? 'Cerrar' : 'Cancelar'}
           </button>
-          <button onClick={handleSave} disabled={saving || !number.trim()}
-            className="px-5 py-2 text-sm font-medium bg-primary text-white rounded-lg hover:opacity-90 transition-opacity disabled:opacity-50">
-            {saving ? 'Guardando…' : (invoice ? 'Guardar cambios' : 'Crear factura')}
-          </button>
+          {!isImmutable && (
+            <button onClick={handleSave} disabled={saving || !number.trim()}
+              className="px-5 py-2 text-sm font-medium bg-primary text-white rounded-lg hover:opacity-90 transition-opacity disabled:opacity-50">
+              {saving ? 'Guardando…' : (invoice ? 'Guardar cambios' : 'Crear factura')}
+            </button>
+          )}
+          </div>
         </div>
       </div>
     </div>

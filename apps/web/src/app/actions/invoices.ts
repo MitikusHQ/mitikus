@@ -254,6 +254,9 @@ export async function createInvoice(workspaceId: string, data: InvoiceInput): Pr
   return mapInvoice(r)
 }
 
+// Estados que bloquean modificación y borrado
+const IMMUTABLE_STATUSES = ['enviada', 'pagada', 'vencida', 'cancelada']
+
 export async function updateInvoice(
   workspaceId: string,
   invoiceId: string,
@@ -262,9 +265,19 @@ export async function updateInvoice(
   await assertInvoiceWrite(workspaceId)
   const existing = await db.invoice.findFirst({
     where: { id: invoiceId, workspaceId },
-    select: { id: true },
+    select: { id: true, status: true },
   })
   if (!existing) throw new Error('Factura no encontrada')
+  if (IMMUTABLE_STATUSES.includes(existing.status)) {
+    // En facturas emitidas solo se permite cambiar el estado (ej: enviada → pagada)
+    // Cualquier cambio en el contenido fiscal está bloqueado
+    const ALLOWED_KEYS_ON_EMITTED: (keyof InvoiceInput)[] = ['status']
+    const attemptedKeys = Object.keys(data) as (keyof InvoiceInput)[]
+    const hasFiscalChange = attemptedKeys.some(k => !ALLOWED_KEYS_ON_EMITTED.includes(k))
+    if (hasFiscalChange) {
+      throw new Error('No se puede modificar el contenido de una factura ya emitida. Para corregirla, crea una factura rectificativa.')
+    }
+  }
 
   const r = await db.invoice.update({
     where:   { id: invoiceId },
@@ -294,6 +307,13 @@ export async function updateInvoice(
 
 export async function deleteInvoice(workspaceId: string, invoiceId: string): Promise<void> {
   await assertInvoiceEdit(workspaceId)
+  const existing = await db.invoice.findFirst({
+    where: { id: invoiceId, workspaceId },
+    select: { status: true },
+  })
+  if (existing && IMMUTABLE_STATUSES.includes(existing.status)) {
+    throw new Error('No se puede eliminar una factura ya emitida. Las facturas emitidas forman parte del registro fiscal.')
+  }
   await db.invoice.deleteMany({ where: { id: invoiceId, workspaceId } })
   revalidatePath(`/workspace/${workspaceId}/invoices`)
 }
