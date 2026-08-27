@@ -203,7 +203,7 @@ export function WorkspaceSettingsClient({ workspace, userRole }: { workspace: Wo
     setEmailSaving(true)
     setEmailError(null)
     try {
-      await updateEmailSettings(workspace.id, {
+      const result = await updateEmailSettings(workspace.id, {
         emailSendMode: emailSettings.mode,
         emailSenderName: emailSettings.senderName,
         emailReplyTo: emailSettings.replyTo,
@@ -219,6 +219,10 @@ export function WorkspaceSettingsClient({ workspace, userRole }: { workspace: Wo
         imapUser: emailSettings.imapUser,
         imapPassword: emailSettings.imapPassword || undefined,
       })
+      if (!result.ok) {
+        setEmailError(result.error)
+        return
+      }
       setEmailSaved(true)
       setTimeout(() => setEmailSaved(false), 2000)
       router.refresh()

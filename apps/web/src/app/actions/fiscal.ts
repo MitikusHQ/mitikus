@@ -79,12 +79,15 @@ export interface EmailSettingsInput {
 }
 
 function encryptEmailPassword(password: string | undefined, label: string) {
-  if (!password) return undefined
+  if (!password) return { ok: true as const, encrypted: undefined }
   const encrypted = encryptSafe(password)
   if (!encrypted) {
-    throw new Error(`No se pudo guardar la contraseña ${label}. Falta configurar MITIKUS_ENCRYPTION_KEY en producción.`)
+    return {
+      ok: false as const,
+      error: `No se pudo guardar la contraseña ${label}. Falta configurar MITIKUS_ENCRYPTION_KEY en producción.`,
+    }
   }
-  return encrypted
+  return { ok: true as const, encrypted }
 }
 
 export async function updateBillingProfile(workspaceId: string, input: BillingProfileInput) {
@@ -143,17 +146,19 @@ export async function updateEmailSettings(workspaceId: string, input: EmailSetti
   const emailReplyTo = input.emailReplyTo.trim()
   const emailSignature = input.emailSignature.trim()
 
-  const smtpPasswordEncrypted = encryptEmailPassword(input.smtpPassword, 'SMTP')
+  const smtpPasswordResult = encryptEmailPassword(input.smtpPassword, 'SMTP')
+  if (!smtpPasswordResult.ok) return { ok: false as const, error: smtpPasswordResult.error }
+  const smtpPasswordEncrypted = smtpPasswordResult.encrypted
   const existingSmtpPasswordEncrypted = workspace.companyProfile?.smtpPasswordEncrypted ?? undefined
   const nextSmtpPasswordEncrypted = smtpPasswordEncrypted ?? existingSmtpPasswordEncrypted
   const smtpUser = input.smtpUser?.trim() || null
   const imapUser = input.imapUser?.trim() || smtpUser
   const sharedPassword = !input.imapPassword && smtpUser && imapUser?.toLowerCase() === smtpUser.toLowerCase()
-  const imapPasswordEncrypted = input.imapPassword
+  const imapPasswordResult = input.imapPassword
     ? encryptEmailPassword(input.imapPassword, 'IMAP')
-    : sharedPassword
-      ? nextSmtpPasswordEncrypted
-      : undefined
+    : { ok: true as const, encrypted: sharedPassword ? nextSmtpPasswordEncrypted : undefined }
+  if (!imapPasswordResult.ok) return { ok: false as const, error: imapPasswordResult.error }
+  const imapPasswordEncrypted = imapPasswordResult.encrypted
 
   const baseData = {
     emailSendMode: input.emailSendMode || 'mitikus',
@@ -178,6 +183,8 @@ export async function updateEmailSettings(workspaceId: string, input: EmailSetti
     create: { workspaceId, ...baseData },
     update: baseData,
   })
+
+  return { ok: true as const }
 }
 
 export async function testEmailSettings(workspaceId: string, input: EmailSettingsInput) {
