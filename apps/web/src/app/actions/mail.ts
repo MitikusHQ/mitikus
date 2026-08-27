@@ -321,7 +321,12 @@ export async function syncMailboxForWorkspace(workspaceId: string) {
       ? decryptSafe(profile.smtpPasswordEncrypted)
       : null)
   if (!profile?.imapHost || !imapUser || !imapPassword) {
-    throw new Error('Configura IMAP en Ajustes para actualizar los correos recibidos.')
+    return {
+      scanned: 0,
+      imported: 0,
+      skipped: 0,
+      errors: [{ uid: 0, error: 'Configura IMAP en Ajustes para actualizar los correos recibidos.' }],
+    }
   }
   const imapConfig = {
     host: profile.imapHost,
@@ -330,7 +335,12 @@ export async function syncMailboxForWorkspace(workspaceId: string) {
     user: imapUser,
     pass: imapPassword,
   }
-  const result = await syncInboxForWorkspace(workspaceId, user.orgId, 200, imapConfig)
+  const result = await syncInboxForWorkspace(workspaceId, user.orgId, 200, imapConfig).catch((error) => ({
+    scanned: 0,
+    imported: 0,
+    skipped: 0,
+    errors: [{ uid: 0, error: error instanceof Error ? error.message : 'No se ha podido conectar con IMAP.' }],
+  }))
   revalidatePath(`/workspace/${workspaceId}/mail`)
   return result
 }
