@@ -327,7 +327,7 @@ export async function syncMailboxForWorkspace(workspaceId: string) {
         pass: imapPassword,
       }
     : null
-  const result = await syncInboxForWorkspace(workspaceId, user.orgId, 50, imapConfig)
+  const result = await syncInboxForWorkspace(workspaceId, user.orgId, 200, imapConfig)
   revalidatePath(`/workspace/${workspaceId}/mail`)
   return result
 }
