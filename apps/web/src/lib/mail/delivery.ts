@@ -1,7 +1,7 @@
 import { db } from '@/lib/db'
 import { buildInvoicePdfAttachment } from '@/lib/invoices/invoice-pdf'
 import { decryptSafe } from '@/lib/crypto'
-import { appendMailToSent } from './imap-client'
+import { appendMailToSent, appendMailToSentWithConfig } from './imap-client'
 import { sendSmtpMail, sendSmtpMailWithConfig } from './smtp-client'
 
 type DeliveryResult =
@@ -39,11 +39,24 @@ export async function deliverMailMessage(messageId: string): Promise<DeliveryRes
     // Resolve per-workspace SMTP if configured, otherwise fall through to global env
     const profile = await db.companyProfile.findUnique({
       where: { workspaceId: message.workspaceId },
-      select: { emailSendMode: true, smtpHost: true, smtpPort: true, smtpSecure: true, smtpUser: true, smtpPasswordEncrypted: true },
+      select: {
+        emailSendMode: true,
+        smtpHost: true,
+        smtpPort: true,
+        smtpSecure: true,
+        smtpUser: true,
+        smtpPasswordEncrypted: true,
+        imapHost: true,
+        imapPort: true,
+        imapSecure: true,
+        imapUser: true,
+        imapPasswordEncrypted: true,
+      },
     })
 
     const useWorkspaceSmtp =
-      profile?.emailSendMode === 'custom_smtp' &&
+      profile &&
+      ['custom_smtp', 'gmail', 'outlook'].includes(profile?.emailSendMode ?? '') &&
       profile.smtpHost &&
       profile.smtpUser &&
       profile.smtpPasswordEncrypted
@@ -73,10 +86,29 @@ export async function deliverMailMessage(messageId: string): Promise<DeliveryRes
         )
       : await sendSmtpMail(mailPayload)
 
-    const sentCopy = await appendMailToSent(sent.rawMessage).catch((error) => ({
-      ok: false as const,
-      error: getErrorMessage(error),
-    }))
+    const imapPassword =
+      decryptSafe(profile?.imapPasswordEncrypted) ??
+      (profile?.imapUser && profile.smtpUser && profile.imapUser === profile.smtpUser
+        ? decryptSafe(profile.smtpPasswordEncrypted)
+        : null)
+    const sentCopy = profile?.imapHost && profile.imapUser && imapPassword
+      ? await appendMailToSentWithConfig(
+          {
+            host: profile.imapHost,
+            port: profile.imapPort ?? 993,
+            secure: profile.imapSecure,
+            user: profile.imapUser,
+            pass: imapPassword,
+          },
+          sent.rawMessage,
+        ).catch((error) => ({
+          ok: false as const,
+          error: getErrorMessage(error),
+        }))
+      : await appendMailToSent(sent.rawMessage).catch((error) => ({
+          ok: false as const,
+          error: getErrorMessage(error),
+        }))
     if (!sentCopy.ok) {
       console.error('[MAIL2] Sent-copy append failed', sentCopy.error)
     }
@@ -130,4 +162,3 @@ export async function processQueuedMail(limit = 10) {
 
   return { processed: messages.length, sent, failed, errors }
 }
-

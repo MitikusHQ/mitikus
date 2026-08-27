@@ -227,6 +227,40 @@ export interface WorkspaceSmtpConfig {
   fromEmail: string
 }
 
+export async function testSmtpConfig(config: WorkspaceSmtpConfig) {
+  let socket = await connect(config)
+
+  try {
+    let hello = await command(socket, 'EHLO mitikus.com', [250])
+
+    if (!config.secure && hello.toUpperCase().includes('STARTTLS')) {
+      await command(socket, 'STARTTLS', [220])
+      socket = tls.connect({ socket, servername: config.host })
+      await new Promise<void>((resolve, reject) => {
+        socket.once('secureConnect', resolve)
+        socket.once('error', reject)
+      })
+      hello = await command(socket, 'EHLO mitikus.com', [250])
+    }
+
+    if (!config.user || !config.pass) {
+      throw new Error('Faltan usuario o contraseña SMTP.')
+    }
+
+    if (!hello.toUpperCase().includes('AUTH')) {
+      throw new Error('El servidor SMTP no anuncia autenticación.')
+    }
+
+    await command(socket, 'AUTH LOGIN', [334])
+    await command(socket, Buffer.from(config.user).toString('base64'), [334])
+    await command(socket, Buffer.from(config.pass).toString('base64'), [235])
+    await command(socket, 'QUIT', [221])
+    return { ok: true as const }
+  } finally {
+    socket.destroy()
+  }
+}
+
 /** Igual que sendSmtpMail pero usando la configuración SMTP explícita del workspace. */
 export async function sendSmtpMailWithConfig(config: WorkspaceSmtpConfig, mail: SmtpMail) {
   let socket = await connect(config)

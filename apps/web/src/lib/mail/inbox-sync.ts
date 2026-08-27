@@ -1,5 +1,5 @@
 import { db } from '@/lib/db'
-import { fetchInboxMessages } from './imap-client'
+import { fetchInboxMessages, fetchInboxMessagesWithConfig, type WorkspaceImapConfig } from './imap-client'
 
 function normalizeEmail(value: string | null | undefined) {
   return value?.trim().toLowerCase() ?? null
@@ -87,8 +87,10 @@ export async function syncInboxReplies(limit = 25) {
 
   return { scanned: messages.length, imported, skipped, errors }
 }
-export async function syncInboxForWorkspace(workspaceId: string, orgId: string, limit = 25) {
-  const messages = await fetchInboxMessages(limit)
+export async function syncInboxForWorkspace(workspaceId: string, orgId: string, limit = 25, imapConfig?: WorkspaceImapConfig | null) {
+  const messages = imapConfig
+    ? await fetchInboxMessagesWithConfig(imapConfig, limit)
+    : await fetchInboxMessages(limit)
   let imported = 0
   let skipped = 0
   const errors: Array<{ uid: number; error: string }> = []
@@ -97,6 +99,7 @@ export async function syncInboxForWorkspace(workspaceId: string, orgId: string, 
     try {
       const existing = await db.mailMessage.findFirst({
         where: {
+          workspaceId,
           provider: 'mitikus-imap',
           imapMailbox: message.mailbox,
           imapUid: message.uid,

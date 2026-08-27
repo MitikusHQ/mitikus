@@ -4,7 +4,8 @@ import { auth } from '@clerk/nextjs/server'
 import { db } from '@/lib/db'
 import { revalidatePath } from 'next/cache'
 import { deliverMailMessage } from '@/lib/mail/delivery'
-import { syncInboxReplies } from '@/lib/mail/inbox-sync'
+import { syncInboxForWorkspace } from '@/lib/mail/inbox-sync'
+import { decryptSafe } from '@/lib/crypto'
 import {
   calcularHuella,
   generarURLVerificacion,
@@ -638,8 +639,34 @@ export async function createRectificativeInvoice(
 }
 
 export async function syncInvoiceRepliesForWorkspace(workspaceId: string) {
-  await assertWorkspaceAccess(workspaceId)
-  const result = await syncInboxReplies(50)
+  const user = await assertWorkspaceAccess(workspaceId)
+  const profile = await db.companyProfile.findUnique({
+    where: { workspaceId },
+    select: {
+      imapHost: true,
+      imapPort: true,
+      imapSecure: true,
+      imapUser: true,
+      imapPasswordEncrypted: true,
+      smtpUser: true,
+      smtpPasswordEncrypted: true,
+    },
+  })
+  const imapPassword =
+    decryptSafe(profile?.imapPasswordEncrypted) ??
+    (profile?.imapUser && profile.smtpUser && profile.imapUser === profile.smtpUser
+      ? decryptSafe(profile.smtpPasswordEncrypted)
+      : null)
+  const imapConfig = profile?.imapHost && profile.imapUser && imapPassword
+    ? {
+        host: profile.imapHost,
+        port: profile.imapPort ?? 993,
+        secure: profile.imapSecure,
+        user: profile.imapUser,
+        pass: imapPassword,
+      }
+    : null
+  const result = await syncInboxForWorkspace(workspaceId, user.orgId, 50, imapConfig)
   revalidatePath(`/workspace/${workspaceId}/invoices`)
   return result
 }

@@ -344,8 +344,8 @@ export function MailboxClient({ workspaceId, initialMessages, initialToEmail = '
 
   return (
     <div className="space-y-4">
-      <div className="flex flex-wrap items-center justify-between gap-3 rounded-lg border bg-card p-4">
-        <div className="flex flex-wrap items-center gap-2">
+      <div className="grid grid-cols-[minmax(0,1fr)_auto] items-center gap-3 rounded-lg border bg-card p-4">
+        <div className="flex min-w-0 flex-wrap items-center gap-2">
           {FOLDERS.map((item) => (
             <button
               key={item.id}
@@ -357,11 +357,11 @@ export function MailboxClient({ workspaceId, initialMessages, initialToEmail = '
             </button>
           ))}
         </div>
-        <div className="ml-auto flex shrink-0 items-center gap-2">
-          <button type="button" onClick={handleSync} disabled={isPending} className="flex h-11 w-24 items-center justify-center rounded-md border px-2 text-center text-sm font-medium leading-tight hover:bg-muted disabled:opacity-60">
+        <div className="flex shrink-0 items-center gap-2">
+          <button type="button" onClick={handleSync} disabled={isPending} className="flex h-10 w-28 items-center justify-center rounded-md border px-2 text-center text-sm font-medium leading-tight hover:bg-muted disabled:opacity-60">
             <span>Actualizar<br />recibidos</span>
           </button>
-          <button type="button" onClick={() => { resetCompose(); setComposeOpen(true) }} className="flex h-11 w-24 items-center justify-center rounded-md bg-primary px-2 text-center text-sm font-semibold leading-tight text-primary-foreground hover:opacity-90">
+          <button type="button" onClick={() => { resetCompose(); setComposeOpen(true) }} className="flex h-10 w-28 items-center justify-center rounded-md bg-primary px-2 text-center text-sm font-semibold leading-tight text-primary-foreground hover:opacity-90">
             <span>+<br />Redactar</span>
           </button>
         </div>
@@ -480,7 +480,6 @@ export function MailboxClient({ workspaceId, initialMessages, initialToEmail = '
     </div>
   )
 }
-
 
 
 

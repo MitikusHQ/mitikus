@@ -3,6 +3,7 @@
 import { auth } from '@clerk/nextjs/server'
 import { revalidatePath } from 'next/cache'
 import { db } from '@/lib/db'
+import { decryptSafe } from '@/lib/crypto'
 import { deliverMailMessage } from '@/lib/mail/delivery'
 import { syncInboxForWorkspace } from '@/lib/mail/inbox-sync'
 
@@ -141,6 +142,13 @@ async function getWorkspaceContext(workspaceId: string) {
           emailReplyTo: true,
           fiscalEmail: true,
           emailSignature: true,
+          imapHost: true,
+          imapPort: true,
+          imapSecure: true,
+          imapUser: true,
+          imapPasswordEncrypted: true,
+          smtpUser: true,
+          smtpPasswordEncrypted: true,
         },
       },
     },
@@ -302,8 +310,24 @@ export async function deleteMailMessagePermanently(workspaceId: string, messageI
 }
 
 export async function syncMailboxForWorkspace(workspaceId: string) {
-  const { user } = await getWorkspaceContext(workspaceId)
-  const result = await syncInboxForWorkspace(workspaceId, user.orgId, 50)
+  const { user, workspace } = await getWorkspaceContext(workspaceId)
+  const imapPassword =
+    decryptSafe(workspace.companyProfile?.imapPasswordEncrypted) ??
+    (workspace.companyProfile?.imapUser &&
+    workspace.companyProfile.smtpUser &&
+    workspace.companyProfile.imapUser === workspace.companyProfile.smtpUser
+      ? decryptSafe(workspace.companyProfile.smtpPasswordEncrypted)
+      : null)
+  const imapConfig = workspace.companyProfile?.imapHost && workspace.companyProfile.imapUser && imapPassword
+    ? {
+        host: workspace.companyProfile.imapHost,
+        port: workspace.companyProfile.imapPort ?? 993,
+        secure: workspace.companyProfile.imapSecure,
+        user: workspace.companyProfile.imapUser,
+        pass: imapPassword,
+      }
+    : null
+  const result = await syncInboxForWorkspace(workspaceId, user.orgId, 50, imapConfig)
   revalidatePath(`/workspace/${workspaceId}/mail`)
   return result
 }

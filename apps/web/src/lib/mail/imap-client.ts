@@ -11,6 +11,16 @@ interface ImapConfig {
   inboxMailbox: string
 }
 
+export interface WorkspaceImapConfig {
+  host: string
+  port: number
+  secure: boolean
+  user: string
+  pass: string
+  sentMailbox?: string
+  inboxMailbox?: string
+}
+
 export interface ImapFetchedMessage {
   mailbox: string
   uid: number
@@ -129,22 +139,64 @@ async function appendToMailbox(socket: net.Socket, tag: string, mailbox: string,
   }
 }
 
+function parseMailboxList(response: string) {
+  return response
+    .split(/\r?\n/)
+    .filter((line) => /^\* LIST/i.test(line))
+    .map((line) => {
+      const quoted = line.match(/"((?:\\"|[^"])*)"\s*$/)
+      if (quoted?.[1]) return quoted[1].replace(/\\"/g, '"').replace(/\\\\/g, '\\')
+      const parts = line.trim().split(/\s+/)
+      return parts[parts.length - 1]?.replace(/^"|"$/g, '') ?? ''
+    })
+    .filter(Boolean)
+}
+
+function sentMailboxScore(mailbox: string) {
+  const normalized = mailbox
+    .normalize('NFD')
+    .replace(/[\u0300-\u036f]/g, '')
+    .toLowerCase()
+  if (normalized === 'enviados' || normalized === 'sent') return 0
+  if (normalized.includes('sent items') || normalized.includes('elementos enviados')) return 1
+  if (normalized.includes('sent') || normalized.includes('enviado')) return 2
+  return 99
+}
+
 export async function appendMailToSent(rawMessage: string) {
   const config = getImapConfig()
   if (!config) return { ok: false as const, skipped: true as const, error: 'IMAP no configurado.' }
 
+  return appendMailToSentWithConfig(config, rawMessage)
+}
+
+export async function appendMailToSentWithConfig(input: WorkspaceImapConfig, rawMessage: string) {
+  const config: ImapConfig = {
+    ...input,
+    inboxMailbox: input.inboxMailbox ?? 'INBOX',
+  }
+
   const socket = await connect(config)
-  const candidates = [
-    config.sentMailbox,
-    'Sent',
-    'Enviados',
-    'Sent Messages',
-    'INBOX.Sent',
-    'INBOX.Enviados',
-  ].filter((value, index, list): value is string => Boolean(value) && list.indexOf(value) === index)
 
   try {
     await command(socket, 'A001', `LOGIN ${quote(config.user)} ${quote(config.pass)}`)
+    const listedMailboxes = await command(socket, 'A002', 'LIST "" "*"').catch(() => '')
+    const discoveredSent = parseMailboxList(listedMailboxes)
+      .filter((mailbox) => sentMailboxScore(mailbox) < 99)
+      .sort((a, b) => sentMailboxScore(a) - sentMailboxScore(b))
+    const candidates = [
+      config.sentMailbox,
+      ...discoveredSent,
+      'Sent',
+      'Enviados',
+      'Sent Items',
+      'Elementos enviados',
+      'Sent Messages',
+      'INBOX.Sent',
+      'INBOX.Enviados',
+      'INBOX.Sent Items',
+      'INBOX.Elementos enviados',
+    ].filter((value, index, list): value is string => Boolean(value) && list.indexOf(value) === index)
     let lastError = ''
     for (let i = 0; i < candidates.length; i += 1) {
       try {
@@ -156,6 +208,23 @@ export async function appendMailToSent(rawMessage: string) {
       }
     }
     throw new Error(lastError || 'No se encontró una carpeta Enviados compatible.')
+  } finally {
+    socket.destroy()
+  }
+}
+
+export async function testImapConfig(input: WorkspaceImapConfig) {
+  const config: ImapConfig = {
+    ...input,
+    inboxMailbox: input.inboxMailbox ?? 'INBOX',
+  }
+
+  const socket = await connect(config)
+  try {
+    await command(socket, 'T001', `LOGIN ${quote(config.user)} ${quote(config.pass)}`)
+    await selectMailbox(socket, config.inboxMailbox)
+    await command(socket, 'T999', 'LOGOUT').catch(() => undefined)
+    return { ok: true as const }
   } finally {
     socket.destroy()
   }
@@ -303,6 +372,15 @@ function parseFetchBlocks(response: string) {
 export async function fetchInboxMessages(limit = 25): Promise<ImapFetchedMessage[]> {
   const config = getImapConfig()
   if (!config) return []
+
+  return fetchInboxMessagesWithConfig(config, limit)
+}
+
+export async function fetchInboxMessagesWithConfig(input: WorkspaceImapConfig, limit = 25): Promise<ImapFetchedMessage[]> {
+  const config: ImapConfig = {
+    ...input,
+    inboxMailbox: input.inboxMailbox ?? 'INBOX',
+  }
 
   const socket = await connect(config)
   try {

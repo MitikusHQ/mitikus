@@ -4,7 +4,7 @@ import { useEffect, useState } from 'react'
 import { useRouter } from 'next/navigation'
 import { ImageUploader } from '@/app/_components/ImageUploader'
 import { updateWorkspaceBranding } from '@/app/actions/branding'
-import { updateEmailSettings } from '@/app/actions/fiscal'
+import { testEmailSettings, updateEmailSettings } from '@/app/actions/fiscal'
 import { updateWorkspacePermissionSettings } from '@/app/actions/workspace-settings'
 import type { OrgRole } from '@prisma/client'
 import { LOGO_CROP_REFERENCE_FRAME, clamp, getLogoImageStyle, getLogoTextStyle } from '@/lib/logo-crop'
@@ -58,6 +58,26 @@ const LOGO_TEXT_FONTS = [
   'Courier New',
 ]
 
+const EMAIL_PROVIDER_OPTIONS = [
+  { id: 'mitikus', label: 'MITIKUS', desc: 'MITIKUS envía por ti. Las respuestas llegan al email que indiques.' },
+  { id: 'custom_smtp', label: 'SMTP propio', desc: 'Hosting, webmail o correo corporativo.' },
+  { id: 'gmail', label: 'Gmail', desc: 'Usa smtp.gmail.com con contraseña de aplicación.' },
+  { id: 'outlook', label: 'Outlook / Microsoft 365', desc: 'Usa Microsoft 365 con SMTP AUTH activo.' },
+] as const
+
+function emailProviderHelp(mode: string) {
+  if (mode === 'gmail') {
+    return 'Gmail necesita una contraseña de aplicación de Google. No uses tu contraseña normal si tienes doble factor.'
+  }
+  if (mode === 'outlook') {
+    return 'Outlook y Microsoft 365 pueden requerir activar SMTP AUTH o usar una contraseña de aplicación.'
+  }
+  if (mode === 'custom_smtp') {
+    return 'Usa los datos de configuración manual de tu hosting: servidor SMTP, puerto, usuario y contraseña.'
+  }
+  return 'Las respuestas llegarán al email indicado. La entrega real se gestiona desde la infraestructura de MITIKUS.'
+}
+
 export function WorkspaceSettingsClient({ workspace, userRole }: { workspace: Workspace; userRole: OrgRole }) {
   const router = useRouter()
   const [name, setName] = useState(workspace.name)
@@ -103,7 +123,9 @@ export function WorkspaceSettingsClient({ workspace, userRole }: { workspace: Wo
     imapPassword: '',
   })
   const [emailSaving, setEmailSaving] = useState(false)
+  const [emailTesting, setEmailTesting] = useState(false)
   const [emailSaved, setEmailSaved] = useState(false)
+  const [emailTestOk, setEmailTestOk] = useState(false)
   const [emailError, setEmailError] = useState<string | null>(null)
   const [restrictCreation, setRestrictCreation] = useState(workspace.restrictCreationToAdmins)
   const [permSaving, setPermSaving] = useState(false)
@@ -204,6 +226,76 @@ export function WorkspaceSettingsClient({ workspace, userRole }: { workspace: Wo
       setEmailError('No se han podido guardar los ajustes de correo. Revisa tu sesión y vuelve a intentarlo.')
     } finally {
       setEmailSaving(false)
+    }
+  }
+
+  function applyEmailProvider(mode: string) {
+    setEmailSaved(false)
+    setEmailTestOk(false)
+    setEmailError(null)
+    setEmailSettings((prev) => {
+      const preferredUser = prev.smtpUser || prev.replyTo || prev.imapUser
+      if (mode === 'gmail') {
+        return {
+          ...prev,
+          mode,
+          smtpHost: 'smtp.gmail.com',
+          smtpPort: 465,
+          smtpSecure: true,
+          smtpUser: preferredUser,
+          imapHost: 'imap.gmail.com',
+          imapPort: 993,
+          imapSecure: true,
+          imapUser: prev.imapUser || preferredUser,
+        }
+      }
+      if (mode === 'outlook') {
+        return {
+          ...prev,
+          mode,
+          smtpHost: 'smtp.office365.com',
+          smtpPort: 587,
+          smtpSecure: false,
+          smtpUser: preferredUser,
+          imapHost: 'outlook.office365.com',
+          imapPort: 993,
+          imapSecure: true,
+          imapUser: prev.imapUser || preferredUser,
+        }
+      }
+      return { ...prev, mode }
+    })
+  }
+
+  async function handleEmailTest() {
+    if (emailTesting) return
+    setEmailTesting(true)
+    setEmailSaved(false)
+    setEmailTestOk(false)
+    setEmailError(null)
+    try {
+      await testEmailSettings(workspace.id, {
+        emailSendMode: emailSettings.mode,
+        emailSenderName: emailSettings.senderName,
+        emailReplyTo: emailSettings.replyTo,
+        emailSignature: emailSettings.signature,
+        smtpHost: emailSettings.smtpHost,
+        smtpPort: emailSettings.smtpPort,
+        smtpSecure: emailSettings.smtpSecure,
+        smtpUser: emailSettings.smtpUser,
+        smtpPassword: emailSettings.smtpPassword || undefined,
+        imapHost: emailSettings.imapHost,
+        imapPort: emailSettings.imapPort,
+        imapSecure: emailSettings.imapSecure,
+        imapUser: emailSettings.imapUser,
+        imapPassword: emailSettings.imapPassword || undefined,
+      })
+      setEmailTestOk(true)
+      setTimeout(() => setEmailTestOk(false), 3000)
+    } catch (error) {
+      setEmailError(error instanceof Error ? error.message : 'No se ha podido probar la conexión SMTP.')
+    } finally {
+      setEmailTesting(false)
     }
   }
 
@@ -344,25 +436,16 @@ export function WorkspaceSettingsClient({ workspace, userRole }: { workspace: Wo
 
         {/* Selector de proveedor */}
         <div className="grid gap-2 sm:grid-cols-2">
-          {(
-            [
-              { id: 'mitikus', label: 'MITIKUS', desc: 'MITIKUS envía por ti. Las respuestas llegan al email que indiques.', soon: false },
-              { id: 'custom_smtp', label: 'SMTP propio', desc: 'Tu servidor de correo: hosting, corporativo o webmail.', soon: false },
-              { id: 'gmail', label: 'Gmail', desc: 'Conecta tu cuenta de Google.', soon: true },
-              { id: 'outlook', label: 'Outlook / Microsoft 365', desc: 'Conecta tu cuenta Microsoft.', soon: true },
-            ] as const
-          ).map((opt) => (
+          {EMAIL_PROVIDER_OPTIONS.map((opt) => (
             <button
               key={opt.id}
               type="button"
-              disabled={opt.soon}
-              onClick={() => !opt.soon && setEmailSettings((prev) => ({ ...prev, mode: opt.id }))}
-              className={`text-left rounded-lg border p-3 transition-colors ${opt.soon ? 'opacity-50 cursor-not-allowed' : 'cursor-pointer hover:border-primary/60'} ${emailSettings.mode === opt.id && !opt.soon ? 'border-primary bg-primary/5' : 'border-border'}`}
+              onClick={() => applyEmailProvider(opt.id)}
+              className={`text-left rounded-lg border p-3 transition-colors hover:border-primary/60 ${emailSettings.mode === opt.id ? 'border-primary bg-primary/5' : 'border-border'}`}
             >
               <div className="flex items-center justify-between">
                 <span className="text-sm font-medium">{opt.label}</span>
-                {opt.soon && <span className="text-[10px] font-medium uppercase tracking-wide text-muted-foreground bg-muted px-1.5 py-0.5 rounded">Próximamente</span>}
-                {emailSettings.mode === opt.id && !opt.soon && (
+                {emailSettings.mode === opt.id && (
                   <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" className="text-primary shrink-0">
                     <polyline points="20 6 9 17 4 12"/>
                   </svg>
@@ -411,13 +494,16 @@ export function WorkspaceSettingsClient({ workspace, userRole }: { workspace: Wo
 
           {emailSettings.mode === 'mitikus' && (
             <p className="text-xs text-muted-foreground bg-muted/50 rounded-md px-3 py-2">
-              Las respuestas llegarán al email indicado. La entrega real se gestiona desde la infraestructura de MITIKUS.
+              {emailProviderHelp(emailSettings.mode)}
             </p>
           )}
 
           {/* Campos SMTP propio */}
-          {emailSettings.mode === 'custom_smtp' && (
+          {emailSettings.mode !== 'mitikus' && (
             <div className="space-y-3 pt-1 border-t border-border">
+              <p className="text-xs text-muted-foreground bg-muted/50 rounded-md px-3 py-2">
+                {emailProviderHelp(emailSettings.mode)}
+              </p>
               <p className="text-xs font-semibold text-foreground pt-2">Configuración SMTP (salida)</p>
               <div className="grid gap-3 sm:grid-cols-3">
                 <label className="sm:col-span-2 space-y-1 text-xs font-medium text-muted-foreground">
@@ -462,7 +548,7 @@ export function WorkspaceSettingsClient({ workspace, userRole }: { workspace: Wo
                 </label>
                 <label className="space-y-1 text-xs font-medium text-muted-foreground">
                   Contraseña IMAP
-                  <input type="password" value={emailSettings.imapPassword} onChange={(e) => setEmailSettings((prev) => ({ ...prev, imapPassword: e.target.value }))} placeholder="Déjalo vacío para no cambiarla" autoComplete="new-password" className="w-full rounded-md border border-input bg-background px-3 py-2 text-sm text-foreground focus:outline-none focus:ring-2 focus:ring-primary" />
+                  <input type="password" value={emailSettings.imapPassword} onChange={(e) => setEmailSettings((prev) => ({ ...prev, imapPassword: e.target.value }))} placeholder="Vacío si es la misma que SMTP" autoComplete="new-password" className="w-full rounded-md border border-input bg-background px-3 py-2 text-sm text-foreground focus:outline-none focus:ring-2 focus:ring-primary" />
                 </label>
               </div>
               <label className="flex items-center gap-2 text-xs font-medium text-muted-foreground cursor-pointer">
@@ -470,7 +556,7 @@ export function WorkspaceSettingsClient({ workspace, userRole }: { workspace: Wo
                 Usar TLS (IMAPS, recomendado)
               </label>
               <p className="text-xs text-muted-foreground bg-amber-50 dark:bg-amber-950/30 border border-amber-200 dark:border-amber-800 rounded-md px-3 py-2">
-                Las contraseñas se cifran con AES-256-GCM antes de guardarse. Nunca se muestran en texto plano.
+                Las contraseñas se cifran antes de guardarse. Si salida y entrada usan el mismo email, puedes dejar la contraseña IMAP vacía.
               </p>
             </div>
           )}
@@ -480,8 +566,23 @@ export function WorkspaceSettingsClient({ workspace, userRole }: { workspace: Wo
               {emailError}
             </p>
           )}
+          {emailTestOk && (
+            <p className="rounded-md border border-green-500/30 bg-green-500/10 px-3 py-2 text-xs text-green-600 dark:text-green-300">
+              Conexión SMTP correcta. Ya puedes guardar esta configuración.
+            </p>
+          )}
 
-          <div className="flex justify-end">
+          <div className="flex flex-wrap justify-end gap-2">
+            {emailSettings.mode !== 'mitikus' && (
+              <button
+                type="button"
+                onClick={handleEmailTest}
+                disabled={emailTesting || emailSaving}
+                className="px-4 py-2 rounded-md border border-border text-sm font-medium hover:bg-muted transition-colors disabled:opacity-60"
+              >
+                {emailTesting ? 'Probando…' : emailTestOk ? '✓ Conexión correcta' : 'Probar conexión'}
+              </button>
+            )}
             <button
               type="button"
               onClick={handleEmailSave}
@@ -597,9 +698,5 @@ export function WorkspaceSettingsClient({ workspace, userRole }: { workspace: Wo
     </div>
   )
 }
-
-
-
-
 
 
