@@ -358,11 +358,11 @@ export function MailboxClient({ workspaceId, initialMessages, initialToEmail = '
           ))}
         </div>
         <div className="flex shrink-0 items-center gap-2">
-          <button type="button" onClick={handleSync} disabled={isPending} className="flex h-10 w-28 items-center justify-center rounded-md border px-2 text-center text-sm font-medium leading-tight hover:bg-muted disabled:opacity-60">
-            <span>Actualizar<br />recibidos</span>
+          <button type="button" onClick={handleSync} disabled={isPending} className="flex h-10 items-center justify-center rounded-md border px-3 text-sm font-medium hover:bg-muted disabled:opacity-60">
+            Actualizar
           </button>
-          <button type="button" onClick={() => { resetCompose(); setComposeOpen(true) }} className="flex h-10 w-28 items-center justify-center rounded-md bg-primary px-2 text-center text-sm font-semibold leading-tight text-primary-foreground hover:opacity-90">
-            <span>+<br />Redactar</span>
+          <button type="button" onClick={() => { resetCompose(); setComposeOpen(true) }} className="flex h-10 items-center justify-center rounded-md bg-primary px-3 text-sm font-semibold text-primary-foreground hover:opacity-90">
+            + Redactar
           </button>
         </div>
       </div>
