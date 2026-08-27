@@ -289,7 +289,11 @@ export function MailboxClient({ workspaceId, initialMessages, initialToEmail = '
         setFolder('inbox')
         setMessages(inbox.messages)
         setSelectedId(inbox.messages[0]?.id ?? null)
-        setNotice(result.imported > 0 ? `${result.imported} correo(s) nuevo(s) importado(s).` : 'Recibidos actualizado. Sin correos nuevos por ahora.')
+        setNotice(
+          result.imported > 0
+            ? `${result.imported} correo(s) nuevo(s) importado(s).`
+            : `Recibidos actualizado. Leídos: ${result.scanned}. Ya existentes o saltados: ${result.skipped}. Errores: ${result.errors.length}.`,
+        )
       } catch {
         setError('No se ha podido actualizar Recibidos. Comprueba IMAP en Ajustes.')
       }
@@ -480,7 +484,6 @@ export function MailboxClient({ workspaceId, initialMessages, initialToEmail = '
     </div>
   )
 }
-
 
 
 

@@ -361,7 +361,7 @@ async function searchRecentUids(socket: net.Socket, limit: number) {
 
 function parseFetchBlocks(response: string) {
   const blocks: Array<{ uid: number; raw: string }> = []
-  const regex = /\* \d+ FETCH \([^\n]*UID (\d+)[\s\S]*?BODY\[\]\s*\{\d+\}\r?\n([\s\S]*?)\r?\n\)\r?\n/g
+  const regex = /\* \d+ FETCH \([\s\S]*?UID (\d+)[\s\S]*?BODY\[\](?:<\d+>)?\s*\{\d+\}\r?\n([\s\S]*?)(?=\r?\n\)\r?\n(?:\* \d+ FETCH|[A-Z]\d+ OK|$))/g
   let match: RegExpExecArray | null
   while ((match = regex.exec(response)) !== null) {
     blocks.push({ uid: Number(match[1]), raw: match[2] ?? '' })
