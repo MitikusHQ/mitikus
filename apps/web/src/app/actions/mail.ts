@@ -313,12 +313,11 @@ export async function syncMailboxForWorkspace(workspaceId: string) {
   const { user, workspace } = await getWorkspaceContext(workspaceId)
   const profile = workspace.companyProfile
   const imapUser = clean(profile?.imapUser) || clean(profile?.smtpUser)
+  const smtpUser = clean(profile?.smtpUser)
   const imapPassword =
     decryptSafe(profile?.imapPasswordEncrypted) ??
-    (imapUser &&
-    profile?.smtpUser &&
-    imapUser === profile.smtpUser
-      ? decryptSafe(profile.smtpPasswordEncrypted)
+    (imapUser && smtpUser && imapUser.toLowerCase() === smtpUser.toLowerCase()
+      ? decryptSafe(profile?.smtpPasswordEncrypted)
       : null)
   if (!profile?.imapHost || !imapUser || !imapPassword) {
     const missing = [

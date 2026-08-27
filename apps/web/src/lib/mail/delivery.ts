@@ -86,18 +86,20 @@ export async function deliverMailMessage(messageId: string): Promise<DeliveryRes
         )
       : await sendSmtpMail(mailPayload)
 
+    const imapUser = profile?.imapUser?.trim() || profile?.smtpUser?.trim()
+    const smtpUser = profile?.smtpUser?.trim()
     const imapPassword =
       decryptSafe(profile?.imapPasswordEncrypted) ??
-      (profile?.imapUser && profile.smtpUser && profile.imapUser === profile.smtpUser
-        ? decryptSafe(profile.smtpPasswordEncrypted)
+      (imapUser && smtpUser && imapUser.toLowerCase() === smtpUser.toLowerCase()
+        ? decryptSafe(profile?.smtpPasswordEncrypted)
         : null)
-    const sentCopy = profile?.imapHost && profile.imapUser && imapPassword
+    const sentCopy = profile?.imapHost && imapUser && imapPassword
       ? await appendMailToSentWithConfig(
           {
             host: profile.imapHost,
             port: profile.imapPort ?? 993,
             secure: profile.imapSecure,
-            user: profile.imapUser,
+            user: imapUser,
             pass: imapPassword,
           },
           sent.rawMessage,

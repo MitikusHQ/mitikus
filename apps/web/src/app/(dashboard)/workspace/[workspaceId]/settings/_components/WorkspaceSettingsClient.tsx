@@ -222,8 +222,8 @@ export function WorkspaceSettingsClient({ workspace, userRole }: { workspace: Wo
       setEmailSaved(true)
       setTimeout(() => setEmailSaved(false), 2000)
       router.refresh()
-    } catch {
-      setEmailError('No se han podido guardar los ajustes de correo. Revisa tu sesión y vuelve a intentarlo.')
+    } catch (error) {
+      setEmailError(error instanceof Error ? error.message : 'No se han podido guardar los ajustes de correo. Revisa tu sesión y vuelve a intentarlo.')
     } finally {
       setEmailSaving(false)
     }

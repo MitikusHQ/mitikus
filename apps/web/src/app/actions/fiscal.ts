@@ -78,6 +78,15 @@ export interface EmailSettingsInput {
   imapPassword?: string  // plain — se cifra antes de guardar
 }
 
+function encryptEmailPassword(password: string | undefined, label: string) {
+  if (!password) return undefined
+  const encrypted = encryptSafe(password)
+  if (!encrypted) {
+    throw new Error(`No se pudo guardar la contraseña ${label}. Falta configurar MITIKUS_ENCRYPTION_KEY en producción.`)
+  }
+  return encrypted
+}
+
 export async function updateBillingProfile(workspaceId: string, input: BillingProfileInput) {
   const user = await requireUser()
   assertCan(user, 'manage_fiscal_settings')
@@ -134,16 +143,14 @@ export async function updateEmailSettings(workspaceId: string, input: EmailSetti
   const emailReplyTo = input.emailReplyTo.trim()
   const emailSignature = input.emailSignature.trim()
 
-  const smtpPasswordEncrypted = input.smtpPassword
-    ? encryptSafe(input.smtpPassword)
-    : undefined
+  const smtpPasswordEncrypted = encryptEmailPassword(input.smtpPassword, 'SMTP')
   const existingSmtpPasswordEncrypted = workspace.companyProfile?.smtpPasswordEncrypted ?? undefined
   const nextSmtpPasswordEncrypted = smtpPasswordEncrypted ?? existingSmtpPasswordEncrypted
   const smtpUser = input.smtpUser?.trim() || null
   const imapUser = input.imapUser?.trim() || smtpUser
-  const sharedPassword = !input.imapPassword && smtpUser && imapUser === smtpUser
+  const sharedPassword = !input.imapPassword && smtpUser && imapUser?.toLowerCase() === smtpUser.toLowerCase()
   const imapPasswordEncrypted = input.imapPassword
-    ? encryptSafe(input.imapPassword)
+    ? encryptEmailPassword(input.imapPassword, 'IMAP')
     : sharedPassword
       ? nextSmtpPasswordEncrypted
       : undefined
