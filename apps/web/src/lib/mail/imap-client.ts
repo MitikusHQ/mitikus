@@ -361,10 +361,21 @@ async function searchRecentUids(socket: net.Socket, limit: number) {
 
 function parseFetchBlocks(response: string) {
   const blocks: Array<{ uid: number; raw: string }> = []
-  const regex = /\* \d+ FETCH \([\s\S]*?UID (\d+)[\s\S]*?BODY\[\](?:<\d+>)?\s*\{\d+\}\r?\n([\s\S]*?)(?=\r?\n\)\r?\n(?:\* \d+ FETCH|[A-Z]\d+ OK|$))/g
-  let match: RegExpExecArray | null
-  while ((match = regex.exec(response)) !== null) {
-    blocks.push({ uid: Number(match[1]), raw: match[2] ?? '' })
+  const markers = Array.from(response.matchAll(/\* \d+ FETCH \(/g))
+  for (let index = 0; index < markers.length; index += 1) {
+    const start = markers[index]!.index ?? 0
+    const end = markers[index + 1]?.index ?? response.search(/\r?\n[A-Z]\d+ OK/i)
+    const segment = response.slice(start, end > start ? end : undefined)
+    const uid = segment.match(/\bUID\s+(\d+)\b/i)
+    const literal = segment.match(/BODY\[\](?:<\d+>)?\s*\{\d+\}\r?\n/i)
+    if (!uid?.[1] || !literal) continue
+
+    const rawStart = (literal.index ?? 0) + literal[0].length
+    const afterLiteral = segment.slice(rawStart)
+    const nextAttribute = afterLiteral.search(/\r?\n(?:UID|FLAGS|INTERNALDATE|RFC822\.SIZE|BODYSTRUCTURE)\b/i)
+    const closingFetch = afterLiteral.search(/\r?\n\)\r?\n?$/)
+    const rawEnd = nextAttribute >= 0 ? nextAttribute : closingFetch >= 0 ? closingFetch : afterLiteral.length
+    blocks.push({ uid: Number(uid[1]), raw: afterLiteral.slice(0, rawEnd) })
   }
   return blocks
 }
