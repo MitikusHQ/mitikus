@@ -311,22 +311,25 @@ export async function deleteMailMessagePermanently(workspaceId: string, messageI
 
 export async function syncMailboxForWorkspace(workspaceId: string) {
   const { user, workspace } = await getWorkspaceContext(workspaceId)
+  const profile = workspace.companyProfile
+  const imapUser = clean(profile?.imapUser) || clean(profile?.smtpUser)
   const imapPassword =
-    decryptSafe(workspace.companyProfile?.imapPasswordEncrypted) ??
-    (workspace.companyProfile?.imapUser &&
-    workspace.companyProfile.smtpUser &&
-    workspace.companyProfile.imapUser === workspace.companyProfile.smtpUser
-      ? decryptSafe(workspace.companyProfile.smtpPasswordEncrypted)
+    decryptSafe(profile?.imapPasswordEncrypted) ??
+    (imapUser &&
+    profile?.smtpUser &&
+    imapUser === profile.smtpUser
+      ? decryptSafe(profile.smtpPasswordEncrypted)
       : null)
-  const imapConfig = workspace.companyProfile?.imapHost && workspace.companyProfile.imapUser && imapPassword
-    ? {
-        host: workspace.companyProfile.imapHost,
-        port: workspace.companyProfile.imapPort ?? 993,
-        secure: workspace.companyProfile.imapSecure,
-        user: workspace.companyProfile.imapUser,
-        pass: imapPassword,
-      }
-    : null
+  if (!profile?.imapHost || !imapUser || !imapPassword) {
+    throw new Error('Configura IMAP en Ajustes para actualizar los correos recibidos.')
+  }
+  const imapConfig = {
+    host: profile.imapHost,
+    port: profile.imapPort ?? 993,
+    secure: profile.imapSecure,
+    user: imapUser,
+    pass: imapPassword,
+  }
   const result = await syncInboxForWorkspace(workspaceId, user.orgId, 200, imapConfig)
   revalidatePath(`/workspace/${workspaceId}/mail`)
   return result

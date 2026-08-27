@@ -652,20 +652,22 @@ export async function syncInvoiceRepliesForWorkspace(workspaceId: string) {
       smtpPasswordEncrypted: true,
     },
   })
+  const imapUser = profile?.imapUser?.trim() || profile?.smtpUser?.trim() || null
   const imapPassword =
     decryptSafe(profile?.imapPasswordEncrypted) ??
-    (profile?.imapUser && profile.smtpUser && profile.imapUser === profile.smtpUser
+    (imapUser && profile?.smtpUser && imapUser === profile.smtpUser
       ? decryptSafe(profile.smtpPasswordEncrypted)
       : null)
-  const imapConfig = profile?.imapHost && profile.imapUser && imapPassword
-    ? {
-        host: profile.imapHost,
-        port: profile.imapPort ?? 993,
-        secure: profile.imapSecure,
-        user: profile.imapUser,
-        pass: imapPassword,
-      }
-    : null
+  if (!profile?.imapHost || !imapUser || !imapPassword) {
+    throw new Error('Configura IMAP en Ajustes para actualizar respuestas de facturas.')
+  }
+  const imapConfig = {
+    host: profile.imapHost,
+    port: profile.imapPort ?? 993,
+    secure: profile.imapSecure,
+    user: imapUser,
+    pass: imapPassword,
+  }
   const result = await syncInboxForWorkspace(workspaceId, user.orgId, 200, imapConfig)
   revalidatePath(`/workspace/${workspaceId}/invoices`)
   return result

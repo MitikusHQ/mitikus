@@ -294,8 +294,8 @@ export function MailboxClient({ workspaceId, initialMessages, initialToEmail = '
             ? `${result.imported} correo(s) nuevo(s) importado(s).`
             : `Recibidos actualizado. Leídos: ${result.scanned}. Ya existentes o saltados: ${result.skipped}. Errores: ${result.errors.length}.`,
         )
-      } catch {
-        setError('No se ha podido actualizar Recibidos. Comprueba IMAP en Ajustes.')
+      } catch (error) {
+        setError(error instanceof Error ? error.message : 'No se ha podido actualizar Recibidos. Comprueba IMAP en Ajustes.')
       }
     })
   }
@@ -484,7 +484,6 @@ export function MailboxClient({ workspaceId, initialMessages, initialToEmail = '
     </div>
   )
 }
-
 
 
 
