@@ -568,7 +568,7 @@ export function WorkspaceSettingsClient({ workspace, userRole }: { workspace: Wo
           )}
           {emailTestOk && (
             <p className="rounded-md border border-green-500/30 bg-green-500/10 px-3 py-2 text-xs text-green-600 dark:text-green-300">
-              Conexión SMTP correcta. Ya puedes guardar esta configuración.
+              Conexión de correo correcta. Ya puedes guardar esta configuración.
             </p>
           )}
 

@@ -120,6 +120,14 @@ export async function updateEmailSettings(workspaceId: string, input: EmailSetti
 
   const workspace = await db.workspace.findFirst({
     where: { id: workspaceId, orgId: user.orgId },
+    include: {
+      companyProfile: {
+        select: {
+          smtpPasswordEncrypted: true,
+          imapPasswordEncrypted: true,
+        },
+      },
+    },
   })
   if (!workspace) throw new Error('Workspace no encontrado')
 
@@ -129,13 +137,15 @@ export async function updateEmailSettings(workspaceId: string, input: EmailSetti
   const smtpPasswordEncrypted = input.smtpPassword
     ? encryptSafe(input.smtpPassword)
     : undefined
+  const existingSmtpPasswordEncrypted = workspace.companyProfile?.smtpPasswordEncrypted ?? undefined
+  const nextSmtpPasswordEncrypted = smtpPasswordEncrypted ?? existingSmtpPasswordEncrypted
   const smtpUser = input.smtpUser?.trim() || null
   const imapUser = input.imapUser?.trim() || smtpUser
-  const sharedPassword = !input.imapPassword && input.smtpPassword && smtpUser && imapUser === smtpUser
+  const sharedPassword = !input.imapPassword && smtpUser && imapUser === smtpUser
   const imapPasswordEncrypted = input.imapPassword
     ? encryptSafe(input.imapPassword)
     : sharedPassword
-      ? smtpPasswordEncrypted
+      ? nextSmtpPasswordEncrypted
       : undefined
 
   const baseData = {
@@ -171,7 +181,10 @@ export async function testEmailSettings(workspaceId: string, input: EmailSetting
     where: { id: workspaceId, orgId: user.orgId },
     include: {
       companyProfile: {
-        select: { smtpPasswordEncrypted: true },
+        select: {
+          smtpPasswordEncrypted: true,
+          imapPasswordEncrypted: true,
+        },
       },
     },
   })
@@ -192,6 +205,7 @@ export async function testEmailSettings(workspaceId: string, input: EmailSetting
     decryptSafe(workspace.companyProfile?.smtpPasswordEncrypted)
   const imapPassword =
     input.imapPassword ||
+    decryptSafe(workspace.companyProfile?.imapPasswordEncrypted) ||
     (imapUser && smtpUser && imapUser === smtpUser ? smtpPassword : null)
 
   if (!smtpHost) throw new Error('Falta el servidor SMTP.')

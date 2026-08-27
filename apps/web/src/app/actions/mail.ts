@@ -321,11 +321,16 @@ export async function syncMailboxForWorkspace(workspaceId: string) {
       ? decryptSafe(profile.smtpPasswordEncrypted)
       : null)
   if (!profile?.imapHost || !imapUser || !imapPassword) {
+    const missing = [
+      !profile?.imapHost ? 'servidor IMAP' : null,
+      !imapUser ? 'usuario IMAP' : null,
+      !imapPassword ? 'contraseña IMAP' : null,
+    ].filter(Boolean).join(', ')
     return {
       scanned: 0,
       imported: 0,
       skipped: 0,
-      errors: [{ uid: 0, error: 'Configura IMAP en Ajustes para actualizar los correos recibidos.' }],
+      errors: [{ uid: 0, error: `Configura IMAP en Ajustes para actualizar los correos recibidos. Falta: ${missing}.` }],
     }
   }
   const imapConfig = {
