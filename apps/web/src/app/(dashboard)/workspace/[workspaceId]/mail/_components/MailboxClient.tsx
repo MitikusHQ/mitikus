@@ -344,25 +344,25 @@ export function MailboxClient({ workspaceId, initialMessages, initialToEmail = '
 
   return (
     <div className="space-y-4">
-      <div className="flex items-center gap-3 overflow-x-auto rounded-lg border bg-card p-4">
-        <div className="flex min-w-0 flex-1 items-center gap-2">
+      <div className="flex items-center gap-2 overflow-x-auto rounded-lg border bg-card p-3">
+        <div className="flex min-w-0 flex-1 items-center gap-1.5">
           {FOLDERS.map((item) => (
             <button
               key={item.id}
               type="button"
               onClick={() => loadFolder(item.id)}
-              className={`h-10 shrink-0 whitespace-nowrap rounded-md px-3 text-sm font-medium transition ${folder === item.id ? 'bg-primary text-primary-foreground' : 'border bg-background hover:bg-muted'}`}
+              className={`h-10 shrink-0 whitespace-nowrap rounded-md px-2.5 text-sm font-medium transition ${folder === item.id ? 'bg-primary text-primary-foreground' : 'border bg-background hover:bg-muted'}`}
             >
               {item.label}
             </button>
           ))}
         </div>
-        <div className="ml-auto flex shrink-0 items-center gap-2">
-          <button type="button" onClick={handleSync} disabled={isPending} className="flex h-10 w-36 items-center justify-center whitespace-nowrap rounded-md border px-3 text-sm font-medium hover:bg-muted disabled:opacity-60">
-            Actualizar recibidos
+        <div className="ml-auto flex shrink-0 items-center gap-1.5">
+          <button type="button" onClick={handleSync} disabled={isPending} className="flex h-10 w-24 items-center justify-center rounded-md border px-2 text-xs font-medium leading-tight hover:bg-muted disabled:opacity-60">
+            <span>Actualizar<br />recibidos</span>
           </button>
-          <button type="button" onClick={() => { resetCompose(); setComposeOpen(true) }} className="flex h-10 w-36 items-center justify-center whitespace-nowrap rounded-md bg-primary px-3 text-sm font-semibold text-primary-foreground hover:opacity-90">
-            + Redactar
+          <button type="button" onClick={() => { resetCompose(); setComposeOpen(true) }} className="flex h-10 w-24 items-center justify-center rounded-md bg-primary px-2 text-xs font-semibold leading-tight text-primary-foreground hover:opacity-90">
+            <span>+<br />Redactar</span>
           </button>
         </div>
       </div>
@@ -480,7 +480,6 @@ export function MailboxClient({ workspaceId, initialMessages, initialToEmail = '
     </div>
   )
 }
-
 
 
 
