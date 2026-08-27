@@ -108,11 +108,11 @@ export default async function HomePage() {
       {/* ── HERO ── */}
       <section className="max-w-4xl mx-auto px-6 pt-16 pb-12 text-center">
         <h1 className="text-3xl sm:text-5xl font-bold tracking-tight mb-4 leading-tight">
-          Tu espacio de trabajo,<br className="hidden sm:block" /> todo en uno.
+          Tu negocio, clientes, facturas<br className="hidden sm:block" /> y memoria en un solo lugar.
         </h1>
         <p className="text-lg text-muted-foreground mb-8 max-w-2xl mx-auto">
-          La plataforma para profesionales y equipos que quieren entregar propuestas, contratos, informes
-          y facturas más rápido — sin herramientas dispersas y con IA que conoce tu negocio.
+          La plataforma para autónomos y pymes que quieren gestionar clientes, emitir facturas, guardar documentos
+          y consultar la memoria de su negocio — sin herramientas dispersas, con IA integrada.
         </p>
         <div className="flex flex-wrap gap-3 justify-center mb-10">
           <a
@@ -122,10 +122,10 @@ export default async function HomePage() {
             Empezar gratis — 15 días
           </a>
           <a
-            href="#herramientas"
+            href="#precios"
             className="rounded-md border border-input bg-background px-6 py-3 text-sm font-semibold text-foreground hover:bg-accent transition-colors"
           >
-            Ver qué incluye
+            Ver precios
           </a>
         </div>
 
@@ -206,6 +206,13 @@ export default async function HomePage() {
             },
             {
               n: '05',
+              title: 'Crear y enviar una factura',
+              desc: 'Añade el cliente, los servicios y los importes. MITIKUS calcula el IVA, genera el número correlativo y produce el PDF listo para enviar o descargar. Datos fiscales configurados una sola vez.',
+              result: 'Factura PDF descargable',
+              icon: '🧾',
+            },
+            {
+              n: '06',
               title: 'Organizar la documentación de un proyecto',
               desc: 'Guarda documentos, hojas de cálculo, contratos y PDFs en el mismo espacio de trabajo. Todo accesible, con trazabilidad de quién modificó qué y cuándo.',
               result: 'Carpeta de proyecto centralizada',
@@ -271,7 +278,7 @@ export default async function HomePage() {
           <ToolCard
             icon="🧾"
             title="Facturas"
-            text="Crea facturas con líneas de servicio, IVA automático y numeración secuencial. Descarga el PDF listo para enviar al cliente."
+            text="Crea facturas con líneas de servicio, IVA automático y numeración secuencial. Descarga el PDF listo para enviar al cliente. Facturación en preparación para Verifactu (AEAT)."
           />
           <ToolCard
             icon="📷"
@@ -367,7 +374,7 @@ export default async function HomePage() {
 
 
       {/* ── PRECIOS ── */}
-      <section>
+      <section id="precios">
         <PricingSection />
       </section>
 

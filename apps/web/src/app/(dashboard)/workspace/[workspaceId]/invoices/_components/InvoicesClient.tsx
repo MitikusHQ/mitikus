@@ -94,7 +94,7 @@ export function InvoicesClient({ workspaceId, initialInvoices, clients, defaultP
       setSelected(result.invoice)
       setEmailSent(true)
     } catch {
-      setEmailError('No se ha podido preparar el email. Revisa la configuración y vuelve a intentarlo.')
+      setEmailError('No se pudo enviar la factura. Comprueba que tienes correo configurado en Ajustes → Correo y envíos.')
     } finally {
       setEmailSending(false)
     }
@@ -473,9 +473,21 @@ export function InvoicesClient({ workspaceId, initialInvoices, clients, defaultP
                   MITIKUS enviará la factura <strong>{selected.number}</strong> usando la identidad de correo configurada. Si el envío falla, la factura no se marcará como enviada.
                 </p>
                 {emailError && (
-                  <p className="rounded-md border border-red-500/30 bg-red-500/10 px-3 py-2 text-xs text-red-600 dark:text-red-300">
-                    {emailError}
-                  </p>
+                  <div className="rounded-md border border-red-500/30 bg-red-500/10 px-3 py-2 text-xs text-red-600 dark:text-red-300 space-y-1.5">
+                    <p>{emailError}</p>
+                    <p>
+                      Revisa la configuración de correo en{' '}
+                      <a
+                        href={`/workspace/${workspaceId}/settings`}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="underline underline-offset-2 font-medium hover:opacity-80"
+                      >
+                        Ajustes → Correo y envíos
+                      </a>
+                      .
+                    </p>
+                  </div>
                 )}
               </>
             )}

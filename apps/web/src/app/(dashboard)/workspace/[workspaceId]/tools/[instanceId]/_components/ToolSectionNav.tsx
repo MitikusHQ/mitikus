@@ -6,15 +6,16 @@ import { usePathname } from 'next/navigation'
 interface Props {
   workspaceId: string
   instanceId: string
+  aiLabel?: string
 }
 
-export function ToolSectionNav({ workspaceId, instanceId }: Props) {
+export function ToolSectionNav({ workspaceId, instanceId, aiLabel = '✨ Ejecutar IA' }: Props) {
   const pathname = usePathname()
   const base = `/workspace/${workspaceId}/tools/${instanceId}`
 
   const tabs = [
     { href: base, label: 'Registros', exact: true },
-    { href: `${base}/run`, label: '✨ Ejecutar IA', exact: false },
+    { href: `${base}/run`, label: aiLabel, exact: false },
     { href: `${base}/history`, label: 'Historial IA', exact: false },
     { href: `${base}/settings`, label: '⚙ Ajustes', exact: false },
   ]
@@ -42,3 +43,7 @@ export function ToolSectionNav({ workspaceId, instanceId }: Props) {
     </nav>
   )
 }
+
+
+
+

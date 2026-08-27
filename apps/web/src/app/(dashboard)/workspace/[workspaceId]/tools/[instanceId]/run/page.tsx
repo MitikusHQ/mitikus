@@ -74,6 +74,7 @@ export default async function ToolRunPage({ params, searchParams }: Props) {
   }
 
   const isReplay = !!initialValues
+  const aiLabel = instance.toolDefinition.slug === 'social-media-manager' ? 'Ideas con IA' : undefined
 
   // Contexto de empresa para auto-relleno (solo si no es replay)
   const contextDefaults = isReplay
@@ -100,11 +101,12 @@ export default async function ToolRunPage({ params, searchParams }: Props) {
         </p>
       </div>
 
-      <ToolSectionNav workspaceId={workspaceId} instanceId={instanceId} />
+      <ToolSectionNav workspaceId={workspaceId} instanceId={instanceId} aiLabel={aiLabel} />
       <ExecutionClient
         toolInstanceId={instanceId}
         workspaceId={workspaceId}
         toolName={instance.name}
+        toolSlug={instance.toolDefinition.slug}
         fields={fields}
         initialValues={initialValues}
         contextDefaults={Object.keys(contextDefaults).length > 0 ? contextDefaults : undefined}
@@ -116,3 +118,6 @@ export default async function ToolRunPage({ params, searchParams }: Props) {
     </div>
   )
 }
+
+
+

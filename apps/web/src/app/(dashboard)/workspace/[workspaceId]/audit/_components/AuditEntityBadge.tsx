@@ -11,6 +11,9 @@ const LABELS: Record<AuditEntityType, string> = {
   record:          'Registro',
   member:          'Miembro',
   planning_engine: 'Planificación',
+  workspace:       'Workspace',
+  client:          'Cliente',
+  invoice:         'Factura',
 }
 
 export function AuditEntityBadge({ entityType }: Props) {

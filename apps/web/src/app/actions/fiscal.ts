@@ -5,6 +5,7 @@ import { db } from '@/lib/db'
 import { encryptSafe } from '@/lib/crypto'
 import { assertCan } from '@/lib/permissions'
 import type { LegalForm, Country } from '@/lib/fiscal-calendar'
+import { trackFiscalCompleted } from '@/lib/pmf-analytics'
 
 export async function setFiscalConfig(workspaceId: string, country: Country, legalForm?: LegalForm) {
   const user = await requireUser()
@@ -104,6 +105,11 @@ export async function updateBillingProfile(workspaceId: string, input: BillingPr
     create: { workspaceId, ...data },
     update: data,
   })
+
+  // Evento PMF: perfil fiscal completo (NIF + nombre fiscal presentes)
+  if (data.fiscalName && data.nif) {
+    trackFiscalCompleted({ orgId: user.orgId, workspaceId, userId: user.id })
+  }
 }
 
 export async function updateEmailSettings(workspaceId: string, input: EmailSettingsInput) {

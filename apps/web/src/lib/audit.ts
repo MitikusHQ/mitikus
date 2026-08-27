@@ -47,6 +47,20 @@ export type AuditAction =
   // Planning Engine
   | 'plan.generated'
   | 'intent.analyze'
+  // PMF activation funnel
+  | 'pmf.workspace.created'
+  | 'pmf.fiscal.completed'
+  | 'pmf.client.created'
+  | 'pmf.invoice.created'
+  | 'pmf.invoice.emitted'
+  | 'pmf.invoice.sent'
+  | 'pmf.invoice.pdf.downloaded'
+  // PMF onboarding friction
+  | 'pmf.onboarding.viewed'
+  | 'pmf.onboarding.step.clicked'
+  | 'pmf.onboarding.step.skipped'
+  | 'pmf.onboarding.blocked'
+  | 'pmf.onboarding.completed'
 
 export type AuditEntityType =
   | 'tool_instance'
@@ -55,6 +69,9 @@ export type AuditEntityType =
   | 'record'
   | 'member'
   | 'planning_engine'
+  | 'workspace'
+  | 'client'
+  | 'invoice'
 
 export type AuditResult = 'success' | 'failure' | 'denied'
 

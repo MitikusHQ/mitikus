@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from 'next/server'
 import { auth } from '@clerk/nextjs/server'
 import { db } from '@/lib/db'
 import QRCode from 'qrcode'
+import { trackInvoicePdfDownloaded } from '@/lib/pmf-analytics'
 
 export async function GET(
   _req: NextRequest,
@@ -13,7 +14,7 @@ export async function GET(
   const { workspaceId, invoiceId } = await params
   const user = await db.user.findUnique({
     where: { clerkId },
-    select: { orgId: true },
+    select: { id: true, orgId: true },
   })
   if (!user) return new NextResponse('Unauthorized', { status: 401 })
 
@@ -232,6 +233,8 @@ export async function GET(
   }
 
   const finalHtml = html.replace('TRACEABILITY_BLOCK', traceBlock)
+
+  trackInvoicePdfDownloaded({ orgId: user.orgId, workspaceId, userId: user.id, invoiceId })
 
   return new NextResponse(finalHtml, {
     headers: {

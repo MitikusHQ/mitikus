@@ -293,10 +293,10 @@ function Step2({ workspaceId, onInvite }: { workspaceId: string; onInvite: () =>
           Explorar Mi Office →
         </button>
         <button
-          onClick={() => router.push(`/workspace/${workspaceId}/fiscal`)}
+          onClick={() => router.push(`/workspace/${workspaceId}/fiscal/configurar`)}
           className="w-full rounded-md border border-amber-300 dark:border-amber-700 bg-amber-50 dark:bg-amber-900/20 px-4 py-2.5 text-sm font-medium text-amber-700 dark:text-amber-300 hover:bg-amber-100 dark:hover:bg-amber-900/40 transition-colors"
         >
-          🗓️ Ver calendario fiscal
+          🧾 Añadir mis datos fiscales
         </button>
         <button
           onClick={onInvite}

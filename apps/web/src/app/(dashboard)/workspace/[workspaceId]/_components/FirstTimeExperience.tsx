@@ -22,10 +22,10 @@ interface Props {
 }
 
 const PILLARS = [
-  { icon: '🔧', label: 'Herramientas', desc: 'Ejecuta auditorías e informes con un clic' },
-  { icon: '🎯', label: 'Misiones',     desc: 'Convierte objetivos en pasos concretos' },
+  { icon: '🧾', label: 'Facturas',     desc: 'Emite facturas con IVA y PDF descargable' },
   { icon: '🏢', label: 'Clientes',     desc: 'Todo el trabajo vinculado a cada cuenta' },
-  { icon: '📊', label: 'Historial',    desc: 'Cada ejecución guardada y exportable' },
+  { icon: '🔧', label: 'Herramientas', desc: 'Auditorías, calidad, RRHH y más con IA' },
+  { icon: '🧠', label: 'Brain / Arkos', desc: 'La memoria y el copiloto de tu negocio' },
 ]
 
 type Audit = {
@@ -203,7 +203,7 @@ export function FirstTimeExperience({ workspaceId, userName, sector }: Props) {
               Bienvenido a MITIKUS.
             </h1>
             <p className="text-muted-foreground text-sm leading-relaxed pt-1">
-              La plataforma que convierte tus auditorías en procesos repetibles — para que entregues más en menos tiempo.
+              Clientes, facturas, documentos, herramientas con IA y memoria de negocio — todo en un workspace privado.
             </p>
           </div>
 
@@ -242,7 +242,7 @@ export function FirstTimeExperience({ workspaceId, userName, sector }: Props) {
           <div className="space-y-2">
             <p className="text-xs text-primary font-semibold uppercase tracking-widest">Paso 1 de 2</p>
             <h1 className="text-3xl font-semibold leading-snug">
-              ¿A qué se dedica<br />tu consultora?
+              ¿A qué se dedica<br />tu empresa?
             </h1>
             <p className="text-sm text-muted-foreground leading-relaxed">
               Arkos aprenderá tu sector y servicios para personalizar todas las herramientas desde el primer momento.

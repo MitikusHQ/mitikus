@@ -26,6 +26,7 @@ export async function getClientByPortalToken(token: string) {
     select: {
       id: true,
       name: true,
+      contactName: true,
       email: true,
       sector: true,
       workspaceId: true,

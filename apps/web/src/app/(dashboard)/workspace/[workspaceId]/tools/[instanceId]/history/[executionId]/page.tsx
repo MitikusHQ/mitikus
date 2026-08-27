@@ -35,7 +35,7 @@ export default async function ExecutionDetailPage({ params }: Props) {
     db.workspace.findFirst({ where: { id: workspaceId, orgId: user.orgId } }),
     db.toolInstance.findFirst({
       where: { id: instanceId, workspaceId, status: 'ACTIVE' },
-      select: { name: true, toolDefinition: { select: { name: true } } },
+      select: { name: true, toolDefinition: { select: { name: true, slug: true } } },
     }),
     getExecutionDetail(executionId, workspaceId),
   ])
@@ -44,12 +44,14 @@ export default async function ExecutionDetailPage({ params }: Props) {
   if (!instance) notFound()
   if (!execution) notFound()
 
+  const aiLabel = instance.toolDefinition.slug === 'social-media-manager' ? 'Ideas con IA' : undefined
+
   const variables = execution.variables as Record<string, unknown>
   const varEntries = Object.entries(variables).filter(([, v]) => v !== null && v !== undefined && v !== '')
 
   return (
     <div className="max-w-6xl mx-auto px-6 py-8">
-      <ToolSectionNav workspaceId={workspaceId} instanceId={instanceId} />
+      <ToolSectionNav workspaceId={workspaceId} instanceId={instanceId} aiLabel={aiLabel} />
 
       <div className="grid gap-8 lg:grid-cols-3">
 
@@ -150,3 +152,5 @@ export default async function ExecutionDetailPage({ params }: Props) {
     </div>
   )
 }
+
+

@@ -12,6 +12,7 @@ import {
   formatTimestampAEAT,
 } from '@/lib/verifactu'
 import { assertCan } from '@/lib/permissions'
+import { trackInvoiceCreated, trackInvoiceEmitted, trackInvoiceSent } from '@/lib/pmf-analytics'
 
 export interface InvoiceItem {
   description: string
@@ -242,7 +243,7 @@ export async function getNextInvoiceNumber(workspaceId: string): Promise<string>
 }
 
 export async function createInvoice(workspaceId: string, data: InvoiceInput): Promise<InvoiceData> {
-  await assertInvoiceWrite(workspaceId)
+  const user = await assertInvoiceWrite(workspaceId)
   const r = await db.invoice.create({
     data: {
       workspaceId,
@@ -264,6 +265,14 @@ export async function createInvoice(workspaceId: string, data: InvoiceInput): Pr
       legalNote:     data.legalNote ?? null,
     },
     include: includeClient,
+  })
+  trackInvoiceCreated({
+    orgId:       user.orgId,
+    workspaceId,
+    userId:      user.id,
+    invoiceId:   r.id,
+    total:       r.total,
+    currency:    r.currency,
   })
   revalidatePath(`/workspace/${workspaceId}/invoices`)
   return mapInvoice(r)
@@ -355,7 +364,7 @@ export async function emitirFactura(
   invoiceId: string,
   emisorNif: string,
 ): Promise<InvoiceData> {
-  await assertInvoiceEdit(workspaceId)  // Emitir = acción irreversible, requiere EDITOR
+  const user = await assertInvoiceEdit(workspaceId)  // Emitir = acción irreversible, requiere EDITOR
 
   // LEGAL3: El NIF emisor debe tener formato válido antes de calcular el hash
   if (!validarNifEspanol(emisorNif)) {
@@ -415,6 +424,13 @@ export async function emitirFactura(
     include: includeClient,
   })
 
+  trackInvoiceEmitted({
+    orgId:       user.orgId,
+    workspaceId,
+    userId:      user.id,
+    invoiceId,
+    total:       updated.total,
+  })
   revalidatePath(`/workspace/${workspaceId}/invoices`)
   return mapInvoice(updated)
 }
@@ -520,6 +536,7 @@ export async function sendInvoiceToClient(
     include: includeClient,
   })
 
+  trackInvoiceSent({ orgId: user.orgId, workspaceId, userId: user.id, invoiceId })
   revalidatePath(`/workspace/${workspaceId}/invoices`)
   return { success: true, invoice: mapInvoice(sentInvoice ?? invoice) }
 }

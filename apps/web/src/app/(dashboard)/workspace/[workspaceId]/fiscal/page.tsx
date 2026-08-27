@@ -89,7 +89,7 @@ export default async function FiscalPage({ params }: Props) {
             href={`/workspace/${workspaceId}/fiscal/configurar`}
             className="text-xs text-muted-foreground hover:text-foreground transition-colors"
           >
-            Cambiar forma jurídica
+            Datos de facturación
           </Link>
         </div>
       </div>

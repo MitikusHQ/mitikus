@@ -8,6 +8,17 @@ interface Props {
   params: Promise<{ workspaceId: string }>
 }
 
+const CLIENT_TYPE_LABELS: Record<string, string> = {
+  client: 'Cliente',
+  company: 'Empresa',
+  freelancer: 'Autónomo',
+  individual: 'Particular',
+  patient: 'Paciente',
+  student: 'Alumno',
+  athlete: 'Deportista',
+  event: 'Evento',
+}
+
 export default async function ClientsPage({ params }: Props) {
   const [{ workspaceId }, user] = await Promise.all([params, requireUser()])
 
@@ -67,8 +78,13 @@ export default async function ClientsPage({ params }: Props) {
                     {client.name}
                   </Link>
                   <div className="flex items-center gap-2 text-xs text-muted-foreground">
+                    <span className="rounded-full bg-muted px-2 py-0.5 text-[10px] font-medium text-muted-foreground">
+                      {CLIENT_TYPE_LABELS[client.clientType] ?? 'Cliente'}
+                    </span>
+                    {client.contactName && <span>Contacto: {client.contactName}</span>}
+                    {client.contactName && client.email && <span>·</span>}
                     {client.email && <span>{client.email}</span>}
-                    {client.email && client.sector && <span>·</span>}
+                    {(client.contactName || client.email) && client.sector && <span>·</span>}
                     {client.sector && <span>{client.sector}</span>}
                   </div>
                 </div>

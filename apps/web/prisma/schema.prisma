@@ -2061,6 +2061,10 @@ model Invoice {
   enviadaAEAT     Boolean   @default(false)
   respuestaAEAT   Json?                      // respuesta del webservice AEAT si se envía
   qrUrl           String?                    // URL de verificación AEAT (primeros 28 chars de huella)
+  // Factura rectificativa (R1-R5) — referencia a la factura original que se rectifica
+  rectificaId     String?
+  rectifica       Invoice?  @relation("Rectificativa", fields: [rectificaId], references: [id], onDelete: SetNull)
+  rectificadas    Invoice[] @relation("Rectificativa")
   mailMessages    MailMessage[]
 
   @@index([workspaceId, createdAt])

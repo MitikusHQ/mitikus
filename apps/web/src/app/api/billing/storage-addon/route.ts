@@ -1,5 +1,3 @@
-'use server'
-
 /**
  * POST /api/billing/storage-addon — añade GB extra de almacenamiento a la
  * suscripción existente vía Stripe (€2/GB/mes).

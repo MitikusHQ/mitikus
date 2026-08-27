@@ -17,14 +17,15 @@ export async function searchWorkspace(
   query: string,
   orgId: string,
 ): Promise<BrainFragment[]> {
-  const [docs, memory, convs, tools] = await Promise.all([
+  const [docs, businessMemory, memoryItems, convs, tools] = await Promise.all([
     searchDocuments(workspaceId, query),
     searchBusinessMemory(workspaceId, query),
+    searchMemoryItems(workspaceId, query, orgId),
     searchConversations(workspaceId, query),
     searchTools(query, orgId),
   ])
 
-  const all = [...docs, ...memory, ...convs, ...tools]
+  const all = [...docs, ...businessMemory, ...memoryItems, ...convs, ...tools]
   all.sort((a, b) => b.score - a.score)
   return all.slice(0, 8)
 }
@@ -119,6 +120,43 @@ async function searchBusinessMemory(workspaceId: string, query: string): Promise
     }))
   } catch (err) {
     console.error('[Brain] searchBusinessMemory error:', err)
+    return []
+  }
+}
+
+type MemoryItemRow = { id: string; title: string; excerpt: string; score: number; kind: string }
+
+async function searchMemoryItems(
+  workspaceId: string,
+  query: string,
+  orgId: string,
+): Promise<BrainFragment[]> {
+  try {
+    const rows = await db.$queryRaw<MemoryItemRow[]>(Prisma.sql`
+      SELECT id,
+             title,
+             LEFT(COALESCE(content, ''), 300) AS excerpt,
+             ts_rank(to_tsvector('spanish', COALESCE(title, '') || ' ' || COALESCE(content, '') || ' ' || COALESCE(type, '')),
+                     plainto_tsquery('spanish', ${query})) AS score,
+             type AS kind
+      FROM memory_items
+      WHERE "workspaceId" = ${workspaceId}
+        AND "orgId" = ${orgId}
+        AND status = 'active'
+        AND to_tsvector('spanish', COALESCE(title, '') || ' ' || COALESCE(content, '') || ' ' || COALESCE(type, ''))
+            @@ plainto_tsquery('spanish', ${query})
+      ORDER BY score DESC
+      LIMIT ${LIMIT_PER_SOURCE}
+    `)
+    return rows.map((r) => ({
+      type: 'memory' as const,
+      id: r.id,
+      title: `${r.title} (${r.kind})`,
+      excerpt: r.excerpt,
+      score: Number(r.score),
+    }))
+  } catch (err) {
+    console.error('[Brain] searchMemoryItems error:', err)
     return []
   }
 }

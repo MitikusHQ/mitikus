@@ -4,11 +4,24 @@ import { notFound } from 'next/navigation'
 import Link from 'next/link'
 import { cn } from '@/lib/utils'
 import { formatCostEUR } from '@/lib/ai-cost'
+import { getFolderTree } from '@/app/actions/files'
 import { ExecutionStatusBadge } from '../../tools/[instanceId]/_components/ExecutionStatusBadge'
 import { PortalLinkButton } from './_components/PortalLinkButton'
+import { ClientFilesSection } from './_components/ClientFilesSection'
 
 interface Props {
   params: Promise<{ workspaceId: string; clientId: string }>
+}
+
+const CLIENT_TYPE_LABELS: Record<string, string> = {
+  client: 'Cliente',
+  company: 'Empresa',
+  freelancer: 'Autónomo',
+  individual: 'Particular',
+  patient: 'Paciente',
+  student: 'Alumno',
+  athlete: 'Deportista',
+  event: 'Evento',
 }
 
 function formatDate(d: Date): string {
@@ -42,6 +55,16 @@ export default async function ClientDossierPage({ params }: Props) {
     where: { id: clientId, workspaceId },
   })
   if (!client) notFound()
+  const clientMeta = [
+    { label: 'Tipo', value: CLIENT_TYPE_LABELS[client.clientType] ?? 'Cliente' },
+    client.contactName ? { label: 'Contacto', value: client.contactName } : null,
+    client.email ? { label: 'Email', value: client.email } : null,
+    client.phone ? { label: 'Teléfono', value: client.phone } : null,
+    client.sector ? { label: 'Sector', value: client.sector } : null,
+    { label: 'Desde', value: formatDateShort(client.createdAt) },
+  ].filter(Boolean) as Array<{ label: string; value: string }>
+  const clientLocation = [client.postalCode, client.city, client.province].filter(Boolean).join(' ')
+  const hasFiscalData = Boolean(client.taxId || client.fiscalAddress || clientLocation || client.country)
 
   // Herramientas vinculadas a este cliente
   const instances = await db.toolInstance.findMany({
@@ -74,6 +97,24 @@ export default async function ClientDossierPage({ params }: Props) {
 
   const totalCost = recentExecutions.reduce((s, e) => s + e.estimatedCostEUR, 0)
   const completedCount = recentExecutions.filter((e) => e.status === 'COMPLETED').length
+  const clientFiles = await db.workspaceFile.findMany({
+    where: { workspaceId, clientId },
+    orderBy: { createdAt: 'desc' },
+    take: 30,
+    select: {
+      id: true,
+      name: true,
+      type: true,
+      url: true,
+      size: true,
+      mimeType: true,
+      folderId: true,
+      folder: { select: { id: true, name: true } },
+      createdAt: true,
+    },
+  })
+  const folders = await getFolderTree(workspaceId)
+  const mailHref = client.email ? `/workspace/${workspaceId}/mail?to=${encodeURIComponent(client.email)}` : null
 
   return (
     <div className="max-w-5xl mx-auto px-6 py-8 space-y-8">
@@ -88,16 +129,29 @@ export default async function ClientDossierPage({ params }: Props) {
             <span>{client.name}</span>
           </div>
           <h1 className="text-2xl font-semibold">{client.name}</h1>
-          <div className="flex items-center gap-3 mt-1 text-sm text-muted-foreground">
-            {client.email && <span>{client.email}</span>}
-            {client.sector && <span>· {client.sector}</span>}
-            <span>· Cliente desde {formatDateShort(client.createdAt)}</span>
+          <div className="mt-3 grid gap-2 text-sm text-muted-foreground sm:grid-cols-2 lg:grid-cols-3">
+            {clientMeta.map((item) => (
+              <div key={item.label} className="rounded-lg border border-border/70 bg-card/40 px-3 py-2">
+                <p className="text-[10px] font-semibold uppercase tracking-wide text-muted-foreground/70">
+                  {item.label}
+                </p>
+                <p className="mt-0.5 truncate text-foreground/90">{item.value}</p>
+              </div>
+            ))}
           </div>
           {client.notes && (
             <p className="mt-2 text-sm text-muted-foreground max-w-xl">{client.notes}</p>
           )}
         </div>
-        <div className="flex items-center gap-2">
+        <div className="flex flex-wrap items-center justify-end gap-2">
+          {mailHref && (
+            <Link
+              href={mailHref}
+              className="shrink-0 text-xs border border-input rounded-md px-3 py-1.5 hover:bg-accent transition-colors"
+            >
+              Enviar correo
+            </Link>
+          )}
           <PortalLinkButton clientId={clientId} />
           <Link
             href={`/workspace/${workspaceId}/clients/${clientId}/edit`}
@@ -108,8 +162,38 @@ export default async function ClientDossierPage({ params }: Props) {
         </div>
       </div>
 
+      {hasFiscalData && (
+        <section className="rounded-xl border bg-card p-5">
+          <p className="text-xs font-semibold uppercase tracking-wide text-muted-foreground mb-3">
+            Datos fiscales
+          </p>
+          <div className="grid gap-4 text-sm sm:grid-cols-2">
+            <div>
+              <p className="text-xs text-muted-foreground">Cliente / Empresa</p>
+              <p className="font-medium">{client.name}</p>
+            </div>
+            {client.taxId && <div>
+              <p className="text-xs text-muted-foreground">NIF/CIF</p>
+              <p className="font-medium">{client.taxId}</p>
+            </div>}
+            {client.fiscalAddress && <div>
+              <p className="text-xs text-muted-foreground">Domicilio fiscal</p>
+              <p className="font-medium">{client.fiscalAddress}</p>
+            </div>}
+            {clientLocation && <div>
+              <p className="text-xs text-muted-foreground">CP / ciudad / provincia</p>
+              <p className="font-medium">{clientLocation}</p>
+            </div>}
+            {client.country && <div>
+              <p className="text-xs text-muted-foreground">País</p>
+              <p className="font-medium">{client.country}</p>
+            </div>}
+          </div>
+        </section>
+      )}
+
       {/* Stats */}
-      <div className="grid grid-cols-3 gap-4">
+      <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4">
         <div className="rounded-xl border bg-card p-5">
           <p className="text-xs text-muted-foreground mb-1">Herramientas</p>
           <p className="text-2xl font-bold">{instances.length}</p>
@@ -122,7 +206,21 @@ export default async function ClientDossierPage({ params }: Props) {
           <p className="text-xs text-muted-foreground mb-1">Coste IA</p>
           <p className="text-2xl font-bold">{formatCostEUR(totalCost)}</p>
         </div>
+        <div className="rounded-xl border bg-card p-5">
+          <p className="text-xs text-muted-foreground mb-1">Archivos</p>
+          <p className="text-2xl font-bold">{clientFiles.length}</p>
+        </div>
       </div>
+
+      <ClientFilesSection
+        workspaceId={workspaceId}
+        clientId={clientId}
+        initialFiles={clientFiles.map((file) => ({
+          ...file,
+          createdAt: file.createdAt.toISOString(),
+        }))}
+        initialFolders={folders}
+      />
 
       {/* Herramientas del cliente */}
       <section>
@@ -245,3 +343,6 @@ export default async function ClientDossierPage({ params }: Props) {
     </div>
   )
 }
+
+
+

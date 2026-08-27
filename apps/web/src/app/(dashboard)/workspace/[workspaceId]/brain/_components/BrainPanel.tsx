@@ -12,6 +12,7 @@ interface Props {
   workspaceId: string
   compact?: boolean
   onNavigateToFull?: () => void
+  onOpenMemorySource?: (memoryId: string) => void
 }
 
 const QUICK_ACTIONS = [
@@ -35,7 +36,7 @@ const SOURCE_TYPE_COLORS: Record<BrainFragment['type'], string> = {
   tool:         'bg-amber-500/10 text-amber-600 dark:text-amber-400',
 }
 
-export function BrainPanel({ workspaceId, compact = false, onNavigateToFull }: Props) {
+export function BrainPanel({ workspaceId, compact = false, onNavigateToFull, onOpenMemorySource }: Props) {
   const [query, setQuery] = useState('')
   const [loading, setLoading] = useState(false)
   const [result, setResult] = useState<BrainResult | null>(null)
@@ -183,6 +184,15 @@ export function BrainPanel({ workspaceId, compact = false, onNavigateToFull }: P
                     <span className="text-[10px] text-muted-foreground/40 shrink-0">[{i + 1}]</span>
                   </div>
                   <p className="text-xs text-muted-foreground line-clamp-2">{source.excerpt}</p>
+                  {source.type === 'memory' && onOpenMemorySource && (
+                    <button
+                      type="button"
+                      onClick={() => onOpenMemorySource(source.id)}
+                      className="text-xs font-medium text-primary hover:underline"
+                    >
+                      Ver memoria
+                    </button>
+                  )}
                 </div>
               ))}
             </div>

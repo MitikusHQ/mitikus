@@ -24,7 +24,21 @@ export default async function WorkspaceLayout({ children, params }: Props) {
   const [workspace, pendingCount, taskCount] = await Promise.all([
     db.workspace.findFirst({
       where: { id: workspaceId, orgId: user.orgId },
-      select: { id: true, name: true, logoUrl: true, brandColor: true },
+      select: {
+        id: true,
+        name: true,
+        logoUrl: true,
+        brandColor: true,
+        logoShowName: true,
+        logoCropX: true,
+        logoCropY: true,
+        logoCropZoom: true,
+        logoTextX: true,
+        logoTextY: true,
+        logoTextSize: true,
+        logoTextColor: true,
+        logoTextFont: true,
+      },
     }),
     getPendingCount(workspaceId, user.id).catch(() => 0),
     getMyPendingTaskCount(workspaceId, user.id).catch(() => 0),
@@ -58,6 +72,12 @@ export default async function WorkspaceLayout({ children, params }: Props) {
       href: `${base}/brain`,
       icon: Icons.brain,
       description: 'Consulta la memoria del workspace — documentos, objetivos y decisiones',
+    },
+    {
+      label: 'Correo',
+      href: `${base}/mail`,
+      icon: Icons.mail,
+      description: 'Recibidos, enviados, borradores y correos de clientes',
     },
   ].filter(() => canView)
 
@@ -125,6 +145,7 @@ export default async function WorkspaceLayout({ children, params }: Props) {
       icon: Icons.invoices,
       description: 'Crea y gestiona facturas para tus clientes con PDF descargable',
     },
+
     {
       label: 'Gastos',
       href: `${base}/receipts`,
@@ -162,17 +183,17 @@ export default async function WorkspaceLayout({ children, params }: Props) {
     adminItems.push({
       label: 'Admin Org',
       href: '/org',
-      icon: Icons.settings,
+      icon: Icons.organization,
       description: 'Miembros, planes y configuración de tu organización',
     })
   }
 
   const profileItems: NavItem[] = [
     {
-      label: 'Ajustes',
-      href: `${base}/settings`,
-      icon: Icons.settings,
-      description: 'Logo, color de marca y nombre del workspace',
+      label: 'Mi perfil',
+      href: `${base}/profile`,
+      icon: Icons.profile,
+      description: 'Tu foto de perfil y preferencias personales',
     },
     {
       label: 'Soporte',
@@ -181,10 +202,10 @@ export default async function WorkspaceLayout({ children, params }: Props) {
       description: 'Asistente de ayuda y contacto con el equipo MITIKUS',
     },
     {
-      label: 'Mi perfil',
-      href: `${base}/profile`,
-      icon: Icons.profile,
-      description: 'Tu foto de perfil y preferencias personales',
+      label: 'Ajustes',
+      href: `${base}/settings`,
+      icon: Icons.settings,
+      description: 'Logo, color de marca y nombre del workspace',
     },
   ]
 
@@ -202,6 +223,15 @@ export default async function WorkspaceLayout({ children, params }: Props) {
       workspaceName={workspace.name}
       workspaceLogoUrl={workspace.logoUrl ?? null}
       workspaceBrandColor={workspace.brandColor ?? '#3B82F6'}
+      workspaceLogoShowName={workspace.logoShowName}
+      workspaceLogoCrop={{ x: workspace.logoCropX, y: workspace.logoCropY, zoom: workspace.logoCropZoom }}
+      workspaceLogoText={{
+        x: workspace.logoTextX,
+        y: workspace.logoTextY,
+        size: workspace.logoTextSize,
+        color: workspace.logoTextColor,
+        font: workspace.logoTextFont,
+      }}
       userAvatarUrl={user.avatarUrl ?? null}
       navGroups={navGroups}
       myId={user.id}
@@ -210,3 +240,6 @@ export default async function WorkspaceLayout({ children, params }: Props) {
     </WorkspaceShell>
   )
 }
+
+
+

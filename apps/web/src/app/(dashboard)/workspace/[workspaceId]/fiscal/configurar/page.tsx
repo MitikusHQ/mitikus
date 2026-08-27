@@ -14,7 +14,23 @@ export default async function FiscalConfigPage({ params }: Props) {
 
   const [workspace, profile] = await Promise.all([
     db.workspace.findFirst({ where: { id: workspaceId, orgId: user.orgId } }),
-    db.companyProfile.findUnique({ where: { workspaceId }, select: { nif: true } }),
+    db.companyProfile.findUnique({
+      where: { workspaceId },
+      select: {
+        fiscalName: true,
+        nif: true,
+        fiscalAddress: true,
+        fiscalPostalCode: true,
+        fiscalCity: true,
+        fiscalProvince: true,
+        fiscalCountry: true,
+        fiscalEmail: true,
+        fiscalPhone: true,
+        tradeRegistry: true,
+        iban: true,
+        defaultPaymentNotes: true,
+      },
+    }),
   ])
   if (!workspace) notFound()
 
@@ -26,8 +42,24 @@ export default async function FiscalConfigPage({ params }: Props) {
           Calendario Fiscal
         </Link>
       </div>
-      <div className="max-w-lg mx-auto py-8 px-6 space-y-8">
-        <NifForm workspaceId={workspaceId} currentNif={profile?.nif ?? null} />
+      <div className="max-w-2xl mx-auto py-8 px-6 space-y-8">
+        <NifForm
+          workspaceId={workspaceId}
+          profile={{
+            fiscalName: profile?.fiscalName ?? '',
+            nif: profile?.nif ?? '',
+            fiscalAddress: profile?.fiscalAddress ?? '',
+            fiscalPostalCode: profile?.fiscalPostalCode ?? '',
+            fiscalCity: profile?.fiscalCity ?? '',
+            fiscalProvince: profile?.fiscalProvince ?? '',
+            fiscalCountry: profile?.fiscalCountry ?? '',
+            fiscalEmail: profile?.fiscalEmail ?? '',
+            fiscalPhone: profile?.fiscalPhone ?? '',
+            tradeRegistry: profile?.tradeRegistry ?? '',
+            iban: profile?.iban ?? '',
+            defaultPaymentNotes: profile?.defaultPaymentNotes ?? '',
+          }}
+        />
         <LegalFormPicker workspaceId={workspaceId} />
       </div>
     </>

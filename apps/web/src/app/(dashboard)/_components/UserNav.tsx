@@ -26,7 +26,7 @@ export function UserNav({ signOutLabel = 'Cerrar sesión', avatarUrl, workspaceI
   }
 
   return (
-    <div className="flex items-center gap-3">
+    <div className="flex items-center gap-2 min-w-0">
       <ThemeToggle />
       <Link
         href={profileHref}
@@ -43,13 +43,13 @@ export function UserNav({ signOutLabel = 'Cerrar sesión', avatarUrl, workspaceI
             </div>
           )}
         </div>
-        <span className="text-sm text-muted-foreground hidden sm:block max-w-[160px] truncate">
+        <span className="text-sm text-muted-foreground hidden xl:block max-w-[150px] truncate">
           {displayName}
         </span>
       </Link>
       <button
         onClick={handleSignOut}
-        className="text-sm text-muted-foreground hover:text-foreground transition-colors"
+        className="hidden xl:inline text-sm text-muted-foreground hover:text-foreground transition-colors whitespace-nowrap"
       >
         {signOutLabel}
       </button>

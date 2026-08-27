@@ -34,13 +34,15 @@ export default async function ToolHistoryPage({ params }: Props) {
     db.workspace.findFirst({ where: { id: workspaceId, orgId: user.orgId } }),
     db.toolInstance.findFirst({
       where: { id: instanceId, workspaceId, status: 'ACTIVE' },
-      select: { name: true, toolDefinition: { select: { name: true } } },
+      select: { name: true, toolDefinition: { select: { name: true, slug: true } } },
     }),
     getExecutionHistory(instanceId, workspaceId, 50),
   ])
 
   if (!workspace) notFound()
   if (!instance) notFound()
+
+  const aiLabel = instance.toolDefinition.slug === 'social-media-manager' ? 'Ideas con IA' : undefined
 
   return (
     <div className="max-w-6xl mx-auto px-6 py-8">
@@ -49,7 +51,7 @@ export default async function ToolHistoryPage({ params }: Props) {
         <p className="text-xs text-muted-foreground truncate">{instance.toolDefinition.name}</p>
       </div>
 
-      <ToolSectionNav workspaceId={workspaceId} instanceId={instanceId} />
+      <ToolSectionNav workspaceId={workspaceId} instanceId={instanceId} aiLabel={aiLabel} />
 
       <div className="flex items-center justify-between mb-5 flex-wrap gap-3">
           <div>
@@ -201,3 +203,5 @@ export default async function ToolHistoryPage({ params }: Props) {
     </div>
   )
 }
+
+

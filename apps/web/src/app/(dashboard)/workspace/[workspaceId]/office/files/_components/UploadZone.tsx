@@ -9,7 +9,7 @@ interface Props {
   onUploaded: () => void
 }
 
-const ACCEPTED = '.pdf,.docx,.xlsx,.jpg,.jpeg,.png,.webp,.gif'
+const ACCEPTED = '.pdf,.docx,.xlsx,.jpg,.jpeg,.png,.webp,.gif,.txt,.md,.json,.zip'
 
 export function UploadZone({ workspaceId, folderId, onUploaded }: Props) {
   const inputRef = useRef<HTMLInputElement>(null)
@@ -63,7 +63,7 @@ export function UploadZone({ workspaceId, folderId, onUploaded }: Props) {
       ) : (
         <>
           <p className="text-sm text-muted-foreground">Arrastra archivos o haz clic para seleccionar</p>
-          <p className="text-xs text-muted-foreground/60 mt-0.5">PDF, DOCX, XLSX, JPG, PNG, WEBP — máx. 50 MB</p>
+          <p className="text-xs text-muted-foreground/60 mt-0.5">PDF, DOCX, XLSX, imágenes, TXT, MD, JSON, ZIP — máx. 50 MB</p>
         </>
       )}
     </div>

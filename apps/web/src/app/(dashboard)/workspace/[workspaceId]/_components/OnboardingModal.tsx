@@ -55,7 +55,7 @@ const SLIDES: Slide[] = [
         <circle cx="143" cy="6.5" r="4" fill="#6366F1" opacity=".2"/>
         <circle cx="131" cy="6.5" r="4" fill="#6366F1" opacity=".15"/>
         {/* MITIKUS logo — real, centered in content area */}
-        <g transform="translate(64, 35) scale(0.30)">
+        <g transform="translate(66, 28) scale(0.28)">
           <circle cx="100" cy="100" r="90" fill="none" stroke="url(#s1g)" strokeWidth="5.5"/>
           <g clipPath="url(#s1c)">
             <polygon points="-10,0 192,95 192,100 -10,98" fill="url(#s1g)"/>
@@ -63,8 +63,8 @@ const SLIDES: Slide[] = [
           </g>
         </g>
         {/* Wordmark */}
-        <text x="92" y="100" textAnchor="middle" fontSize="12" fontWeight="800" fontFamily="system-ui, sans-serif" fill="#1820B8" letterSpacing="2.5">MITIKUS</text>
-        <text x="92" y="114" textAnchor="middle" fontSize="7" fontFamily="system-ui, sans-serif" fill="#6366F1" opacity=".65">Tu negocio, all in one</text>
+        <text x="92" y="110" textAnchor="middle" fontSize="12" fontWeight="800" fontFamily="system-ui, sans-serif" fill="#1820B8" letterSpacing="2.5">MITIKUS</text>
+        <text x="92" y="123" textAnchor="middle" fontSize="7" fontFamily="system-ui, sans-serif" fill="#6366F1" opacity=".65">Tu negocio, all in one</text>
         {/* Decorative sparkles */}
         <circle cx="36" cy="135" r="3.5" fill="#8B28FF" opacity=".18"/>
         <circle cx="148" cy="42" r="4"   fill="#FF7028" opacity=".13"/>
@@ -96,18 +96,18 @@ const SLIDES: Slide[] = [
         <text x="130" y="13" fontSize="6" fontFamily="system-ui, sans-serif" fill="#B45309" opacity=".7">dom 3 ago</text>
         {/* Card: Tareas */}
         <rect x="8" y="24" width="68" height="60" rx="6" fill="white" stroke="#FDE68A" strokeWidth="1"/>
-        <text x="15" y="35" fontSize="6.5" fontWeight="700" fontFamily="system-ui, sans-serif" fill="#78350F">Tareas pendientes</text>
+        <text x="15" y="35" fontSize="5.8" fontWeight="700" fontFamily="system-ui, sans-serif" fill="#78350F">Tareas pendientes</text>
         {[
-          { y: 48, done: true,  label: 'Enviar propuesta Acme' },
-          { y: 60, done: false, label: 'Llamar a proveedor' },
-          { y: 72, done: false, label: 'Revisar contrato Beta' },
+          { y: 48, done: true,  label: 'Enviar prop. Acme' },
+          { y: 60, done: false, label: 'Llamar proveedor' },
+          { y: 72, done: false, label: 'Revisar contrato' },
         ].map((t, i) => (
           <g key={i}>
             <rect x="15" y={t.y - 5} width="6" height="6" rx="1.5"
               fill={t.done ? '#F59E0B' : 'none'}
               stroke={t.done ? '#F59E0B' : '#D1D5DB'} strokeWidth="1"/>
             {t.done && <path d={`M${16} ${t.y - 2.5} l1.5 1.5 2.5-2.5`} stroke="white" strokeWidth="1" strokeLinecap="round" strokeLinejoin="round"/>}
-            <text x="26" y={t.y + 0.5} fontSize="5.5" fontFamily="system-ui, sans-serif"
+            <text x="26" y={t.y + 0.5} fontSize="4.8" fontFamily="system-ui, sans-serif"
               fill={t.done ? '#9CA3AF' : '#374151'}
               textDecoration={t.done ? 'line-through' : undefined}>
               {t.label}
@@ -115,27 +115,27 @@ const SLIDES: Slide[] = [
           </g>
         ))}
         {/* Card: Reloj fichaje */}
-        <rect x="84" y="24" width="68" height="42" rx="6" fill="white" stroke="#FDE68A" strokeWidth="1"/>
-        <text x="91" y="35" fontSize="6.5" fontWeight="700" fontFamily="system-ui, sans-serif" fill="#78350F">Control horario</text>
-        <text x="118" y="52" textAnchor="middle" fontSize="16" fontWeight="800" fontFamily="system-ui, sans-serif" fill="#F59E0B">09:32</text>
-        <text x="118" y="61" textAnchor="middle" fontSize="5.5" fontFamily="system-ui, sans-serif" fill="#92400E" opacity=".7">Jornada en curso · 2h 14m</text>
+        <rect x="84" y="24" width="68" height="38" rx="6" fill="white" stroke="#FDE68A" strokeWidth="1"/>
+        <text x="91" y="35" fontSize="5.8" fontWeight="700" fontFamily="system-ui, sans-serif" fill="#78350F">Control horario</text>
+        <text x="118" y="49" textAnchor="middle" fontSize="12.5" fontWeight="800" fontFamily="system-ui, sans-serif" fill="#F59E0B">09:32</text>
+        <text x="118" y="58" textAnchor="middle" fontSize="4.4" fontFamily="system-ui, sans-serif" fill="#92400E" opacity=".7">En curso · 2h 14m</text>
         {/* Card: Alerta fiscal */}
-        <rect x="8" y="92" width="144" height="24" rx="6" fill="#FEF3C7" stroke="#FDE68A" strokeWidth="1"/>
-        <circle cx="22" cy="104" r="6" fill="#F59E0B"/>
-        <text x="22" y="107" textAnchor="middle" fontSize="8" fontFamily="system-ui, sans-serif" fill="white" fontWeight="700">!</text>
-        <text x="34" y="102" fontSize="6.5" fontWeight="700" fontFamily="system-ui, sans-serif" fill="#92400E">Modelo 303 · Plazo en 3 días</text>
-        <text x="34" y="111" fontSize="5.5" fontFamily="system-ui, sans-serif" fill="#B45309" opacity=".8">IVA 2T 2026 · Vence el 21 ago</text>
+        <rect x="8" y="112" width="144" height="22" rx="6" fill="#FEF3C7" stroke="#FDE68A" strokeWidth="1"/>
+        <circle cx="22" cy="123" r="5.5" fill="#F59E0B"/>
+        <text x="22" y="126" textAnchor="middle" fontSize="7.5" fontFamily="system-ui, sans-serif" fill="white" fontWeight="700">!</text>
+        <text x="34" y="121" fontSize="6.2" fontWeight="700" fontFamily="system-ui, sans-serif" fill="#92400E">Modelo 303 · Plazo en 3 días</text>
+        <text x="34" y="129.5" fontSize="5.2" fontFamily="system-ui, sans-serif" fill="#B45309" opacity=".8">IVA 2T 2026 · Vence el 21 ago</text>
         {/* Card: Factura reciente */}
-        <rect x="84" y="72" width="68" height="38" rx="6" fill="white" stroke="#FDE68A" strokeWidth="1"/>
-        <text x="91" y="83" fontSize="6.5" fontWeight="700" fontFamily="system-ui, sans-serif" fill="#78350F">Facturas</text>
-        <text x="91" y="95" fontSize="5.5" fontFamily="system-ui, sans-serif" fill="#6B7280">FAC-012 · Acme Corp</text>
-        <text x="91" y="104" fontSize="8" fontWeight="700" fontFamily="system-ui, sans-serif" fill="#059669">2.400 €</text>
-        <rect x="127" y="95" width="18" height="7" rx="3.5" fill="#D1FAE5"/>
-        <text x="136" y="100.5" textAnchor="middle" fontSize="4.5" fontWeight="700" fontFamily="system-ui, sans-serif" fill="#065F46">PAGADA</text>
+        <rect x="84" y="68" width="68" height="36" rx="6" fill="white" stroke="#FDE68A" strokeWidth="1"/>
+        <text x="91" y="79" fontSize="5.8" fontWeight="700" fontFamily="system-ui, sans-serif" fill="#78350F">Facturas</text>
+        <text x="91" y="89" fontSize="4.8" fontFamily="system-ui, sans-serif" fill="#6B7280">FAC-012 · Acme</text>
+        <text x="91" y="99" fontSize="6.6" fontWeight="700" fontFamily="system-ui, sans-serif" fill="#059669">2.400 €</text>
+        <rect x="127" y="90" width="18" height="7" rx="3.5" fill="#D1FAE5"/>
+        <text x="136" y="95.5" textAnchor="middle" fontSize="4.5" fontWeight="700" fontFamily="system-ui, sans-serif" fill="#065F46">PAGADA</text>
         {/* Bottom progress bar */}
-        <rect x="8" y="124" width="144" height="5" rx="2.5" fill="#FDE68A" opacity=".4"/>
-        <rect x="8" y="124" width="90" height="5" rx="2.5" fill="#F59E0B" opacity=".7"/>
-        <text x="8" y="138" fontSize="5.5" fontFamily="system-ui, sans-serif" fill="#92400E" opacity=".7">Configuración: 63% completado</text>
+        <rect x="8" y="140" width="144" height="5" rx="2.5" fill="#FDE68A" opacity=".4"/>
+        <rect x="8" y="140" width="90" height="5" rx="2.5" fill="#F59E0B" opacity=".7"/>
+        <text x="8" y="154" fontSize="5.5" fontFamily="system-ui, sans-serif" fill="#92400E" opacity=".7">Configuración: 63% completado</text>
       </svg>
     ),
   },
@@ -161,28 +161,28 @@ const SLIDES: Slide[] = [
         <circle cx="12" cy="9" r="5" fill="#7C3AED" opacity=".8"/>
         <text x="12" y="12" textAnchor="middle" fontSize="7" fontFamily="system-ui, sans-serif" fill="white" fontWeight="800">✦</text>
         <text x="22" y="13" fontSize="8" fontWeight="700" fontFamily="system-ui, sans-serif" fill="#5B21B6">Arkos</text>
-        <text x="130" y="13" fontSize="6" fontFamily="system-ui, sans-serif" fill="#7C3AED" opacity=".6">Copiloto estratégico</text>
+        <text x="137" y="13" textAnchor="middle" fontSize="5" fontFamily="system-ui, sans-serif" fill="#7C3AED" opacity=".6">Copiloto IA</text>
         {/* AI bubble 1 */}
         <circle cx="16" cy="32" r="6" fill="#7C3AED"/>
         <text x="16" y="35" textAnchor="middle" fontSize="7" fontFamily="system-ui, sans-serif" fill="white" fontWeight="700">A</text>
         <rect x="27" y="24" width="112" height="24" rx="5" fill="#EDE9FE"/>
-        <text x="34" y="33" fontSize="6" fontFamily="system-ui, sans-serif" fill="#4C1D95">Hola. Soy Arkos, tu copiloto estratégico.</text>
-        <text x="34" y="42" fontSize="6" fontFamily="system-ui, sans-serif" fill="#4C1D95">¿En qué quieres que trabajemos hoy?</text>
+        <text x="34" y="33" fontSize="5.3" fontFamily="system-ui, sans-serif" fill="#4C1D95">Hola. Soy Arkos, tu copiloto estratégico.</text>
+        <text x="34" y="42" fontSize="5.3" fontFamily="system-ui, sans-serif" fill="#4C1D95">¿En qué quieres que trabajemos hoy?</text>
         {/* User bubble */}
         <rect x="18" y="55" width="118" height="16" rx="5" fill="#7C3AED"/>
-        <text x="77" y="62" textAnchor="middle" fontSize="6" fontFamily="system-ui, sans-serif" fill="white">Quiero captar 3 clientes nuevos</text>
-        <text x="77" y="69" textAnchor="middle" fontSize="6" fontFamily="system-ui, sans-serif" fill="white" opacity=".85">este trimestre</text>
+        <text x="77" y="62" textAnchor="middle" fontSize="5.4" fontFamily="system-ui, sans-serif" fill="white">Quiero captar 3 clientes nuevos</text>
+        <text x="77" y="69" textAnchor="middle" fontSize="5.4" fontFamily="system-ui, sans-serif" fill="white" opacity=".85">este trimestre</text>
         {/* AI response bubble */}
         <circle cx="16" cy="87" r="6" fill="#7C3AED"/>
         <text x="16" y="90" textAnchor="middle" fontSize="7" fontFamily="system-ui, sans-serif" fill="white" fontWeight="700">A</text>
         <rect x="27" y="78" width="124" height="42" rx="5" fill="#EDE9FE"/>
-        <text x="34" y="89" fontSize="6" fontFamily="system-ui, sans-serif" fill="#4C1D95">Perfecto. Te propongo 3 misiones:</text>
+        <text x="34" y="89" fontSize="5.4" fontFamily="system-ui, sans-serif" fill="#4C1D95">Perfecto. Te propongo 3 misiones:</text>
         <rect x="34" y="93" width="6" height="6" rx="1" fill="#7C3AED" opacity=".6"/>
-        <text x="44" y="98.5" fontSize="5.5" fontFamily="system-ui, sans-serif" fill="#5B21B6">Optimizar propuesta comercial</text>
+        <text x="44" y="98.5" fontSize="4.9" fontFamily="system-ui, sans-serif" fill="#5B21B6">Optimizar propuesta comercial</text>
         <rect x="34" y="103" width="6" height="6" rx="1" fill="#7C3AED" opacity=".4"/>
-        <text x="44" y="108.5" fontSize="5.5" fontFamily="system-ui, sans-serif" fill="#5B21B6">Activar canal LinkedIn</text>
+        <text x="44" y="108.5" fontSize="4.9" fontFamily="system-ui, sans-serif" fill="#5B21B6">Activar canal LinkedIn</text>
         <rect x="34" y="113" width="6" height="6" rx="1" fill="#7C3AED" opacity=".2"/>
-        <text x="44" y="118.5" fontSize="5.5" fontFamily="system-ui, sans-serif" fill="#5B21B6">Crear caso de estudio</text>
+        <text x="44" y="118.5" fontSize="4.9" fontFamily="system-ui, sans-serif" fill="#5B21B6">Crear caso de estudio</text>
         {/* Input bar */}
         <rect x="8" y="132" width="144" height="20" rx="6" fill="white" stroke="#DDD6FE" strokeWidth="1"/>
         <text x="18" y="146" fontSize="6" fontFamily="system-ui, sans-serif" fill="#9CA3AF">Escribe a Arkos…</text>
@@ -324,13 +324,13 @@ const SLIDES: Slide[] = [
         <rect width="160" height="160" fill="#FFFDF9" rx="10"/>
         {/* Stats row */}
         <rect x="4" y="4" width="46" height="20" rx="5" fill="#FFF7ED" stroke="#FED7AA" strokeWidth="1"/>
-        <text x="27" y="11" textAnchor="middle" fontSize="5.5" fontFamily="system-ui, sans-serif" fill="#92400E">Emitido (mes)</text>
-        <text x="27" y="20" textAnchor="middle" fontSize="8" fontWeight="800" fontFamily="system-ui, sans-serif" fill="#EA580C">8.400 €</text>
+        <text x="27" y="10" textAnchor="middle" fontSize="4.6" fontFamily="system-ui, sans-serif" fill="#92400E">Emitido mes</text>
+        <text x="27" y="20" textAnchor="middle" fontSize="6.6" fontWeight="800" fontFamily="system-ui, sans-serif" fill="#EA580C">8.400 €</text>
         <rect x="56" y="4" width="46" height="20" rx="5" fill="#FFF7ED" stroke="#FED7AA" strokeWidth="1"/>
-        <text x="79" y="11" textAnchor="middle" fontSize="5.5" fontFamily="system-ui, sans-serif" fill="#92400E">Pendiente</text>
-        <text x="79" y="20" textAnchor="middle" fontSize="8" fontWeight="800" fontFamily="system-ui, sans-serif" fill="#EA580C">3.200 €</text>
+        <text x="79" y="10" textAnchor="middle" fontSize="4.6" fontFamily="system-ui, sans-serif" fill="#92400E">Pendiente</text>
+        <text x="79" y="20" textAnchor="middle" fontSize="6.6" fontWeight="800" fontFamily="system-ui, sans-serif" fill="#EA580C">3.200 €</text>
         <rect x="108" y="4" width="48" height="20" rx="5" fill="#F97316"/>
-        <text x="132" y="17" textAnchor="middle" fontSize="6.5" fontWeight="700" fontFamily="system-ui, sans-serif" fill="white">+ Nueva factura</text>
+        <text x="132" y="16.5" textAnchor="middle" fontSize="5.2" fontWeight="700" fontFamily="system-ui, sans-serif" fill="white">+ Nueva</text>
         {/* Table header */}
         <rect x="4" y="30" width="152" height="10" rx="3" fill="#FEF3C7"/>
         <text x="8"   y="37.5" fontSize="5" fontWeight="700" fontFamily="system-ui, sans-serif" fill="#92400E">Nº</text>
@@ -343,16 +343,16 @@ const SLIDES: Slide[] = [
           { n: 'FAC-012', client: 'Acme Corp',  date: '01/08/26', amt: '2.400 €', tag: 'PAGADA',   bc: '#D1FAE5', tc: '#065F46' },
           { n: 'FAC-011', client: 'Beta S.L.',  date: '28/07/26', amt: '1.200 €', tag: 'EMITIDA',  bc: '#DBEAFE', tc: '#1D4ED8' },
           { n: 'FAC-010', client: 'Gamma Dev',  date: '20/07/26', amt: '3.800 €', tag: 'PAGADA',   bc: '#D1FAE5', tc: '#065F46' },
-          { n: 'FAC-009', client: 'Delta Pro',  date: '15/07/26', amt: '600 €',   tag: 'BORRADOR', bc: '#F3F4F6', tc: '#6B7280' },
+          { n: 'FAC-009', client: 'Delta Pro',  date: '15/07/26', amt: '600 €',   tag: 'BORR.',    bc: '#F3F4F6', tc: '#6B7280' },
           { n: 'FAC-008', client: 'Acme Corp',  date: '10/07/26', amt: '1.800 €', tag: 'PAGADA',   bc: '#D1FAE5', tc: '#065F46' },
         ].map((inv, i) => (
           <g key={i}>
             <rect x="4" y={42 + i * 22} width="152" height="20" rx="3" fill={i % 2 === 0 ? 'white' : '#FFFBF7'} stroke="#FED7AA" strokeWidth="0.5"/>
-            <text x="8"   y={55 + i * 22} fontSize="5.5" fontWeight="600" fontFamily="system-ui, sans-serif" fill="#374151">{inv.n}</text>
-            <text x="26"  y={55 + i * 22} fontSize="5.5" fontFamily="system-ui, sans-serif" fill="#374151">{inv.client}</text>
-            <text x="82"  y={55 + i * 22} fontSize="5.5" fontFamily="system-ui, sans-serif" fill="#6B7280">{inv.date}</text>
-            <text x="110" y={55 + i * 22} fontSize="5.5" fontWeight="600" fontFamily="system-ui, sans-serif" fill="#111827">{inv.amt}</text>
-            <rect x="133" y={46 + i * 22} width={inv.tag === 'BORRADOR' ? 28 : inv.tag === 'EMITIDA' ? 24 : 24} height="9" rx="4.5" fill={inv.bc}/>
+            <text x="8"   y={55 + i * 22} fontSize="4.8" fontWeight="600" fontFamily="system-ui, sans-serif" fill="#374151">{inv.n}</text>
+            <text x="26"  y={55 + i * 22} fontSize="4.8" fontFamily="system-ui, sans-serif" fill="#374151">{inv.client}</text>
+            <text x="82"  y={55 + i * 22} fontSize="4.8" fontFamily="system-ui, sans-serif" fill="#6B7280">{inv.date}</text>
+            <text x="110" y={55 + i * 22} fontSize="4.8" fontWeight="600" fontFamily="system-ui, sans-serif" fill="#111827">{inv.amt}</text>
+            <rect x="133" y={46 + i * 22} width={inv.tag === 'EMITIDA' ? 24 : 22} height="9" rx="4.5" fill={inv.bc}/>
             <text x={147} y={53 + i * 22} textAnchor="middle" fontSize="4.5" fontWeight="700" fontFamily="system-ui, sans-serif" fill={inv.tc}>{inv.tag}</text>
           </g>
         ))}
@@ -380,15 +380,15 @@ const SLIDES: Slide[] = [
         <rect x="0" y="0" width="160" height="18" fill="#FEE2E2" rx="10"/>
         <text x="10" y="13" fontSize="8" fontWeight="700" fontFamily="system-ui, sans-serif" fill="#991B1B">📅  Calendario Fiscal · 2026</text>
         {/* Stats row */}
-        <rect x="4" y="22" width="34" height="16" rx="4" fill="#FEE2E2"/>
-        <text x="21" y="28" textAnchor="middle" fontSize="5" fontFamily="system-ui, sans-serif" fill="#991B1B">Próximos</text>
-        <text x="21" y="35" textAnchor="middle" fontSize="8" fontWeight="800" fontFamily="system-ui, sans-serif" fill="#DC2626">3</text>
-        <rect x="42" y="22" width="34" height="16" rx="4" fill="#FEF3C7"/>
-        <text x="59" y="28" textAnchor="middle" fontSize="5" fontFamily="system-ui, sans-serif" fill="#92400E">Este mes</text>
-        <text x="59" y="35" textAnchor="middle" fontSize="8" fontWeight="800" fontFamily="system-ui, sans-serif" fill="#D97706">2</text>
-        <rect x="80" y="22" width="34" height="16" rx="4" fill="#D1FAE5"/>
-        <text x="97" y="28" textAnchor="middle" fontSize="5" fontFamily="system-ui, sans-serif" fill="#065F46">Cumplidos</text>
-        <text x="97" y="35" textAnchor="middle" fontSize="8" fontWeight="800" fontFamily="system-ui, sans-serif" fill="#059669">7</text>
+        <rect x="4" y="22" width="34" height="17" rx="4" fill="#FEE2E2"/>
+        <text x="21" y="28" textAnchor="middle" fontSize="4.3" fontFamily="system-ui, sans-serif" fill="#991B1B">Próximos</text>
+        <text x="21" y="36" textAnchor="middle" fontSize="6.4" fontWeight="800" fontFamily="system-ui, sans-serif" fill="#DC2626">3</text>
+        <rect x="42" y="22" width="34" height="17" rx="4" fill="#FEF3C7"/>
+        <text x="59" y="28" textAnchor="middle" fontSize="4.3" fontFamily="system-ui, sans-serif" fill="#92400E">Este mes</text>
+        <text x="59" y="36" textAnchor="middle" fontSize="6.4" fontWeight="800" fontFamily="system-ui, sans-serif" fill="#D97706">2</text>
+        <rect x="80" y="22" width="34" height="17" rx="4" fill="#D1FAE5"/>
+        <text x="97" y="28" textAnchor="middle" fontSize="4.3" fontFamily="system-ui, sans-serif" fill="#065F46">Cumplidos</text>
+        <text x="97" y="36" textAnchor="middle" fontSize="6.4" fontWeight="800" fontFamily="system-ui, sans-serif" fill="#059669">7</text>
         {/* Deadline cards */}
         {[
           { model: '303', label: 'IVA 2T 2026', deadline: '21 ago 2026', days: '3 días', urgent: true,  color: '#DC2626', bg: '#FEE2E2', bd: '#FECACA' },
@@ -475,11 +475,11 @@ const SLIDES: Slide[] = [
         <text x="135" y="13" fontSize="6" fontFamily="system-ui, sans-serif" fill="#4338CA">Sem. 31</text>
         {/* Clock widget */}
         <rect x="4" y="22" width="50" height="32" rx="6" fill="white" stroke="#C7D2FE" strokeWidth="1"/>
-        <text x="29" y="34" textAnchor="middle" fontSize="6" fontFamily="system-ui, sans-serif" fill="#6B7280">Hoy trabajado</text>
-        <text x="29" y="47" textAnchor="middle" fontSize="13" fontWeight="800" fontFamily="system-ui, sans-serif" fill="#4338CA">6h 32m</text>
+        <text x="29" y="33" textAnchor="middle" fontSize="5.1" fontFamily="system-ui, sans-serif" fill="#6B7280">Hoy trabajado</text>
+        <text x="29" y="46" textAnchor="middle" fontSize="10" fontWeight="800" fontFamily="system-ui, sans-serif" fill="#4338CA">6h 32m</text>
         <rect x="58" y="22" width="50" height="32" rx="6" fill="#4338CA"/>
-        <text x="83" y="32" textAnchor="middle" fontSize="6" fontFamily="system-ui, sans-serif" fill="#C7D2FE">Esta semana</text>
-        <text x="83" y="45" textAnchor="middle" fontSize="12" fontWeight="800" fontFamily="system-ui, sans-serif" fill="white">32h 10m</text>
+        <text x="83" y="32" textAnchor="middle" fontSize="5.1" fontFamily="system-ui, sans-serif" fill="#C7D2FE">Esta semana</text>
+        <text x="83" y="45" textAnchor="middle" fontSize="9.5" fontWeight="800" fontFamily="system-ui, sans-serif" fill="white">32h 10m</text>
         <rect x="112" y="22" width="44" height="32" rx="6" fill="white" stroke="#C7D2FE" strokeWidth="1"/>
         <text x="134" y="32" textAnchor="middle" fontSize="6" fontFamily="system-ui, sans-serif" fill="#6B7280">Fichar</text>
         <rect x="118" y="36" width="32" height="12" rx="6" fill="#10B981"/>

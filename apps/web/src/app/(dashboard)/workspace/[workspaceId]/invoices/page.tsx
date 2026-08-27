@@ -13,7 +13,10 @@ export default async function InvoicesPage({ params }: Props) {
 
   const workspace = await db.workspace.findFirst({
     where: { id: workspaceId, orgId: user.orgId },
-    select: { id: true },
+    select: {
+      id: true,
+      companyProfile: { select: { defaultPaymentNotes: true } },
+    },
   })
   if (!workspace) notFound()
 
@@ -21,7 +24,19 @@ export default async function InvoicesPage({ params }: Props) {
     getInvoices(workspaceId),
     db.client.findMany({
       where: { workspaceId, isArchived: false },
-      select: { id: true, name: true, email: true },
+      select: {
+        id: true,
+        name: true,
+        contactName: true,
+        email: true,
+        phone: true,
+        taxId: true,
+        fiscalAddress: true,
+        postalCode: true,
+        city: true,
+        province: true,
+        country: true,
+      },
       orderBy: { name: 'asc' },
     }),
   ])
@@ -39,6 +54,7 @@ export default async function InvoicesPage({ params }: Props) {
         workspaceId={workspaceId}
         initialInvoices={invoices}
         clients={clients}
+        defaultPaymentNotes={workspace.companyProfile?.defaultPaymentNotes ?? ''}
       />
     </div>
   )

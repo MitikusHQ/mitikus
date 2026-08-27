@@ -4,6 +4,7 @@ import { auth } from '@clerk/nextjs/server'
 import { redirect } from 'next/navigation'
 import { db } from '@/lib/db'
 import { assertCan } from '@/lib/permissions'
+import { trackClientCreated } from '@/lib/pmf-analytics'
 
 export type ClientActionState = { error: string } | null
 
@@ -50,9 +51,12 @@ export async function createClient(
   const sector = formData.get('sector')?.toString().trim() || null
   const notes = formData.get('notes')?.toString().trim() || null
 
-  await db.client.create({
+  const newClient = await db.client.create({
     data: { name, clientType, contactName, email, phone, taxId, fiscalAddress, postalCode, city, province, country, sector, notes, workspaceId },
+    select: { id: true },
   })
+
+  trackClientCreated({ orgId: ctx.user.orgId, workspaceId, userId: ctx.user.id, clientId: newClient.id, clientType })
 
   redirect(`/workspace/${workspaceId}/clients`)
 }

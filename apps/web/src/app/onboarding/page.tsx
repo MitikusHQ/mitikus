@@ -80,7 +80,7 @@ export default async function OnboardingPage() {
         <div className="mb-8">
           <h1 className="text-2xl font-bold">Bienvenido a MITIKUS</h1>
           <p className="text-muted-foreground text-sm mt-1">
-            Tu espacio de trabajo para consultoría IT — herramientas, clientes y misiones en un solo lugar.
+            Clientes, facturas, documentos y memoria de negocio — todo en un solo lugar.
           </p>
         </div>
         <OnboardingWizard />

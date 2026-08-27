@@ -39,6 +39,7 @@ export default async function NewRecordPage({ params }: Props) {
     layout: 'single-column',
     submitLabel: 'Guardar',
   }
+  const pageTitle = formCap?.label ?? 'Nueva entrada'
 
   return (
     <div className="max-w-3xl mx-auto px-6 py-8">
@@ -46,7 +47,7 @@ export default async function NewRecordPage({ params }: Props) {
         <svg className="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M15 18l-6-6 6-6"/></svg>
         {instance.name}
       </Link>
-      <h1 className="text-xl font-semibold mb-8">Nueva entrada</h1>
+      <h1 className="text-xl font-semibold mb-8">{pageTitle}</h1>
       <FormRenderer
         action={createRecord}
         instanceId={instanceId}
@@ -56,3 +57,4 @@ export default async function NewRecordPage({ params }: Props) {
     </div>
   )
 }
+

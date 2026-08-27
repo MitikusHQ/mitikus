@@ -52,6 +52,7 @@ export default async function ClientPortalPage({ params }: Props) {
 
   const pendingContracts = contracts.filter((c) => c.status === 'SENT')
   const signedContracts  = contracts.filter((c) => c.status === 'SIGNED')
+  const greetingName = client.contactName || client.name
 
   return (
     <div className="min-h-screen bg-background">
@@ -66,7 +67,7 @@ export default async function ClientPortalPage({ params }: Props) {
       <main className="max-w-2xl mx-auto px-6 py-10 space-y-10">
         {/* Saludo */}
         <div className="space-y-1">
-          <h1 className="text-2xl font-semibold">Hola, {client.name} 👋</h1>
+          <h1 className="text-2xl font-semibold">Hola, {greetingName} 👋</h1>
           <p className="text-sm text-muted-foreground">
             Aquí tienes todo lo que {client.workspace.name} ha compartido contigo.
           </p>

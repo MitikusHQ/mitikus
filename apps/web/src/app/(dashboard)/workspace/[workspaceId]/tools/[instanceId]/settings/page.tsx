@@ -19,7 +19,7 @@ export default async function ToolSettingsPage({ params }: Props) {
     db.workspace.findFirst({ where: { id: workspaceId, orgId: user.orgId } }),
     db.toolInstance.findFirst({
       where: { id: instanceId, workspaceId, status: 'ACTIVE' },
-      select: { name: true, clientId: true, toolDefinition: { select: { name: true } } },
+      select: { name: true, clientId: true, toolDefinition: { select: { name: true, slug: true } } },
     }),
     db.client.findMany({
       where: { workspaceId, isArchived: false },
@@ -30,6 +30,8 @@ export default async function ToolSettingsPage({ params }: Props) {
 
   if (!workspace) notFound()
   if (!instance) notFound()
+
+  const aiLabel = instance.toolDefinition.slug === 'social-media-manager' ? 'Ideas con IA' : undefined
 
   const [config, availableProviderIds] = await Promise.all([
     getOrCreateConfig(instanceId, workspaceId),
@@ -47,7 +49,7 @@ export default async function ToolSettingsPage({ params }: Props) {
         <p className="text-xs text-muted-foreground truncate">{instance.toolDefinition.name}</p>
       </div>
 
-      <ToolSectionNav workspaceId={workspaceId} instanceId={instanceId} />
+      <ToolSectionNav workspaceId={workspaceId} instanceId={instanceId} aiLabel={aiLabel} />
 
       <div className="mb-6">
         <h2 className="text-lg font-semibold">Configuración de la instalación</h2>
@@ -105,3 +107,4 @@ export default async function ToolSettingsPage({ params }: Props) {
     </div>
   )
 }
+

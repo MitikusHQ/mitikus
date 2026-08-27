@@ -1,5 +1,5 @@
 import type { Metadata } from 'next'
-import { BrainPanel } from './_components/BrainPanel'
+import { BrainTabs } from './_components/BrainTabs'
 
 export const metadata: Metadata = { title: 'Brain — MITIKUS' }
 
@@ -12,7 +12,7 @@ export default async function BrainPage({ params }: Props) {
 
   return (
     <div className="flex flex-col h-full">
-      <div className="shrink-0 px-6 pt-8 pb-6 border-b border-border">
+      <div className="shrink-0 px-6 pt-8 pb-4 border-b border-border">
         <div className="flex items-center gap-3 mb-1">
           <span className="text-2xl">✦</span>
           <h1 className="text-2xl font-bold">Brain</h1>
@@ -24,7 +24,7 @@ export default async function BrainPage({ params }: Props) {
 
       <div className="flex-1 min-h-0 overflow-y-auto px-6 py-6">
         <div className="max-w-2xl mx-auto h-full">
-          <BrainPanel workspaceId={workspaceId} compact={false} />
+          <BrainTabs workspaceId={workspaceId} />
         </div>
       </div>
     </div>

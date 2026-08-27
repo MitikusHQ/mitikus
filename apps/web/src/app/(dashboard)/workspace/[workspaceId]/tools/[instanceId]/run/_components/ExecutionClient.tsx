@@ -1,10 +1,11 @@
 'use client'
 
-import { useState, useCallback } from 'react'
+import { useState, useCallback, useMemo, useTransition } from 'react'
 import { useRouter } from 'next/navigation'
 import type { DataSchema, FormConfig } from '@protools/schema'
 import { VariableForm } from './VariableForm'
 import { ExecutionResult, type ExecutionState } from './ExecutionResult'
+import { createSocialPostDraftFromAI } from '@/app/actions/record'
 
 interface ExecutionApiResponse {
   executionId: string
@@ -27,6 +28,7 @@ interface Props {
   toolInstanceId: string
   workspaceId: string
   toolName: string
+  toolSlug: string
   fields: DataSchema['fields']
   initialValues?: Record<string, string>
   contextDefaults?: Record<string, string>
@@ -37,7 +39,7 @@ interface Props {
 }
 
 export function ExecutionClient({
-  toolInstanceId, workspaceId, toolName, fields, initialValues, contextDefaults, fromMissionId, fromStepId, nextTools = [], formSections,
+  toolInstanceId, workspaceId, toolName, toolSlug, fields, initialValues, contextDefaults, fromMissionId, fromStepId, nextTools = [], formSections,
 }: Props) {
   const router = useRouter()
   const [values, setValues] = useState<Record<string, string>>(
@@ -46,6 +48,17 @@ export function ExecutionClient({
   const [execState, setExecState] = useState<ExecutionState>({ type: 'idle' })
   const [completing, setCompleting] = useState(false)
   const [completeError, setCompleteError] = useState<string | null>(null)
+  const [isSavingDraft, startSavingDraft] = useTransition()
+  const [draftSaveState, setDraftSaveState] = useState<{ type: 'idle' } | { type: 'success'; recordId: string } | { type: 'error'; message: string }>({ type: 'idle' })
+  const effectiveFields = useMemo(() => {
+    if (toolSlug !== 'social-media-manager') return fields
+    return Object.fromEntries(
+      Object.entries(fields).map(([fieldId, field]) => [
+        fieldId,
+        { ...field, required: fieldId === 'copy' },
+      ]),
+    ) as DataSchema['fields']
+  }, [fields, toolSlug])
 
   const handleCompleteStep = useCallback(async () => {
     if (!fromMissionId || !fromStepId) return
@@ -102,6 +115,23 @@ export function ExecutionClient({
   )
 
   const isLoading = execState.type === 'loading'
+  const canSaveSocialDraft = toolSlug === 'social-media-manager' && execState.type === 'success'
+
+  const handleSaveSocialDraft = useCallback(() => {
+    if (execState.type !== 'success') return
+    setDraftSaveState({ type: 'idle' })
+    startSavingDraft(() => {
+      void (async () => {
+        const result = await createSocialPostDraftFromAI(toolInstanceId, values, execState.result)
+        if (result.ok) {
+          setDraftSaveState({ type: 'success', recordId: result.recordId })
+          router.refresh()
+        } else {
+          setDraftSaveState({ type: 'error', message: result.error })
+        }
+      })()
+    })
+  }, [execState, toolInstanceId, values, router])
 
   return (
     <div className="grid gap-8 lg:grid-cols-2">
@@ -121,7 +151,7 @@ export function ExecutionClient({
             )}
           </div>
           <VariableForm
-            fields={fields}
+            fields={effectiveFields}
             values={values}
             onChange={setValues}
             onSubmit={handleSubmit}
@@ -141,6 +171,41 @@ export function ExecutionClient({
           </p>
         </div>
         <ExecutionResult state={execState} toolName={toolName} />
+
+        {canSaveSocialDraft && (
+          <div className="mt-3 rounded-xl border bg-card p-4 space-y-3">
+            <div>
+              <p className="text-sm font-semibold">Guardar esta idea como publicación</p>
+              <p className="text-xs text-muted-foreground mt-0.5">
+                Crea un borrador en MITIKUS con el resultado generado. No publica en redes externas.
+              </p>
+            </div>
+            {draftSaveState.type === 'success' && (
+              <p className="text-xs text-green-600 dark:text-green-400">Borrador guardado correctamente.</p>
+            )}
+            {draftSaveState.type === 'error' && (
+              <p className="text-xs text-destructive">{draftSaveState.message}</p>
+            )}
+            <div className="flex items-center gap-3 flex-wrap">
+              <button
+                type="button"
+                onClick={handleSaveSocialDraft}
+                disabled={isSavingDraft || draftSaveState.type === 'success'}
+                className="inline-flex items-center rounded-md bg-primary px-4 py-2 text-sm font-medium text-primary-foreground shadow hover:bg-primary/90 transition-colors disabled:opacity-60"
+              >
+                {isSavingDraft ? 'Guardando…' : draftSaveState.type === 'success' ? 'Guardado' : 'Guardar como borrador'}
+              </button>
+              {draftSaveState.type === 'success' && (
+                <a
+                  href={`/workspace/${workspaceId}/tools/${toolInstanceId}`}
+                  className="text-sm text-primary hover:underline"
+                >
+                  Ver publicaciones →
+                </a>
+              )}
+            </div>
+          </div>
+        )}
 
         {execState.type === 'success' && fromMissionId && fromStepId && (
           <div className="mt-3 rounded-lg border-2 border-primary/30 bg-primary/5 p-4 space-y-2">
@@ -222,3 +287,8 @@ export function ExecutionClient({
     </div>
   )
 }
+
+
+
+
+

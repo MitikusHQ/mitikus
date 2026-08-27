@@ -34,7 +34,20 @@ export async function removeWorkspaceLogo(workspaceId: string) {
 
 export async function updateWorkspaceBranding(
   workspaceId: string,
-  data: { name?: string; logoUrl?: string; brandColor?: string },
+  data: {
+    name?: string
+    logoUrl?: string
+    brandColor?: string
+    logoShowName?: boolean
+    logoCropX?: number
+    logoCropY?: number
+    logoCropZoom?: number
+    logoTextX?: number
+    logoTextY?: number
+    logoTextSize?: number
+    logoTextColor?: string
+    logoTextFont?: string
+  },
 ) {
   const user = await requireUser()
   if (!can(user, 'manage_members')) {
@@ -45,5 +58,6 @@ export async function updateWorkspaceBranding(
     data,
   })
   revalidatePath(`/workspace/${workspaceId}`, 'layout')
+  revalidatePath(`/workspace/${workspaceId}/settings`)
   return { ok: true }
 }

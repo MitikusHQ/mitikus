@@ -64,14 +64,36 @@ export async function POST(req: NextRequest) {
 
   const result = await queryBrain(workspaceId, query.trim(), user.orgId)
 
-  await db.brainQuery.create({
-    data: {
-      workspaceId,
-      orgId: user.orgId,
-      userId: user.id,
-      query: query.trim(),
-      sources: result.sources?.length ?? 0,
-    },
+  // CLOUD2 — persist full audit record in a transaction
+  await db.$transaction(async (tx) => {
+    const record = await tx.brainQuery.create({
+      data: {
+        workspaceId,
+        orgId: user.orgId,
+        userId: user.id,
+        query: query.trim(),
+        normalizedQuery: query.trim(), // cloud Brain has no normalization step
+        mode: result.mode,
+        answer: result.answer,
+        evidenceCount: result.sources.length,
+        warnings: [],                  // cloud Brain has no warnings system yet
+        sources: result.sources.length,
+      },
+    })
+
+    if (result.sources.length > 0) {
+      await tx.brainSource.createMany({
+        data: result.sources.map((s) => ({
+          brainQueryId: record.id,
+          sourceType: s.type,
+          sourceId: s.id,
+          title: s.title,
+          excerpt: s.excerpt,
+          score: s.score,
+          origin: 'cloud-memory',
+        })),
+      })
+    }
   })
 
   return NextResponse.json(result)

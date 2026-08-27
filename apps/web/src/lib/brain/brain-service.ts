@@ -5,6 +5,7 @@ import { searchWorkspace, type BrainFragment } from './brain-search'
 export interface BrainResult {
   answer: string
   sources: BrainFragment[]
+  mode: 'evidence' | 'insufficient'  // CLOUD2: audit log field
 }
 
 const client = new Anthropic({ apiKey: process.env.ANTHROPIC_API_KEY })
@@ -29,6 +30,7 @@ export async function queryBrain(
     return {
       answer: 'No encontré información sobre esto en tu workspace.',
       sources: [],
+      mode: 'insufficient',
     }
   }
 
@@ -51,7 +53,7 @@ export async function queryBrain(
       .map((block) => (block as { type: 'text'; text: string }).text)
       .join('')
 
-    return { answer, sources }
+    return { answer, sources, mode: 'evidence' }
   } catch (err) {
     Sentry.captureException(err, {
       tags: { component: 'brain-service' },

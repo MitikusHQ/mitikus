@@ -10,6 +10,7 @@ const TYPE_ICON: Record<string, string> = {
   DOC: '📄',
   SHEET: '📊',
   IMAGE: '🖼',
+  OTHER: '🗂',
 }
 
 function formatSize(bytes: number): string {

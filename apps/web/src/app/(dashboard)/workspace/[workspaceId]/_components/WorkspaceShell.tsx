@@ -21,6 +21,9 @@ interface Props {
   workspaceName: string
   workspaceLogoUrl?: string | null
   workspaceBrandColor?: string
+  workspaceLogoShowName?: boolean
+  workspaceLogoCrop?: { x: number; y: number; zoom: number }
+  workspaceLogoText?: { x: number; y: number; size: number; color: string; font: string }
   userAvatarUrl?: string | null
   navGroups: NavGroup[]
   myId: string
@@ -39,7 +42,7 @@ function useIsFullscreen(workspaceId: string): boolean {
   return segments.length === 1
 }
 
-export function WorkspaceShell({ workspaceId, workspaceName, workspaceLogoUrl, workspaceBrandColor, userAvatarUrl, navGroups, myId, children }: Props) {
+export function WorkspaceShell({ workspaceId, workspaceName, workspaceLogoUrl, workspaceBrandColor, workspaceLogoShowName = false, workspaceLogoCrop, workspaceLogoText, userAvatarUrl, navGroups, myId, children }: Props) {
   const [sidebarCollapsed, setSidebarCollapsed] = useState(false)
   const [mobileOpen, setMobileOpen] = useState(false)
   const [teamPanelOpen, setTeamPanelOpen] = useState(false)
@@ -81,6 +84,9 @@ export function WorkspaceShell({ workspaceId, workspaceName, workspaceLogoUrl, w
           workspaceName={workspaceName}
           workspaceLogoUrl={workspaceLogoUrl}
           workspaceBrandColor={workspaceBrandColor}
+          workspaceLogoShowName={workspaceLogoShowName}
+          workspaceLogoCrop={workspaceLogoCrop}
+          workspaceLogoText={workspaceLogoText}
           navGroups={navGroups}
           collapsed={sidebarCollapsed}
           onOpenOnboarding={() => setOnboardingOpen(true)}
@@ -99,6 +105,11 @@ export function WorkspaceShell({ workspaceId, workspaceName, workspaceLogoUrl, w
             <WorkspaceSidebar
               workspaceId={workspaceId}
               workspaceName={workspaceName}
+              workspaceLogoUrl={workspaceLogoUrl}
+              workspaceBrandColor={workspaceBrandColor}
+              workspaceLogoShowName={workspaceLogoShowName}
+              workspaceLogoCrop={workspaceLogoCrop}
+              workspaceLogoText={workspaceLogoText}
               navGroups={navGroups}
               collapsed={false}
               onOpenOnboarding={() => setOnboardingOpen(true)}

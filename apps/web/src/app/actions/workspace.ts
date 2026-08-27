@@ -5,6 +5,7 @@ import { redirect } from 'next/navigation'
 import { db } from '@/lib/db'
 import { checkEntitlement } from '@/lib/billing/entitlements'
 import { can } from '@/lib/permissions'
+import { trackWorkspaceCreated } from '@/lib/pmf-analytics'
 
 export type WorkspaceActionState = { error: string } | null
 export type WorkspaceWithProfileState =
@@ -119,6 +120,8 @@ export async function createWorkspaceWithProfile(
     },
     select: { id: true },
   })
+
+  trackWorkspaceCreated({ orgId: user.orgId, workspaceId: workspace.id, userId: user.id, sector: sector || null })
 
   return { workspaceId: workspace.id }
 }
