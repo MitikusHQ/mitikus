@@ -78,7 +78,8 @@ export function PricingSection() {
   return (
     <div className="max-w-5xl mx-auto px-6 py-14">
       <h2 className="text-2xl font-bold text-center mb-2">Precios</h2>
-      <p className="text-center text-muted-foreground mb-6">Sin letra pequeña. Cancelas cuando quieras.</p>
+      <p className="text-center text-muted-foreground mb-1">Sin permanencia. Cancela cuando quieras.</p>
+      <p className="text-center text-xs text-muted-foreground mb-6">IVA incluido · Facturación mensual o anual</p>
 
       {/* Toggle mensual / anual */}
       <div className="flex items-center justify-center gap-3 mb-10">

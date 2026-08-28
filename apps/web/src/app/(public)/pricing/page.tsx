@@ -7,8 +7,10 @@ import type { PlanTier } from '@prisma/client'
 
 const CHECKOUT_TIERS: PlanTier[] = ['AUTONOMO', 'STARTER', 'PROFESSIONAL', 'BUSINESS']
 
+const UNLIMITED = Number.MAX_SAFE_INTEGER
+
 function fmtLimit(n: number, unit: string): string {
-  return n === Infinity ? `${unit} ilimitad${unit === 'Herramientas' ? 'as' : 'os'}` : `${n} ${unit.toLowerCase()}`
+  return n >= UNLIMITED ? `${unit} ilimitad${unit === 'Herramientas' ? 'as' : 'os'}` : `${n} ${unit.toLowerCase()}`
 }
 
 export default function PricingPage() {
@@ -92,13 +94,13 @@ export default function PricingPage() {
 
                 <ul className="space-y-1.5 text-sm text-muted-foreground flex-1">
                   <li>
-                    {plan.limits.maxUsers === Infinity
+                    {plan.limits.maxUsers >= UNLIMITED
                       ? 'Usuarios ilimitados'
                       : `Hasta ${plan.limits.maxUsers} usuario${plan.limits.maxUsers > 1 ? 's' : ''}`}
                   </li>
                   <li>{fmtLimit(plan.limits.maxWorkspaces, 'Workspaces')}</li>
                   <li>
-                    {plan.limits.aiGenerationsPerMonth === Infinity
+                    {plan.limits.aiGenerationsPerMonth >= UNLIMITED
                       ? 'Generaciones ilimitadas'
                       : `${plan.limits.aiGenerationsPerMonth} generaciones/mes`}
                   </li>
@@ -130,7 +132,7 @@ export default function PricingPage() {
         </div>
 
         <p className="text-xs text-muted-foreground text-center pt-2">
-          Todos los precios en EUR, IVA no incluido. Facturación mensual. Cancela cuando quieras.
+          Todos los precios en EUR, IVA incluido. Facturación mensual. Cancela cuando quieras.
         </p>
       </div>
     </div>

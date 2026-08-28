@@ -40,7 +40,7 @@ const UNLIMITED = Number.MAX_SAFE_INTEGER
 export const PLAN_CATALOG: Record<PlanTier, PlanDefinition> = {
   AUTONOMO: {
     tier: 'AUTONOMO',
-    name: 'Solo',
+    name: 'Autónomo',
     priceMonthlyEUR: 29,
     stripePriceEnvVar: 'STRIPE_PRICE_AUTONOMO_MONTHLY',
     limits: {
@@ -61,7 +61,7 @@ export const PLAN_CATALOG: Record<PlanTier, PlanDefinition> = {
   STARTER: {
     tier: 'STARTER',
     name: 'Starter',
-    priceMonthlyEUR: 49,
+    priceMonthlyEUR: 39,
     stripePriceEnvVar: 'STRIPE_PRICE_STARTER_MONTHLY',
     limits: {
       maxUsers: 2,
