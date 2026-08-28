@@ -8,8 +8,6 @@ export interface BrainResult {
   mode: 'evidence' | 'insufficient'  // CLOUD2: audit log field
 }
 
-const client = new Anthropic({ apiKey: process.env.ANTHROPIC_API_KEY })
-
 const SYSTEM_PROMPT = `Eres el Brain de MITIKUS — asistente de memoria del workspace.
 Tu función es responder preguntas sobre el workspace y sobre como funciona MITIKUS usando exclusivamente los fragmentos de contexto proporcionados.
 Los fragmentos pueden incluir memoria privada del workspace o ayuda interna del producto MITIKUS. Si una fuente es ayuda interna, no la presentes como dato privado del usuario.
@@ -20,6 +18,23 @@ Reglas:
 - Si los fragmentos no contienen la respuesta, di exactamente: "No encontré información sobre esto en tu workspace."
 - No inventes datos. No uses conocimiento externo.
 - Sé conciso: máximo 3-4 párrafos.`
+
+function fallbackAnswer(sources: BrainFragment[]): string {
+  const helpSources = sources.filter((source) => source.type === 'help')
+  const selectedSources = helpSources.length > 0 ? helpSources : sources.slice(0, 3)
+
+  if (selectedSources.length === 0) {
+    return 'No encontré información sobre esto en tu workspace.'
+  }
+
+  const intro = helpSources.length > 0
+    ? 'Esto es lo que tengo documentado en la ayuda interna de MITIKUS:'
+    : 'Esto es lo que encontré en la memoria del workspace:'
+
+  return `${intro}\n\n${selectedSources
+    .map((source) => `${source.title}: ${source.excerpt}`)
+    .join('\n\n')}`
+}
 
 export async function queryBrain(
   workspaceId: string,
@@ -43,6 +58,11 @@ export async function queryBrain(
   const userMessage = `Contexto del workspace:\n\n${contextBlock}\n\n---\n\nPregunta: ${query}`
 
   try {
+    if (!process.env.ANTHROPIC_API_KEY) {
+      return { answer: fallbackAnswer(sources), sources, mode: 'evidence' }
+    }
+
+    const client = new Anthropic({ apiKey: process.env.ANTHROPIC_API_KEY })
     const message = await client.messages.create({
       model: 'claude-sonnet-4-6',
       max_tokens: 1024,
@@ -66,7 +86,7 @@ export async function queryBrain(
         sourcesCount: sources.length,
       },
     })
-    throw err
+    return { answer: fallbackAnswer(sources), sources, mode: 'evidence' }
   }
 }
 

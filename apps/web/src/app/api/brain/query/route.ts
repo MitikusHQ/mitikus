@@ -8,13 +8,6 @@ export const runtime = 'nodejs'
 export const maxDuration = 30
 
 export async function POST(req: NextRequest) {
-  if (!process.env.ANTHROPIC_API_KEY) {
-    return NextResponse.json(
-      { error: 'IA no configurada. Añade ANTHROPIC_API_KEY a .env.local.' },
-      { status: 503 },
-    )
-  }
-
   const { userId } = await auth()
   if (!userId) {
     return NextResponse.json({ error: 'No autenticado' }, { status: 401 })
@@ -62,39 +55,52 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({ error: limitCheck.message }, { status: 429 })
   }
 
-  const result = await queryBrain(workspaceId, query.trim(), user.orgId)
+  let result
+  try {
+    result = await queryBrain(workspaceId, query.trim(), user.orgId)
+  } catch (err) {
+    console.error('[Brain] query failed:', err)
+    return NextResponse.json(
+      { error: 'Brain no pudo responder ahora mismo. Revisa la configuración de IA o inténtalo de nuevo.' },
+      { status: 500 },
+    )
+  }
 
   // CLOUD2 — persist full audit record in a transaction
-  await db.$transaction(async (tx) => {
-    const record = await tx.brainQuery.create({
-      data: {
-        workspaceId,
-        orgId: user.orgId,
-        userId: user.id,
-        query: query.trim(),
-        normalizedQuery: query.trim(), // cloud Brain has no normalization step
-        mode: result.mode,
-        answer: result.answer,
-        evidenceCount: result.sources.length,
-        warnings: [],                  // cloud Brain has no warnings system yet
-        sources: result.sources.length,
-      },
-    })
-
-    if (result.sources.length > 0) {
-      await tx.brainSource.createMany({
-        data: result.sources.map((s) => ({
-          brainQueryId: record.id,
-          sourceType: s.type,
-          sourceId: s.id,
-          title: s.title,
-          excerpt: s.excerpt,
-          score: s.score,
-          origin: s.type === 'help' ? 'product-help' : 'cloud-memory',
-        })),
+  try {
+    await db.$transaction(async (tx) => {
+      const record = await tx.brainQuery.create({
+        data: {
+          workspaceId,
+          orgId: user.orgId,
+          userId: user.id,
+          query: query.trim(),
+          normalizedQuery: query.trim(), // cloud Brain has no normalization step
+          mode: result.mode,
+          answer: result.answer,
+          evidenceCount: result.sources.length,
+          warnings: [],                  // cloud Brain has no warnings system yet
+          sources: result.sources.length,
+        },
       })
-    }
-  })
+
+      if (result.sources.length > 0) {
+        await tx.brainSource.createMany({
+          data: result.sources.map((s) => ({
+            brainQueryId: record.id,
+            sourceType: s.type,
+            sourceId: s.id,
+            title: s.title,
+            excerpt: s.excerpt,
+            score: s.score,
+            origin: s.type === 'help' ? 'product-help' : 'cloud-memory',
+          })),
+        })
+      }
+    })
+  } catch (err) {
+    console.error('[Brain] failed to persist query:', err)
+  }
 
   return NextResponse.json(result)
 }
