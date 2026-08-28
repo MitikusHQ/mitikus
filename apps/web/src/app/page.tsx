@@ -106,7 +106,7 @@ export default async function HomePage() {
       </header>
 
       {/* ── HERO ── */}
-      <section className="max-w-4xl mx-auto px-6 pt-16 pb-12 text-center">
+      <section data-no-reveal className="max-w-4xl mx-auto px-6 pt-16 pb-12 text-center">
         <h1 className="text-3xl sm:text-5xl font-bold tracking-tight mb-4 leading-tight">
           Tu negocio, clientes, facturas<br className="hidden sm:block" /> y memoria en un solo lugar.
         </h1>

@@ -18,7 +18,7 @@ export function ScrollReveal() {
     `
     document.head.appendChild(style)
 
-    const els = document.querySelectorAll('section, footer')
+    const els = document.querySelectorAll('section:not([data-no-reveal]), footer')
     els.forEach((el) => el.classList.add('reveal'))
 
     const observer = new IntersectionObserver(
