@@ -5,6 +5,9 @@ import type { BrainAnswer, Note, Project } from "@/lib/core-client/types";
 
 // ─── helpers ────────────────────────────────────────────────────────────────
 
+const LOCAL_CORE_URL = "http://127.0.0.1:47382";
+const CORE_PROJECT_PREFIX = "MITIKUS:";
+
 async function apiFetch<T>(path: string, init?: RequestInit): Promise<{ data?: T; error?: string }> {
   try {
     const res = await fetch(path, init);
@@ -16,9 +19,38 @@ async function apiFetch<T>(path: string, init?: RequestInit): Promise<{ data?: T
   }
 }
 
+async function localCoreFetch<T>(path: string, init?: RequestInit): Promise<{ data?: T; error?: string }> {
+  return apiFetch<T>(`${LOCAL_CORE_URL}${path}`, init);
+}
+
+async function resolveLocalCoreProject(workspaceId: string): Promise<{ projectId?: number; projects: Project[]; error?: string }> {
+  const { data, error } = await localCoreFetch<{ projects: Project[] }>("/api/projects");
+  if (error || !data) return { projects: [], error: error ?? "No se pudo leer proyectos del Core local." };
+
+  const projectName = `${CORE_PROJECT_PREFIX}${workspaceId}`;
+  const match = data.projects
+    .filter((project) => project.name === projectName)
+    .sort((a, b) => a.id - b.id)[0];
+
+  if (match) return { projectId: match.id, projects: data.projects };
+
+  const created = await localCoreFetch<{ project: Project }>("/api/projects", {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ name: projectName, objective: "Memoria privada del workspace MITIKUS" }),
+  });
+
+  if (created.error || !created.data?.project) {
+    return { projects: data.projects, error: created.error ?? "No se pudo crear el proyecto en el Core local." };
+  }
+
+  return { projectId: created.data.project.id, projects: [...data.projects, created.data.project] };
+}
+
 // ─── types ──────────────────────────────────────────────────────────────────
 
 type CoreStatus = { ok: boolean; version?: string } | null;
+type CoreAccess = "server" | "browser" | null;
 
 const MODE_LABEL: Record<string, string> = {
   evidence: "Con evidencia",
@@ -47,6 +79,7 @@ interface Props {
 
 export function CoreMemoryPanel({ workspaceId }: Props) {
   const [coreStatus, setCoreStatus] = useState<CoreStatus>(null);
+  const [coreAccess, setCoreAccess] = useState<CoreAccess>(null);
   const [statusLoading, setStatusLoading] = useState(true);
 
   // selectedId is auto-resolved from workspaceId; projects kept for debug fallback
@@ -72,22 +105,45 @@ export function CoreMemoryPanel({ workspaceId }: Props) {
   const init = useCallback(async () => {
     setStatusLoading(true);
     const { data, error: err } = await apiFetch<{ ok: boolean; version: string }>("/api/core/health");
+    let access: CoreAccess = "server";
+    let health = data;
+
     if (err || !data?.ok) {
+      const local = await localCoreFetch<{ ok: boolean; version: string }>("/api/health");
+      if (local.error || !local.data?.ok) {
+        setCoreAccess(null);
+        setCoreStatus({ ok: false });
+        setStatusLoading(false);
+        return;
+      }
+      access = "browser";
+      health = local.data;
+    }
+
+    if (!health?.ok) {
+      setCoreAccess(null);
       setCoreStatus({ ok: false });
       setStatusLoading(false);
       return;
     }
-    setCoreStatus({ ok: true, version: data.version });
+    setCoreAccess(access);
+    setCoreStatus({ ok: true, version: health.version });
 
     // Auto-resolve: find or create the Core project for this workspace
-    const { data: proj } = await apiFetch<{ projectId: number }>(`/api/core/workspace/${workspaceId}/project`);
-    if (proj?.projectId) {
-      setSelectedId(proj.projectId);
-    }
+    if (access === "browser") {
+      const localProject = await resolveLocalCoreProject(workspaceId);
+      setProjects(localProject.projects);
+      if (localProject.projectId) setSelectedId(localProject.projectId);
+    } else {
+      const { data: proj } = await apiFetch<{ projectId: number }>(`/api/core/workspace/${workspaceId}/project`);
+      if (proj?.projectId) {
+        setSelectedId(proj.projectId);
+      }
 
-    // Load project list only for debug selector (not shown by default)
-    const { data: pd } = await apiFetch<{ projects: Project[] }>("/api/core/projects");
-    setProjects(pd?.projects ?? []);
+      // Load project list only for debug selector (not shown by default)
+      const { data: pd } = await apiFetch<{ projects: Project[] }>("/api/core/projects");
+      setProjects(pd?.projects ?? []);
+    }
 
     setStatusLoading(false);
   }, [workspaceId]);
@@ -104,9 +160,9 @@ export function CoreMemoryPanel({ workspaceId }: Props) {
     setAnswer(null);
 
     // CLOUD2B: workspace-aware route — persists BrainQuery/BrainSource in MITIKUS DB
-    const { data, error: err } = await apiFetch<BrainAnswer>(
-      `/api/core/workspace/${workspaceId}/brain/answer?query=${encodeURIComponent(trimmed)}`
-    );
+    const { data, error: err } = coreAccess === "browser"
+      ? await localCoreFetch<BrainAnswer>(`/api/projects/${selectedId}/brain/answer?query=${encodeURIComponent(trimmed)}`)
+      : await apiFetch<BrainAnswer>(`/api/core/workspace/${workspaceId}/brain/answer?query=${encodeURIComponent(trimmed)}`);
     if (err) setError(err);
     else setAnswer(data ?? null);
     setLoading(false);
@@ -128,14 +184,15 @@ export function CoreMemoryPanel({ workspaceId }: Props) {
     setMemError(null);
     setMemOk(false);
 
-    const { error: err } = await apiFetch<{ note: Note }>(
-      `/api/core/projects/${selectedId}/notes`,
-      {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ title, content }),
-      }
-    );
+    const notePath = coreAccess === "browser"
+      ? `/api/projects/${selectedId}/notes`
+      : `/api/core/projects/${selectedId}/notes`;
+    const fetcher = coreAccess === "browser" ? localCoreFetch : apiFetch;
+    const { error: err } = await fetcher<{ note: Note }>(notePath, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ title, content }),
+    });
 
     if (err) {
       setMemError(err);
@@ -170,7 +227,7 @@ export function CoreMemoryPanel({ workspaceId }: Props) {
           Arranca el Core local para usar memoria privada del proyecto:
         </p>
         <code className="block text-xs font-mono bg-background border border-border rounded px-3 py-2 mt-1">
-          node dist/ui/server.js
+          node dist/ui/sidecar.js
         </code>
         <button
           onClick={init}
@@ -190,6 +247,7 @@ export function CoreMemoryPanel({ workspaceId }: Props) {
         <span className="flex items-center gap-1 text-xs text-emerald-600 dark:text-emerald-400">
           <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 inline-block" />
           Core {coreStatus.version}
+          {coreAccess === "browser" ? " local" : ""}
         </span>
         <button
           type="button"
