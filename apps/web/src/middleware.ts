@@ -37,6 +37,7 @@ const isRateLimitedRoute = createRouteMatcher(['/api/(.*)'])
 const isRateLimitExempt = createRouteMatcher([
   '/api/health',
   '/api/og',
+  '/api/brain/query',
   '/api/webhooks/(.*)',
   '/api/leads',
 ])
