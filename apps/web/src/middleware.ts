@@ -41,9 +41,15 @@ const isRateLimitExempt = createRouteMatcher([
   '/api/webhooks/(.*)',
   '/api/leads',
 ])
+const isRateLimitReadExempt = createRouteMatcher([
+  '/api/workspace/(.*)/brain/history',
+  '/api/workspace/(.*)/memory',
+])
 
 export default clerkMiddleware(async (auth, req) => {
-  if (ratelimit && isRateLimitedRoute(req) && !isRateLimitExempt(req)) {
+  const skipReadRateLimit = req.method === 'GET' && isRateLimitReadExempt(req)
+
+  if (ratelimit && isRateLimitedRoute(req) && !isRateLimitExempt(req) && !skipReadRateLimit) {
     const ip =
       req.headers.get('x-forwarded-for')?.split(',')[0]?.trim() ??
       req.headers.get('x-real-ip') ??
