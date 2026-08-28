@@ -2,6 +2,7 @@
 
 import { useState, useRef } from 'react'
 import type { BrainFragment } from '@/lib/brain/brain-search'
+import { UpgradeModal } from '@/app/(dashboard)/_components/UpgradeModal'
 
 interface BrainResult {
   answer: string
@@ -49,6 +50,7 @@ export function BrainPanel({ workspaceId, compact = false, onNavigateToFull, onO
   const [loading, setLoading] = useState(false)
   const [result, setResult] = useState<BrainResult | null>(null)
   const [error, setError] = useState<string | null>(null)
+  const [limitReached, setLimitReached] = useState(false)
   const [copied, setCopied] = useState(false)
   const inputRef = useRef<HTMLInputElement>(null)
 
@@ -58,6 +60,7 @@ export function BrainPanel({ workspaceId, compact = false, onNavigateToFull, onO
     setQuery(trimmed)
     setLoading(true)
     setError(null)
+    setLimitReached(false)
     setResult(null)
 
     try {
@@ -68,7 +71,11 @@ export function BrainPanel({ workspaceId, compact = false, onNavigateToFull, onO
       })
       const data = (await res.json()) as BrainResult | { error: string }
       if (!res.ok) {
-        setError((data as { error: string }).error ?? 'Error al consultar el Brain')
+        if (res.status === 429) {
+          setLimitReached(true)
+        } else {
+          setError((data as { error: string }).error ?? 'Error al consultar el Brain')
+        }
       } else {
         setResult(data as BrainResult)
       }
@@ -98,6 +105,8 @@ export function BrainPanel({ workspaceId, compact = false, onNavigateToFull, onO
   }
 
   return (
+    <>
+    {limitReached && <UpgradeModal onClose={() => setLimitReached(false)} reason="limit" />}
     <div className="flex flex-col h-full gap-4">
       <div className="flex gap-2">
         <input
@@ -218,6 +227,7 @@ export function BrainPanel({ workspaceId, compact = false, onNavigateToFull, onO
         </div>
       )}
     </div>
+    </>
   )
 }
 
