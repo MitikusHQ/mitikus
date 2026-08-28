@@ -28,6 +28,9 @@ const SOURCE_TYPE_LABELS: Record<BrainFragment['type'], string> = {
   conversation: 'Conversación',
   tool:         'Herramienta',
   help:         'Ayuda MITIKUS',
+  objective:    'Objetivo',
+  mission_step: 'Paso',
+  task:         'Tarea',
 }
 
 const SOURCE_TYPE_COLORS: Record<BrainFragment['type'], string> = {
@@ -36,6 +39,9 @@ const SOURCE_TYPE_COLORS: Record<BrainFragment['type'], string> = {
   conversation: 'bg-emerald-500/10 text-emerald-600 dark:text-emerald-400',
   tool:         'bg-amber-500/10 text-amber-600 dark:text-amber-400',
   help:         'bg-cyan-500/10 text-cyan-700 dark:text-cyan-300',
+  objective:    'bg-indigo-500/10 text-indigo-600 dark:text-indigo-300',
+  mission_step: 'bg-sky-500/10 text-sky-600 dark:text-sky-300',
+  task:         'bg-rose-500/10 text-rose-600 dark:text-rose-300',
 }
 
 export function BrainPanel({ workspaceId, compact = false, onNavigateToFull, onOpenMemorySource }: Props) {
@@ -186,7 +192,7 @@ export function BrainPanel({ workspaceId, compact = false, onNavigateToFull, onO
                     <span className="text-[10px] text-muted-foreground/40 shrink-0">[{i + 1}]</span>
                   </div>
                   <p className="text-xs text-muted-foreground line-clamp-2">{source.excerpt}</p>
-                  {source.type === 'memory' && onOpenMemorySource && (
+                  {source.type === 'memory' && source.title.startsWith('Memoria') && onOpenMemorySource && (
                     <button
                       type="button"
                       onClick={() => onOpenMemorySource(source.id)}

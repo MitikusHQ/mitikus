@@ -1,10 +1,10 @@
 // apps/web/src/lib/brain/brain-search.ts
 import { db } from '@/lib/db'
-import { Prisma } from '@prisma/client'
+import { Prisma, TaskStatus } from '@prisma/client'
 import { searchProductKnowledge } from './product-knowledge'
 
 export interface BrainFragment {
-  type: 'document' | 'memory' | 'conversation' | 'tool' | 'help'
+  type: 'document' | 'memory' | 'conversation' | 'tool' | 'help' | 'objective' | 'mission_step' | 'task'
   id: string
   title: string
   excerpt: string
@@ -12,6 +12,25 @@ export interface BrainFragment {
 }
 
 const LIMIT_PER_SOURCE = 3
+const ACTIVE_CONTEXT_TERMS = [
+  'ahora',
+  'sigo',
+  'seguir',
+  'hacer',
+  'pendiente',
+  'pendientes',
+  'urgente',
+  'urgentes',
+  'prioridad',
+  'prioridades',
+  'objetivo',
+  'objetivos',
+  'mision',
+  'misión',
+  'misiones',
+  'estado',
+  'resumen',
+]
 
 export async function searchWorkspace(
   workspaceId: string,
@@ -27,9 +46,127 @@ export async function searchWorkspace(
     Promise.resolve(searchProductKnowledge(query)),
   ])
 
-  const all = [...docs, ...businessMemory, ...memoryItems, ...convs, ...tools, ...productHelp]
+  const exactSources = [...docs, ...businessMemory, ...memoryItems, ...convs, ...tools]
+  const activeContext = shouldIncludeActiveContext(query, exactSources.length)
+    ? await searchActiveContext(workspaceId, orgId)
+    : []
+
+  const all = [...exactSources, ...activeContext, ...productHelp]
   all.sort((a, b) => b.score - a.score)
   return all.slice(0, 8)
+}
+
+function normalizeSearchText(value: string): string {
+  return value
+    .normalize('NFD')
+    .replace(/[\u0300-\u036f]/g, '')
+    .toLowerCase()
+}
+
+function shouldIncludeActiveContext(query: string, sourceCount: number): boolean {
+  const normalized = normalizeSearchText(query)
+
+  return sourceCount < 3 || ACTIVE_CONTEXT_TERMS.some((term) => normalized.includes(normalizeSearchText(term)))
+}
+
+async function searchActiveContext(workspaceId: string, orgId: string): Promise<BrainFragment[]> {
+  try {
+    const [memories, objectives, steps, tasks, documents] = await Promise.all([
+      db.memoryItem.findMany({
+        where: { workspaceId, orgId, status: 'active' },
+        orderBy: { updatedAt: 'desc' },
+        take: 3,
+        select: { id: true, title: true, content: true, type: true, updatedAt: true },
+      }),
+      db.companyObjective.findMany({
+        where: { workspaceId, status: { in: ['active', 'paused'] } },
+        orderBy: { updatedAt: 'desc' },
+        take: 4,
+        select: {
+          id: true,
+          label: true,
+          description: true,
+          status: true,
+          priority: true,
+          progress: true,
+          dueDate: true,
+          intelligence: { select: { state: true, nextActionText: true } },
+        },
+      }),
+      db.missionStep.findMany({
+        where: { workspaceId, status: { in: ['pending', 'in_progress', 'blocked'] } },
+        orderBy: { updatedAt: 'desc' },
+        take: 4,
+        select: { id: true, title: true, description: true, status: true, priority: true },
+      }),
+      db.task.findMany({
+        where: { workspaceId, status: { in: [TaskStatus.PENDING, TaskStatus.IN_PROGRESS] } },
+        orderBy: { updatedAt: 'desc' },
+        take: 4,
+        select: { id: true, title: true, description: true, status: true, priority: true, dueDate: true },
+      }),
+      db.document.findMany({
+        where: { workspaceId },
+        orderBy: { updatedAt: 'desc' },
+        take: 2,
+        select: { id: true, title: true, rawText: true },
+      }),
+    ])
+
+    return [
+      ...memories.map((memory, index) => ({
+        type: 'memory' as const,
+        id: memory.id,
+        title: `Memoria reciente: ${memory.title} (${memory.type})`,
+        excerpt: memory.content.slice(0, 300),
+        score: 0.85 - index * 0.02,
+      })),
+      ...objectives.map((objective, index) => ({
+        type: 'objective' as const,
+        id: objective.id,
+        title: `Objetivo activo: ${objective.label}`,
+        excerpt: [
+          objective.description,
+          `Estado: ${objective.status}. Prioridad: ${objective.priority}. Progreso: ${objective.progress}%.`,
+          objective.intelligence?.state ? `Estado de misión: ${objective.intelligence.state}.` : '',
+          objective.intelligence?.nextActionText ? `Siguiente acción: ${objective.intelligence.nextActionText}` : '',
+          objective.dueDate ? `Vence: ${objective.dueDate.toISOString().slice(0, 10)}.` : '',
+        ].filter(Boolean).join(' '),
+        score: 0.8 - index * 0.02,
+      })),
+      ...steps.map((step, index) => ({
+        type: 'mission_step' as const,
+        id: step.id,
+        title: `Paso de misión: ${step.title}`,
+        excerpt: [
+          step.description,
+          `Estado: ${step.status}. Prioridad: ${step.priority}.`,
+        ].filter(Boolean).join(' '),
+        score: 0.75 - index * 0.02,
+      })),
+      ...tasks.map((task, index) => ({
+        type: 'task' as const,
+        id: task.id,
+        title: `Tarea pendiente: ${task.title}`,
+        excerpt: [
+          task.description,
+          `Estado: ${task.status}. Prioridad: ${task.priority}.`,
+          task.dueDate ? `Vence: ${task.dueDate.toISOString().slice(0, 10)}.` : '',
+        ].filter(Boolean).join(' '),
+        score: 0.7 - index * 0.02,
+      })),
+      ...documents.map((document, index) => ({
+        type: 'document' as const,
+        id: document.id,
+        title: `Documento reciente: ${document.title}`,
+        excerpt: document.rawText.slice(0, 300),
+        score: 0.55 - index * 0.02,
+      })),
+    ].filter((fragment) => fragment.excerpt.trim().length > 0)
+  } catch (err) {
+    console.error('[Brain] searchActiveContext error:', err)
+    return []
+  }
 }
 
 type DocRow = { id: string; title: string; excerpt: string; score: number }
