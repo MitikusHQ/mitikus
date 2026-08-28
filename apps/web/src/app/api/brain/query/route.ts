@@ -90,7 +90,7 @@ export async function POST(req: NextRequest) {
           title: s.title,
           excerpt: s.excerpt,
           score: s.score,
-          origin: 'cloud-memory',
+          origin: s.type === 'help' ? 'product-help' : 'cloud-memory',
         })),
       })
     }
@@ -98,3 +98,4 @@ export async function POST(req: NextRequest) {
 
   return NextResponse.json(result)
 }
+

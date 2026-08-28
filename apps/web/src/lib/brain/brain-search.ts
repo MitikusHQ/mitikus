@@ -1,9 +1,10 @@
 // apps/web/src/lib/brain/brain-search.ts
 import { db } from '@/lib/db'
 import { Prisma } from '@prisma/client'
+import { searchProductKnowledge } from './product-knowledge'
 
 export interface BrainFragment {
-  type: 'document' | 'memory' | 'conversation' | 'tool'
+  type: 'document' | 'memory' | 'conversation' | 'tool' | 'help'
   id: string
   title: string
   excerpt: string
@@ -17,15 +18,16 @@ export async function searchWorkspace(
   query: string,
   orgId: string,
 ): Promise<BrainFragment[]> {
-  const [docs, businessMemory, memoryItems, convs, tools] = await Promise.all([
+  const [docs, businessMemory, memoryItems, convs, tools, productHelp] = await Promise.all([
     searchDocuments(workspaceId, query),
     searchBusinessMemory(workspaceId, query),
     searchMemoryItems(workspaceId, query, orgId),
     searchConversations(workspaceId, query),
     searchTools(query, orgId),
+    Promise.resolve(searchProductKnowledge(query)),
   ])
 
-  const all = [...docs, ...businessMemory, ...memoryItems, ...convs, ...tools]
+  const all = [...docs, ...businessMemory, ...memoryItems, ...convs, ...tools, ...productHelp]
   all.sort((a, b) => b.score - a.score)
   return all.slice(0, 8)
 }
@@ -220,3 +222,4 @@ async function searchTools(query: string, orgId: string): Promise<BrainFragment[
     return []
   }
 }
+

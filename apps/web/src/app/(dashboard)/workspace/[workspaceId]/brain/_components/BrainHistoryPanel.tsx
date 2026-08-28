@@ -32,7 +32,7 @@ interface BrainQueryRecord {
   sourcesList: BrainSourceRecord[];
 }
 
-type OriginFilter = "all" | "cloud-memory" | "local-memory";
+type OriginFilter = "all" | "cloud-memory" | "local-memory" | "product-help";
 
 interface Props {
   workspaceId: string;
@@ -86,8 +86,8 @@ export function BrainHistoryPanel({ workspaceId, onOpenMemorySource }: Props) {
     if (q.sourcesList.length > 0) {
       return q.sourcesList.some((s) => s.origin === filter);
     }
-    // No sources: cloud-memory queries come from Brain cloud (mode evidence/insufficient)
-    // local-memory queries come from Core (all three modes possible but same for no-source)
+    // No sources: product-help has no no-source mode. Core orientation is local-memory.
+    if (filter === "product-help") return false;
     if (filter === "local-memory") return q.mode === "orientation";
     return filter === "cloud-memory";
   });
@@ -115,16 +115,19 @@ export function BrainHistoryPanel({ workspaceId, onOpenMemorySource }: Props) {
 
   const originBadge = (origin: string) => {
     const isCloud = origin === "cloud-memory";
+    const isHelp = origin === "product-help";
     return (
       <span
         className={cn(
           "px-1.5 py-0.5 rounded text-xs font-medium",
           isCloud
             ? "bg-blue-100 text-blue-800 dark:bg-blue-900/40 dark:text-blue-300"
+            : isHelp
+            ? "bg-cyan-100 text-cyan-800 dark:bg-cyan-900/40 dark:text-cyan-300"
             : "bg-violet-100 text-violet-800 dark:bg-violet-900/40 dark:text-violet-300"
         )}
       >
-        {isCloud ? "cloud" : "local"}
+        {isCloud ? "cloud" : isHelp ? "ayuda" : "local"}
       </span>
     );
   };
@@ -160,7 +163,7 @@ export function BrainHistoryPanel({ workspaceId, onOpenMemorySource }: Props) {
     <div className="flex flex-col gap-4">
       {/* filter bar */}
       <div className="flex gap-1">
-        {(["all", "cloud-memory", "local-memory"] as OriginFilter[]).map((o) => (
+        {(["all", "cloud-memory", "local-memory", "product-help"] as OriginFilter[]).map((o) => (
           <button
             key={o}
             type="button"
@@ -172,7 +175,7 @@ export function BrainHistoryPanel({ workspaceId, onOpenMemorySource }: Props) {
                 : "bg-muted text-muted-foreground hover:text-foreground"
             )}
           >
-            {o === "all" ? "Todos" : o === "cloud-memory" ? "✦ Cloud" : "Local"}
+            {o === "all" ? "Todos" : o === "cloud-memory" ? "Cloud" : o === "product-help" ? "Ayuda" : "Local"}
           </button>
         ))}
         <span className="ml-auto text-xs text-muted-foreground self-center">
@@ -330,3 +333,5 @@ export function BrainHistoryPanel({ workspaceId, onOpenMemorySource }: Props) {
     </div>
   );
 }
+
+

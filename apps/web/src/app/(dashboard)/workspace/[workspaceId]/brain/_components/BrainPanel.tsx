@@ -27,6 +27,7 @@ const SOURCE_TYPE_LABELS: Record<BrainFragment['type'], string> = {
   memory:       'Memoria',
   conversation: 'Conversación',
   tool:         'Herramienta',
+  help:         'Ayuda MITIKUS',
 }
 
 const SOURCE_TYPE_COLORS: Record<BrainFragment['type'], string> = {
@@ -34,6 +35,7 @@ const SOURCE_TYPE_COLORS: Record<BrainFragment['type'], string> = {
   memory:       'bg-purple-500/10 text-purple-600 dark:text-purple-400',
   conversation: 'bg-emerald-500/10 text-emerald-600 dark:text-emerald-400',
   tool:         'bg-amber-500/10 text-amber-600 dark:text-amber-400',
+  help:         'bg-cyan-500/10 text-cyan-700 dark:text-cyan-300',
 }
 
 export function BrainPanel({ workspaceId, compact = false, onNavigateToFull, onOpenMemorySource }: Props) {
@@ -212,3 +214,4 @@ export function BrainPanel({ workspaceId, compact = false, onNavigateToFull, onO
     </div>
   )
 }
+
