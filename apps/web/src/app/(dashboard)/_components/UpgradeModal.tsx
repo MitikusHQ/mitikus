@@ -5,7 +5,7 @@ import Link from 'next/link'
 
 interface Props {
   onClose: () => void
-  reason?: 'limit' | 'blocked'
+  reason?: 'limit' | 'blocked' | 'brain'
 }
 
 export function UpgradeModal({ onClose, reason = 'limit' }: Props) {
@@ -34,17 +34,21 @@ export function UpgradeModal({ onClose, reason = 'limit' }: Props) {
           <h2 className="text-lg font-semibold">
             {reason === 'blocked'
               ? 'Acceso beta restringido'
+              : reason === 'brain'
+              ? 'Límite de consultas IA alcanzado'
               : 'Límite de herramientas alcanzado'}
           </h2>
           <p className="text-sm text-muted-foreground leading-relaxed">
             {reason === 'blocked'
               ? 'Tu cuenta está en lista de espera. Escríbenos para solicitar acceso anticipado.'
+              : reason === 'brain'
+              ? 'Has usado todas las consultas al Brain de tu plan este mes. Pasa al siguiente nivel para seguir usando la IA.'
               : 'Has llegado al máximo de herramientas de tu plan actual. Pasa al siguiente nivel para instalar más.'}
           </p>
         </div>
 
         {/* Beneficios del upgrade */}
-        {reason === 'limit' && (
+        {(reason === 'limit' || reason === 'brain') && (
           <ul className="space-y-2 text-sm text-muted-foreground">
             {[
               'Hasta 15 herramientas instaladas',

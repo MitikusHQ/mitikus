@@ -106,7 +106,7 @@ export function BrainPanel({ workspaceId, compact = false, onNavigateToFull, onO
 
   return (
     <>
-    {limitReached && <UpgradeModal onClose={() => setLimitReached(false)} reason="limit" />}
+    {limitReached && <UpgradeModal onClose={() => setLimitReached(false)} reason="brain" />}
     <div className="flex flex-col h-full gap-4">
       <div className="flex gap-2">
         <input
