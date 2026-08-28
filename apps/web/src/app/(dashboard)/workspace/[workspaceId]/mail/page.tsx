@@ -20,12 +20,14 @@ export default async function MailPage({ params, searchParams }: Props) {
     }),
     db.companyProfile.findUnique({
       where: { workspaceId },
-      select: { emailSignature: true },
+      select: { emailSignature: true, smtpHost: true, smtpUser: true, imapHost: true, imapUser: true },
     }),
   ])
+  const hasSmtpConfig = !!(companyProfile?.smtpHost && companyProfile?.smtpUser)
+  const hasImapConfig = !!(companyProfile?.imapHost && companyProfile?.imapUser)
   const mailContacts = contacts
-    .filter((contact) => Boolean(contact.email?.trim()))
-    .map((contact) => ({ ...contact, email: contact.email ?? '' }))
+    .filter((contact: { email?: string | null }) => Boolean(contact.email?.trim()))
+    .map((contact: { id: string; name: string; email: string | null; contactName: string | null; sector: string | null; clientType: string | null }) => ({ ...contact, email: contact.email ?? '' }))
 
   return (
     <div className="p-6 max-w-6xl mx-auto">
@@ -37,7 +39,7 @@ export default async function MailPage({ params, searchParams }: Props) {
           </p>
         </div>
       </div>
-      <MailboxClient workspaceId={workspaceId} initialMessages={inbox.messages} initialToEmail={query.to ?? ''} contacts={mailContacts} defaultSignature={companyProfile?.emailSignature} />
+      <MailboxClient workspaceId={workspaceId} initialMessages={inbox.messages} initialToEmail={query.to ?? ''} contacts={mailContacts} defaultSignature={companyProfile?.emailSignature} hasSmtpConfig={hasSmtpConfig} hasImapConfig={hasImapConfig} />
     </div>
   )
 }
