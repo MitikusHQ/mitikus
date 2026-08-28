@@ -8,6 +8,28 @@ interface ProductHelpEntry {
   keywords: string[]
 }
 
+const SEARCH_STOPWORDS = new Set([
+  'como',
+  'funciona',
+  'funcionan',
+  'mitikus',
+  'esto',
+  'esta',
+  'este',
+  'para',
+  'sirve',
+  'sobre',
+  'cual',
+  'que',
+  'del',
+  'los',
+  'las',
+  'una',
+  'uno',
+  'con',
+  'por',
+])
+
 const PRODUCT_HELP: ProductHelpEntry[] = [
   {
     id: 'section-today',
@@ -148,7 +170,7 @@ function queryTokens(query: string): string[] {
   return normalize(query)
     .split(/[^a-z0-9]+/i)
     .map((token) => token.trim())
-    .filter((token) => token.length >= 3)
+    .filter((token) => token.length >= 3 && !SEARCH_STOPWORDS.has(token))
 }
 
 function scoreEntry(entry: ProductHelpEntry, tokens: string[]): number {
@@ -197,11 +219,15 @@ export function searchProductKnowledge(query: string): BrainFragment[] {
   const tokens = queryTokens(query)
   if (tokens.length === 0) return []
 
-  const entries = [...PRODUCT_HELP, ...officialToolHelpEntries()]
+  const sectionMatches = PRODUCT_HELP
+    .map((entry) => ({ entry, score: scoreEntry(entry, tokens) + 3 }))
+    .filter(({ score }) => score > 3)
 
-  return entries
+  const toolMatches = officialToolHelpEntries()
     .map((entry) => ({ entry, score: scoreEntry(entry, tokens) }))
-    .filter(({ score }) => score > 0)
+    .filter(({ score }) => score > 1)
+
+  return [...sectionMatches, ...toolMatches]
     .sort((a, b) => b.score - a.score)
     .slice(0, 4)
     .map(({ entry, score }) => ({
