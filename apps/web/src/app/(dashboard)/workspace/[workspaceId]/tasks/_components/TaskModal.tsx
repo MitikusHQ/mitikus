@@ -77,7 +77,7 @@ export function TaskModal({ workspaceId, task, onClose, onSaved }: Props) {
         }
         onSaved(saved)
       } catch (e) {
-        setError(e instanceof Error ? e.message : 'Error al guardar')
+        setError('No se pudo guardar la tarea. Inténtalo de nuevo.')
       }
     })
   }

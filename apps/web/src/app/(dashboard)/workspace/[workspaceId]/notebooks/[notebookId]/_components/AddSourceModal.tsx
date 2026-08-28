@@ -38,7 +38,7 @@ export function AddSourceModal({ notebookId, workspaceDocs, workspacePdfs, onClo
       onAdded(source)
       onClose()
     } catch (e) {
-      const msg = e instanceof Error ? e.message : 'Error desconocido'
+      const msg = 'No se pudo añadir la fuente. Inténtalo de nuevo.'
       if (msg.startsWith('LIMIT_EXCEEDED')) {
         setError('Has alcanzado el límite de contexto. Elimina alguna fuente para añadir una nueva.')
       } else if (tab === 'url') {

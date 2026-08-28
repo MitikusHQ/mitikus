@@ -73,7 +73,7 @@ export function ReceiptScanModal({ workspaceId, onClose, onSaved }: Props) {
       })
       setScanState('review')
     } catch (e) {
-      setError(e instanceof Error ? e.message : 'Error al escanear')
+      setError('No se pudo escanear el ticket. Comprueba que la imagen es legible e inténtalo de nuevo.')
       setScanState('idle')
     }
   }, [workspaceId])

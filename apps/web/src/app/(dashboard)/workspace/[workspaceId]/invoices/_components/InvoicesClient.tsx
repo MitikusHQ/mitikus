@@ -140,7 +140,7 @@ export function InvoicesClient({ workspaceId, initialInvoices, clients, defaultP
       setShowRectModal(false)
       setRectMotivo('')
     } catch (e) {
-      setRectError(e instanceof Error ? e.message : 'Error desconocido')
+      setRectError('No se pudo crear la factura rectificativa. Inténtalo de nuevo.')
     } finally {
       setCreatingRect(false)
     }

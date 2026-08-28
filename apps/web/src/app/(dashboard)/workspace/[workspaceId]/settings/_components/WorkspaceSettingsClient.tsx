@@ -227,7 +227,7 @@ export function WorkspaceSettingsClient({ workspace, userRole }: { workspace: Wo
       setTimeout(() => setEmailSaved(false), 2000)
       router.refresh()
     } catch (error) {
-      setEmailError(error instanceof Error ? error.message : 'No se han podido guardar los ajustes de correo. Revisa tu sesión y vuelve a intentarlo.')
+      setEmailError('No se han podido guardar los ajustes de correo. Revisa los datos e inténtalo de nuevo.')
     } finally {
       setEmailSaving(false)
     }
@@ -297,7 +297,7 @@ export function WorkspaceSettingsClient({ workspace, userRole }: { workspace: Wo
       setEmailTestOk(true)
       setTimeout(() => setEmailTestOk(false), 3000)
     } catch (error) {
-      setEmailError(error instanceof Error ? error.message : 'No se ha podido probar la conexión SMTP.')
+      setEmailError('No se ha podido probar la conexión SMTP. Comprueba el servidor y el puerto.')
     } finally {
       setEmailTesting(false)
     }

@@ -35,7 +35,7 @@ export function WorkspaceBrandingClient({ workspaceId, logoUrl, brandColor, work
       setLogo(data.url)
       setMsg('Logo actualizado')
     } catch (err: unknown) {
-      setMsg(err instanceof Error ? err.message : 'Error al subir el logo')
+      setMsg('No se pudo subir el logo. Comprueba que el archivo es una imagen válida e inténtalo de nuevo.')
     } finally {
       setUploading(false)
     }

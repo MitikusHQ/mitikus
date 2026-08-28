@@ -63,8 +63,8 @@ export function ChatPanel({
         headers: { 'Content-Type': 'application/json' },
         body:    JSON.stringify({ message: text }),
       })
-      if (!res.ok) throw new Error(`Error ${res.status}`)
-      if (!res.body) throw new Error('No stream body')
+      if (!res.ok) throw new Error('No se pudo conectar con el asistente. Inténtalo de nuevo.')
+      if (!res.body) throw new Error('La respuesta del asistente llegó vacía. Inténtalo de nuevo.')
       const reader = res.body.getReader()
       const decoder = new TextDecoder()
       let full = ''

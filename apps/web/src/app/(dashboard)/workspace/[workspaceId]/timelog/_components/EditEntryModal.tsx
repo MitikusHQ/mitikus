@@ -38,7 +38,7 @@ export function EditEntryModal({ entry, workspaceId, onClose, onSaved }: Props) 
         })
         onSaved(updated)
       } catch (e) {
-        setError(e instanceof Error ? e.message : 'Error al guardar')
+        setError('No se pudo guardar la entrada. Inténtalo de nuevo.')
       }
     })
   }

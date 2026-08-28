@@ -91,7 +91,7 @@ export function MemoryCloudPanel({ workspaceId, focusMemoryId, focusMemoryKey = 
       const res = await fetch(`/api/workspace/${workspaceId}/memory${query}`);
       const data = (await res.json()) as { items?: MemoryItemRecord[]; error?: string };
       if (!res.ok || data.error) {
-        setError(data.error ?? `HTTP ${res.status}`);
+        setError(data.error && !/^\d/.test(data.error) ? data.error : 'No se pudo cargar la memoria cloud. Inténtalo de nuevo.');
       } else {
         setItems(data.items ?? []);
       }
@@ -193,7 +193,7 @@ export function MemoryCloudPanel({ workspaceId, focusMemoryId, focusMemoryKey = 
       });
       const data = (await res.json()) as { item?: MemoryItemRecord; error?: string };
       if (!res.ok || data.error) {
-        setSaveError(data.error ?? `HTTP ${res.status}`);
+        setSaveError(data.error ?? 'No se pudo guardar. Inténtalo de nuevo.');
       } else if (data.item) {
         setItems((prev) => [data.item!, ...prev]);
         setTitle("");
@@ -246,7 +246,7 @@ export function MemoryCloudPanel({ workspaceId, focusMemoryId, focusMemoryKey = 
       });
       const data = (await res.json()) as { item?: MemoryItemRecord; error?: string };
       if (!res.ok || data.error) {
-        setEditError(data.error ?? `HTTP ${res.status}`);
+        setEditError(data.error ?? 'No se pudo actualizar. Inténtalo de nuevo.');
       } else if (data.item) {
         setItems((prev) => prev.map((item) => (item.id === data.item!.id ? data.item! : item)));
         cancelEdit();
@@ -274,7 +274,7 @@ export function MemoryCloudPanel({ workspaceId, focusMemoryId, focusMemoryKey = 
       });
       const data = (await res.json()) as { error?: string };
       if (!res.ok || data.error) {
-        setEditError(data.error ?? `HTTP ${res.status}`);
+        setEditError(data.error ?? 'No se pudo archivar. Inténtalo de nuevo.');
         setExpandedId(item.id);
       } else {
         setItems((prev) => prev.filter((memory) => memory.id !== item.id));
@@ -301,7 +301,7 @@ export function MemoryCloudPanel({ workspaceId, focusMemoryId, focusMemoryKey = 
       });
       const data = (await res.json()) as { error?: string };
       if (!res.ok || data.error) {
-        setEditError(data.error ?? `HTTP ${res.status}`);
+        setEditError(data.error ?? 'No se pudo restaurar. Inténtalo de nuevo.');
         setExpandedId(item.id);
       } else {
         setItems((prev) => prev.filter((memory) => memory.id !== item.id));

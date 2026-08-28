@@ -44,7 +44,7 @@ export function ClockWidget({ workspaceId, initialEntry }: Props) {
         const result = await clockIn(workspaceId)
         setEntry(result)
       } catch (e) {
-        setError(e instanceof Error ? e.message : 'Error al fichar')
+        setError('No se pudo registrar la entrada. Inténtalo de nuevo.')
       }
     })
   }
@@ -56,7 +56,7 @@ export function ClockWidget({ workspaceId, initialEntry }: Props) {
         const result = await clockOut(workspaceId)
         setEntry(result)
       } catch (e) {
-        setError(e instanceof Error ? e.message : 'Error al fichar salida')
+        setError('No se pudo registrar la salida. Inténtalo de nuevo.')
       }
     })
   }

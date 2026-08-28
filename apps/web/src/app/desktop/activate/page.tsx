@@ -30,7 +30,7 @@ export default function DesktopActivatePage() {
       const res = await fetch('/api/desktop/license-token', { method: 'POST' })
       if (!res.ok) {
         const body = await res.json().catch(() => ({}))
-        throw new Error((body as { error?: string }).error ?? `HTTP ${res.status}`)
+        throw new Error((body as { error?: string }).error ?? 'No se pudo activar la licencia. Comprueba tu conexión e inténtalo de nuevo.')
       }
       const { token } = await res.json() as { token: string }
       const saved = await saveLicenseToken(token)

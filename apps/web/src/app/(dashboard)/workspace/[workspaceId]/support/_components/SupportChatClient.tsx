@@ -156,7 +156,7 @@ export function SupportChatClient({ workspaceId }: { workspaceId: string }) {
 
       if (!res.ok) {
         const data = await res.json().catch(() => ({}))
-        throw new Error(data.error ?? `Error ${res.status}`)
+        throw new Error(data.error ?? 'No se pudo conectar con el asistente. Inténtalo de nuevo.')
       }
 
       const reader = res.body!.getReader()
@@ -173,7 +173,7 @@ export function SupportChatClient({ workspaceId }: { workspaceId: string }) {
         persist([...next, { role: 'assistant', content: reply }])
       }
     } catch (err) {
-      setError(err instanceof Error ? err.message : 'Error desconocido')
+      setError('No se pudo enviar el mensaje. Inténtalo de nuevo.')
       persist(messages)
     } finally {
       setStreaming(false)

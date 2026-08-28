@@ -259,7 +259,7 @@ export function MailboxClient({ workspaceId, initialMessages, initialToEmail = '
         setNotice('Correo enviado y registrado en Enviados.')
         loadFolder('sent')
       } catch (err) {
-        setError(err instanceof Error ? err.message : 'No se ha podido enviar el correo.')
+        setError('No se ha podido enviar el correo. Comprueba la configuración SMTP en Ajustes.')
       }
     })
   }

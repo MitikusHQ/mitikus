@@ -111,7 +111,7 @@ export function ClientFilesSection({ workspaceId, clientId, initialFiles, initia
 
       setFiles((current) => [...uploaded, ...current])
     } catch (err) {
-      setError(err instanceof Error ? err.message : 'No se pudo subir el archivo')
+      setError('No se pudo subir el archivo. Comprueba el tamaño y formato, e inténtalo de nuevo.')
     } finally {
       setUploading(false)
     }
@@ -130,7 +130,7 @@ export function ClientFilesSection({ workspaceId, clientId, initialFiles, initia
       setSelectedFolderId(folder.id)
       setNewFolderName('')
     } catch (err) {
-      setError(err instanceof Error ? err.message : 'No se pudo crear la carpeta')
+      setError('No se pudo crear la carpeta. Inténtalo de nuevo.')
     } finally {
       setCreatingFolder(false)
     }

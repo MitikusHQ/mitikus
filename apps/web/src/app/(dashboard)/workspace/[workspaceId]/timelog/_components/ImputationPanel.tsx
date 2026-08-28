@@ -48,7 +48,7 @@ export function ImputationPanel({ workspaceId, entry, onUpdated }: Props) {
         setHours('')
         setDescription('')
       } catch (e) {
-        setError(e instanceof Error ? e.message : 'Error al añadir imputación')
+        setError('No se pudo añadir la imputación. Inténtalo de nuevo.')
       }
     })
   }
@@ -59,7 +59,7 @@ export function ImputationPanel({ workspaceId, entry, onUpdated }: Props) {
         await deleteImputation(impId, workspaceId)
         onUpdated({ ...entry, imputations: entry.imputations.filter(i => i.id !== impId) })
       } catch (e) {
-        setError(e instanceof Error ? e.message : 'Error al eliminar')
+        setError('No se pudo eliminar la imputación. Inténtalo de nuevo.')
       }
     })
   }
