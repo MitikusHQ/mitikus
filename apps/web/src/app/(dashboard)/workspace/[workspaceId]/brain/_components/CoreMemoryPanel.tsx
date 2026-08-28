@@ -214,17 +214,23 @@ export function CoreMemoryPanel({ workspaceId }: Props) {
           <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"/>
           <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z"/>
         </svg>
-        Conectando con MITIKUS AI Core…
+        Comprobando memoria local…
       </div>
     );
   }
 
   if (!coreStatus?.ok) {
     return (
-      <div className="rounded-xl border border-border bg-muted/30 px-5 py-6 space-y-2">
-        <p className="text-sm font-medium">MITIKUS AI Core no está conectado</p>
-        <p className="text-xs text-muted-foreground leading-relaxed">
-          Arranca el Core local para usar memoria privada del proyecto:
+      <div className="rounded-xl border border-border bg-muted/20 px-5 py-6 space-y-3">
+        <div className="space-y-1">
+          <p className="text-sm font-medium">Memoria local no activa</p>
+          <p className="text-xs text-muted-foreground leading-relaxed">
+            MITIKUS sigue funcionando con Brain, memoria cloud, historial y datos del workspace.
+            Activa el Core solo si quieres añadir una capa privada en este ordenador.
+          </p>
+        </div>
+        <p className="text-xs font-medium text-muted-foreground">
+          Comando avanzado
         </p>
         <code className="block text-xs font-mono bg-background border border-border rounded px-3 py-2 mt-1">
           node dist/ui/sidecar.js
@@ -246,7 +252,7 @@ export function CoreMemoryPanel({ workspaceId }: Props) {
       <div className="flex items-center gap-2">
         <span className="flex items-center gap-1 text-xs text-emerald-600 dark:text-emerald-400">
           <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 inline-block" />
-          Core {coreStatus.version}
+          Memoria local activa · Core {coreStatus.version}
           {coreAccess === "browser" ? " local" : ""}
         </span>
         <button
@@ -299,7 +305,7 @@ export function CoreMemoryPanel({ workspaceId }: Props) {
         {memOpen && (
           <div className="px-4 pb-4 pt-1 border-t border-border space-y-3">
             <p className="text-xs text-muted-foreground">
-              Pega aquí el contexto que MITIKUS debe recordar para poder responder con fuentes.
+              Pega aquí contexto privado para este ordenador. La memoria principal del producto está en la pestaña Memoria.
             </p>
 
             <label className="flex flex-col gap-1">
@@ -459,8 +465,8 @@ export function CoreMemoryPanel({ workspaceId }: Props) {
 
           {answer.sources.length === 0 && (
             <p className="text-xs text-muted-foreground">
-              Sin fuentes locales para esta consulta.
-              Añade notas al proyecto en el Core para enriquecer la memoria.
+              Sin fuentes en la memoria local para esta consulta.
+              La respuesta principal de MITIKUS vive en Brain y en la memoria cloud.
             </p>
           )}
         </div>

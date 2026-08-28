@@ -86,18 +86,6 @@ export function BrainTabs({ workspaceId }: Props) {
         </button>
         <button
           type="button"
-          onClick={() => selectTab("local")}
-          className={cn(
-            "px-4 py-2 text-sm font-medium border-b-2 -mb-px transition-colors",
-            tab === "local"
-              ? "border-foreground text-foreground"
-              : "border-transparent text-muted-foreground hover:text-foreground"
-          )}
-        >
-          Memoria local
-        </button>
-        <button
-          type="button"
           onClick={() => selectTab("history")}
           className={cn(
             "px-4 py-2 text-sm font-medium border-b-2 -mb-px transition-colors",
@@ -119,6 +107,18 @@ export function BrainTabs({ workspaceId }: Props) {
           )}
         >
           Memoria
+        </button>
+        <button
+          type="button"
+          onClick={() => selectTab("local")}
+          className={cn(
+            "px-4 py-2 text-sm font-medium border-b-2 -mb-px transition-colors",
+            tab === "local"
+              ? "border-foreground text-foreground"
+              : "border-transparent text-muted-foreground hover:text-foreground"
+          )}
+        >
+          Local
         </button>
       </div>
 
