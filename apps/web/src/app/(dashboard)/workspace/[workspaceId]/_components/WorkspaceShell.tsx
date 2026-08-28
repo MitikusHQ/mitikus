@@ -1,7 +1,7 @@
 'use client'
 
 import { useState, useEffect } from 'react'
-import { usePathname } from 'next/navigation'
+import { usePathname, useRouter } from 'next/navigation'
 import { cn } from '@/lib/utils'
 import { WorkspaceSidebar } from './WorkspaceSidebar'
 import { WorkspaceTopbar } from './WorkspaceTopbar'
@@ -47,7 +47,9 @@ export function WorkspaceShell({ workspaceId, workspaceName, workspaceLogoUrl, w
   const [mobileOpen, setMobileOpen] = useState(false)
   const [teamPanelOpen, setTeamPanelOpen] = useState(false)
   const [onboardingOpen, setOnboardingOpen] = useState(false)
+  const [onboardingIsFirstTime, setOnboardingIsFirstTime] = useState(false)
   const isFullscreen = useIsFullscreen(workspaceId)
+  const router = useRouter()
 
   // Close mobile nav on route change
   const pathname = usePathname()
@@ -64,7 +66,10 @@ export function WorkspaceShell({ workspaceId, workspaceName, workspaceLogoUrl, w
   // Show onboarding on first visit
   useEffect(() => {
     const seen = localStorage.getItem(ONBOARDING_STORAGE_KEY)
-    if (!seen) setOnboardingOpen(true)
+    if (!seen) {
+      setOnboardingOpen(true)
+      setOnboardingIsFirstTime(true)
+    }
   }, [])
 
   function toggleSidebar() {
@@ -179,7 +184,13 @@ export function WorkspaceShell({ workspaceId, workspaceName, workspaceLogoUrl, w
 
       <OnboardingModal
         open={onboardingOpen}
-        onClose={() => setOnboardingOpen(false)}
+        onClose={() => {
+          setOnboardingOpen(false)
+          if (onboardingIsFirstTime) {
+            setOnboardingIsFirstTime(false)
+            router.push(`/workspace/${workspaceId}/today`)
+          }
+        }}
       />
 
       <BrainOverlay workspaceId={workspaceId} />
