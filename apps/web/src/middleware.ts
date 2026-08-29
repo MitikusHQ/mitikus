@@ -28,6 +28,7 @@ const isPublicRoute = createRouteMatcher([
   '/llms.txt',
   '/api/og',
   '/api/health',
+  '/api/desktop/license-token',
   '/api/webhooks/(.*)',
   '/api/leads',
   '/pricing',
