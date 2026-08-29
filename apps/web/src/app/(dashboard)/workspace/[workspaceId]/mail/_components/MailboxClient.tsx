@@ -19,6 +19,8 @@ interface Props {
   initialToEmail?: string
   contacts: MailContact[]
   defaultSignature?: string | null
+  hasSmtpConfig?: boolean
+  hasImapConfig?: boolean
 }
 
 const FOLDERS: Array<{ id: MailFolder; label: string }> = [
@@ -200,7 +202,7 @@ function quoteBody(message: WorkspaceMailMessage) {
   return `\n\nEl ${date}, ${author} escribió:\n${quoted}`
 }
 
-export function MailboxClient({ workspaceId, initialMessages, initialToEmail = '', contacts, defaultSignature }: Props) {
+export function MailboxClient({ workspaceId, initialMessages, initialToEmail = '', contacts, defaultSignature, hasSmtpConfig = true, hasImapConfig = true }: Props) {
   const [folder, setFolder] = useState<MailFolder>('inbox')
   const [messages, setMessages] = useState(initialMessages)
   const [selectedId, setSelectedId] = useState(initialMessages[0]?.id ?? null)
@@ -289,15 +291,20 @@ export function MailboxClient({ workspaceId, initialMessages, initialToEmail = '
         setFolder('inbox')
         setMessages(inbox.messages)
         setSelectedId(inbox.messages[0]?.id ?? null)
-        if (result.errors.length > 0 && result.scanned === 0 && result.imported === 0) {
-          setError(result.errors[0]?.error ?? 'No se ha podido actualizar Recibidos. Comprueba IMAP en Ajustes.')
-          return
+        if (result.errors.length > 0) {
+          const errMsg = result.errors[0]?.error ?? 'No se ha podido actualizar Recibidos. Comprueba IMAP en Ajustes.'
+          if (result.imported === 0) {
+            setError(errMsg)
+            return
+          }
+          setNotice(`${result.imported} correo(s) importado(s), pero hubo algún error al leer otros mensajes.`)
+        } else {
+          setNotice(
+            result.imported > 0
+              ? `${result.imported} correo(s) nuevo(s) importado(s).`
+              : 'Recibidos al día. No hay mensajes nuevos.',
+          )
         }
-        setNotice(
-          result.imported > 0
-            ? `${result.imported} correo(s) nuevo(s) importado(s).`
-            : `Recibidos actualizado. Leídos: ${result.scanned}. Ya existentes o saltados: ${result.skipped}. Errores: ${result.errors.length}.`,
-        )
       } catch (error) {
         setError(error instanceof Error ? error.message : 'No se ha podido actualizar Recibidos. Comprueba IMAP en Ajustes.')
       }
@@ -366,15 +373,31 @@ export function MailboxClient({ workspaceId, initialMessages, initialToEmail = '
           ))}
         </div>
         <div className="ml-auto flex shrink-0 items-center gap-1.5">
-          <button type="button" onClick={handleSync} disabled={isPending} className="flex h-10 w-24 items-center justify-center rounded-md border px-2 text-xs font-medium leading-tight hover:bg-muted disabled:opacity-60">
-            <span>Actualizar<br />recibidos</span>
+          <button type="button" onClick={handleSync} disabled={isPending} className="flex h-9 items-center gap-1.5 rounded-md border px-3 text-sm font-medium hover:bg-muted disabled:opacity-60">
+            {isPending ? <span className="h-3.5 w-3.5 animate-spin rounded-full border-2 border-current border-t-transparent" /> : null}
+            Actualizar
           </button>
-          <button type="button" onClick={() => { resetCompose(); setComposeOpen(true) }} className="flex h-10 w-24 items-center justify-center rounded-md bg-primary px-2 text-xs font-semibold leading-tight text-primary-foreground hover:opacity-90">
-            <span>+<br />Redactar</span>
+          <button type="button" onClick={() => { resetCompose(); setComposeOpen(true) }} className="flex h-9 items-center rounded-md bg-primary px-3 text-sm font-semibold text-primary-foreground hover:opacity-90">
+            + Redactar
           </button>
         </div>
       </div>
 
+      {!hasImapConfig && !hasSmtpConfig && (
+        <div className="rounded-md border border-amber-200 bg-amber-50 px-3 py-2 text-sm text-amber-800 dark:border-amber-800/40 dark:bg-amber-900/20 dark:text-amber-300">
+          El correo no está configurado. <a href={`/workspace/${workspaceId}/settings`} className="font-medium underline underline-offset-2">Configura SMTP e IMAP en Ajustes</a> para enviar y recibir mensajes.
+        </div>
+      )}
+      {hasSmtpConfig && !hasImapConfig && (
+        <div className="rounded-md border border-amber-200 bg-amber-50 px-3 py-2 text-sm text-amber-800 dark:border-amber-800/40 dark:bg-amber-900/20 dark:text-amber-300">
+          SMTP configurado, pero falta IMAP. <a href={`/workspace/${workspaceId}/settings`} className="font-medium underline underline-offset-2">Configura IMAP en Ajustes</a> para recibir mensajes.
+        </div>
+      )}
+      {!hasSmtpConfig && hasImapConfig && (
+        <div className="rounded-md border border-amber-200 bg-amber-50 px-3 py-2 text-sm text-amber-800 dark:border-amber-800/40 dark:bg-amber-900/20 dark:text-amber-300">
+          IMAP configurado, pero falta SMTP. <a href={`/workspace/${workspaceId}/settings`} className="font-medium underline underline-offset-2">Configura SMTP en Ajustes</a> para enviar mensajes.
+        </div>
+      )}
       {notice && <div className="rounded-md border border-emerald-200 bg-emerald-50 px-3 py-2 text-sm text-emerald-700 dark:border-emerald-900 dark:bg-emerald-950/30 dark:text-emerald-300">{notice}</div>}
       {error && <div className="rounded-md border border-red-200 bg-red-50 px-3 py-2 text-sm text-red-700 dark:border-red-900 dark:bg-red-950/30 dark:text-red-300">{error}</div>}
 
