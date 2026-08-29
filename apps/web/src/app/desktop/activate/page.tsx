@@ -34,7 +34,7 @@ export default function DesktopActivatePage() {
       }
       const { token } = await res.json() as { token: string }
       const saved = await saveLicenseToken(token)
-      if (!saved) throw new Error('No se pudo guardar el token en la app')
+      if (!saved) throw new Error('No se pudo guardar la licencia en la app. Cierra y vuelve a abrir MITIKUS.')
       setStatus('ok')
       setTimeout(() => activateApp(), 1200)
     } catch (err: unknown) {
