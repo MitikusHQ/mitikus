@@ -69,8 +69,9 @@ export async function saveLicenseToken(token: string): Promise<boolean> {
   try {
     await window.__TAURI__!.core!.invoke('save_license_token', { token })
     return true
-  } catch {
-    return false
+  } catch (err) {
+    const message = err instanceof Error ? err.message : String(err)
+    throw new Error(message || 'No se pudo guardar la licencia en la app.')
   }
 }
 
