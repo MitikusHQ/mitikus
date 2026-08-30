@@ -161,7 +161,9 @@ export function WorkspaceSidebar({ workspaceId, workspaceName, workspaceLogoUrl,
       {/* Footer — solo "Powered by MITIKUS" */}
       <div className={cn(
         'border-t border-border shrink-0',
-        collapsed ? 'flex justify-center px-2 py-3' : 'px-3 py-3',
+        collapsed
+          ? 'flex justify-center px-2 pt-3 pb-[calc(2rem+env(safe-area-inset-bottom))]'
+          : 'px-3 pt-3 pb-[calc(2rem+env(safe-area-inset-bottom))]',
       )}>
         {!collapsed && (
           <p className="px-3 text-[10px] text-muted-foreground/50 truncate flex items-center gap-1.5">

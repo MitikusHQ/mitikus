@@ -40,7 +40,7 @@ export function BrainOverlay({ workspaceId }: Props) {
           onClick={() => setOpen(true)}
           aria-label="Abrir Brain (Cmd+K)"
           title="Brain — consulta la memoria del workspace (Cmd+K)"
-          className="fixed bottom-[calc(2rem+env(safe-area-inset-bottom))] right-6 z-40 w-12 h-12 rounded-full bg-primary text-primary-foreground shadow-lg flex items-center justify-center text-lg hover:bg-primary/90 transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring md:bottom-[calc(3rem+env(safe-area-inset-bottom))]"
+          className="fixed bottom-[calc(4rem+env(safe-area-inset-bottom))] right-6 z-40 w-12 h-12 rounded-full bg-primary text-primary-foreground shadow-lg flex items-center justify-center text-lg hover:bg-primary/90 transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring md:bottom-[calc(5rem+env(safe-area-inset-bottom))]"
         >
           ✦
         </button>
