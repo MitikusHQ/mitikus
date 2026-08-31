@@ -83,7 +83,7 @@ export function WorkspaceShell({ workspaceId, workspaceName, workspaceLogoUrl, w
   return (
     <div className="flex h-full min-h-0 overflow-hidden bg-background">
       {/* Desktop sidebar */}
-      <div className="hidden md:flex h-full">
+      <div className="hidden h-full min-h-0 overflow-hidden md:flex">
         <WorkspaceSidebar
           workspaceId={workspaceId}
           workspaceName={workspaceName}
@@ -106,7 +106,7 @@ export function WorkspaceShell({ workspaceId, workspaceName, workspaceLogoUrl, w
             onClick={() => setMobileOpen(false)}
             aria-hidden
           />
-          <div className="relative z-50 h-full w-64 shadow-2xl">
+          <div className="relative z-50 h-full min-h-0 w-64 overflow-hidden shadow-2xl">
             <WorkspaceSidebar
               workspaceId={workspaceId}
               workspaceName={workspaceName}
