@@ -26,16 +26,16 @@ export function LocalePickerModal({ currentLocale }: LocalePickerModalProps) {
   }
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 backdrop-blur-sm">
-      <div className="bg-background border rounded-2xl shadow-xl w-full max-w-md mx-4 p-6 space-y-5">
-        <div className="space-y-1">
+    <div className="fixed inset-0 z-[80] flex items-center justify-center bg-black/55 p-4 backdrop-blur-sm">
+      <div className="flex max-h-[calc(100dvh-2rem)] w-full max-w-md flex-col overflow-hidden rounded-2xl border bg-background shadow-2xl">
+        <div className="space-y-1 px-6 pt-6">
           <h2 className="text-lg font-semibold">Choose your language</h2>
           <p className="text-sm text-muted-foreground">
             Select the language you want to use in MITIKUS. You can change it later in Settings.
           </p>
         </div>
 
-        <div className="grid grid-cols-2 gap-2 max-h-72 overflow-y-auto pr-1">
+        <div className="mx-6 mt-5 grid max-h-[min(18rem,calc(100dvh-16rem))] grid-cols-2 gap-2 overflow-y-auto pr-1">
           {SUPPORTED_LOCALES.map((locale) => {
             const { flag, nativeLabel } = LOCALE_LABELS[locale]
             const isSelected = locale === selected
@@ -56,13 +56,15 @@ export function LocalePickerModal({ currentLocale }: LocalePickerModalProps) {
           })}
         </div>
 
-        <button
-          onClick={handleConfirm}
-          disabled={isPending}
-          className="w-full bg-primary text-primary-foreground rounded-lg py-2.5 text-sm font-medium hover:bg-primary/90 transition-colors disabled:opacity-50"
-        >
-          {isPending ? '…' : 'Confirm'}
-        </button>
+        <div className="px-6 pb-6 pt-5">
+          <button
+            onClick={handleConfirm}
+            disabled={isPending}
+            className="w-full rounded-lg bg-primary py-2.5 text-sm font-medium text-primary-foreground transition-colors hover:bg-primary/90 disabled:opacity-50"
+          >
+            {isPending ? '…' : 'Confirm'}
+          </button>
+        </div>
       </div>
     </div>
   )
