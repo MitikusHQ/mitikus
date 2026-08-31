@@ -81,7 +81,7 @@ export function WorkspaceShell({ workspaceId, workspaceName, workspaceLogoUrl, w
   }
 
   return (
-    <div className="flex h-dvh overflow-hidden bg-background">
+    <div className="flex h-full min-h-0 overflow-hidden bg-background">
       {/* Desktop sidebar */}
       <div className="hidden md:flex h-full">
         <WorkspaceSidebar
