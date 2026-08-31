@@ -114,8 +114,8 @@ export function WorkspaceSidebar({ workspaceId, workspaceName, workspaceLogoUrl,
       </div>
 
       {/* Navigation */}
-      <nav className="flex-1 overflow-y-auto px-2 py-3">
-        <div className="space-y-5 pb-3">
+      <nav className="flex-1 overflow-y-auto px-2 py-3 pb-16">
+        <div className="space-y-5 pb-4">
           {navGroups.map((group, gi) => {
             const isLastGroup = gi === navGroups.length - 1
             return (
@@ -161,7 +161,7 @@ export function WorkspaceSidebar({ workspaceId, workspaceName, workspaceLogoUrl,
 
         {/* Footer — solo "Powered by MITIKUS" */}
         <div className={cn(
-          'sticky bottom-0 z-10 -mx-2 border-t border-border bg-card/95 backdrop-blur supports-[backdrop-filter]:bg-card/80',
+          'sticky bottom-6 z-10 -mx-2 border-t border-border bg-card/95 shadow-[0_-8px_16px_rgba(0,0,0,0.08)] backdrop-blur supports-[backdrop-filter]:bg-card/80',
           collapsed
             ? 'flex justify-center px-2 py-3'
             : 'px-3 py-3',
