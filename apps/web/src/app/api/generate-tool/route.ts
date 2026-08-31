@@ -82,6 +82,124 @@ function sanitizeText(text: string): string {
   return text.replace(/<[^>]*>/g, '').replace(/&[a-z]+;/gi, ' ').trim()
 }
 
+function slugify(text: string): string {
+  return text
+    .normalize('NFD')
+    .replace(/[\u0300-\u036f]/g, '')
+    .toLowerCase()
+    .replace(/[^a-z0-9]+/g, '-')
+    .replace(/^-+|-+$/g, '')
+    .slice(0, 70) || 'herramienta-simple'
+}
+
+function buildSimpleFallbackSchema(prompt: string): ValidatedToolSchema {
+  const lower = prompt.toLowerCase()
+  const isClientDocs = lower.includes('cliente') && (lower.includes('documento') || lower.includes('fichero'))
+  const name = isClientDocs ? 'Gestor de documentos por cliente' : 'Herramienta simple de seguimiento'
+  const description = isClientDocs
+    ? 'Organiza documentos por cliente, fecha y tamaño, con recordatorios de llamada asociados.'
+    : 'Registra, ordena y da seguimiento a la información principal solicitada por el usuario.'
+
+  const raw = {
+    id: crypto.randomUUID(),
+    slug: slugify(name),
+    name,
+    description,
+    category: isClientDocs ? 'crm' : 'custom',
+    capabilities: [
+      {
+        type: 'TABLE',
+        instanceId: 'tabla-principal',
+        label: 'Listado',
+        isDefault: true,
+        config: {
+          columns: [
+            { fieldId: 'cliente', sortable: true },
+            { fieldId: 'documento', sortable: true },
+            { fieldId: 'fecha_documento', sortable: true },
+            { fieldId: 'tamano_fichero', sortable: true },
+          ],
+          defaultSortField: 'fecha_documento',
+          defaultSortDirection: 'desc',
+          pageSize: 25,
+          showCreateButton: true,
+        },
+      },
+      {
+        type: 'FORM',
+        instanceId: 'form-datos',
+        label: 'Ficha',
+        config: {
+          layout: 'sections',
+          submitLabel: 'Guardar',
+          sections: [
+            {
+              id: 'documento',
+              title: 'Documento',
+              fieldIds: ['cliente', 'documento', 'categoria', 'fecha_documento', 'tamano_fichero'],
+            },
+            {
+              id: 'seguimiento',
+              title: 'Seguimiento',
+              fieldIds: ['recordatorio_llamada', 'notas'],
+            },
+          ],
+        },
+      },
+    ],
+    dataSchema: {
+      fields: {
+        cliente: {
+          type: 'string',
+          label: 'Cliente',
+          required: true,
+          placeholder: 'Nombre del cliente',
+        },
+        documento: {
+          type: 'string',
+          label: 'Documento',
+          required: true,
+          placeholder: 'Nombre del documento o fichero',
+        },
+        categoria: {
+          type: 'select',
+          label: 'Categoría',
+          options: ['Contrato', 'Factura', 'Presupuesto', 'Informe', 'Otro'],
+        },
+        fecha_documento: {
+          type: 'date',
+          label: 'Fecha',
+          required: true,
+        },
+        tamano_fichero: {
+          type: 'number',
+          label: 'Tamaño del fichero (MB)',
+          min: 0,
+        },
+        recordatorio_llamada: {
+          type: 'date',
+          label: 'Recordatorio de llamada',
+        },
+        notas: {
+          type: 'textarea',
+          label: 'Notas',
+          rows: 4,
+        },
+      },
+    },
+    permissions: { defaultMemberRole: 'EDITOR', allowPublicShare: false },
+    isPublic: false,
+    createdBy: 'ai',
+    version: '1',
+  }
+
+  const validation = validateGeneratedSchema(raw, 1)
+  if (!validation.ok) {
+    throw new Error(validation.error)
+  }
+  return validation.data
+}
+
 interface ZodIssue {
   path: Array<string | number>
   message: string
@@ -225,13 +343,6 @@ async function recordUsage(data: {
 }
 
 export async function POST(req: NextRequest) {
-  if (!process.env.ANTHROPIC_API_KEY) {
-    return NextResponse.json(
-      { error: 'AI generation is not configured. Add ANTHROPIC_API_KEY to .env.local.' },
-      { status: 503 },
-    )
-  }
-
   const { userId } = await auth()
   if (!userId) return NextResponse.json({ error: 'Not authenticated' }, { status: 401 })
 
@@ -272,7 +383,7 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({ error: 'Workspace not found' }, { status: 404 })
   }
 
-  const limitFailed = await checkAllLimits(user.id, workspaceId)
+  const limitFailed = simpleMode ? null : await checkAllLimits(user.id, workspaceId)
   if (limitFailed) {
     void recordUsage({
       userId: user.id, orgId: user.orgId, workspaceId,
@@ -296,7 +407,6 @@ export async function POST(req: NextRequest) {
     : '\n\nLANGUAGE: Generate ALL text in English. Tool names, field labels, checklist items, table columns — everything in English. Do not mix languages.'
 
   const systemPrompt = (simpleMode ? SIMPLE_SYSTEM_PROMPT : SYSTEM_PROMPT) + langInstruction
-  const client = new Anthropic()
   const startMs = Date.now()
   let totalInputTokens = 0
   let totalOutputTokens = 0
@@ -305,60 +415,69 @@ export async function POST(req: NextRequest) {
   let internalError: string | null = null
   let attempts = 0
 
-  console.info(
-    `[AI] Generating tool workspace=${workspaceId} user=${user.id} simpleMode=${simpleMode} locale=${locale} MAX_TOKENS=${MAX_TOKENS} MAX_RETRIES=${MAX_RETRIES}`,
-  )
-
   try {
-    let lastError = ''
+    if (simpleMode) {
+      generatedSchema = buildSimpleFallbackSchema(trimmed)
+      attempts = 1
+    } else if (!process.env.ANTHROPIC_API_KEY) {
+      return NextResponse.json(
+        { error: 'AI generation is not configured. Add ANTHROPIC_API_KEY to .env.local.' },
+        { status: 503 },
+      )
+    } else {
+      const client = new Anthropic()
+      console.info(
+        `[AI] Generating tool workspace=${workspaceId} user=${user.id} simpleMode=${simpleMode} locale=${locale} MAX_TOKENS=${MAX_TOKENS} MAX_RETRIES=${MAX_RETRIES}`,
+      )
 
-    for (let attempt = 0; attempt <= MAX_RETRIES; attempt++) {
-      attempts = attempt + 1
+      let lastError = ''
 
-      const prefix = simpleMode
-        ? 'Genera una herramienta SIMPLE Y COMPACTA para'
-        : 'Genera una herramienta profesional para'
+      for (let attempt = 0; attempt <= MAX_RETRIES; attempt++) {
+        attempts = attempt + 1
 
-      const userPrompt =
-        attempt === 0
-          ? `${prefix}:\n<user_input>\n${trimmed}\n</user_input>`
-          : `${prefix}:\n<user_input>\n${trimmed}\n</user_input>\n\nEl intento anterior falló con estos errores de validación — corrígelos todos:\n${lastError}\n\nDevuelve únicamente el JSON corregido y completo.`
+        const prefix = 'Genera una herramienta profesional para'
 
-      const { text, inputTokens, outputTokens } = await callClaude(client, systemPrompt, userPrompt)
-      totalInputTokens += inputTokens
-      totalOutputTokens += outputTokens
+        const userPrompt =
+          attempt === 0
+            ? `${prefix}:\n<user_input>\n${trimmed}\n</user_input>`
+            : `${prefix}:\n<user_input>\n${trimmed}\n</user_input>\n\nEl intento anterior falló con estos errores de validación — corrígelos todos:\n${lastError}\n\nDevuelve únicamente el JSON corregido y completo.`
 
-      console.debug(`[AI] Attempt ${attempt + 1}: input=${inputTokens} output=${outputTokens}`)
+        const { text, inputTokens, outputTokens } = await callClaude(client, systemPrompt, userPrompt)
+        totalInputTokens += inputTokens
+        totalOutputTokens += outputTokens
 
-      const stripped = extractJson(text)
-      let parsed: unknown
-      try {
-        parsed = JSON.parse(stripped)
-      } catch {
-        lastError = 'Response is not valid JSON'
-        console.error(`[AI] Attempt ${attempt + 1}: JSON parse failed`)
-        continue
+        console.debug(`[AI] Attempt ${attempt + 1}: input=${inputTokens} output=${outputTokens}`)
+
+        const stripped = extractJson(text)
+        let parsed: unknown
+        try {
+          parsed = JSON.parse(stripped)
+        } catch {
+          lastError = 'Response is not valid JSON'
+          console.error(`[AI] Attempt ${attempt + 1}: JSON parse failed`)
+          continue
+        }
+
+        // Override server-controlled fields
+        if (typeof parsed === 'object' && parsed !== null) {
+          ;(parsed as Record<string, unknown>).id = crypto.randomUUID()
+          ;(parsed as Record<string, unknown>).createdBy = 'ai'
+          ;(parsed as Record<string, unknown>).isPublic = false
+        }
+
+        const validation = validateGeneratedSchema(parsed, attempt + 1)
+        if (validation.ok) {
+          generatedSchema = validation.data
+          break
+        } else {
+          lastError = validation.error
+          userFacingError = validation.userMessage
+        }
       }
 
-      // Override server-controlled fields
-      if (typeof parsed === 'object' && parsed !== null) {
-        ;(parsed as Record<string, unknown>).id = crypto.randomUUID()
-        ;(parsed as Record<string, unknown>).createdBy = 'ai'
-        ;(parsed as Record<string, unknown>).isPublic = false
+      if (!generatedSchema) {
+        internalError = `Failed after ${attempts} attempt(s). Last error: ${userFacingError ?? 'unknown'}`
       }
-
-      const validation = validateGeneratedSchema(parsed, attempt + 1)
-      if (validation.ok) {
-        generatedSchema = validation.data
-        break
-      } else {
-        lastError = validation.error
-        userFacingError = validation.userMessage
-      }
-    }
-
-    if (!generatedSchema) {
-      internalError = `Failed after ${attempts} attempt(s). Last error: ${userFacingError ?? 'unknown'}`
     }
   } catch (err) {
     internalError = err instanceof Error ? err.message : 'Error calling AI'

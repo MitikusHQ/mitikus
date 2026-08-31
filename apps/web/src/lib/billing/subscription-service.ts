@@ -224,7 +224,7 @@ export async function expireTrial(orgId: string): Promise<Subscription> {
 
   const updated = await db.subscription.update({
     where: { orgId },
-    data: { status: 'EXPIRED' },
+    data: { status: 'EXPIRED', tokenVersion: { increment: 1 } },
   })
 
   await logBillingEvent({
@@ -295,7 +295,7 @@ export async function blockSubscription(orgId: string, reason: string): Promise<
 
   const updated = await db.subscription.update({
     where: { orgId },
-    data: { status: 'BLOCKED' },
+    data: { status: 'BLOCKED', tokenVersion: { increment: 1 } },
   })
 
   await logBillingEvent({

@@ -76,6 +76,19 @@ export async function saveLicenseToken(token: string): Promise<boolean> {
 }
 
 /**
+ * Borra la licencia local cuando el servidor ya no permite renovarla.
+ */
+export async function clearLicenseToken(): Promise<boolean> {
+  if (!isDesktopApp()) return false
+  try {
+    await window.__TAURI__!.core!.invoke('clear_license_token')
+    return true
+  } catch {
+    return false
+  }
+}
+
+/**
  * Redirige la ventana principal a la app tras activación exitosa.
  */
 export async function activateApp(): Promise<void> {

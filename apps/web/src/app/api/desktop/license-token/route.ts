@@ -2,11 +2,12 @@
  * POST /api/desktop/license-token
  *
  * Emite un token de licencia JWT para la app de escritorio MITIKUS.
- * El token incluye orgId, tier, status y tokenVersion; expira en 30 días.
+ * El token incluye orgId, tier, status y tokenVersion. Se emite hasta el
+ * final de la prueba o del periodo pagado. Si no hay fecha de periodo, usa
+ * un fallback de 7 días.
  *
- * La app Tauri llama a este endpoint:
- *   - Al arrancar, si no tiene token o queda < 7 días para expirar.
- *   - Al reconectarse tras un periodo sin red.
+ * La web autenticada dentro de Tauri llama a este endpoint periódicamente
+ * para renovar la licencia local de la app de escritorio.
  *
  * Requisito: MITIKUS_LICENSE_SECRET en el entorno.
  */
@@ -20,6 +21,8 @@ import { issueLicenseToken } from '@/lib/desktop/license-token'
 export const runtime = 'nodejs'
 
 const BLOCKING_STATUSES = ['EXPIRED', 'CANCELLED', 'BLOCKED'] as const
+const DAY_MS = 24 * 60 * 60 * 1000
+const FALLBACK_TTL_MS = 7 * DAY_MS
 
 export async function POST() {
   const { userId } = await auth()
@@ -45,16 +48,26 @@ export async function POST() {
     )
   }
 
+  const fallbackExpiresAt = new Date(Date.now() + FALLBACK_TTL_MS)
+  const entitlementExpiresAt = status === 'TRIALING'
+    ? sub.trialEndsAt
+    : sub.currentPeriodEnd
+  const expiresAt = entitlementExpiresAt && entitlementExpiresAt.getTime() > Date.now()
+    ? entitlementExpiresAt
+    : fallbackExpiresAt
+
   const token = issueLicenseToken({
     orgId:        user.orgId,
     tier:         sub.tier,
     status,
     tokenVersion: (sub as { tokenVersion?: number }).tokenVersion ?? 0,
+    expiresAt,
   })
 
   return NextResponse.json({
     token,
-    expiresInDays: 30,
+    expiresAt: expiresAt.toISOString(),
+    expiresInDays: Math.ceil((expiresAt.getTime() - Date.now()) / DAY_MS),
     tier: sub.tier,
     status,
   })

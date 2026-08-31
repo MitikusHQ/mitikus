@@ -4,14 +4,16 @@
  * Formato: JWT manual con HMAC-SHA256 (sin dependencias externas).
  * Secret: MITIKUS_LICENSE_SECRET (mínimo 32 bytes, cualquier string).
  *
- * El token expira en 30 días. Al incrementar tokenVersion en Subscription,
- * todos los tokens emitidos anteriormente para esa org quedan inválidos.
+ * El token expira en la fecha que indique el endpoint que lo emite: normalmente
+ * el final real de la prueba o del periodo pagado. Al incrementar tokenVersion
+ * en Subscription, todos los tokens emitidos anteriormente para esa org quedan
+ * inválidos.
  */
 
 import { createHmac } from 'node:crypto'
 
 const ALGO = 'HS256'
-const TTL_SECONDS = 30 * 24 * 60 * 60 // 30 días
+const FALLBACK_TTL_SECONDS = 7 * 24 * 60 * 60 // 7 días
 
 export interface LicensePayload {
   orgId:        string
@@ -52,9 +54,13 @@ export function issueLicenseToken(params: {
   tier:         string
   status:       string
   tokenVersion: number
+  expiresAt?:   Date
 }): string {
   const secret = getSecret()
   const now = Math.floor(Date.now() / 1000)
+  const fallbackExp = now + FALLBACK_TTL_SECONDS
+  const requestedExp = params.expiresAt ? Math.floor(params.expiresAt.getTime() / 1000) : fallbackExp
+  const exp = Math.max(now, requestedExp)
   const header  = b64url(JSON.stringify({ alg: ALGO, typ: 'JWT' }))
   const payload = b64url(JSON.stringify({
     orgId:        params.orgId,
@@ -62,7 +68,7 @@ export function issueLicenseToken(params: {
     status:       params.status,
     tokenVersion: params.tokenVersion,
     iat: now,
-    exp: now + TTL_SECONDS,
+    exp,
   } satisfies LicensePayload))
   const sig = sign(header, payload, secret)
   return `${header}.${payload}.${sig}`

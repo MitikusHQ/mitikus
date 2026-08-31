@@ -1,7 +1,7 @@
 'use client'
 
 import { useEffect } from 'react'
-import { isDesktopApp, saveLicenseToken } from '@/lib/desktop-bridge'
+import { clearLicenseToken, isDesktopApp, saveLicenseToken } from '@/lib/desktop-bridge'
 
 const SYNC_KEY = 'mitikus_desktop_license_synced_at'
 const SYNC_INTERVAL_MS = 12 * 60 * 60 * 1000
@@ -18,6 +18,11 @@ export function DesktopLicenseSync() {
     async function syncLicense() {
       try {
         const res = await fetch('/api/desktop/license-token', { method: 'POST' })
+        if (res.status === 403) {
+          window.localStorage.removeItem(SYNC_KEY)
+          await clearLicenseToken()
+          return
+        }
         if (!res.ok) return
 
         const body = (await res.json()) as { token?: string }
