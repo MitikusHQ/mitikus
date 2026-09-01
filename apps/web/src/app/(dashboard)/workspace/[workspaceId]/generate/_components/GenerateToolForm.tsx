@@ -16,6 +16,19 @@ function isComplex(text: string): boolean {
   return bulletLines > COMPLEXITY_LINE_LIMIT
 }
 
+const FIELD_TYPE_LABELS: Record<string, string> = {
+  string: 'Texto',
+  number: 'Número',
+  boolean: 'Sí/No',
+  date: 'Fecha',
+  textarea: 'Texto largo',
+  select: 'Selección',
+  multiselect: 'Selección múltiple',
+  email: 'Email',
+  phone: 'Teléfono',
+  url: 'URL',
+}
+
 const CATEGORY_LABELS: Record<string, string> = {
   audit: 'Auditoría',
   evaluation: 'Evaluación',
@@ -109,22 +122,40 @@ export function GenerateToolForm({ workspaceId, locale = 'es' }: Props) {
 
   async function runGenerate(simpleMode = false) {
     setStep('loading')
+    let data: Record<string, unknown> | null = null
     try {
       const res = await fetch('/api/generate-tool', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ naturalLanguage: description.trim(), workspaceId, simpleMode, locale }),
       })
-      const data = await res.json()
+      data = await res.json() as Record<string, unknown>
       if (!res.ok || data.error) {
-        setError(data.error ?? 'Error al generar la herramienta')
+        const status = res.status
+        let msg: string
+        if (status === 503) {
+          msg = 'El proveedor de IA no está configurado. Contacta con el administrador.'
+        } else if (status === 429) {
+          const reason = data.limitReason as string | undefined
+          msg = reason === 'monthly'
+            ? 'Has alcanzado el límite mensual de créditos IA. Actualiza tu plan para continuar.'
+            : reason === 'daily'
+            ? 'Has alcanzado el límite diario de uso de IA. Inténtalo mañana.'
+            : 'Demasiadas solicitudes. Espera unos minutos e inténtalo de nuevo.'
+        } else if (status === 422) {
+          msg = 'La herramienta generada no pasó la validación. Prueba con una descripción más concreta o usa "Versión simple".'
+        } else {
+          msg = typeof data.error === 'string' ? data.error : 'Error al generar la herramienta. Inténtalo de nuevo.'
+        }
+        setError(msg)
         setStep('input')
         return
       }
-      setResult(data as GeneratedResult)
+      setResult(data as unknown as GeneratedResult)
       setStep('preview')
     } catch {
-      setError('Error de conexión. Inténtalo de nuevo.')
+      // Solo llega aquí si fetch falló antes de recibir respuesta (red caída)
+      setError('No se pudo conectar con el servidor. Comprueba tu conexión e inténtalo de nuevo.')
       setStep('input')
     }
   }
@@ -626,7 +657,7 @@ function PreviewPanel({
             <div key={id} className="flex items-center justify-between py-2 text-sm">
               <span className="font-medium">{field.label}</span>
               <div className="flex items-center gap-2">
-                <span className="text-xs text-muted-foreground font-mono">{field.type}</span>
+                <span className="text-xs text-muted-foreground">{FIELD_TYPE_LABELS[field.type] ?? field.type}</span>
                 {field.required && (
                   <span className="text-xs text-destructive font-medium">requerido</span>
                 )}
@@ -635,6 +666,59 @@ function PreviewPanel({
           ))}
         </div>
       </div>
+
+      {(() => {
+        const tableCap = schema.capabilities.find((c) => c.type === 'TABLE')
+        const tableConfig = tableCap?.config as { columns?: Array<{ fieldId: string; label?: string; sortable?: boolean }> } | undefined
+        if (!tableConfig?.columns?.length) return null
+        return (
+          <div className="rounded-lg border bg-card p-5">
+            <h3 className="text-sm font-semibold mb-3">Columnas de tabla</h3>
+            <div className="flex flex-wrap gap-1.5">
+              {tableConfig.columns.map((col) => {
+                const field = schema.dataSchema.fields[col.fieldId]
+                return (
+                  <span
+                    key={col.fieldId}
+                    className="text-xs bg-secondary text-secondary-foreground px-2 py-0.5 rounded-full flex items-center gap-1"
+                  >
+                    {col.label ?? field?.label ?? col.fieldId}
+                    {col.sortable && <span className="opacity-50">↕</span>}
+                  </span>
+                )
+              })}
+            </div>
+          </div>
+        )
+      })()}
+
+      {(() => {
+        const formCap = schema.capabilities.find((c) => c.type === 'FORM')
+        const formConfig = formCap?.config as { sections?: Array<{ id: string; title: string; fieldIds: string[] }> } | undefined
+        if (!formConfig?.sections?.length) return null
+        return (
+          <div className="rounded-lg border bg-card p-5">
+            <h3 className="text-sm font-semibold mb-3">Secciones del formulario</h3>
+            <div className="space-y-3">
+              {formConfig.sections.map((section) => (
+                <div key={section.id}>
+                  <p className="text-xs font-medium text-muted-foreground uppercase tracking-wide mb-1.5">{section.title}</p>
+                  <div className="flex flex-wrap gap-1.5">
+                    {section.fieldIds.map((fid) => {
+                      const field = schema.dataSchema.fields[fid]
+                      return (
+                        <span key={fid} className="text-xs bg-background border border-border px-2 py-0.5 rounded">
+                          {field?.label ?? fid}
+                        </span>
+                      )
+                    })}
+                  </div>
+                </div>
+              ))}
+            </div>
+          </div>
+        )
+      })()}
 
       {checklistCap && (
         <ChecklistPreview

@@ -96,8 +96,13 @@ function FieldInput({
     )
   }
 
-  const inputType =
-    field.type === 'number' ? 'number' : field.type === 'date' ? 'date' : 'text'
+  const inputType: React.HTMLInputTypeAttribute =
+    field.type === 'number' ? 'number'
+    : field.type === 'date' ? 'date'
+    : field.type === 'email' ? 'email'
+    : field.type === 'phone' ? 'tel'
+    : field.type === 'url' ? 'url'
+    : 'text'
 
   const dateValue =
     field.type === 'date' && defaultValue

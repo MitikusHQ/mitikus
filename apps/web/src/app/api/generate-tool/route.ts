@@ -1,9 +1,10 @@
-import { NextRequest, NextResponse } from 'next/server'
+﻿import { NextRequest, NextResponse } from 'next/server'
 import { auth } from '@clerk/nextjs/server'
 import { db } from '@/lib/db'
 import Anthropic from '@anthropic-ai/sdk'
 import { validateToolSchema } from '@protools/schema'
 import type { ValidatedToolSchema } from '@protools/schema'
+import { buildSimpleFallbackSchema } from '@/lib/tool-generation/simple-fallback'
 import type { Prisma } from '@prisma/client'
 import { estimateCostEUR } from '@/lib/ai-cost'
 import { checkAllLimits } from '@/lib/ai-rate-limit'
@@ -14,8 +15,8 @@ export const maxDuration = 60
 const MODEL = 'claude-sonnet-4-6'
 
 // Configurable via env — defaults are conservative for dev
-const MAX_TOKENS = parseInt(process.env.MAX_AI_OUTPUT_TOKENS ?? '2500', 10)
-const MAX_RETRIES = parseInt(process.env.MAX_AI_RETRIES ?? '1', 10)
+const MAX_TOKENS = parseInt(process.env.MAX_AI_OUTPUT_TOKENS ?? '4000', 10)
+const MAX_RETRIES = parseInt(process.env.MAX_AI_RETRIES ?? '2', 10)
 const MAX_SCHEMA_BYTES = 50_000
 
 const SYSTEM_PROMPT = `Eres un generador de herramientas profesionales para MITIKUS.
@@ -36,15 +37,29 @@ REGLAS CRÍTICAS — los errores más frecuentes son:
 - "createdBy" debe ser "ai"
 - "isPublic" debe ser false
 - name: 3-80 caracteres; description: 20-500 caracteres
-- FORM requiere "layout": "single-column" | "two-column" | "sections"
+- FORM requiere "layout": "single-column" | "two-column" | "sections" — usa "sections" cuando hay más de 5 campos
 - CHECKLIST requiere "items": array mín. 1 con {id, label} y "completionType": "check" | "yes_no"
 - SCORING requiere "criteria": array mín. 1 con {id, label}
-- TABLE requiere "columns": array mín. 1 con {fieldId} donde fieldId existe en dataSchema.fields
+- TABLE requiere "columns": array mín. 1 con {fieldId, sortable?} donde fieldId existe en dataSchema.fields
 - permissions: {"defaultMemberRole": "EDITOR", "allowPublicShare": false}
+- Tipos de campo válidos: string | number | boolean | date | textarea | select | multiselect | email | phone | url
+
+BUENAS PRÁCTICAS PARA TABLAS:
+- Marca "sortable: true" en columnas de fecha, número e importe — permite ordenar la tabla
+- Establece "defaultSortField" y "defaultSortDirection" en la TABLE config (típico: fecha más reciente primero)
+- Incluye "showCreateButton: true" en TABLE para poder añadir registros
+- pageSize: 25 como valor por defecto
+
+CAMPOS RECOMENDADOS POR CONTEXTO:
+- Seguimiento de documentos/clientes: incluye campos estado (select), responsable (string), fecha_documento (date), notas (textarea)
+- CRM: incluye campos empresa, contacto, email (type: email), telefono (type: phone), estado (select)
+- Evaluación/scoring: incluye criterios con peso (weight) que sumen 1.0 y thresholds por color
+- RRHH: incluye campos nombre, departamento, fecha_inicio (date), estado (select)
 
 ESTRUCTURA:
 - Incluye TABLE y al menos una capability más (FORM, CHECKLIST o SCORING)
-- Mantén el schema simple y compacto (máximo 10 campos, máximo 8 ítems por capability)`
+- FORM con layout "sections" cuando tienes más de 5 campos — agrupa campos relacionados en secciones
+- Máximo 12 campos en dataSchema.fields, máximo 8 ítems por capability de checklist`
 
 const SIMPLE_SYSTEM_PROMPT = `Eres un generador de herramientas profesionales para MITIKUS.
 Genera un ToolSchemaV1 válido en JSON según la descripción del usuario.
@@ -58,7 +73,8 @@ MODO SIMPLE — reglas estrictas:
 - Exactamente 2 capabilities: TABLE + (FORM o CHECKLIST, elige el más apropiado)
 - NO incluyas SCORING ni PDF_EXPORT
 - Los ítems de CHECKLIST: máximo 6
-- Las columnas de TABLE: máximo 4, todas referenciando fieldIds que existen en dataSchema.fields
+- Las columnas de TABLE: máximo 5, todas referenciando fieldIds que existen en dataSchema.fields
+- Marca "sortable: true" en columnas de fecha y número; pon "defaultSortField" y "defaultSortDirection"
 
 REGLAS CRÍTICAS:
 - "version" = STRING "1"
@@ -68,7 +84,8 @@ REGLAS CRÍTICAS:
 - "category": audit | evaluation | checklist | crm | report | hr | operations | finance | custom
 - "id" = UUID v4; "createdBy" = "ai"; "isPublic" = false
 - CHECKLIST necesita "completionType": "check" | "yes_no"
-- permissions: {"defaultMemberRole": "EDITOR", "allowPublicShare": false}`
+- permissions: {"defaultMemberRole": "EDITOR", "allowPublicShare": false}
+- Tipos de campo válidos: string | number | boolean | date | textarea | select | multiselect | email | phone | url`
 
 function extractJson(text: string): string {
   const fenceMatch = text.match(/```(?:json)?\s*([\s\S]*?)```/)
@@ -80,124 +97,6 @@ function extractJson(text: string): string {
 
 function sanitizeText(text: string): string {
   return text.replace(/<[^>]*>/g, '').replace(/&[a-z]+;/gi, ' ').trim()
-}
-
-function slugify(text: string): string {
-  return text
-    .normalize('NFD')
-    .replace(/[\u0300-\u036f]/g, '')
-    .toLowerCase()
-    .replace(/[^a-z0-9]+/g, '-')
-    .replace(/^-+|-+$/g, '')
-    .slice(0, 70) || 'herramienta-simple'
-}
-
-function buildSimpleFallbackSchema(prompt: string): ValidatedToolSchema {
-  const lower = prompt.toLowerCase()
-  const isClientDocs = lower.includes('cliente') && (lower.includes('documento') || lower.includes('fichero'))
-  const name = isClientDocs ? 'Gestor de documentos por cliente' : 'Herramienta simple de seguimiento'
-  const description = isClientDocs
-    ? 'Organiza documentos por cliente, fecha y tamaño, con recordatorios de llamada asociados.'
-    : 'Registra, ordena y da seguimiento a la información principal solicitada por el usuario.'
-
-  const raw = {
-    id: crypto.randomUUID(),
-    slug: slugify(name),
-    name,
-    description,
-    category: isClientDocs ? 'crm' : 'custom',
-    capabilities: [
-      {
-        type: 'TABLE',
-        instanceId: 'tabla-principal',
-        label: 'Listado',
-        isDefault: true,
-        config: {
-          columns: [
-            { fieldId: 'cliente', sortable: true },
-            { fieldId: 'documento', sortable: true },
-            { fieldId: 'fecha_documento', sortable: true },
-            { fieldId: 'tamano_fichero', sortable: true },
-          ],
-          defaultSortField: 'fecha_documento',
-          defaultSortDirection: 'desc',
-          pageSize: 25,
-          showCreateButton: true,
-        },
-      },
-      {
-        type: 'FORM',
-        instanceId: 'form-datos',
-        label: 'Ficha',
-        config: {
-          layout: 'sections',
-          submitLabel: 'Guardar',
-          sections: [
-            {
-              id: 'documento',
-              title: 'Documento',
-              fieldIds: ['cliente', 'documento', 'categoria', 'fecha_documento', 'tamano_fichero'],
-            },
-            {
-              id: 'seguimiento',
-              title: 'Seguimiento',
-              fieldIds: ['recordatorio_llamada', 'notas'],
-            },
-          ],
-        },
-      },
-    ],
-    dataSchema: {
-      fields: {
-        cliente: {
-          type: 'string',
-          label: 'Cliente',
-          required: true,
-          placeholder: 'Nombre del cliente',
-        },
-        documento: {
-          type: 'string',
-          label: 'Documento',
-          required: true,
-          placeholder: 'Nombre del documento o fichero',
-        },
-        categoria: {
-          type: 'select',
-          label: 'Categoría',
-          options: ['Contrato', 'Factura', 'Presupuesto', 'Informe', 'Otro'],
-        },
-        fecha_documento: {
-          type: 'date',
-          label: 'Fecha',
-          required: true,
-        },
-        tamano_fichero: {
-          type: 'number',
-          label: 'Tamaño del fichero (MB)',
-          min: 0,
-        },
-        recordatorio_llamada: {
-          type: 'date',
-          label: 'Recordatorio de llamada',
-        },
-        notas: {
-          type: 'textarea',
-          label: 'Notas',
-          rows: 4,
-        },
-      },
-    },
-    permissions: { defaultMemberRole: 'EDITOR', allowPublicShare: false },
-    isPublic: false,
-    createdBy: 'ai',
-    version: '1',
-  }
-
-  const validation = validateGeneratedSchema(raw, 1)
-  if (!validation.ok) {
-    throw new Error(validation.error)
-  }
-  return validation.data
 }
 
 interface ZodIssue {
@@ -435,12 +334,20 @@ export async function POST(req: NextRequest) {
       for (let attempt = 0; attempt <= MAX_RETRIES; attempt++) {
         attempts = attempt + 1
 
-        const prefix = 'Genera una herramienta profesional para'
+        const prefix = locale === 'es'
+          ? 'Genera una herramienta profesional para'
+          : 'Generate a professional tool for'
+        const fixInstruction = locale === 'es'
+          ? 'El intento anterior falló con estos errores de validación — corrígelos todos:\n'
+          : 'The previous attempt failed with these validation errors — fix all of them:\n'
+        const fixSuffix = locale === 'es'
+          ? '\n\nDevuelve únicamente el JSON corregido y completo.'
+          : '\n\nReturn only the corrected and complete JSON.'
 
         const userPrompt =
           attempt === 0
             ? `${prefix}:\n<user_input>\n${trimmed}\n</user_input>`
-            : `${prefix}:\n<user_input>\n${trimmed}\n</user_input>\n\nEl intento anterior falló con estos errores de validación — corrígelos todos:\n${lastError}\n\nDevuelve únicamente el JSON corregido y completo.`
+            : `${prefix}:\n<user_input>\n${trimmed}\n</user_input>\n\n${fixInstruction}${lastError}${fixSuffix}`
 
         const { text, inputTokens, outputTokens } = await callClaude(client, systemPrompt, userPrompt)
         totalInputTokens += inputTokens

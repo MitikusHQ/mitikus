@@ -69,6 +69,9 @@ export const FIELD_TYPES = [
   'textarea',
   'select',
   'multiselect',
+  'email',
+  'phone',
+  'url',
 ] as const
 
 export type FieldType = (typeof FIELD_TYPES)[number]
