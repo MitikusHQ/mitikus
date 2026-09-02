@@ -2164,10 +2164,13 @@ model WorkspaceFile {
   workspaceId String
   folderId    String?
   clientId    String?
+  uploadedBy  String?  // userId — null para archivos migrados
   name        String
   type        FileType
+  // Supabase Storage path (e.g. "workspaces/<workspaceId>/<uuid>/<filename>")
+  storagePath String?
   url         String
-  size        Int
+  size        Int      // bytes
   mimeType    String
 
   workspace Workspace @relation(fields: [workspaceId], references: [id], onDelete: Cascade)
@@ -2178,6 +2181,7 @@ model WorkspaceFile {
   updatedAt DateTime @updatedAt
 
   @@index([workspaceId])
+  @@index([workspaceId, createdAt])
   @@index([folderId])
   @@index([clientId])
   @@map("workspace_files")
