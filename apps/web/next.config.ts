@@ -18,6 +18,7 @@ const securityHeaders = [
 
 const nextConfig: NextConfig = {
   eslint: { ignoreDuringBuilds: true },
+  poweredByHeader: false,
   transpilePackages: ['@protools/schema', '@protools/ui', '@protools/import-engine'],
 
   images: {
