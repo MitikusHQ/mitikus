@@ -1,25 +1,51 @@
 import { redirect } from 'next/navigation'
 import { auth } from '@clerk/nextjs/server'
+import { Archive, Download, ExternalLink, MonitorDown, ShieldCheck } from 'lucide-react'
 
 const GITHUB_RELEASES_API =
   'https://api.github.com/repos/MitikusHQ/mitikus-desktop/releases/latest'
-const FALLBACK_EXE_URL =
-  'https://github.com/MitikusHQ/mitikus-desktop/releases/latest/download/MITIKUS_x64-setup.exe'
+const RELEASES_URL = 'https://github.com/MitikusHQ/mitikus-desktop/releases/latest'
 
-async function getLatestExeUrl(): Promise<string> {
+interface GitHubRelease {
+  tag_name: string
+  html_url: string
+  assets: Array<{ name: string; browser_download_url: string }>
+}
+
+interface DownloadInfo {
+  version: string
+  releaseUrl: string
+  installerUrl: string | null
+  portableUrl: string | null
+}
+
+async function getLatestDownloadInfo(): Promise<DownloadInfo> {
   try {
     const res = await fetch(GITHUB_RELEASES_API, {
       headers: { Accept: 'application/vnd.github+json' },
       next: { revalidate: 3600 },
     })
-    if (!res.ok) return FALLBACK_EXE_URL
-    const data = (await res.json()) as {
-      assets: Array<{ name: string; browser_download_url: string }>
+    if (!res.ok) throw new Error('GitHub release unavailable')
+
+    const data = (await res.json()) as GitHubRelease
+    const installer = data.assets.find((a) => a.name.toLowerCase().endsWith('-setup.exe'))
+      ?? data.assets.find((a) => a.name.toLowerCase().endsWith('.exe'))
+    const portable = data.assets.find((a) => a.name.toLowerCase().includes('windows-x64.zip'))
+      ?? data.assets.find((a) => a.name.toLowerCase().endsWith('.zip'))
+
+    return {
+      version: data.tag_name,
+      releaseUrl: data.html_url,
+      installerUrl: installer?.browser_download_url ?? null,
+      portableUrl: portable?.browser_download_url ?? null,
     }
-    const exe = data.assets.find((a) => a.name.endsWith('.exe'))
-    return exe?.browser_download_url ?? FALLBACK_EXE_URL
   } catch {
-    return FALLBACK_EXE_URL
+    return {
+      version: 'última versión',
+      releaseUrl: RELEASES_URL,
+      installerUrl: null,
+      portableUrl: null,
+    }
   }
 }
 
@@ -27,32 +53,90 @@ export default async function DownloadPage() {
   const { userId } = await auth()
   if (!userId) redirect('/sign-in')
 
-  const exeUrl = await getLatestExeUrl()
+  const downloadInfo = await getLatestDownloadInfo()
 
   return (
-    <main className="min-h-screen flex flex-col items-center justify-center p-8 bg-background">
-      <div className="max-w-lg w-full space-y-8 text-center">
-        <div className="space-y-2">
-          <h1 className="text-3xl font-bold tracking-tight">MITIKUS para escritorio</h1>
+    <main className="min-h-screen bg-background px-6 py-10">
+      <div className="mx-auto flex w-full max-w-3xl flex-col gap-8">
+        <div className="space-y-3 text-center">
+          <div className="mx-auto flex h-12 w-12 items-center justify-center rounded-2xl bg-primary/10 text-primary">
+            <MonitorDown className="h-6 w-6" aria-hidden />
+          </div>
+          <p className="text-xs font-semibold uppercase tracking-widest text-primary">
+            MITIKUS Desktop
+          </p>
+          <h1 className="text-3xl font-bold tracking-tight">Descarga MITIKUS para Windows</h1>
           <p className="text-muted-foreground">
-            Accede a tu workspace desde la barra de tareas de Windows.
+            Accede a tu workspace desde una app nativa en Windows 10/11.
           </p>
+          <p className="text-xs text-muted-foreground">Versión {downloadInfo.version}</p>
         </div>
 
-        <div className="space-y-3">
+        <div className="grid gap-3 sm:grid-cols-2">
+          {downloadInfo.installerUrl ? (
+            <a
+              href={downloadInfo.installerUrl}
+              className="flex min-h-32 flex-col justify-between rounded-lg border border-primary/40 bg-primary p-5 text-primary-foreground shadow-sm transition-colors hover:bg-primary/90"
+            >
+              <span className="flex items-center gap-2 text-sm font-semibold">
+                <Download className="h-4 w-4" aria-hidden />
+                Instalador recomendado
+              </span>
+              <span className="text-xs text-primary-foreground/80">
+                Instala MITIKUS y lo deja listo en el menú de Windows.
+              </span>
+            </a>
+          ) : (
+            <a
+              href={downloadInfo.releaseUrl}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="flex min-h-32 flex-col justify-between rounded-lg border border-primary/40 bg-primary p-5 text-primary-foreground shadow-sm transition-colors hover:bg-primary/90"
+            >
+              <span className="flex items-center gap-2 text-sm font-semibold">
+                <ExternalLink className="h-4 w-4" aria-hidden />
+                Abrir descarga
+              </span>
+              <span className="text-xs text-primary-foreground/80">
+                Te llevamos al release oficial para elegir el instalador.
+              </span>
+            </a>
+          )}
+
           <a
-            href={exeUrl}
-            className="flex items-center justify-center gap-3 w-full px-6 py-4 bg-primary text-primary-foreground rounded-xl text-lg font-semibold hover:bg-primary/90 transition-colors"
+            href={downloadInfo.portableUrl ?? downloadInfo.releaseUrl}
+            target={downloadInfo.portableUrl ? undefined : '_blank'}
+            rel={downloadInfo.portableUrl ? undefined : 'noopener noreferrer'}
+            className="flex min-h-32 flex-col justify-between rounded-lg border bg-card p-5 shadow-sm transition-colors hover:border-primary/40"
           >
-            <WindowsIcon />
-            Descargar para Windows (.exe)
+            <span className="flex items-center gap-2 text-sm font-semibold">
+              <Archive className="h-4 w-4 text-primary" aria-hidden />
+              ZIP portable
+            </span>
+            <span className="text-xs text-muted-foreground">
+              Alternativa sin asistente de instalación. Descomprime y abre la app.
+            </span>
           </a>
-          <p className="text-sm text-muted-foreground">
-            Versión de acceso anticipado · Windows 10/11
-          </p>
         </div>
 
-        <div className="rounded-xl border border-dashed p-6 text-muted-foreground space-y-1">
+        <section className="rounded-lg border bg-card p-5">
+          <div className="flex items-start gap-3">
+            <ShieldCheck className="mt-0.5 h-5 w-5 flex-shrink-0 text-primary" aria-hidden />
+            <div className="space-y-2">
+              <h2 className="text-sm font-semibold">Nota de seguridad</h2>
+              <p className="text-sm leading-relaxed text-muted-foreground">
+                MITIKUS Desktop está en acceso anticipado. Windows SmartScreen o algunos antivirus
+                pueden avisar porque la app todavía no tiene reputación suficiente como editor nuevo.
+              </p>
+              <p className="text-sm leading-relaxed text-muted-foreground">
+                Descarga siempre desde esta página o desde el release oficial. Estamos tramitando
+                revisiones de falso positivo con los proveedores de seguridad.
+              </p>
+            </div>
+          </div>
+        </section>
+
+        <section className="rounded-lg border border-dashed p-5 text-muted-foreground">
           <p className="font-medium text-foreground">¿Mac o Linux?</p>
           <p className="text-sm">
             La versión para Mac estará disponible próximamente. Mientras tanto, accede a
@@ -65,41 +149,18 @@ export default async function DownloadPage() {
             </a>
             .
           </p>
-        </div>
-
-        <div className="text-xs text-muted-foreground text-left bg-muted/50 rounded-lg p-4 space-y-1">
-          <p className="font-medium text-foreground">Nota de seguridad</p>
-          <p>
-            Al instalar, Windows puede mostrar una alerta de seguridad. Haz clic en{' '}
-            <strong>«Más información»</strong> →{' '}
-            <strong>«Ejecutar de todas formas»</strong> para continuar. Es normal en la
-            versión de acceso anticipado.
-          </p>
-        </div>
+        </section>
 
         <a
-          href="https://github.com/MitikusHQ/mitikus-desktop/releases"
+          href={downloadInfo.releaseUrl}
           target="_blank"
           rel="noopener noreferrer"
-          className="block text-sm text-muted-foreground hover:text-foreground transition-colors"
+          className="mx-auto inline-flex items-center gap-1.5 text-sm text-muted-foreground transition-colors hover:text-foreground"
         >
-          Ver todas las versiones →
+          Ver release oficial
+          <ExternalLink className="h-3.5 w-3.5" aria-hidden />
         </a>
       </div>
     </main>
-  )
-}
-
-function WindowsIcon() {
-  return (
-    <svg
-      xmlns="http://www.w3.org/2000/svg"
-      viewBox="0 0 88 88"
-      className="w-6 h-6"
-      fill="currentColor"
-      aria-hidden="true"
-    >
-      <path d="M0 12.402l35.687-4.86.016 34.423-35.67.203zm35.67 33.529.028 34.453L.028 75.48.026 45.7zm4.326-39.025L87.314 0v41.527l-47.318.376zm47.329 39.349-.011 41.344-47.318-6.678-.066-34.78z" />
-    </svg>
   )
 }
