@@ -7,7 +7,6 @@ import { checkAllLimits } from '@/lib/ai-rate-limit'
 export const runtime = 'nodejs'
 export const maxDuration = 60
 
-const client = new Anthropic()
 const MODEL = 'claude-sonnet-4-6'
 
 interface QuestionsRequest {
@@ -26,6 +25,12 @@ interface GenerateRequest {
 
 type RequestBody = QuestionsRequest | GenerateRequest
 
+function getAnthropicClient() {
+  const apiKey = process.env.ANTHROPIC_API_KEY
+  if (!apiKey) return null
+  return new Anthropic({ apiKey })
+}
+
 export async function POST(req: NextRequest) {
   const { userId } = await auth()
   if (!userId) return NextResponse.json({ error: 'No autenticado' }, { status: 401 })
@@ -35,6 +40,10 @@ export async function POST(req: NextRequest) {
     select: { id: true, orgId: true, role: true },
   })
   if (!user) return NextResponse.json({ error: 'Usuario no encontrado' }, { status: 404 })
+
+  if (!process.env.ANTHROPIC_API_KEY) {
+    return NextResponse.json({ error: 'Proveedor IA no configurado.' }, { status: 503 })
+  }
 
   const limitResult = await checkAllLimits(user.id, user.orgId)
   if (limitResult !== null) {
@@ -70,6 +79,9 @@ async function handleQuestions(body: QuestionsRequest): Promise<NextResponse> {
     return NextResponse.json({ error: 'objective y sector son obligatorios' }, { status: 400 })
   }
 
+  const client = getAnthropicClient()
+  if (!client) return NextResponse.json({ error: 'Proveedor IA no configurado.' }, { status: 503 })
+
   const prompt = `Eres un consultor de procesos empresariales. El usuario quiere crear un workflow automatizado.
 
 Objetivo: ${objective}
@@ -80,11 +92,16 @@ Genera exactamente 3 preguntas cortas y concretas (máximo 15 palabras cada una)
 Responde SOLO con un JSON válido en este formato exacto:
 {"questions": ["pregunta 1", "pregunta 2", "pregunta 3"]}`
 
-  const message = await client.messages.create({
-    model: MODEL,
-    max_tokens: 300,
-    messages: [{ role: 'user', content: prompt }],
-  })
+  let message: Awaited<ReturnType<typeof client.messages.create>>
+  try {
+    message = await client.messages.create({
+      model: MODEL,
+      max_tokens: 300,
+      messages: [{ role: 'user', content: prompt }],
+    })
+  } catch {
+    return NextResponse.json({ error: 'Proveedor IA no disponible. Inténtalo de nuevo en unos minutos.' }, { status: 503 })
+  }
 
   const text = message.content[0]?.type === 'text' ? message.content[0].text.trim() : ''
 
@@ -107,6 +124,9 @@ async function handleGenerate(
 ): Promise<NextResponse> {
   const { objective, sector, answers, workspaceId } = body
   if (!workspaceId) return NextResponse.json({ error: 'workspaceId requerido' }, { status: 400 })
+
+  const client = getAnthropicClient()
+  if (!client) return NextResponse.json({ error: 'Proveedor IA no configurado.' }, { status: 503 })
 
   const workspace = await db.workspace.findFirst({
     where: { id: workspaceId, orgId },
@@ -151,11 +171,16 @@ Responde SOLO con un JSON válido en este formato exacto:
   ]
 }`
 
-  const message = await client.messages.create({
-    model: MODEL,
-    max_tokens: 1000,
-    messages: [{ role: 'user', content: prompt }],
-  })
+  let message: Awaited<ReturnType<typeof client.messages.create>>
+  try {
+    message = await client.messages.create({
+      model: MODEL,
+      max_tokens: 1000,
+      messages: [{ role: 'user', content: prompt }],
+    })
+  } catch {
+    return NextResponse.json({ error: 'Proveedor IA no disponible. Inténtalo de nuevo en unos minutos.' }, { status: 503 })
+  }
 
   const text = message.content[0]?.type === 'text' ? message.content[0].text.trim() : ''
 

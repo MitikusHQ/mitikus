@@ -2,14 +2,18 @@ import type { NextConfig } from 'next'
 import { withSentryConfig } from '@sentry/nextjs'
 
 // Security headers aplicados a todas las rutas.
-// Nota: HSTS se configura a nivel de proxy/CDN (Vercel/Railway lo gestiona).
-// Nota: CSP se omite aquí — Clerk y Next.js requieren nonces inline; implementar en fase post-beta.
+// La CSP se limita a frame-ancestors para evitar clickjacking sin interferir
+// con Clerk/Next.js, que requieren scripts inline durante la hidratación.
 const securityHeaders = [
   { key: 'X-Frame-Options',          value: 'DENY' },
   { key: 'X-Content-Type-Options',   value: 'nosniff' },
   { key: 'X-DNS-Prefetch-Control',   value: 'on' },
   { key: 'Referrer-Policy',          value: 'strict-origin-when-cross-origin' },
-  { key: 'Permissions-Policy',       value: 'camera=(), microphone=(), geolocation=(), payment=()' },
+  { key: 'Strict-Transport-Security', value: 'max-age=63072000; includeSubDomains; preload' },
+  { key: 'Content-Security-Policy',  value: "frame-ancestors 'none'" },
+  { key: 'Cross-Origin-Opener-Policy', value: 'same-origin' },
+  { key: 'X-Permitted-Cross-Domain-Policies', value: 'none' },
+  { key: 'Permissions-Policy',       value: 'camera=(), microphone=(), geolocation=(), payment=(), usb=(), interest-cohort=()' },
 ]
 
 const nextConfig: NextConfig = {
