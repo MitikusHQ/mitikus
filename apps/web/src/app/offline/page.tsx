@@ -1,4 +1,4 @@
-export const metadata = { title: 'Sin conexión · MITIKUS' }
+'use client'
 
 export default function OfflinePage() {
   return (
