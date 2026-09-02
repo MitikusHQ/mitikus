@@ -125,6 +125,12 @@ export default async function WorkspaceLayout({ children, params }: Props) {
       description: 'Documentos, hojas de cálculo, PDFs, contratos y presentaciones',
     },
     {
+      label: 'Archivos',
+      href: `${base}/files`,
+      icon: Icons.files,
+      description: 'Almacén de archivos del workspace con exportación ZIP',
+    },
+    {
       label: 'Misiones',
       href: `${base}/missions`,
       icon: Icons.missions,
