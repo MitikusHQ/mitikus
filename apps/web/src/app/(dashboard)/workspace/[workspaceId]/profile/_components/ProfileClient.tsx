@@ -47,7 +47,7 @@ export function ProfileClient({ name, email, avatarUrl, jobTitle, role }: Props)
   return (
     <div className="space-y-6">
       {/* Foto de perfil */}
-      <section className="rounded-xl border bg-card p-6">
+      <section id="foto-de-perfil" className="scroll-mt-20 rounded-xl border bg-card p-6">
         <h2 className="font-semibold text-sm mb-1">Foto de perfil</h2>
         <p className="text-xs text-muted-foreground mb-5">
           Aparece en la barra de navegación y junto a tus actividades.
@@ -70,7 +70,7 @@ export function ProfileClient({ name, email, avatarUrl, jobTitle, role }: Props)
       </section>
 
       {/* Información */}
-      <section className="rounded-xl border bg-card p-6 space-y-4">
+      <section id="datos-personales" className="scroll-mt-20 rounded-xl border bg-card p-6 space-y-4">
         <h2 className="font-semibold text-sm">Información</h2>
 
         <div className="grid gap-0 text-sm divide-y divide-border">
