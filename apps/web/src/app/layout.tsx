@@ -6,6 +6,8 @@ import { getLocale } from '@/i18n/locale'
 import { LOCALE_COOKIE } from '@/i18n/config'
 import { LocaleProvider } from '@/i18n/locale-context'
 import { LocalePickerModal } from './(dashboard)/_components/LocalePickerModal'
+import { OfflineBanner } from './_components/OfflineBanner'
+import { ServiceWorkerRegistration } from './_components/ServiceWorkerRegistration'
 import './globals.css'
 
 const inter = Inter({ subsets: ['latin'] })
@@ -62,6 +64,8 @@ export default async function RootLayout({ children }: { children: React.ReactNo
           />
         </head>
         <body className={inter.className} suppressHydrationWarning>
+          <ServiceWorkerRegistration />
+          <OfflineBanner />
           <LocaleProvider locale={locale}>
             {!hasLocaleCookie && <LocalePickerModal currentLocale={locale} />}
             {children}
