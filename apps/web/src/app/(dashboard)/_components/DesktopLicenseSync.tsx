@@ -10,12 +10,12 @@ export function DesktopLicenseSync() {
   useEffect(() => {
     if (!isDesktopApp()) return
 
-    const lastSync = Number(window.localStorage.getItem(SYNC_KEY) ?? '0')
-    if (Number.isFinite(lastSync) && Date.now() - lastSync < SYNC_INTERVAL_MS) return
-
     let cancelled = false
 
-    async function syncLicense() {
+    async function syncLicense(force = false) {
+      const lastSync = Number(window.localStorage.getItem(SYNC_KEY) ?? '0')
+      if (!force && Number.isFinite(lastSync) && Date.now() - lastSync < SYNC_INTERVAL_MS) return
+
       try {
         const res = await fetch('/api/desktop/license-token', { method: 'POST' })
         if (res.status === 403) {
@@ -38,9 +38,28 @@ export function DesktopLicenseSync() {
     }
 
     void syncLicense()
+    const intervalId = window.setInterval(() => {
+      void syncLicense()
+    }, SYNC_INTERVAL_MS)
+
+    function handleOnline() {
+      void syncLicense(true)
+    }
+
+    function handleVisibilityChange() {
+      if (document.visibilityState === 'visible') {
+        void syncLicense()
+      }
+    }
+
+    window.addEventListener('online', handleOnline)
+    document.addEventListener('visibilitychange', handleVisibilityChange)
 
     return () => {
       cancelled = true
+      window.clearInterval(intervalId)
+      window.removeEventListener('online', handleOnline)
+      document.removeEventListener('visibilitychange', handleVisibilityChange)
     }
   }, [])
 
