@@ -34,13 +34,5 @@
       "path": "/api/cron/invoice-overdue",
       "schedule": "30 9 * * *"
     },
-    {
-      "path": "/api/cron/blog-post",
-      "schedule": "23 8 * * 1"
-    },
-    {
-      "path": "/api/cron/blog-post",
-      "schedule": "47 11 * * 5"
-    }
   ]
 }
