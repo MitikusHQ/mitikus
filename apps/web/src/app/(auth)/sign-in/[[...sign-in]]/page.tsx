@@ -136,10 +136,15 @@ export default function SignInPage() {
       const clerkErr = err as { errors?: Array<{ code?: string }> }
       const code = clerkErr.errors?.[0]?.code ?? ''
       if (code === 'session_exists') {
-        const existing = clerk.client?.activeSessions?.[0]
-        if (existing) {
+        // Find the session matching the email the user tried to sign in with
+        const sessions = clerk.client?.activeSessions ?? []
+        const matchingSession = sessions.find(
+          (s) => s.publicUserData?.identifier === email,
+        ) ?? sessions[0]
+
+        if (matchingSession) {
           try {
-            await setActive({ session: existing.id })
+            await setActive({ session: matchingSession.id })
             window.location.href = '/onboarding'
             return
           } catch {
