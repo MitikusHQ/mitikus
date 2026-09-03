@@ -55,7 +55,7 @@ export default async function HomePage() {
     redirect(firstWorkspace ? `/workspace/${firstWorkspace.id}` : '/onboarding')
   }
 
-  const jsonLd = {
+  const jsonLdApp = {
     '@context': 'https://schema.org',
     '@type': 'SoftwareApplication',
     name: 'MITIKUS',
@@ -71,10 +71,42 @@ export default async function HomePage() {
     },
   }
 
+  const jsonLdOrg = {
+    '@context': 'https://schema.org',
+    '@type': 'Organization',
+    name: 'MITIKUS',
+    url: 'https://www.mitikus.com',
+    logo: 'https://www.mitikus.com/favicon.svg',
+    description: 'Hub de productividad para profesionales, pymes y equipos. Gestión de clientes, documentos, facturas y contratos en un único lugar.',
+    contactPoint: {
+      '@type': 'ContactPoint',
+      contactType: 'customer support',
+      availableLanguage: 'Spanish',
+      url: 'https://www.mitikus.com/sign-up',
+    },
+  }
+
+  const jsonLdWebSite = {
+    '@context': 'https://schema.org',
+    '@type': 'WebSite',
+    name: 'MITIKUS',
+    url: 'https://www.mitikus.com',
+    potentialAction: {
+      '@type': 'SearchAction',
+      target: {
+        '@type': 'EntryPoint',
+        urlTemplate: 'https://www.mitikus.com/sign-up',
+      },
+      'query-input': 'required name=search_term_string',
+    },
+  }
+
   return (
     <main className="min-h-screen bg-background">
       <ScrollReveal />
-      <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }} />
+      <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLdApp) }} />
+      <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLdOrg) }} />
+      <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLdWebSite) }} />
 
       {/* ── NAV ── */}
       <header className="border-b sticky top-0 z-50 bg-background/95 backdrop-blur-sm relative">
