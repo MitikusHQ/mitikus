@@ -147,7 +147,8 @@ Reglas de escritura:
     messages: [{ role: 'user', content: keywordsPrompt }],
   })
   const imageKeywords = (kwMessage.content[0] as { type: 'text'; text: string }).text.trim().replace(/\s/g, ',')
-  const imageUrl = `https://source.unsplash.com/1200x630/?${encodeURIComponent(imageKeywords)}`
+  const seed = Math.abs(imageKeywords.split('').reduce((a, c) => a + c.charCodeAt(0), 0)) % 1000
+  const imageUrl = `https://picsum.photos/seed/${seed}/1200/630`
 
   const userPrompt = `Escribe un artículo de blog completo sobre: "${topic}"
 
