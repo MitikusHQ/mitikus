@@ -65,13 +65,32 @@ export default async function BlogPage() {
 
   return (
     <main className="min-h-screen bg-background">
-      <header className="border-b">
+      <header className="border-b sticky top-0 z-50 bg-background/95 backdrop-blur-sm">
         <div className="max-w-3xl mx-auto px-6 py-4 flex items-center justify-between">
-          <Link href="/" className="font-semibold hover:opacity-80 transition-opacity">
-            MITIKUS
+          <Link href="/" className="flex items-center gap-2 hover:opacity-80 transition-opacity">
+            <svg width="32" height="32" viewBox="0 0 200 200" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+              <defs>
+                <linearGradient id="blg" x1="10" y1="10" x2="190" y2="190" gradientUnits="userSpaceOnUse">
+                  <stop offset="0%" stopColor="#FFD040"/>
+                  <stop offset="28%" stopColor="#FF7028"/>
+                  <stop offset="50%" stopColor="#FF2878"/>
+                  <stop offset="72%" stopColor="#8B28FF"/>
+                  <stop offset="100%" stopColor="#1820B8"/>
+                </linearGradient>
+                <clipPath id="blc"><circle cx="100" cy="100" r="87"/></clipPath>
+              </defs>
+              <circle cx="100" cy="100" r="90" fill="none" stroke="url(#blg)" strokeWidth="5.5"/>
+              <g clipPath="url(#blc)">
+                <polygon points="-10,0   192,95  192,100 -10,98" fill="url(#blg)"/>
+                <polygon points="-10,102 192,100 192,105 -10,200" fill="url(#blg)"/>
+              </g>
+            </svg>
+            <span className="font-bold tracking-widest text-sm" style={{ background: 'linear-gradient(100deg,#FFD040,#FF7028,#FF2878,#8B28FF,#1820B8)', WebkitBackgroundClip: 'text', WebkitTextFillColor: 'transparent', backgroundClip: 'text' }}>
+              MITIKUS
+            </span>
           </Link>
-          <Link href="/sign-up" className="text-sm text-muted-foreground hover:text-foreground transition-colors">
-            Empieza gratis →
+          <Link href="/sign-up" className="text-sm font-medium bg-primary text-primary-foreground px-3 py-1.5 rounded-md hover:bg-primary/90 transition-colors">
+            Empezar gratis
           </Link>
         </div>
       </header>
