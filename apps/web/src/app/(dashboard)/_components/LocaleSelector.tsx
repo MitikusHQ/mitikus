@@ -39,9 +39,11 @@ export function LocaleSelector({ currentLocale }: LocaleSelectorProps) {
   return (
     <div ref={ref} className="relative" aria-label="Language selector">
       <button
+        type="button"
         onClick={() => setOpen(v => !v)}
         disabled={isPending}
         title={current.nativeLabel}
+        aria-label="Select language"
         aria-expanded={open}
         aria-haspopup="listbox"
         className="flex items-center gap-1 text-sm px-2 py-1 rounded-md hover:bg-muted/60 transition-colors disabled:opacity-50"
@@ -64,6 +66,7 @@ export function LocaleSelector({ currentLocale }: LocaleSelectorProps) {
             const isActive = locale === currentLocale
             return (
               <button
+                type="button"
                 key={locale}
                 role="option"
                 aria-selected={isActive}
