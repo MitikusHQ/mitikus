@@ -44,7 +44,7 @@ async function getPosts(): Promise<BlogPost[]> {
         const title: string = content.match(/^#\s+(.+)$/m)?.[1] ?? slug
         const excerpt: string = content.match(/^> (.+)$/m)?.[1] ?? ''
         const dateMatch = content.match(/publishedAt:\s*(.+)/)
-        const publishedAt: string = dateMatch?.[1]?.trim() ?? new Date().toISOString().split('T')[0]
+        const publishedAt: string = dateMatch?.[1]?.trim() ?? new Date().toISOString().substring(0, 10)
         const image = content.match(/^image:\s*(.+)$/m)?.[1]?.trim()
         const imageAlt = content.match(/^imageAlt:\s*(.+)$/m)?.[1]?.trim()
         const words = content.split(/\s+/).length
