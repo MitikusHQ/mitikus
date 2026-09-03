@@ -101,6 +101,22 @@ export default async function HomePage() {
     },
   }
 
+  const landing = locale === 'es'
+    ? {
+        heroLine1: 'Tu negocio, clientes, facturas',
+        heroLine2: 'y memoria en un solo lugar.',
+        heroSubtitle: 'La plataforma para autónomos y pymes que quieren gestionar clientes, emitir facturas, guardar documentos y consultar la memoria de su negocio — sin herramientas dispersas, con IA integrada.',
+        startTrial: 'Empezar gratis — 15 días',
+        viewPricing: 'Ver precios',
+      }
+    : {
+        heroLine1: 'Your business, clients, invoices',
+        heroLine2: 'and memory in one place.',
+        heroSubtitle: 'The platform for freelancers and small teams that want to manage clients, issue invoices, store documents and consult their business memory — without scattered tools, with built-in AI.',
+        startTrial: 'Start free — 15 days',
+        viewPricing: 'See pricing',
+      }
+
   return (
     <main className="min-h-screen bg-background">
       <ScrollReveal />
@@ -140,24 +156,23 @@ export default async function HomePage() {
       {/* ── HERO ── */}
       <section data-no-reveal className="max-w-4xl mx-auto px-6 pt-16 pb-12 text-center">
         <h1 className="text-3xl sm:text-5xl font-bold tracking-tight mb-4 leading-tight">
-          Tu negocio, clientes, facturas<br className="hidden sm:block" /> y memoria en un solo lugar.
+          {landing.heroLine1}<br className="hidden sm:block" /> {landing.heroLine2}
         </h1>
         <p className="text-lg text-muted-foreground mb-8 max-w-2xl mx-auto">
-          La plataforma para autónomos y pymes que quieren gestionar clientes, emitir facturas, guardar documentos
-          y consultar la memoria de su negocio — sin herramientas dispersas, con IA integrada.
+          {landing.heroSubtitle}
         </p>
         <div className="flex flex-wrap gap-3 justify-center mb-10">
           <a
             href="/sign-up"
             className="rounded-md bg-primary px-6 py-3 text-sm font-semibold text-primary-foreground shadow hover:bg-primary/90 transition-colors"
           >
-            Empezar gratis — 15 días
+            {landing.startTrial}
           </a>
           <a
             href="#precios"
             className="rounded-md border border-input bg-background px-6 py-3 text-sm font-semibold text-foreground hover:bg-accent transition-colors"
           >
-            Ver precios
+            {landing.viewPricing}
           </a>
         </div>
 
