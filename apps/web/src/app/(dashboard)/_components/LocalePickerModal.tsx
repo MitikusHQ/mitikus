@@ -27,22 +27,30 @@ export function LocalePickerModal({ currentLocale }: LocalePickerModalProps) {
 
   return (
     <div className="fixed inset-0 z-[80] flex items-center justify-center bg-black/60 p-4">
-      <div className="flex max-h-[calc(100dvh-2rem)] w-full max-w-md flex-col overflow-hidden rounded-2xl border border-slate-200 bg-white text-slate-950 shadow-2xl dark:border-slate-700 dark:bg-slate-950 dark:text-slate-50">
+      <section
+        role="dialog"
+        aria-modal="true"
+        aria-labelledby="locale-picker-title"
+        aria-describedby="locale-picker-description"
+        className="flex max-h-[calc(100dvh-2rem)] w-full max-w-md flex-col overflow-hidden rounded-2xl border border-slate-200 bg-white text-slate-950 shadow-2xl dark:border-slate-700 dark:bg-slate-950 dark:text-slate-50"
+      >
         <div className="space-y-1 px-6 pt-6">
-          <h2 className="text-lg font-semibold">Choose your language</h2>
-          <p className="text-sm text-slate-600 dark:text-slate-300">
+          <h2 id="locale-picker-title" className="text-lg font-semibold">Choose your language</h2>
+          <p id="locale-picker-description" className="text-sm text-slate-600 dark:text-slate-300">
             Select the language you want to use in MITIKUS. You can change it later in Settings.
           </p>
         </div>
 
-        <div className="mx-6 mt-5 grid max-h-[min(18rem,calc(100dvh-16rem))] grid-cols-2 gap-2 overflow-y-auto pr-1">
+        <div className="mx-6 mt-5 grid max-h-[min(18rem,calc(100dvh-16rem))] grid-cols-2 gap-2 overflow-y-auto pr-1" role="group" aria-label="Available languages">
           {SUPPORTED_LOCALES.map((locale) => {
             const { flag, nativeLabel } = LOCALE_LABELS[locale]
             const isSelected = locale === selected
             return (
               <button
+                type="button"
                 key={locale}
                 onClick={() => setSelected(locale)}
+                aria-pressed={isSelected}
                 className={`flex items-center gap-2.5 rounded-lg border px-3 py-2.5 text-left text-sm transition-colors ${
                   isSelected
                     ? 'border-primary bg-primary/10 font-medium text-slate-950 dark:text-white'
@@ -58,6 +66,7 @@ export function LocalePickerModal({ currentLocale }: LocalePickerModalProps) {
 
         <div className="px-6 pb-6 pt-5">
           <button
+            type="button"
             onClick={handleConfirm}
             disabled={isPending}
             className="w-full rounded-lg bg-primary py-2.5 text-sm font-medium text-primary-foreground transition-colors hover:bg-primary/90 disabled:opacity-50"
@@ -65,7 +74,7 @@ export function LocalePickerModal({ currentLocale }: LocalePickerModalProps) {
             {isPending ? '…' : 'Confirm'}
           </button>
         </div>
-      </div>
+      </section>
     </div>
   )
 }
