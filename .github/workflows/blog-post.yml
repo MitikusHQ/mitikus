@@ -1,0 +1,34 @@
+name: Blog post automático
+
+on:
+  schedule:
+    # Lunes 06:00 UTC (08:00 Madrid) — arranca el workflow, sleep aleatorio hasta 90 min
+    - cron: '0 6 * * 1'
+    # Viernes 09:30 UTC (11:30 Madrid) — sleep aleatorio hasta 60 min
+    - cron: '30 9 * * 5'
+  workflow_dispatch:
+
+jobs:
+  publish:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Sleep aleatorio
+        run: |
+          if [ "$(date +%u)" = "1" ]; then
+            DELAY=$((RANDOM % 90))
+          else
+            DELAY=$((RANDOM % 60))
+          fi
+          echo "Esperando $DELAY minutos antes de publicar..."
+          sleep "${DELAY}m"
+
+      - name: Llamar al endpoint de blog
+        run: |
+          RESPONSE=$(curl -s -o /dev/null -w "%{http_code}" \
+            -H "Authorization: Bearer ${{ secrets.CRON_SECRET }}" \
+            "${{ secrets.MITIKUS_APP_URL }}/api/cron/blog-post")
+          echo "HTTP status: $RESPONSE"
+          if [ "$RESPONSE" != "200" ]; then
+            echo "Error: el endpoint devolvió $RESPONSE"
+            exit 1
+          fi
