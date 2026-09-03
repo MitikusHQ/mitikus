@@ -33,6 +33,6 @@
     {
       "path": "/api/cron/invoice-overdue",
       "schedule": "30 9 * * *"
-    },
+    }
   ]
 }
