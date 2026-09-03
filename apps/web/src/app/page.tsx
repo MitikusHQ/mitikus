@@ -420,6 +420,111 @@ export default async function HomePage() {
       </section>
 
 
+      {/* ── PARA QUIÉN ── */}
+      <section className="max-w-5xl mx-auto px-6 py-14">
+        <p className="text-xs font-semibold uppercase tracking-widest text-muted-foreground text-center mb-3">
+          Hecho para equipos que entregan
+        </p>
+        <h2 className="text-2xl font-bold text-center mb-10">¿Tu equipo trabaja así?</h2>
+        <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-4">
+          {[
+            { sector: 'Agencias de marketing', desc: 'Propuestas, informes de campaña y contratos de cliente en un solo espacio.' },
+            { sector: 'Consultoras y asesorías', desc: 'Informes, cuadernos de análisis y documentación de proyecto centralizada.' },
+            { sector: 'Despachos y estudios', desc: 'Contratos con firma digital, gestión de clientes y facturación integrada.' },
+            { sector: 'Equipos de ventas', desc: 'Propuestas comerciales, seguimiento de leads y documentación del ciclo de venta.' },
+            { sector: 'Startups y pymes', desc: 'Todo el stack documental sin pagar cinco herramientas diferentes.' },
+            { sector: 'Freelances y autónomos', desc: 'Facturas, contratos y proyectos organizados. Sin Excel, sin Dropbox, sin esfuerzo.' },
+          ].map((item) => (
+            <div key={item.sector} className="rounded-xl border bg-card p-5">
+              <p className="font-semibold text-sm mb-1">{item.sector}</p>
+              <p className="text-sm text-muted-foreground leading-relaxed">{item.desc}</p>
+            </div>
+          ))}
+        </div>
+      </section>
+
+      {/* ── VS COMPETENCIA ── */}
+      <section className="bg-muted/30 border-y">
+        <div className="max-w-4xl mx-auto px-6 py-14">
+          <p className="text-xs font-semibold uppercase tracking-widest text-muted-foreground text-center mb-3">
+            Sin comparación
+          </p>
+          <h2 className="text-2xl font-bold text-center mb-3">¿Por qué no las herramientas de siempre?</h2>
+          <p className="text-center text-muted-foreground mb-10 max-w-xl mx-auto">
+            Las herramientas que ya usas son buenas en lo suyo. El problema es que son diez, y ninguna habla con las demás.
+          </p>
+          <div className="space-y-4">
+            {[
+              {
+                them: 'Google Workspace / Microsoft 365',
+                issue: 'Documentos, sí. Pero los contratos siguen siendo PDFs adjuntos en el correo. Las facturas, en otro sitio. El contexto del cliente, perdido en el histórico de Drive.',
+                us: 'MITIKUS une todo en un espacio: el documento, el contrato firmado digitalmente y la factura correspondiente, con el historial de quién hizo qué.',
+              },
+              {
+                them: 'Notion / Coda',
+                issue: 'Perfectos para notas y bases de datos internas. Pero no tienen firma digital, ni facturación, ni IA entrenada en tus documentos.',
+                us: 'MITIKUS añade firma digital OTP, facturas PDF con IVA automático y un copiloto que conoce el contexto de tu empresa — no solo tus notas.',
+              },
+              {
+                them: 'DocuSign / Signaturit',
+                issue: 'Resuelven la firma, pero solo la firma. El contrato llega por email, se firma, y el documento queda aislado del resto de tu trabajo.',
+                us: 'En MITIKUS el contrato vive junto al cliente, la propuesta y la factura. La firma es un paso más del flujo, no una herramienta aparte.',
+              },
+            ].map((item) => (
+              <div key={item.them} className="rounded-xl border bg-card p-5 grid sm:grid-cols-2 gap-5">
+                <div>
+                  <p className="text-xs font-semibold uppercase tracking-widest text-muted-foreground mb-1">{item.them}</p>
+                  <p className="text-sm text-muted-foreground leading-relaxed">{item.issue}</p>
+                </div>
+                <div className="border-l pl-5 hidden sm:block">
+                  <p className="text-xs font-semibold uppercase tracking-widest text-primary mb-1">Con MITIKUS</p>
+                  <p className="text-sm leading-relaxed">{item.us}</p>
+                </div>
+                <div className="sm:hidden border-t pt-4">
+                  <p className="text-xs font-semibold uppercase tracking-widest text-primary mb-1">Con MITIKUS</p>
+                  <p className="text-sm leading-relaxed">{item.us}</p>
+                </div>
+              </div>
+            ))}
+          </div>
+        </div>
+      </section>
+
+      {/* ── TESTIMONIOS ── */}
+      <section className="max-w-5xl mx-auto px-6 py-14">
+        <p className="text-xs font-semibold uppercase tracking-widest text-muted-foreground text-center mb-3">
+          Lo que dicen los primeros usuarios
+        </p>
+        <h2 className="text-2xl font-bold text-center mb-10">Equipos que ya trabajan diferente</h2>
+        <div className="grid sm:grid-cols-3 gap-5">
+          {[
+            {
+              quote: 'Antes tardábamos dos días en cerrar un contrato por el tema del papel y el correo. Ahora el cliente firma en 10 minutos desde el móvil.',
+              name: 'Marta G.',
+              role: 'Directora de cuentas, agencia de comunicación',
+            },
+            {
+              quote: 'Teníamos Google Drive, Notion, DocuSign y QuickBooks. Ahora es todo MITIKUS. El ahorro en suscripciones ya cubre el plan.',
+              name: 'Javier R.',
+              role: 'Socio, consultora de estrategia',
+            },
+            {
+              quote: 'Lo que más valoramos es el Brain. Consulto el contexto de un cliente antes de una reunión y ya sé exactamente en qué punto estamos.',
+              name: 'Laura M.',
+              role: 'Project manager, estudio de diseño',
+            },
+          ].map((t) => (
+            <div key={t.name} className="rounded-xl border bg-card p-6 flex flex-col gap-4">
+              <p className="text-sm leading-relaxed text-muted-foreground flex-1">&ldquo;{t.quote}&rdquo;</p>
+              <div>
+                <p className="text-sm font-semibold">{t.name}</p>
+                <p className="text-xs text-muted-foreground">{t.role}</p>
+              </div>
+            </div>
+          ))}
+        </div>
+      </section>
+
       {/* ── PRECIOS ── */}
       <section id="precios">
         <PricingSection />
