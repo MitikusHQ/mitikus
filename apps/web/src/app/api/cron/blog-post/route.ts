@@ -64,7 +64,7 @@ function pickTopic(date: Date): string {
   const dayOfWeek = date.getDay()
   const offset = dayOfWeek === 1 ? 0 : 1
   const index = (weekNumber * 2 + offset) % TOPICS.length
-  return TOPICS[index]
+  return TOPICS[index] ?? TOPICS[0]!
 }
 
 function buildSlug(title: string, date: Date): string {
