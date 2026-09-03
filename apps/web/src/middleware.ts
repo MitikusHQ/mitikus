@@ -31,6 +31,7 @@ const isPublicRoute = createRouteMatcher([
   '/api/desktop/license-token',
   '/api/webhooks/(.*)',
   '/api/leads',
+  '/api/cron/(.*)',
   '/pricing',
 ])
 
@@ -42,6 +43,7 @@ const isRateLimitExempt = createRouteMatcher([
   '/api/desktop/license-token',
   '/api/webhooks/(.*)',
   '/api/leads',
+  '/api/cron/(.*)',
 ])
 const isRateLimitReadExempt = createRouteMatcher([
   '/api/workspace/(.*)/brain/history',
