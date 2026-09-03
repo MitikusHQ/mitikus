@@ -18,6 +18,9 @@ export function LandingNav({ locale }: LandingNavProps) {
       <nav className="hidden md:flex items-center gap-4" aria-label="Navegación principal">
         <LocaleSelector currentLocale={locale} />
         <ThemeToggle />
+        <a href="/blog" className="text-sm text-muted-foreground hover:text-foreground transition-colors">
+          Blog
+        </a>
         <a href="/sign-in" className="text-sm text-muted-foreground hover:text-foreground transition-colors">
           Iniciar sesión
         </a>

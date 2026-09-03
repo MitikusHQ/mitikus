@@ -57,9 +57,16 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
   }
 }
 
+function stripFrontmatter(raw: string): string {
+  // Remove YAML fenced frontmatter (---...---)
+  const fenced = raw.replace(/^---[\s\S]*?---\n?/, '')
+  if (fenced !== raw) return fenced
+  // Remove loose frontmatter lines (key: value) before the first heading
+  return raw.replace(/^(?:[\w]+:.*\n)+\n?/, '')
+}
+
 function mdxToHtml(raw: string): string {
-  return raw
-    .replace(/^---[\s\S]*?---\n?/, '')
+  return stripFrontmatter(raw)
     .replace(/^# (.+)$/gm, '<h1>$1</h1>')
     .replace(/^## (.+)$/gm, '<h2>$1</h2>')
     .replace(/^### (.+)$/gm, '<h3>$1</h3>')
