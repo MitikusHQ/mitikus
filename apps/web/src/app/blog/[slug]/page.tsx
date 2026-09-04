@@ -77,6 +77,7 @@ function stripFrontmatter(raw: string): string {
 
 function mdxToHtml(raw: string): string {
   return stripFrontmatter(raw)
+    .replace(/^# .+$/m, '')
     .replace(/^# (.+)$/gm, '<h1>$1</h1>')
     .replace(/^## (.+)$/gm, '<h2>$1</h2>')
     .replace(/^### (.+)$/gm, '<h3>$1</h3>')
@@ -136,12 +137,13 @@ export default async function BlogPostPage({ params }: Props) {
         </div>
       </header>
 
-      <article className="max-w-3xl mx-auto px-6 py-14 prose prose-neutral dark:prose-invert">
+      <article className="max-w-3xl mx-auto px-6 py-14">
         {post.publishedAt && (
-          <time className="text-xs text-muted-foreground not-prose block mb-6">{post.publishedAt}</time>
+          <time className="text-xs text-muted-foreground block mb-4">{post.publishedAt}</time>
         )}
+        <h1 className="text-3xl font-bold leading-tight mb-6">{post.title}</h1>
         {post.image && (
-          <div className="not-prose mb-10 rounded-xl overflow-hidden aspect-[1200/630]">
+          <div className="mb-10 rounded-xl overflow-hidden aspect-[1200/630]">
             <Image
               src={post.image}
               alt={post.imageAlt ?? post.title}
@@ -153,7 +155,10 @@ export default async function BlogPostPage({ params }: Props) {
             />
           </div>
         )}
-        <div dangerouslySetInnerHTML={{ __html: html }} />
+        <div
+          className="prose prose-neutral dark:prose-invert max-w-none"
+          dangerouslySetInnerHTML={{ __html: html }}
+        />
       </article>
 
       <div className="max-w-3xl mx-auto px-6 pb-16 not-prose">
