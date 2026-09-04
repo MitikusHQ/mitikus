@@ -26,7 +26,7 @@ async function getPosts(): Promise<BlogPost[]> {
           Authorization: `Bearer ${process.env.GITHUB_BLOG_TOKEN}`,
           Accept: 'application/vnd.github.v3+json',
         },
-        next: { revalidate: 3600 },
+        next: { revalidate: 300 },
       },
     )
 
