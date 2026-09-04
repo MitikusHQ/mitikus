@@ -166,6 +166,8 @@ imageAlt: ${topic}
 
 [2-3 párrafos que enganchen]
 
+![descripción breve imagen 1](https://picsum.photos/seed/[SEED_A]/800/400)
+
 ## [Sección principal 1]
 
 [Contenido útil y accionable]
@@ -173,6 +175,8 @@ imageAlt: ${topic}
 ## [Sección principal 2]
 
 [Contenido útil y accionable]
+
+![descripción breve imagen 2](https://picsum.photos/seed/[SEED_B]/800/400)
 
 ## [Sección principal 3 o consejos prácticos]
 
@@ -182,7 +186,8 @@ imageAlt: ${topic}
 
 [Cierre con llamada a la acción discreta hacia MITIKUS]
 
-El artículo debe tener entre 600 y 900 palabras. Sin comentarios meta, sin explicaciones fuera del artículo.`
+El artículo debe tener entre 600 y 900 palabras. Sin comentarios meta, sin explicaciones fuera del artículo.
+Sustituye [SEED_A] por un número entre 100 y 500 y [SEED_B] por un número entre 501 y 999. Elige seeds distintos y distintos entre sí.`
 
   const message = await client.messages.create({
     model: 'claude-sonnet-4-6',
