@@ -88,14 +88,14 @@ function mdxToHtml(raw: string): string {
     .replace(/^\- (.+)$/gm, '<li>$1</li>')
     .replace(/(<li>[\s\S]*?<\/li>)/g, '<ul>$1</ul>')
     .replace(/^(\d+)\. (.+)$/gm, '<li>$2</li>')
-    .replace(/!\[([^\]]*)\]\(([^)]+)\)/g, '<img src="$2" alt="$1" style="width:100%;border-radius:0.5rem;margin:1.5rem 0" loading="lazy" />')
     .replace(/\[(.+?)\]\((.+?)\)/g, '<a href="$2" target="_blank" rel="noopener noreferrer">$1</a>')
+    .replace(/!\[([^\]]*)\]\(([^)]+)\)/g, '\n\n<img src="$2" alt="$1" style="display:block;width:100%;border-radius:0.5rem;margin:1.5rem 0" loading="lazy" />\n\n')
     .replace(/\n\n/g, '</p><p>')
-    .replace(/^(?!<[hbuaocl])/gm, '<p>')
+    .replace(/^(?!<[hbuaocli])/gm, '<p>')
     .replace(/(?<![>])$/gm, '</p>')
     .replace(/<p><\/p>/g, '')
-    .replace(/<p>(<[h1-6ul])/g, '$1')
-    .replace(/(<\/[h1-6ul]>)<\/p>/g, '$1')
+    .replace(/<p>(<(?:h[1-6]|ul|img)[^>]*\/?>)/g, '$1')
+    .replace(/(<\/(?:h[1-6]|ul)>)<\/p>/g, '$1')
 }
 
 export default async function BlogPostPage({ params }: Props) {
