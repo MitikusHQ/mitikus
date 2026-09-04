@@ -62,7 +62,7 @@ function stripFrontmatter(raw: string): string {
   const fenced = raw.replace(/^---[\s\S]*?---\n?/, '')
   if (fenced !== raw) return fenced
   // Remove loose frontmatter lines (key: value) before the first heading
-  return raw.replace(/^(?:[\w]+:.*\n)+\n?/, '')
+  return raw.replace(/^(?:[A-Za-z][\w]*:[ \t].*\n)+\n?(?=#)/, '')
 }
 
 function mdxToHtml(raw: string): string {
