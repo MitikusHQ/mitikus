@@ -66,7 +66,7 @@ export default function SignInPage() {
   const [oauthLoading, setOAuthLoading] = useState<OAuthProvider | null>(null)
   const [showSignOut, setShowSignOut] = useState(false)
 
-  // Redirect already authenticated users
+  // Redirect already authenticated users immediately
   useEffect(() => {
     if (authLoaded && isSignedIn) {
       window.location.href = '/onboarding'
@@ -136,7 +136,12 @@ export default function SignInPage() {
       const clerkErr = err as { errors?: Array<{ code?: string }> }
       const code = clerkErr.errors?.[0]?.code ?? ''
       if (code === 'session_exists') {
-        // Find the session matching the email the user tried to sign in with
+        // Si ya hay sesión activa, redirigir directamente
+        if (isSignedIn) {
+          window.location.href = '/onboarding'
+          return
+        }
+        // Intentar activar la sesión existente
         const sessions = clerk.client?.activeSessions ?? []
         const matchingSession = sessions.find(
           (s) => s.publicUserData?.identifier === email,
@@ -148,7 +153,11 @@ export default function SignInPage() {
             window.location.href = '/onboarding'
             return
           } catch {
-            // fall through to show sign-out button
+            // La sesión existe en Clerk pero no se puede activar localmente
+            // Hacer signOut completo y dejar que el usuario intente de nuevo
+            await clerk.signOut()
+            setError('Sesión anterior limpiada. Inicia sesión de nuevo.')
+            return
           }
         }
         setShowSignOut(true)
