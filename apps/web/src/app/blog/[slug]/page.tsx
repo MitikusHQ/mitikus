@@ -61,8 +61,18 @@ function stripFrontmatter(raw: string): string {
   // Remove YAML fenced frontmatter (---...---)
   const fenced = raw.replace(/^---[\s\S]*?---\n?/, '')
   if (fenced !== raw) return fenced
-  // Remove loose frontmatter lines (key: value) before the first heading
-  return raw.replace(/^(?:[A-Za-z][\w]*:[ \t].*\n)+\n?(?=#)/, '')
+  // Remove loose frontmatter: skip leading lines that are "key: value" or blank, stop at first #
+  const lines = raw.split('\n')
+  let i = 0
+  while (i < lines.length) {
+    const line = lines[i] ?? ''
+    if (/^[A-Za-z][\w]*:[ \t]/.test(line) || line.trim() === '') {
+      i++
+    } else {
+      break
+    }
+  }
+  return lines.slice(i).join('\n')
 }
 
 function mdxToHtml(raw: string): string {
