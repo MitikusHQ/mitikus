@@ -77,6 +77,7 @@ function mdxToHtml(raw: string): string {
     .replace(/^\- (.+)$/gm, '<li>$1</li>')
     .replace(/(<li>[\s\S]*?<\/li>)/g, '<ul>$1</ul>')
     .replace(/^(\d+)\. (.+)$/gm, '<li>$2</li>')
+    .replace(/!\[([^\]]*)\]\(([^)]+)\)/g, '<img src="$2" alt="$1" style="width:100%;border-radius:0.5rem;margin:1.5rem 0" loading="lazy" />')
     .replace(/\[(.+?)\]\((.+?)\)/g, '<a href="$2" target="_blank" rel="noopener noreferrer">$1</a>')
     .replace(/\n\n/g, '</p><p>')
     .replace(/^(?!<[hbuaocl])/gm, '<p>')
