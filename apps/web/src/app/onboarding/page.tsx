@@ -46,13 +46,18 @@ export default async function OnboardingPage() {
       })
     }
 
-    user = await db.user.create({
-      data: {
+    user = await db.user.upsert({
+      where: { email },
+      create: {
         clerkId: userId,
         email,
         name,
         orgId: org.id,
         role: 'OWNER',
+      },
+      update: {
+        clerkId: userId,
+        name,
       },
       include: {
         org: {
