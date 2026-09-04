@@ -166,7 +166,7 @@ imageAlt: ${topic}
 
 [2-3 párrafos que enganchen]
 
-![descripción breve imagen 1](https://picsum.photos/seed/[SEED_A]/800/400)
+![descripción breve imagen 1](https://loremflickr.com/800/400/[KEYWORD_A])
 
 ## [Sección principal 1]
 
@@ -176,7 +176,7 @@ imageAlt: ${topic}
 
 [Contenido útil y accionable]
 
-![descripción breve imagen 2](https://picsum.photos/seed/[SEED_B]/800/400)
+![descripción breve imagen 2](https://loremflickr.com/800/400/[KEYWORD_B])
 
 ## [Sección principal 3 o consejos prácticos]
 
@@ -187,7 +187,7 @@ imageAlt: ${topic}
 [Cierre con llamada a la acción discreta hacia MITIKUS]
 
 El artículo debe tener entre 600 y 900 palabras. Sin comentarios meta, sin explicaciones fuera del artículo.
-Sustituye [SEED_A] por un número entre 100 y 500 y [SEED_B] por un número entre 501 y 999. Elige seeds distintos y distintos entre sí.`
+Sustituye [KEYWORD_A] y [KEYWORD_B] por 1-2 palabras en inglés separadas por coma, relacionadas con el tema del artículo (ej: office,automation o document,business o team,productivity). Elige keywords distintas entre sí y relevantes para el contexto visual de cada sección.`
 
   const message = await client.messages.create({
     model: 'claude-sonnet-4-6',
