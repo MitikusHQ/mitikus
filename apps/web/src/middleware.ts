@@ -56,24 +56,28 @@ export default clerkMiddleware(async (auth, req) => {
   const skipReadRateLimit = req.method === 'GET' && isRateLimitReadExempt(req)
 
   if (ratelimit && isRateLimitedRoute(req) && !isRateLimitExempt(req) && !skipReadRateLimit) {
-    const ip =
-      req.headers.get('x-forwarded-for')?.split(',')[0]?.trim() ??
-      req.headers.get('x-real-ip') ??
-      '127.0.0.1'
+    try {
+      const ip =
+        req.headers.get('x-forwarded-for')?.split(',')[0]?.trim() ??
+        req.headers.get('x-real-ip') ??
+        '127.0.0.1'
 
-    const { success } = await ratelimit.limit(ip)
+      const { success } = await ratelimit.limit(ip)
 
-    if (!success) {
-      return new NextResponse(
-        JSON.stringify({ error: 'Demasiadas solicitudes. Inténtalo en un momento.' }),
-        {
-          status: 429,
-          headers: {
-            'Content-Type': 'application/json',
-            'Retry-After': '60',
+      if (!success) {
+        return new NextResponse(
+          JSON.stringify({ error: 'Demasiadas solicitudes. Inténtalo en un momento.' }),
+          {
+            status: 429,
+            headers: {
+              'Content-Type': 'application/json',
+              'Retry-After': '60',
+            },
           },
-        },
-      )
+        )
+      }
+    } catch {
+      // Upstash no disponible — continuar sin rate limiting
     }
   }
 
