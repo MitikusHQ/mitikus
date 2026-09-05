@@ -59,7 +59,7 @@ export function LocaleSelector({ currentLocale }: LocaleSelectorProps) {
         <div
           role="listbox"
           aria-label="Select language"
-          className="absolute right-0 top-full mt-1 z-50 bg-popover border border-border rounded-xl shadow-lg py-1 w-44 max-h-72 overflow-y-auto"
+          className="absolute right-0 top-full mt-1 z-50 bg-background border border-border rounded-xl shadow-lg py-1 w-44 max-h-72 overflow-y-auto"
         >
           {SUPPORTED_LOCALES.map((locale) => {
             const { flag, nativeLabel } = LOCALE_LABELS[locale]
