@@ -7,6 +7,8 @@ import { Icons } from './_components/WorkspaceIcons'
 import type { NavItem } from './_components/WorkspaceSidebarItem'
 import { getPendingCount } from '@/app/actions/today'
 import { getMyPendingTaskCount } from '@/app/actions/tasks'
+import { getLocale } from '@/i18n/locale'
+import { getDashboardTranslations } from '@/i18n/dashboard-translations'
 
 interface Props {
   children: React.ReactNode
@@ -19,7 +21,8 @@ interface NavGroup {
 }
 
 export default async function WorkspaceLayout({ children, params }: Props) {
-  const [{ workspaceId }, user] = await Promise.all([params, requireUser()])
+  const [{ workspaceId }, user, locale] = await Promise.all([params, requireUser(), getLocale()])
+  const t = getDashboardTranslations(locale)
 
   const [workspace, pendingCount, taskCount] = await Promise.all([
     db.workspace.findFirst({
@@ -55,114 +58,113 @@ export default async function WorkspaceLayout({ children, params }: Props) {
   // Top — acceso inmediato diario
   const coreItems: NavItem[] = [
     {
-      label: 'Mi día',
+      label: t.navToday,
       href: `${base}/today`,
       icon: Icons.today,
-      description: 'Tus tareas pendientes y actividad del equipo de hoy',
+      description: t.descToday,
       badge: pendingCount > 0 ? String(pendingCount) : undefined,
     },
     {
-      label: 'Arkos',
+      label: t.navCopilot,
       href: `${base}/copilot`,
       icon: Icons.copilot,
-      description: 'Tu asesor estratégico — cuéntale tus objetivos y te ayuda a planificarlos',
+      description: t.descCopilot,
     },
     {
-      label: 'Brain',
+      label: t.navBrain,
       href: `${base}/brain`,
       icon: Icons.brain,
-      description: 'Consulta la memoria del workspace — documentos, objetivos y decisiones',
+      description: t.descBrain,
     },
     {
-      label: 'Correo',
+      label: t.navMail,
       href: `${base}/mail`,
       icon: Icons.mail,
-      description: 'Recibidos, enviados, borradores y correos de clientes',
+      description: t.descMail,
     },
   ].filter(() => canView)
 
   // Trabajo — operativa del negocio
   const workItems: NavItem[] = [
     {
-      label: 'Clientes',
+      label: t.navClients,
       href: `${base}/clients`,
       icon: Icons.clients,
-      description: 'Las empresas o personas a las que prestas servicio',
+      description: t.descClients,
     },
     {
-      label: 'Leads',
+      label: t.navLeads,
       href: `${base}/leads`,
       icon: Icons.leads,
-      description: 'Potenciales clientes captados desde tu formulario público',
+      description: t.descLeads,
     },
     {
-      label: 'Tareas',
+      label: t.navTasks,
       href: `${base}/tasks`,
       icon: Icons.tasks,
-      description: 'Tareas del equipo con etiquetado colaborativo',
+      description: t.descTasks,
       badge: taskCount > 0 ? String(taskCount) : undefined,
     },
     {
-      label: 'Herramientas',
+      label: t.navTools,
       href: `${base}/tools`,
       icon: Icons.tools,
-      description: 'Las herramientas que has instalado o creado para tu negocio',
+      description: t.descTools,
     },
     {
-      label: 'Flujos',
+      label: t.navWorkflows,
       href: `${base}/workflows`,
       icon: Icons.workflows,
-      description: 'Encadena varias herramientas para automatizar un proceso completo',
+      description: t.descWorkflows,
     },
   ].filter(() => canView)
 
   // Contenido — documentos y planificación
   const contentItems: NavItem[] = [
     {
-      label: 'Mi Office',
+      label: t.navOffice,
       href: `${base}/office`,
       icon: Icons.office,
-      description: 'Documentos, hojas de cálculo, PDFs, contratos y presentaciones',
+      description: t.descOffice,
     },
     {
-      label: 'Archivos',
+      label: t.navFiles,
       href: `${base}/files`,
       icon: Icons.files,
-      description: 'Almacén de archivos del workspace con exportación ZIP',
+      description: t.descFiles,
     },
     {
-      label: 'Misiones',
+      label: t.navMissions,
       href: `${base}/missions`,
       icon: Icons.missions,
-      description: 'Objetivos estratégicos y sus pasos de ejecución',
+      description: t.descMissions,
     },
   ].filter(() => canView)
 
   const dataItems: NavItem[] = [
     {
-      label: 'Fiscal',
+      label: t.navFiscal,
       href: `${base}/fiscal`,
       icon: Icons.fiscal,
-      description: 'Calendario de obligaciones fiscales para tu empresa',
+      description: t.descFiscal,
     },
     {
-      label: 'Facturas',
+      label: t.navInvoices,
       href: `${base}/invoices`,
       icon: Icons.invoices,
-      description: 'Crea y gestiona facturas para tus clientes con PDF descargable',
+      description: t.descInvoices,
     },
-
     {
-      label: 'Gastos',
+      label: t.navReceipts,
       href: `${base}/receipts`,
       icon: Icons.receipts,
-      description: 'Escanea tickets y facturas con la cámara — la IA extrae los datos',
+      description: t.descReceipts,
     },
     {
-      label: 'Analítica',
+      label: t.navAnalytics,
       href: `${base}/analytics`,
       icon: Icons.analytics,
-      description: 'Actividad, ejecuciones y costes de tu workspace',
+      description: t.descAnalytics,
     },
   ].filter(() => can(user, 'view_usage'))
 
@@ -171,55 +173,55 @@ export default async function WorkspaceLayout({ children, params }: Props) {
   // Audit — VIEWER+ (can view_usage)
   if (can(user, 'view_usage')) {
     adminItems.push({
-      label: 'Uso del plan',
+      label: t.navUsage,
       href: `${base}/usage`,
       icon: Icons.usage,
-      description: 'Cuánto has generado este mes y cuánto te queda de tu plan',
+      description: t.descUsage,
     })
     adminItems.push({
-      label: 'Auditoría',
+      label: t.navAudit,
       href: `${base}/audit`,
       icon: Icons.audit,
-      description: 'Registro de quién hizo qué y cuándo en este workspace',
+      description: t.descAudit,
     })
   }
 
   // Org Admin — ADMIN+
   if (can(user, 'manage_members')) {
     adminItems.push({
-      label: 'Admin Org',
+      label: t.navAdminOrg,
       href: '/org',
       icon: Icons.organization,
-      description: 'Miembros, planes y configuración de tu organización',
+      description: t.descAdminOrg,
     })
   }
 
   const profileItems: NavItem[] = [
     {
-      label: 'Mi perfil',
+      label: t.navProfile,
       href: `${base}/profile`,
       icon: Icons.profile,
-      description: 'Tu foto de perfil y preferencias personales',
+      description: t.descProfile,
     },
     {
-      label: 'Soporte',
+      label: t.navSupport,
       href: `${base}/support`,
       icon: Icons.support,
-      description: 'Asistente de ayuda y contacto con el equipo MITIKUS',
+      description: t.descSupport,
     },
     {
-      label: 'Ajustes',
+      label: t.navSettings,
       href: `${base}/settings`,
       icon: Icons.settings,
-      description: 'Logo, color de marca y nombre del workspace',
+      description: t.descSettings,
     },
   ]
 
   const navGroups: NavGroup[] = [
     { items: coreItems },
-    { label: 'Trabajo', items: workItems },
-    { label: 'Contenido', items: contentItems },
-    { label: 'Sistema', items: [...dataItems, ...adminItems] },
+    { label: t.groupWork, items: workItems },
+    { label: t.groupContent, items: contentItems },
+    { label: t.groupSystem, items: [...dataItems, ...adminItems] },
     { items: profileItems },
   ].filter((g) => g.items.length > 0)
 
@@ -241,6 +243,7 @@ export default async function WorkspaceLayout({ children, params }: Props) {
       userAvatarUrl={user.avatarUrl ?? null}
       navGroups={navGroups}
       myId={user.id}
+      locale={locale}
     >
       {children}
     </WorkspaceShell>
