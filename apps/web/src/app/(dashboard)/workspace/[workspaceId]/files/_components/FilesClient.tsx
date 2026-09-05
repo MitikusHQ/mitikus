@@ -72,7 +72,7 @@ export function FilesClient({ workspaceId, initialFiles, initialStorage }: Props
           res.status === 507
             ? 'Has alcanzado el límite de almacenamiento de tu plan.'
             : res.status === 413
-            ? 'El archivo supera el límite de 100 MB.'
+            ? 'El archivo supera el límite de 50 MB.'
             : data.error ?? 'Error al subir el archivo.',
         )
         return
@@ -193,7 +193,7 @@ export function FilesClient({ workspaceId, initialFiles, initialStorage }: Props
               ? 'Subiendo…'
               : <>Arrastra un archivo aquí o <span className="text-primary font-medium">elige uno</span></>}
           </p>
-          <p className="text-xs text-muted-foreground">Máximo 100 MB por archivo</p>
+          <p className="text-xs text-muted-foreground">Máximo 50 MB por archivo</p>
         </div>
       </div>
 
