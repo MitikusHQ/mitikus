@@ -21,7 +21,7 @@ export function LandingNav({ locale }: LandingNavProps) {
     <div className="flex items-center gap-2">
       {/* Desktop nav */}
       <nav className="hidden md:flex items-center gap-4" aria-label="Navegación principal">
-        <LocaleSelector currentLocale={locale} />
+        <LocaleSelector currentLocale={locale} locales={['en', 'es']} />
         <ThemeToggle />
         <a href="/blog" className="text-sm text-muted-foreground hover:text-foreground transition-colors">
           Blog
@@ -63,7 +63,7 @@ export function LandingNav({ locale }: LandingNavProps) {
           className="md:hidden absolute top-full left-0 right-0 border-b bg-background/98 backdrop-blur-sm shadow-md px-6 py-4 flex flex-col gap-3"
         >
           <div className="flex items-center gap-3">
-            <LocaleSelector currentLocale={locale} />
+            <LocaleSelector currentLocale={locale} locales={['en', 'es']} />
             <ThemeToggle />
           </div>
           <a href="/blog" className="text-sm text-muted-foreground hover:text-foreground transition-colors py-1" onClick={() => setOpen(false)}>

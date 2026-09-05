@@ -6,9 +6,10 @@ import { setLocale } from '@/app/actions/locale'
 
 interface LocaleSelectorProps {
   currentLocale: Locale
+  locales?: readonly Locale[]
 }
 
-export function LocaleSelector({ currentLocale }: LocaleSelectorProps) {
+export function LocaleSelector({ currentLocale, locales = SUPPORTED_LOCALES }: LocaleSelectorProps) {
   const [isPending, startTransition] = useTransition()
   const [open, setOpen] = useState(false)
   const ref = useRef<HTMLDivElement>(null)
@@ -59,7 +60,7 @@ export function LocaleSelector({ currentLocale }: LocaleSelectorProps) {
           aria-label="Select language"
           className="absolute right-0 top-full mt-1 z-50 bg-background border border-border rounded-xl shadow-lg py-1 w-44 max-h-72 overflow-y-auto"
         >
-          {SUPPORTED_LOCALES.map((locale) => {
+          {locales.map((locale) => {
             const { flag, nativeLabel } = LOCALE_LABELS[locale]
             const isActive = locale === currentLocale
             return (
