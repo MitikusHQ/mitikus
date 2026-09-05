@@ -11,7 +11,7 @@ interface LandingNavProps {
 
 export function LandingNav({ locale }: LandingNavProps) {
   const [open, setOpen] = useState(false)
-  const isEn = locale === 'en'
+  const isEn = locale !== 'es'
   const signIn = isEn ? 'Sign in' : 'Iniciar sesión'
   const startFree = isEn ? 'Start free' : 'Empezar gratis'
   const openMenu = isEn ? 'Open menu' : 'Abrir menú'
