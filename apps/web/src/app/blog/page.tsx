@@ -63,10 +63,28 @@ async function getPosts(lang: string): Promise<BlogPost[]> {
   }
 }
 
+const t = {
+  es: {
+    startFree: 'Empezar gratis',
+    subtitle: 'Recursos, guías y consejos para profesionales que quieren trabajar mejor.',
+    soon: 'Próximamente — los primeros artículos están en camino.',
+    readingTime: (n: number) => `${n} min de lectura`,
+    privacy: 'Privacidad',
+  },
+  en: {
+    startFree: 'Start free',
+    subtitle: 'Resources, guides and tips for professionals who want to work better.',
+    soon: 'Coming soon — first articles are on the way.',
+    readingTime: (n: number) => `${n} min read`,
+    privacy: 'Privacy',
+  },
+}
+
 export default async function BlogPage() {
   const hdrs = await headers()
   const locale = hdrs.get('x-protools-locale') ?? 'es'
   const lang = locale === 'en' ? 'en' : 'es'
+  const tx = t[lang]
   const posts = await getPosts(lang)
 
   return (
@@ -98,7 +116,7 @@ export default async function BlogPage() {
           <div className="flex items-center gap-2">
             <BlogLangToggle lang={lang} />
             <Link href="/sign-up" className="text-sm font-medium bg-primary text-primary-foreground px-3 py-1.5 rounded-md hover:bg-primary/90 transition-colors">
-              {lang === 'en' ? 'Start free' : 'Empezar gratis'}
+              {tx.startFree}
             </Link>
           </div>
         </div>
@@ -106,12 +124,10 @@ export default async function BlogPage() {
 
       <div className="max-w-3xl mx-auto px-6 py-14">
         <h1 className="text-3xl font-bold mb-2">Blog</h1>
-        <p className="text-muted-foreground mb-12">
-          Recursos, guías y consejos para profesionales que quieren trabajar mejor.
-        </p>
+        <p className="text-muted-foreground mb-12">{tx.subtitle}</p>
 
         {posts.length === 0 ? (
-          <p className="text-muted-foreground text-sm">Próximamente — los primeros artículos están en camino.</p>
+          <p className="text-muted-foreground text-sm">{tx.soon}</p>
         ) : (
           <div className="divide-y">
             {posts.map((post) => (
@@ -130,7 +146,7 @@ export default async function BlogPage() {
                     </div>
                   )}
                   <div className="flex-1 min-w-0">
-                    <time className="text-xs text-muted-foreground">{post.publishedAt} · {post.readingTime} min de lectura</time>
+                    <time className="text-xs text-muted-foreground">{post.publishedAt} · {tx.readingTime(post.readingTime)}</time>
                     <h2 className="text-xl font-semibold mt-1 mb-2 group-hover:text-primary transition-colors">
                       {post.title}
                     </h2>
@@ -148,9 +164,9 @@ export default async function BlogPage() {
       <footer className="border-t mt-20">
         <div className="max-w-3xl mx-auto px-6 py-6 text-center text-xs text-muted-foreground">
           © {new Date().getFullYear()} MITIKUS.{' '}
-          <Link href="/privacy" className="hover:text-foreground transition-colors">Privacidad</Link>
+          <Link href="/privacy" className="hover:text-foreground transition-colors">{tx.privacy}</Link>
           {' · '}
-          <Link href="/sign-up" className="hover:text-foreground transition-colors">Empieza gratis</Link>
+          <Link href="/sign-up" className="hover:text-foreground transition-colors">{tx.startFree}</Link>
         </div>
       </footer>
     </main>
