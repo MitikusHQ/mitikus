@@ -1,3 +1,5 @@
+export const dynamic = 'force-dynamic'
+
 import type { Metadata } from 'next'
 import type React from 'react'
 import { auth } from '@clerk/nextjs/server'
