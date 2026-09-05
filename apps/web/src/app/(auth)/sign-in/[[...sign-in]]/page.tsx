@@ -109,6 +109,7 @@ export default function SignInPage() {
           })
         }
         if (result2.status === 'needs_second_factor') {
+          await signIn.prepareSecondFactor({ strategy: 'email_code' })
           setShowTOTP(true)
           setError('')
         } else {
@@ -131,6 +132,7 @@ export default function SignInPage() {
         // or disable Bot Protection in Clerk Dashboard → Configure → Attack Protection.
         setError('La verificación de seguridad ha fallado. Recarga la página e inténtalo de nuevo. Si el problema persiste, contacta con soporte.')
       } else if (result.status === 'needs_second_factor') {
+        await signIn.prepareSecondFactor({ strategy: 'email_code' })
         setShowTOTP(true)
         setError('')
       } else {
@@ -181,7 +183,7 @@ export default function SignInPage() {
     setError('')
     try {
       const result = await signIn.attemptSecondFactor({
-        strategy: 'totp',
+        strategy: 'email_code',
         code: totpCode,
       })
       if (result.status === 'complete') {
@@ -235,7 +237,7 @@ export default function SignInPage() {
         <div>
           <h1 className="text-2xl font-bold">Verificación en dos pasos</h1>
           <p className="text-sm text-muted-foreground mt-1">
-            Introduce el código de 6 dígitos de tu app de autenticación
+            Introduce el código que hemos enviado a tu correo electrónico
           </p>
         </div>
         <form onSubmit={handleTOTP} className="space-y-4" noValidate>
