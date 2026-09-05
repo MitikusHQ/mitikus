@@ -2,6 +2,7 @@ import type { Metadata } from 'next'
 import Image from 'next/image'
 import Link from 'next/link'
 import { headers } from 'next/headers'
+import { BlogLangToggle } from './_components/BlogLangToggle'
 
 export const metadata: Metadata = {
   title: 'Blog — MITIKUS',
@@ -94,9 +95,12 @@ export default async function BlogPage() {
               MITIKUS
             </span>
           </Link>
-          <Link href="/sign-up" className="text-sm font-medium bg-primary text-primary-foreground px-3 py-1.5 rounded-md hover:bg-primary/90 transition-colors">
-            Empezar gratis
-          </Link>
+          <div className="flex items-center gap-2">
+            <BlogLangToggle lang={lang} />
+            <Link href="/sign-up" className="text-sm font-medium bg-primary text-primary-foreground px-3 py-1.5 rounded-md hover:bg-primary/90 transition-colors">
+              {lang === 'en' ? 'Start free' : 'Empezar gratis'}
+            </Link>
+          </div>
         </div>
       </header>
 

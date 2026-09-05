@@ -5,6 +5,7 @@ import Image from 'next/image'
 import Link from 'next/link'
 import { notFound } from 'next/navigation'
 import { headers } from 'next/headers'
+import { BlogLangToggle } from '../_components/BlogLangToggle'
 
 interface Props {
   params: Promise<{ slug: string }>
@@ -141,9 +142,12 @@ export default async function BlogPostPage({ params }: Props) {
               MITIKUS
             </span>
           </Link>
-          <Link href="/blog" className="text-sm text-muted-foreground hover:text-foreground transition-colors">
-            ← Blog
-          </Link>
+          <div className="flex items-center gap-3">
+            <BlogLangToggle lang={lang} />
+            <Link href="/blog" className="text-sm text-muted-foreground hover:text-foreground transition-colors">
+              ← Blog
+            </Link>
+          </div>
         </div>
       </header>
 
