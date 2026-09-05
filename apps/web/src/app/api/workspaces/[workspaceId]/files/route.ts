@@ -8,7 +8,7 @@ import { randomUUID } from 'crypto'
 export const runtime = 'nodejs'
 export const maxDuration = 30
 
-const MAX_FILE_SIZE = 100 * 1024 * 1024 // 100 MB por archivo
+const MAX_FILE_SIZE = 50 * 1024 * 1024 // 50 MB por archivo
 
 function mimeToFileType(mime: string): 'DOC' | 'SHEET' | 'PDF' | 'IMAGE' | 'OTHER' {
   if (mime === 'application/pdf') return 'PDF'
@@ -69,7 +69,7 @@ export async function POST(
 
   if (!file) return NextResponse.json({ error: 'No se recibió ningún archivo' }, { status: 400 })
   if (file.size > MAX_FILE_SIZE) {
-    return NextResponse.json({ error: 'El archivo supera el límite de 100 MB' }, { status: 413 })
+    return NextResponse.json({ error: 'El archivo supera el límite de 50 MB' }, { status: 413 })
   }
 
   const status = await getStorageStatus(workspaceId, file.size)
