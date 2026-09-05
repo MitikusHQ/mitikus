@@ -140,15 +140,37 @@ Reglas de escritura:
 - Cada afirmación debe ser accionable o aportar valor real.
 - Menciona MITIKUS de forma natural 1-2 veces si viene al caso, nunca de forma forzada.`
 
-  const keywordsPrompt = `Para el tema "${topic}", dame 3 palabras clave en inglés separadas por comas (sin espacios), adecuadas para buscar una foto de stock profesional en Unsplash. Solo las palabras, nada más.`
+  // Pedir a Claude 3 keywords distintas para hero, imagen 1 e imagen 2
+  const keywordsPrompt = `Para el tema "${topic}", dame exactamente 3 búsquedas en inglés separadas por "|" para encontrar fotos de stock profesionales relevantes. Cada búsqueda debe ser 2-3 palabras descriptivas distintas entre sí y muy relacionadas con el tema. Formato: keyword1|keyword2|keyword3. Solo eso, nada más.`
   const kwMessage = await client.messages.create({
     model: 'claude-haiku-4-5',
-    max_tokens: 30,
+    max_tokens: 40,
     messages: [{ role: 'user', content: keywordsPrompt }],
   })
-  const imageKeywords = (kwMessage.content[0] as { type: 'text'; text: string }).text.trim().replace(/\s/g, ',')
-  const seed = Math.abs(imageKeywords.split('').reduce((a, c) => a + c.charCodeAt(0), 0)) % 1000
-  const imageUrl = `https://picsum.photos/seed/${seed}/1200/630`
+  const kwText = (kwMessage.content[0] as { type: 'text'; text: string }).text.trim()
+  const [kwHero = 'business productivity', kwA = 'office work', kwB = 'team collaboration'] = kwText.split('|').map(k => k.trim())
+
+  async function fetchPexelsUrl(query: string, width: number, height: number): Promise<string> {
+    const pexelsKey = process.env.PEXELS_API_KEY
+    if (!pexelsKey) return `https://picsum.photos/seed/${Math.random().toString(36).slice(2)}/${width}/${height}`
+    try {
+      const res = await fetch(`https://api.pexels.com/v1/search?query=${encodeURIComponent(query)}&per_page=5&orientation=landscape`, {
+        headers: { Authorization: pexelsKey },
+      })
+      if (!res.ok) throw new Error('Pexels error')
+      const data = await res.json() as { photos: Array<{ src: { large2x: string; large: string } }> }
+      const photo = data.photos[Math.floor(Math.random() * Math.min(data.photos.length, 3))]
+      return photo?.src?.large2x ?? photo?.src?.large ?? `https://picsum.photos/${width}/${height}`
+    } catch {
+      return `https://picsum.photos/${width}/${height}`
+    }
+  }
+
+  const [imageUrl, inlineImg1, inlineImg2] = await Promise.all([
+    fetchPexelsUrl(kwHero, 1200, 630),
+    fetchPexelsUrl(kwA, 800, 400),
+    fetchPexelsUrl(kwB, 800, 400),
+  ])
 
   const userPrompt = `Escribe un artículo de blog completo sobre: "${topic}"
 
@@ -166,7 +188,7 @@ imageAlt: ${topic}
 
 [2-3 párrafos que enganchen]
 
-![descripción breve imagen 1](https://loremflickr.com/800/400/[KEYWORD_A])
+![Imagen relacionada con la introducción](${inlineImg1})
 
 ## [Sección principal 1]
 
@@ -176,7 +198,7 @@ imageAlt: ${topic}
 
 [Contenido útil y accionable]
 
-![descripción breve imagen 2](https://loremflickr.com/800/400/[KEYWORD_B])
+![Imagen relacionada con los consejos](${inlineImg2})
 
 ## [Sección principal 3 o consejos prácticos]
 
@@ -186,8 +208,7 @@ imageAlt: ${topic}
 
 [Cierre con llamada a la acción discreta hacia MITIKUS]
 
-El artículo debe tener entre 600 y 900 palabras. Sin comentarios meta, sin explicaciones fuera del artículo.
-Sustituye [KEYWORD_A] y [KEYWORD_B] por 1-2 palabras en inglés separadas por coma, relacionadas con el tema del artículo (ej: office,automation o document,business o team,productivity). Elige keywords distintas entre sí y relevantes para el contexto visual de cada sección.`
+El artículo debe tener entre 600 y 900 palabras. Sin comentarios meta, sin explicaciones fuera del artículo.`
 
   const message = await client.messages.create({
     model: 'claude-sonnet-4-6',
