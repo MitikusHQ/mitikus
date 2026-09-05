@@ -1,6 +1,7 @@
 import type { Metadata } from 'next'
 import Image from 'next/image'
 import Link from 'next/link'
+import { headers } from 'next/headers'
 
 export const metadata: Metadata = {
   title: 'Blog — MITIKUS',
@@ -17,10 +18,11 @@ interface BlogPost {
   imageAlt?: string
 }
 
-async function getPosts(): Promise<BlogPost[]> {
+async function getPosts(lang: string): Promise<BlogPost[]> {
+  const dir = lang === 'en' ? 'blog/en' : 'blog/es'
   try {
     const res = await fetch(
-      `https://api.github.com/repos/${process.env.GITHUB_BLOG_OWNER}/${process.env.GITHUB_BLOG_REPO}/contents/blog`,
+      `https://api.github.com/repos/${process.env.GITHUB_BLOG_OWNER}/${process.env.GITHUB_BLOG_REPO}/contents/${dir}`,
       {
         headers: {
           Authorization: `Bearer ${process.env.GITHUB_BLOG_TOKEN}`,
@@ -61,7 +63,10 @@ async function getPosts(): Promise<BlogPost[]> {
 }
 
 export default async function BlogPage() {
-  const posts = await getPosts()
+  const hdrs = await headers()
+  const locale = hdrs.get('x-protools-locale') ?? 'es'
+  const lang = locale === 'en' ? 'en' : 'es'
+  const posts = await getPosts(lang)
 
   return (
     <main className="min-h-screen bg-background">
