@@ -177,7 +177,7 @@ export default async function HomePage() {
         </div>
 
         {/* Hero visual — Mi Office en miniatura */}
-        <MockupOfficeHub />
+        <MockupOfficeHub locale={locale} />
       </section>
 
       {/* ── EL PROBLEMA ── */}
@@ -594,27 +594,39 @@ export default async function HomePage() {
 
 // ── Mockup components ─────────────────────────────────────────────────────────
 
-function MockupOfficeHub() {
-  const tools = [
-    { icon: '📄', label: 'Documentos' },
-    { icon: '📊', label: 'Hojas' },
-    { icon: '📑', label: 'PDFs' },
-    { icon: '✍️', label: 'Contratos' },
-    { icon: '🖥️', label: 'Presentaciones' },
-    { icon: '📒', label: 'Cuadernos' },
-    { icon: '🧾', label: 'Facturas' },
-    { icon: '📷', label: 'Gastos' },
-  ]
+function MockupOfficeHub({ locale }: { locale: string }) {
+  const isEn = locale === 'en'
+  const tools = isEn
+    ? [
+        { icon: '📄', label: 'Documents' },
+        { icon: '📊', label: 'Sheets' },
+        { icon: '📑', label: 'PDFs' },
+        { icon: '✍️', label: 'Contracts' },
+        { icon: '🖥️', label: 'Slides' },
+        { icon: '📒', label: 'Notebooks' },
+        { icon: '🧾', label: 'Invoices' },
+        { icon: '📷', label: 'Expenses' },
+      ]
+    : [
+        { icon: '📄', label: 'Documentos' },
+        { icon: '📊', label: 'Hojas' },
+        { icon: '📑', label: 'PDFs' },
+        { icon: '✍️', label: 'Contratos' },
+        { icon: '🖥️', label: 'Presentaciones' },
+        { icon: '📒', label: 'Cuadernos' },
+        { icon: '🧾', label: 'Facturas' },
+        { icon: '📷', label: 'Gastos' },
+      ]
   return (
     <div className="rounded-xl border bg-card overflow-hidden shadow-sm max-w-lg mx-auto">
       <div className="bg-muted/50 border-b px-4 py-2.5 flex items-center gap-2">
         <div className="w-2.5 h-2.5 rounded-full bg-red-400/60" />
         <div className="w-2.5 h-2.5 rounded-full bg-yellow-400/60" />
         <div className="w-2.5 h-2.5 rounded-full bg-green-400/60" />
-        <span className="text-xs text-muted-foreground ml-2">Mi Office — MITIKUS</span>
+        <span className="text-xs text-muted-foreground ml-2">{isEn ? 'My Office — MITIKUS' : 'Mi Office — MITIKUS'}</span>
       </div>
       <div className="p-5">
-        <p className="text-[11px] text-muted-foreground mb-4">Herramientas disponibles en tu espacio</p>
+        <p className="text-[11px] text-muted-foreground mb-4">{isEn ? 'Tools available in your workspace' : 'Herramientas disponibles en tu espacio'}</p>
         <div className="grid grid-cols-3 gap-3">
           {tools.map((t) => (
             <div key={t.label} className="rounded-lg border bg-background p-3 flex flex-col items-center gap-1.5 hover:border-primary/40 transition-colors cursor-pointer">
@@ -627,7 +639,7 @@ function MockupOfficeHub() {
           <div className="w-6 h-6 rounded-full bg-primary/20 flex items-center justify-center flex-shrink-0">
             <svg width="12" height="12" viewBox="0 0 12 12" fill="none"><circle cx="6" cy="6" r="5" stroke="currentColor" strokeWidth="1.2" className="text-primary"/><path d="M4 6l1.5 1.5L8 4" stroke="currentColor" strokeWidth="1.2" strokeLinecap="round" className="text-primary"/></svg>
           </div>
-          <span className="text-[11px] text-foreground/70">Arkos listo para ayudarte en cualquier herramienta</span>
+          <span className="text-[11px] text-foreground/70">{isEn ? 'Brain ready to help you in any tool' : 'Arkos listo para ayudarte en cualquier herramienta'}</span>
         </div>
       </div>
     </div>

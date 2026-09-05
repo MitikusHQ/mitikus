@@ -11,6 +11,11 @@ interface LandingNavProps {
 
 export function LandingNav({ locale }: LandingNavProps) {
   const [open, setOpen] = useState(false)
+  const isEn = locale === 'en'
+  const signIn = isEn ? 'Sign in' : 'Iniciar sesión'
+  const startFree = isEn ? 'Start free' : 'Empezar gratis'
+  const openMenu = isEn ? 'Open menu' : 'Abrir menú'
+  const closeMenu = isEn ? 'Close menu' : 'Cerrar menú'
 
   return (
     <div className="flex items-center gap-2">
@@ -25,7 +30,7 @@ export function LandingNav({ locale }: LandingNavProps) {
           href="/sign-in"
           className="text-sm font-medium border border-input px-3 py-1.5 rounded-md hover:bg-accent transition-colors"
         >
-          Iniciar sesión
+          {signIn}
         </a>
       </nav>
 
@@ -34,13 +39,13 @@ export function LandingNav({ locale }: LandingNavProps) {
         href="/sign-up"
         className="text-sm font-medium bg-primary text-primary-foreground px-3 py-1.5 md:px-4 md:py-2 rounded-md hover:bg-primary/90 transition-colors whitespace-nowrap"
       >
-        Empezar gratis
+        {startFree}
       </a>
 
       {/* Hamburger — solo móvil */}
       <button
         type="button"
-        aria-label={open ? 'Cerrar menú' : 'Abrir menú'}
+        aria-label={open ? closeMenu : openMenu}
         aria-expanded={open}
         aria-controls="mobile-menu"
         onClick={() => setOpen(v => !v)}
@@ -69,7 +74,7 @@ export function LandingNav({ locale }: LandingNavProps) {
             className="text-sm font-medium border border-input px-3 py-1.5 rounded-md hover:bg-accent transition-colors text-center"
             onClick={() => setOpen(false)}
           >
-            Iniciar sesión
+            {signIn}
           </a>
         </div>
       )}
