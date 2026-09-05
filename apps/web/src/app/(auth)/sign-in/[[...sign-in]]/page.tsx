@@ -65,6 +65,8 @@ export default function SignInPage() {
   const [loading, setLoading] = useState(false)
   const [oauthLoading, setOAuthLoading] = useState<OAuthProvider | null>(null)
   const [showSignOut, setShowSignOut] = useState(false)
+  const [showTOTP, setShowTOTP] = useState(false)
+  const [totpCode, setTotpCode] = useState('')
 
   // Redirect already authenticated users immediately
   useEffect(() => {
@@ -107,7 +109,8 @@ export default function SignInPage() {
           })
         }
         if (result2.status === 'needs_second_factor') {
-          setError('Se requiere autenticación de dos factores. Desactívala en la configuración de tu cuenta de Clerk para iniciar sesión aquí.')
+          setShowTOTP(true)
+          setError('')
         } else {
           setError('Se requiere verificación adicional.')
         }
@@ -128,7 +131,8 @@ export default function SignInPage() {
         // or disable Bot Protection in Clerk Dashboard → Configure → Attack Protection.
         setError('La verificación de seguridad ha fallado. Recarga la página e inténtalo de nuevo. Si el problema persiste, contacta con soporte.')
       } else if (result.status === 'needs_second_factor') {
-        setError('Se requiere autenticación de dos factores. Desactívala en la configuración de tu cuenta de Clerk para iniciar sesión aquí.')
+        setShowTOTP(true)
+        setError('')
       } else {
         setError('Se requiere verificación adicional. Contacta con soporte si persiste.')
       }
@@ -170,6 +174,29 @@ export default function SignInPage() {
     }
   }
 
+  async function handleTOTP(e: React.FormEvent) {
+    e.preventDefault()
+    if (!isLoaded) return
+    setLoading(true)
+    setError('')
+    try {
+      const result = await signIn.attemptSecondFactor({
+        strategy: 'totp',
+        code: totpCode,
+      })
+      if (result.status === 'complete') {
+        await setActive({ session: result.createdSessionId })
+        window.location.href = '/onboarding'
+      } else {
+        setError('Código incorrecto. Inténtalo de nuevo.')
+      }
+    } catch (err) {
+      setError(mapClerkError(err))
+    } finally {
+      setLoading(false)
+    }
+  }
+
   async function handleOAuth(provider: OAuthProvider) {
     if (!isLoaded) return
     setOAuthLoading(provider)
@@ -198,6 +225,56 @@ export default function SignInPage() {
     return (
       <div className="flex justify-center">
         <div className="w-6 h-6 border-2 border-primary border-t-transparent rounded-full animate-spin" />
+      </div>
+    )
+  }
+
+  if (showTOTP) {
+    return (
+      <div className="w-full max-w-sm space-y-6">
+        <div>
+          <h1 className="text-2xl font-bold">Verificación en dos pasos</h1>
+          <p className="text-sm text-muted-foreground mt-1">
+            Introduce el código de 6 dígitos de tu app de autenticación
+          </p>
+        </div>
+        <form onSubmit={handleTOTP} className="space-y-4" noValidate>
+          <div className="space-y-1">
+            <label htmlFor="totp" className="text-sm font-medium">
+              Código de verificación
+            </label>
+            <input
+              id="totp"
+              type="text"
+              inputMode="numeric"
+              autoComplete="one-time-code"
+              maxLength={6}
+              autoFocus
+              required
+              value={totpCode}
+              onChange={(e) => setTotpCode(e.target.value.replace(/\D/g, ''))}
+              className="w-full rounded-md border border-input bg-background px-3 py-2 text-sm shadow-sm focus:outline-none focus:ring-2 focus:ring-ring tracking-widest text-center text-lg"
+              placeholder="000000"
+            />
+          </div>
+          {error && (
+            <p role="alert" className="text-sm text-destructive">{error}</p>
+          )}
+          <button
+            type="submit"
+            disabled={loading || totpCode.length < 6}
+            className="w-full rounded-md bg-primary px-4 py-2 text-sm font-medium text-primary-foreground shadow hover:bg-primary/90 disabled:opacity-50 transition-colors"
+          >
+            {loading ? 'Verificando...' : 'Verificar'}
+          </button>
+          <button
+            type="button"
+            onClick={() => { setShowTOTP(false); setTotpCode(''); setError('') }}
+            className="w-full text-xs text-muted-foreground hover:text-foreground transition-colors"
+          >
+            ← Volver al inicio de sesión
+          </button>
+        </form>
       </div>
     )
   }
