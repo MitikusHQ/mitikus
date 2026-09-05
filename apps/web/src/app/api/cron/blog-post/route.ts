@@ -80,11 +80,11 @@ function buildSlug(title: string, date: Date): string {
   return `${dateStr}-${slug}`
 }
 
-async function commitToGitHub(slug: string, content: string): Promise<void> {
+async function commitToGitHub(slug: string, content: string, lang = 'es'): Promise<void> {
   const owner = process.env.GITHUB_BLOG_OWNER!
   const repo = process.env.GITHUB_BLOG_REPO!
   const token = process.env.GITHUB_BLOG_TOKEN!
-  const path = `blog/${slug}.mdx`
+  const path = `blog/${lang}/${slug}.mdx`
 
   const encoded = Buffer.from(content, 'utf-8').toString('base64')
 
@@ -226,7 +226,24 @@ El artículo debe tener entre 600 y 900 palabras. Sin comentarios meta, sin expl
   const title = titleMatch?.[1] ?? topic
   const slug = buildSlug(title, now)
 
-  await commitToGitHub(slug, mdxContent)
+  await commitToGitHub(slug, mdxContent, 'es')
 
-  return NextResponse.json({ ok: true, slug, topic })
+  // Traducir al inglés con Haiku
+  const translationMessage = await client.messages.create({
+    model: 'claude-haiku-4-5',
+    max_tokens: 2000,
+    messages: [{
+      role: 'user',
+      content: `Translate the following Spanish blog article MDX to English. Keep the exact same MDX structure, frontmatter fields (publishedAt, image, imageAlt), markdown headings, image tags, and formatting. Only translate the text content. Do not add any explanation.\n\n${mdxContent}`,
+    }],
+  })
+
+  const enContent = translationMessage.content
+    .filter((b) => b.type === 'text')
+    .map((b) => (b as { type: 'text'; text: string }).text)
+    .join('')
+
+  await commitToGitHub(slug, enContent, 'en')
+
+  return NextResponse.json({ ok: true, slug, topic, langs: ['es', 'en'] })
 }

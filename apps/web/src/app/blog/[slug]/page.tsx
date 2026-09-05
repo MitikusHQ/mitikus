@@ -1,7 +1,10 @@
+export const dynamic = 'force-dynamic'
+
 import type { Metadata } from 'next'
 import Image from 'next/image'
 import Link from 'next/link'
 import { notFound } from 'next/navigation'
+import { headers } from 'next/headers'
 
 interface Props {
   params: Promise<{ slug: string }>
@@ -16,10 +19,12 @@ interface PostData {
   imageAlt?: string
 }
 
-async function getPost(slug: string): Promise<PostData | null> {
+async function getPost(slug: string, lang = 'es'): Promise<PostData | null> {
+  const paths = [`blog/${lang}/${slug}.mdx`, `blog/${slug}.mdx`]
+  for (const path of paths) {
   try {
     const res = await fetch(
-      `https://api.github.com/repos/${process.env.GITHUB_BLOG_OWNER}/${process.env.GITHUB_BLOG_REPO}/contents/blog/${slug}.mdx`,
+      `https://api.github.com/repos/${process.env.GITHUB_BLOG_OWNER}/${process.env.GITHUB_BLOG_REPO}/contents/${path}`,
       {
         headers: {
           Authorization: `Bearer ${process.env.GITHUB_BLOG_TOKEN}`,
@@ -43,8 +48,10 @@ async function getPost(slug: string): Promise<PostData | null> {
 
     return { content: raw, title, publishedAt, excerpt, image, imageAlt }
   } catch {
-    return null
+    // try next path
   }
+  }
+  return null
 }
 
 export async function generateMetadata({ params }: Props): Promise<Metadata> {
@@ -100,7 +107,10 @@ function mdxToHtml(raw: string): string {
 
 export default async function BlogPostPage({ params }: Props) {
   const { slug } = await params
-  const post = await getPost(slug)
+  const hdrs = await headers()
+  const locale = hdrs.get('x-protools-locale') ?? 'es'
+  const lang = locale === 'en' ? 'en' : 'es'
+  const post = await getPost(slug, lang)
   if (!post) notFound()
 
   const html = mdxToHtml(post.content)
