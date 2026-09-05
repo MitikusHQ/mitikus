@@ -85,20 +85,25 @@ async function commitToGitHub(slug: string, content: string, lang = 'es'): Promi
   const repo = process.env.GITHUB_BLOG_REPO!
   const token = process.env.GITHUB_BLOG_TOKEN!
   const path = `blog/${lang}/${slug}.mdx`
+  const headers = {
+    Authorization: `Bearer ${token}`,
+    Accept: 'application/vnd.github.v3+json',
+    'Content-Type': 'application/json',
+  }
+
+  // Get sha if file already exists
+  let sha: string | undefined
+  const existing = await fetch(`https://api.github.com/repos/${owner}/${repo}/contents/${path}`, { headers })
+  if (existing.ok) {
+    const data = await existing.json() as { sha: string }
+    sha = data.sha
+  }
 
   const encoded = Buffer.from(content, 'utf-8').toString('base64')
-
   const res = await fetch(`https://api.github.com/repos/${owner}/${repo}/contents/${path}`, {
     method: 'PUT',
-    headers: {
-      Authorization: `Bearer ${token}`,
-      Accept: 'application/vnd.github.v3+json',
-      'Content-Type': 'application/json',
-    },
-    body: JSON.stringify({
-      message: `blog: publish ${slug}`,
-      content: encoded,
-    }),
+    headers,
+    body: JSON.stringify({ message: `blog: publish ${slug}`, content: encoded, ...(sha ? { sha } : {}) }),
   })
 
   if (!res.ok) {
