@@ -10,6 +10,8 @@ import { OnboardingModal, ONBOARDING_STORAGE_KEY } from './OnboardingModal'
 import { Icons } from './WorkspaceIcons'
 import { BrainOverlay } from '@/components/BrainOverlay'
 import type { NavItem } from './WorkspaceSidebarItem'
+import type { Locale } from '@/i18n/config'
+import { getDashboardTranslations } from '@/i18n/dashboard-translations'
 
 interface NavGroup {
   label?: string
@@ -27,6 +29,7 @@ interface Props {
   userAvatarUrl?: string | null
   navGroups: NavGroup[]
   myId: string
+  locale: Locale
   children: React.ReactNode
 }
 
@@ -42,7 +45,8 @@ function useIsFullscreen(workspaceId: string): boolean {
   return segments.length === 1
 }
 
-export function WorkspaceShell({ workspaceId, workspaceName, workspaceLogoUrl, workspaceBrandColor, workspaceLogoShowName = false, workspaceLogoCrop, workspaceLogoText, userAvatarUrl, navGroups, myId, children }: Props) {
+export function WorkspaceShell({ workspaceId, workspaceName, workspaceLogoUrl, workspaceBrandColor, workspaceLogoShowName = false, workspaceLogoCrop, workspaceLogoText, userAvatarUrl, navGroups, myId, locale, children }: Props) {
+  const dt = getDashboardTranslations(locale)
   const [sidebarCollapsed, setSidebarCollapsed] = useState(false)
   const [mobileOpen, setMobileOpen] = useState(false)
   const [teamPanelOpen, setTeamPanelOpen] = useState(false)
@@ -130,6 +134,7 @@ export function WorkspaceShell({ workspaceId, workspaceName, workspaceLogoUrl, w
           workspaceId={workspaceId}
           workspaceName={workspaceName}
           userAvatarUrl={userAvatarUrl}
+          locale={locale}
           onToggleSidebar={() => {
             // On mobile: toggle drawer; on desktop: toggle collapse
             if (window.innerWidth < 768) {
@@ -147,7 +152,7 @@ export function WorkspaceShell({ workspaceId, workspaceName, workspaceLogoUrl, w
         {/* Mobile: hamburger alternative (small screens already use overlay above) */}
         <button
           type="button"
-          aria-label="Abrir menú"
+          aria-label={dt.openMenu}
           onClick={() => setMobileOpen(true)}
           className={cn(
             'md:hidden fixed bottom-4 right-4 z-30 w-12 h-12 rounded-full bg-primary text-primary-foreground shadow-lg flex items-center justify-center',
