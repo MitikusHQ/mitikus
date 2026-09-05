@@ -696,7 +696,7 @@ function MockupOfficeHub({ locale }: { locale: string }) {
         <div className="w-2.5 h-2.5 rounded-full bg-red-400/60" />
         <div className="w-2.5 h-2.5 rounded-full bg-yellow-400/60" />
         <div className="w-2.5 h-2.5 rounded-full bg-green-400/60" />
-        <span className="text-xs text-muted-foreground ml-2">{isEn ? 'My Office — MITIKUS' : 'Mi Office — MITIKUS'}</span>
+        <span className="text-xs text-muted-foreground ml-2">{isEn ? 'My Office — MITIKUS' : 'Mi Oficina — MITIKUS'}</span>
       </div>
       <div className="p-5">
         <p className="text-[11px] text-muted-foreground mb-4">{isEn ? 'Tools available in your workspace' : 'Herramientas disponibles en tu espacio'}</p>
