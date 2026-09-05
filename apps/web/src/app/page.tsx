@@ -490,41 +490,6 @@ export default async function HomePage() {
         </div>
       </section>
 
-      {/* ── TESTIMONIOS ── */}
-      <section className="max-w-5xl mx-auto px-6 py-14">
-        <p className="text-xs font-semibold uppercase tracking-widest text-muted-foreground text-center mb-3">
-          Lo que dicen los primeros usuarios
-        </p>
-        <h2 className="text-2xl font-bold text-center mb-10">Equipos que ya trabajan diferente</h2>
-        <div className="grid sm:grid-cols-3 gap-5">
-          {[
-            {
-              quote: 'Antes tardábamos dos días en cerrar un contrato por el tema del papel y el correo. Ahora el cliente firma en 10 minutos desde el móvil.',
-              name: 'Marta G.',
-              role: 'Directora de cuentas, agencia de comunicación',
-            },
-            {
-              quote: 'Teníamos Google Drive, Notion, DocuSign y QuickBooks. Ahora es todo MITIKUS. El ahorro en suscripciones ya cubre el plan.',
-              name: 'Javier R.',
-              role: 'Socio, consultora de estrategia',
-            },
-            {
-              quote: 'Lo que más valoramos es el Brain. Consulto el contexto de un cliente antes de una reunión y ya sé exactamente en qué punto estamos.',
-              name: 'Laura M.',
-              role: 'Project manager, estudio de diseño',
-            },
-          ].map((t) => (
-            <div key={t.name} className="rounded-xl border bg-card p-6 flex flex-col gap-4">
-              <p className="text-sm leading-relaxed text-muted-foreground flex-1">&ldquo;{t.quote}&rdquo;</p>
-              <div>
-                <p className="text-sm font-semibold">{t.name}</p>
-                <p className="text-xs text-muted-foreground">{t.role}</p>
-              </div>
-            </div>
-          ))}
-        </div>
-      </section>
-
       {/* ── PRECIOS ── */}
       <section id="precios">
         <PricingSection />
