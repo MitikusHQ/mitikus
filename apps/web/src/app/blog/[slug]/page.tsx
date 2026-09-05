@@ -106,11 +106,29 @@ function mdxToHtml(raw: string): string {
     .replace(/(<\/(?:h[1-6]|ul)>)<\/p>/g, '$1')
 }
 
+const t = {
+  es: {
+    back: '← Blog',
+    startFree: 'Empieza gratis →',
+    ctaTitle: '¿Quieres organizar mejor tu negocio?',
+    ctaBody: 'MITIKUS es el hub de productividad para profesionales, pymes y equipos. Gestiona clientes, documentos, facturas y contratos desde un único lugar.',
+    privacy: 'Privacidad',
+  },
+  en: {
+    back: '← Blog',
+    startFree: 'Start free →',
+    ctaTitle: 'Want to organize your business better?',
+    ctaBody: 'MITIKUS is the productivity hub for professionals, SMEs and teams. Manage clients, documents, invoices and contracts from one place.',
+    privacy: 'Privacy',
+  },
+}
+
 export default async function BlogPostPage({ params }: Props) {
   const { slug } = await params
   const hdrs = await headers()
   const locale = hdrs.get('x-protools-locale') ?? 'es'
   const lang = locale === 'en' ? 'en' : 'es'
+  const tx = t[lang]
   const post = await getPost(slug, lang)
   if (!post) notFound()
 
@@ -145,7 +163,7 @@ export default async function BlogPostPage({ params }: Props) {
           <div className="flex items-center gap-3">
             <BlogLangToggle lang={lang} />
             <Link href="/blog" className="text-sm text-muted-foreground hover:text-foreground transition-colors">
-              ← Blog
+              {tx.back}
             </Link>
           </div>
         </div>
@@ -177,16 +195,13 @@ export default async function BlogPostPage({ params }: Props) {
 
       <div className="max-w-3xl mx-auto px-6 pb-16 not-prose">
         <div className="border rounded-xl p-6 bg-muted/40">
-          <p className="font-semibold mb-1">¿Quieres organizar mejor tu negocio?</p>
-          <p className="text-sm text-muted-foreground mb-4">
-            MITIKUS es el hub de productividad para profesionales, pymes y equipos. Gestiona clientes,
-            documentos, facturas y contratos desde un único lugar.
-          </p>
+          <p className="font-semibold mb-1">{tx.ctaTitle}</p>
+          <p className="text-sm text-muted-foreground mb-4">{tx.ctaBody}</p>
           <Link
             href="/sign-up"
             className="inline-block bg-primary text-primary-foreground text-sm font-medium px-4 py-2 rounded-lg hover:opacity-90 transition-opacity"
           >
-            Empieza gratis →
+            {tx.startFree}
           </Link>
         </div>
       </div>
@@ -194,7 +209,7 @@ export default async function BlogPostPage({ params }: Props) {
       <footer className="border-t">
         <div className="max-w-3xl mx-auto px-6 py-6 text-center text-xs text-muted-foreground">
           © {new Date().getFullYear()} MITIKUS.{' '}
-          <Link href="/privacy" className="hover:text-foreground transition-colors">Privacidad</Link>
+          <Link href="/privacy" className="hover:text-foreground transition-colors">{tx.privacy}</Link>
         </div>
       </footer>
     </main>
