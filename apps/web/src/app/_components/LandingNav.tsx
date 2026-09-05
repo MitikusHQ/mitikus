@@ -2,6 +2,7 @@
 
 import { useState } from 'react'
 import { type Locale } from '@/i18n/config'
+import { getLandingTranslations } from '@/i18n/landing-translations'
 import { LocaleSelector } from '@/app/(dashboard)/_components/LocaleSelector'
 import { ThemeToggle } from '@/app/(dashboard)/_components/ThemeToggle'
 
@@ -11,11 +12,11 @@ interface LandingNavProps {
 
 export function LandingNav({ locale }: LandingNavProps) {
   const [open, setOpen] = useState(false)
-  const isEn = locale !== 'es'
-  const signIn = isEn ? 'Sign in' : 'Iniciar sesión'
-  const startFree = isEn ? 'Start free' : 'Empezar gratis'
-  const openMenu = isEn ? 'Open menu' : 'Abrir menú'
-  const closeMenu = isEn ? 'Close menu' : 'Cerrar menú'
+  const t = getLandingTranslations(locale)
+  const signIn = t.navSignIn
+  const startFree = t.navStartFree
+  const openMenu = locale === 'es' ? 'Abrir menú' : locale === 'de' ? 'Menü öffnen' : locale === 'fr' ? 'Ouvrir le menu' : 'Open menu'
+  const closeMenu = locale === 'es' ? 'Cerrar menú' : locale === 'de' ? 'Menü schließen' : locale === 'fr' ? 'Fermer le menu' : 'Close menu'
 
   return (
     <div className="flex items-center gap-2">
