@@ -103,7 +103,7 @@ export default async function HomePage() {
     },
   }
 
-  const isEn = locale === 'en'
+  const isEn = locale !== 'es'
   const landing = isEn
     ? {
         heroLine1: 'Your business, clients, invoices',
@@ -670,7 +670,7 @@ export default async function HomePage() {
 // ── Mockup components ─────────────────────────────────────────────────────────
 
 function MockupOfficeHub({ locale }: { locale: string }) {
-  const isEn = locale === 'en'
+  const isEn = locale !== 'es'
   const tools = isEn
     ? [
         { icon: '📄', label: 'Documents' },
