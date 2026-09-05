@@ -1,7 +1,6 @@
 'use client'
 
 import { useTransition, useState, useRef, useEffect } from 'react'
-import { useRouter } from 'next/navigation'
 import { type Locale, LOCALE_LABELS, SUPPORTED_LOCALES } from '@/i18n/config'
 import { setLocale } from '@/app/actions/locale'
 
@@ -12,7 +11,6 @@ interface LocaleSelectorProps {
 export function LocaleSelector({ currentLocale }: LocaleSelectorProps) {
   const [isPending, startTransition] = useTransition()
   const [open, setOpen] = useState(false)
-  const router = useRouter()
   const ref = useRef<HTMLDivElement>(null)
 
   useEffect(() => {
@@ -29,7 +27,7 @@ export function LocaleSelector({ currentLocale }: LocaleSelectorProps) {
     if (locale === currentLocale) { setOpen(false); return }
     startTransition(async () => {
       await setLocale(locale)
-      router.refresh()
+      window.location.reload()
     })
     setOpen(false)
   }
