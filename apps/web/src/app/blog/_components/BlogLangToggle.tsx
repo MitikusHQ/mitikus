@@ -2,7 +2,7 @@
 
 export function BlogLangToggle({ lang }: { lang: string }) {
   function switchLang(next: string) {
-    document.cookie = `locale=${next};path=/;max-age=31536000;samesite=lax`
+    document.cookie = `protools-locale=${next};path=/;max-age=31536000;samesite=lax`
     window.location.reload()
   }
 
