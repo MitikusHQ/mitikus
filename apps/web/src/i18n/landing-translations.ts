@@ -1,6 +1,8 @@
 import { type Locale } from './config'
 
 export interface LandingTranslations {
+  navSignIn: string
+  navStartFree: string
   heroLine1: string
   heroLine2: string
   heroSubtitle: string
@@ -46,6 +48,8 @@ export interface LandingTranslations {
 }
 
 const en: LandingTranslations = {
+  navSignIn: 'Sign in',
+  navStartFree: 'Start free',
   heroLine1: 'Your business, clients, invoices',
   heroLine2: 'and memory in one place.',
   heroSubtitle: 'The platform for freelancers and small teams that want to manage clients, issue invoices, store documents and consult their business memory — without scattered tools, with built-in AI.',
@@ -150,6 +154,8 @@ const en: LandingTranslations = {
 }
 
 const es: LandingTranslations = {
+  navSignIn: 'Iniciar sesión',
+  navStartFree: 'Empezar gratis',
   heroLine1: 'Tu negocio, clientes, facturas',
   heroLine2: 'y memoria en un solo lugar.',
   heroSubtitle: 'La plataforma para autónomos y pymes que quieren gestionar clientes, emitir facturas, guardar documentos y consultar la memoria de su negocio — sin herramientas dispersas, con IA integrada.',
@@ -254,6 +260,8 @@ const es: LandingTranslations = {
 }
 
 const fr: LandingTranslations = {
+  navSignIn: 'Se connecter',
+  navStartFree: 'Commencer gratuitement',
   heroLine1: 'Votre entreprise, clients, factures',
   heroLine2: 'et mémoire en un seul endroit.',
   heroSubtitle: 'La plateforme pour les indépendants et les petites équipes qui veulent gérer leurs clients, émettre des factures, stocker des documents et consulter la mémoire de leur activité — sans outils dispersés, avec IA intégrée.',
@@ -358,6 +366,8 @@ const fr: LandingTranslations = {
 }
 
 const de: LandingTranslations = {
+  navSignIn: 'Anmelden',
+  navStartFree: 'Kostenlos starten',
   heroLine1: 'Ihr Unternehmen, Kunden, Rechnungen',
   heroLine2: 'und Gedächtnis an einem Ort.',
   heroSubtitle: 'Die Plattform für Freiberufler und kleine Teams, die Kunden verwalten, Rechnungen ausstellen, Dokumente speichern und ihr Unternehmensgedächtnis abrufen möchten — ohne verstreute Tools, mit integrierter KI.',
@@ -462,6 +472,8 @@ const de: LandingTranslations = {
 }
 
 const pt: LandingTranslations = {
+  navSignIn: 'Entrar',
+  navStartFree: 'Começar grátis',
   heroLine1: 'O seu negócio, clientes, faturas',
   heroLine2: 'e memória num só lugar.',
   heroSubtitle: 'A plataforma para freelancers e pequenas equipas que querem gerir clientes, emitir faturas, guardar documentos e consultar a memória do seu negócio — sem ferramentas dispersas, com IA integrada.',
@@ -566,6 +578,8 @@ const pt: LandingTranslations = {
 }
 
 const it: LandingTranslations = {
+  navSignIn: 'Accedi',
+  navStartFree: 'Inizia gratis',
   heroLine1: 'Il tuo business, clienti, fatture',
   heroLine2: 'e memoria in un solo posto.',
   heroSubtitle: 'La piattaforma per freelancer e piccoli team che vogliono gestire clienti, emettere fatture, archiviare documenti e consultare la memoria del loro business — senza strumenti dispersi, con IA integrata.',
@@ -673,6 +687,8 @@ const it: LandingTranslations = {
 const makeFromEn = (overrides: Partial<LandingTranslations>): LandingTranslations => ({ ...en, ...overrides })
 
 const nl = makeFromEn({
+  navSignIn: 'Inloggen',
+  navStartFree: 'Gratis starten',
   heroLine1: 'Uw bedrijf, klanten, facturen',
   heroLine2: 'en geheugen op één plek.',
   heroSubtitle: 'Het platform voor freelancers en kleine teams die klanten willen beheren, facturen willen sturen, documenten willen opslaan en het geheugen van hun bedrijf willen raadplegen — zonder verspreide tools, met ingebouwde AI.',
@@ -690,6 +706,8 @@ const nl = makeFromEn({
 })
 
 const pl = makeFromEn({
+  navSignIn: 'Zaloguj się',
+  navStartFree: 'Zacznij za darmo',
   heroLine1: 'Twoja firma, klienci, faktury',
   heroLine2: 'i pamięć w jednym miejscu.',
   heroSubtitle: 'Platforma dla freelancerów i małych zespołów, które chcą zarządzać klientami, wystawiać faktury, przechowywać dokumenty i konsultować pamięć swojej firmy — bez rozproszonych narzędzi, ze zintegrowaną AI.',
@@ -707,6 +725,8 @@ const pl = makeFromEn({
 })
 
 const ro = makeFromEn({
+  navSignIn: 'Autentificare',
+  navStartFree: 'Începe gratuit',
   heroLine1: 'Afacerea ta, clienți, facturi',
   heroLine2: 'și memorie într-un singur loc.',
   heroSubtitle: 'Platforma pentru freelanceri și echipe mici care vor să gestioneze clienți, să emită facturi, să stocheze documente și să consulte memoria afacerii lor — fără instrumente disparate, cu AI integrat.',
@@ -724,6 +744,8 @@ const ro = makeFromEn({
 })
 
 const sv = makeFromEn({
+  navSignIn: 'Logga in',
+  navStartFree: 'Starta gratis',
   heroLine1: 'Ditt företag, kunder, fakturor',
   heroLine2: 'och minne på ett ställe.',
   heroSubtitle: 'Plattformen för frilansare och små team som vill hantera kunder, skicka fakturor, lagra dokument och konsultera företagets minne — utan spridda verktyg, med inbyggd AI.',
@@ -741,6 +763,8 @@ const sv = makeFromEn({
 })
 
 const da = makeFromEn({
+  navSignIn: 'Log ind',
+  navStartFree: 'Start gratis',
   heroLine1: 'Din virksomhed, kunder, fakturaer',
   heroLine2: 'og hukommelse ét sted.',
   heroSubtitle: 'Platformen for freelancere og små teams, der ønsker at administrere kunder, udstede fakturaer, gemme dokumenter og konsultere virksomhedens hukommelse — uden spredte værktøjer, med indbygget AI.',
@@ -758,6 +782,8 @@ const da = makeFromEn({
 })
 
 const no = makeFromEn({
+  navSignIn: 'Logg inn',
+  navStartFree: 'Start gratis',
   heroLine1: 'Din virksomhet, kunder, fakturaer',
   heroLine2: 'og hukommelse på ett sted.',
   heroSubtitle: 'Plattformen for frilansere og små team som ønsker å administrere kunder, sende fakturaer, lagre dokumenter og konsultere virksomhetens hukommelse — uten spredte verktøy, med innebygd AI.',
@@ -775,6 +801,8 @@ const no = makeFromEn({
 })
 
 const hu = makeFromEn({
+  navSignIn: 'Bejelentkezés',
+  navStartFree: 'Ingyenes kezdés',
   heroLine1: 'Vállalkozása, ügyfelei, számlái',
   heroLine2: 'és emlékezete egy helyen.',
   heroSubtitle: 'A platform szabadúszók és kis csapatok számára, akik ügyfeleket szeretnének kezelni, számlákat kiállítani, dokumentumokat tárolni és vállalkozásuk emlékezetét lekérdezni — szórt eszközök nélkül, beépített MI-vel.',
@@ -792,6 +820,8 @@ const hu = makeFromEn({
 })
 
 const cs = makeFromEn({
+  navSignIn: 'Přihlásit se',
+  navStartFree: 'Začít zdarma',
   heroLine1: 'Váš byznys, klienti, faktury',
   heroLine2: 'a paměť na jednom místě.',
   heroSubtitle: 'Platforma pro freelancery a malé týmy, které chtějí spravovat klienty, vystavovat faktury, ukládat dokumenty a konzultovat paměť svého podniku — bez rozptýlených nástrojů, s integrovanou AI.',
@@ -809,6 +839,8 @@ const cs = makeFromEn({
 })
 
 const sk = makeFromEn({
+  navSignIn: 'Prihlásiť sa',
+  navStartFree: 'Začať zadarmo',
   heroLine1: 'Vaše podnikanie, klienti, faktúry',
   heroLine2: 'a pamäť na jednom mieste.',
   heroSubtitle: 'Platforma pre freelancerov a malé tímy, ktoré chcú spravovať klientov, vystavovať faktúry, ukladať dokumenty a konzultovať pamäť svojho podniku — bez roztrúsených nástrojov, s integrovanou AI.',
@@ -826,6 +858,8 @@ const sk = makeFromEn({
 })
 
 const el = makeFromEn({
+  navSignIn: 'Σύνδεση',
+  navStartFree: 'Ξεκινήστε δωρεάν',
   heroLine1: 'Η επιχείρησή σας, πελάτες, τιμολόγια',
   heroLine2: 'και μνήμη σε ένα μέρος.',
   heroSubtitle: 'Η πλατφόρμα για ελεύθερους επαγγελματίες και μικρές ομάδες που θέλουν να διαχειρίζονται πελάτες, να εκδίδουν τιμολόγια, να αποθηκεύουν έγγραφα και να συμβουλεύονται τη μνήμη της επιχείρησής τους — χωρίς διάσπαρτα εργαλεία, με ενσωματωμένη AI.',
@@ -843,6 +877,8 @@ const el = makeFromEn({
 })
 
 const fi = makeFromEn({
+  navSignIn: 'Kirjaudu sisään',
+  navStartFree: 'Aloita ilmaiseksi',
   heroLine1: 'Yrityksesi, asiakkaat, laskut',
   heroLine2: 'ja muisti yhdessä paikassa.',
   heroSubtitle: 'Alusta freelancereille ja pienille tiimeille, jotka haluavat hallita asiakkaita, lähettää laskuja, tallentaa asiakirjoja ja konsultoida yrityksensä muistia — ilman hajallaan olevia työkaluja, integroidulla AI:lla.',
@@ -860,6 +896,8 @@ const fi = makeFromEn({
 })
 
 const hr = makeFromEn({
+  navSignIn: 'Prijavi se',
+  navStartFree: 'Počnite besplatno',
   heroLine1: 'Vaše poslovanje, klijenti, računi',
   heroLine2: 'i memorija na jednom mjestu.',
   heroSubtitle: 'Platforma za freelancere i male timove koji žele upravljati klijentima, izdavati račune, pohranjivati dokumente i konzultirati memoriju svog poslovanja — bez raspršenih alata, s integriranom AI.',
@@ -877,6 +915,8 @@ const hr = makeFromEn({
 })
 
 const bg = makeFromEn({
+  navSignIn: 'Влизане',
+  navStartFree: 'Започнете безплатно',
   heroLine1: 'Вашият бизнес, клиенти, фактури',
   heroLine2: 'и памет на едно място.',
   heroSubtitle: 'Платформата за фрийлансъри и малки екипи, които искат да управляват клиенти, да издават фактури, да съхраняват документи и да консултират паметта на своя бизнес — без разпръснати инструменти, с интегриран AI.',
@@ -894,6 +934,8 @@ const bg = makeFromEn({
 })
 
 const sl = makeFromEn({
+  navSignIn: 'Prijava',
+  navStartFree: 'Začnite brezplačno',
   heroLine1: 'Vaše podjetje, stranke, računi',
   heroLine2: 'in spomin na enem mestu.',
   heroSubtitle: 'Platforma za freelancerje in majhne ekipe, ki želijo upravljati stranke, izdajati račune, shranjevati dokumente in posvetovati spomin svojega podjetja — brez razpršenih orodij, z integrirano AI.',
@@ -911,6 +953,8 @@ const sl = makeFromEn({
 })
 
 const ja = makeFromEn({
+  navSignIn: 'ログイン',
+  navStartFree: '無料で始める',
   heroLine1: 'ビジネス、顧客、請求書、',
   heroLine2: 'すべての記憶を一か所に。',
   heroSubtitle: 'フリーランサーや小さなチームが顧客管理、請求書発行、書類保管、ビジネス記憶の照会を一元化できるプラットフォーム。ツールを分散させず、AIを内蔵。',
@@ -928,6 +972,8 @@ const ja = makeFromEn({
 })
 
 const zh = makeFromEn({
+  navSignIn: '登录',
+  navStartFree: '免费开始',
   heroLine1: '您的业务、客户、发票',
   heroLine2: '和记忆，尽在一处。',
   heroSubtitle: '为自由职业者和小型团队打造的平台，轻松管理客户、开具发票、存储文档并查阅业务记忆——无需分散的工具，内置AI。',
