@@ -1,4 +1,5 @@
 import Link from 'next/link'
+import { currentUser } from '@clerk/nextjs/server'
 import { requireUser } from '@/lib/auth'
 import { getTodayData } from '@/app/actions/today'
 import type { PendingStep, PendingWorkflow, TeamActivityEvent } from '@/app/actions/today'
@@ -51,7 +52,7 @@ function statusLabels(t: DashboardTranslations): Record<string, { label: string;
 }
 
 export default async function TodayPage({ params }: Props) {
-  const [{ workspaceId }, user, locale] = await Promise.all([params, requireUser(), getLocale()])
+  const [{ workspaceId }, user, locale, clerkUser] = await Promise.all([params, requireUser(), getLocale(), currentUser()])
   const t = getDashboardTranslations(locale)
   const [data, todayEntry, myTasks, contracts, notebooks, fiscalProfile, invoices, onboardingCounts] = await Promise.all([
     getTodayData(workspaceId, user.id),
@@ -74,6 +75,11 @@ export default async function TodayPage({ params }: Props) {
     : []
 
   const isEmpty = data.pendingSteps.length === 0 && data.pendingWorkflows.length === 0
+  const displayName =
+    clerkUser?.firstName ??
+    user.name?.split(' ')[0] ??
+    user.email?.split('@')[0] ??
+    t.todayFallbackName
 
   const [clientCount, missionCount, taskCount, invoiceCount] = onboardingCounts
   const base = `/workspace/${workspaceId}`
@@ -119,7 +125,7 @@ export default async function TodayPage({ params }: Props) {
     <div className="max-w-3xl mx-auto px-6 py-8 space-y-8">
 
       <div>
-        <h1 className="text-2xl font-semibold">{greeting(t)}, {user.name?.split(' ')[0] ?? t.todayFallbackName}</h1>
+        <h1 className="text-2xl font-semibold">{greeting(t)}, {displayName}</h1>
         <p className="text-sm text-muted-foreground mt-0.5 capitalize">{todayLabel(locale)}</p>
       </div>
 
