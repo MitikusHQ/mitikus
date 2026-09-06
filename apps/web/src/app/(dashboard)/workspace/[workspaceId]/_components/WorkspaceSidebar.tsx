@@ -1,6 +1,7 @@
 'use client'
 
 import { Fragment, useEffect, useState } from 'react'
+import NextImage from 'next/image'
 import Link from 'next/link'
 import { cn } from '@/lib/utils'
 import { getLogoImageStyle, getLogoTextStyle } from '@/lib/logo-crop'
@@ -89,8 +90,7 @@ export function WorkspaceSidebar({ workspaceId, workspaceName, workspaceLogoUrl,
           <>
             <div className="shrink-0 w-7 h-7 rounded-lg overflow-hidden">
               {workspaceLogoUrl ? (
-                // eslint-disable-next-line @next/next/no-img-element
-                <img src={workspaceLogoUrl} alt={workspaceName} className="object-cover w-full h-full" />
+                <NextImage src={workspaceLogoUrl} alt={workspaceName} width={28} height={28} className="object-cover w-full h-full" />
               ) : (
                 <div
                   className="w-full h-full flex items-center justify-center text-white text-xs font-bold"
