@@ -923,10 +923,104 @@ export interface DashboardTranslations {
   // Workspace settings page
   wsSettingsTitle: string
   wsSettingsSubtitle: string
+  // Workspace settings client
+  wsLogoSection: string
+  wsLogoDesc: string
+  wsLogoShowName: string
+  wsLogoNameAdjust: string
+  wsLogoHorizontal: string
+  wsLogoVertical: string
+  wsLogoSize: string
+  wsLogoFontColor: string
+  wsLogoFont: string
+  wsEmailSection: string
+  wsEmailDesc: string
+  wsEmailMitikusLabel: string
+  wsEmailMitikusDesc: string
+  wsEmailSmtpLabel: string
+  wsEmailSmtpDesc: string
+  wsEmailGmailLabel: string
+  wsEmailGmailDesc: string
+  wsEmailOutlookLabel: string
+  wsEmailOutlookDesc: string
+  wsEmailGmailHelp: string
+  wsEmailOutlookHelp: string
+  wsEmailCustomHelp: string
+  wsEmailMitikusHelp: string
+  wsSenderName: string
+  wsSenderNamePlaceholder: string
+  wsReplyTo: string
+  wsReplyToPlaceholder: string
+  wsSignature: string
+  wsSignaturePlaceholder: string
+  wsSmtpTitle: string
+  wsSmtpServer: string
+  wsSmtpPort: string
+  wsSmtpUser: string
+  wsSmtpPassword: string
+  wsSmtpPasswordPlaceholder: string
+  wsSmtpTls: string
+  wsImapTitle: string
+  wsImapServer: string
+  wsImapPort: string
+  wsImapUser: string
+  wsImapPassword: string
+  wsImapPasswordPlaceholder: string
+  wsImapTls: string
+  wsImapNote: string
+  wsEmailConnectionOk: string
+  wsEmailTest: string
+  wsEmailTesting: string
+  wsEmailTestOk: string
+  wsEmailSave: string
+  wsEmailSaving: string
+  wsEmailSaved: string
+  wsEmailSaveError: string
+  wsEmailTestError: string
+  wsNameSection: string
+  wsNameDesc: string
+  wsBrandColorSection: string
+  wsBrandColorDesc: string
+  wsBrandColorPreview: string
+  wsBrandColorCustom: string
+  wsPermSection: string
+  wsPermDesc: string
+  wsPermOnlyAdmins: string
+  wsPermOnlyAdminsActive: string
+  wsPermOnlyAdminsInactive: string
+  wsPermOwnerOnly: string
+  wsPermSaved: string
+  wsSave: string
+  wsSaving: string
+  wsSaved: string
   // Receipts page
   receiptsOffice: string
   receiptsTitle: string
   receiptsSubtitle: string
+  // ReceiptsClient
+  receiptsStatusPending: string
+  receiptsStatusReviewed: string
+  receiptsStatusAccounted: string
+  receiptsTotalMonth: string
+  receiptsPendingReview: string
+  receiptsCount: string
+  receiptsScan: string
+  receiptsEmpty: string
+  receiptsEmptyHint: string
+  receiptsScanNow: string
+  receiptsNoVendor: string
+  receiptsDetail: string
+  receiptsDelete: string
+  receiptsSelectHint: string
+  receiptsVendor: string
+  receiptsDate: string
+  receiptsTotal: string
+  receiptsTaxBase: string
+  receiptsTax: string
+  receiptsCategory: string
+  receiptsNotes: string
+  receiptsStatus: string
+  receiptsLines: string
   // Usage page
   usageTitle: string
   usagePlanSection: string
@@ -1890,10 +1984,104 @@ const en: DashboardTranslations = {
   // Workspace settings page
   wsSettingsTitle: 'Workspace settings',
   wsSettingsSubtitle: 'Customise branding, visible data and sending settings for your workspace.',
+  // Workspace settings client
+  wsLogoSection: 'Company logo',
+  wsLogoDesc: 'Shown in the workspace sidebar.',
+  wsLogoShowName: 'Show workspace name above the logo in the sidebar',
+  wsLogoNameAdjust: 'Name overlay settings',
+  wsLogoHorizontal: 'Horizontal',
+  wsLogoVertical: 'Vertical',
+  wsLogoSize: 'Size',
+  wsLogoFontColor: 'Font colour',
+  wsLogoFont: 'Font',
+  wsEmailSection: 'Email & sending',
+  wsEmailDesc: 'Choose how emails are sent from this workspace.',
+  wsEmailMitikusLabel: 'MITIKUS',
+  wsEmailMitikusDesc: 'MITIKUS sends on your behalf. Replies go to the email you set.',
+  wsEmailSmtpLabel: 'Custom SMTP',
+  wsEmailSmtpDesc: 'Hosting, webmail or corporate email.',
+  wsEmailGmailLabel: 'Gmail',
+  wsEmailGmailDesc: 'Use smtp.gmail.com with an app password.',
+  wsEmailOutlookLabel: 'Outlook / Microsoft 365',
+  wsEmailOutlookDesc: 'Use Microsoft 365 with SMTP AUTH enabled.',
+  wsEmailGmailHelp: 'Gmail requires a Google app password. Do not use your normal password if two-factor authentication is enabled.',
+  wsEmailOutlookHelp: 'Outlook and Microsoft 365 may require enabling SMTP AUTH or using an app password.',
+  wsEmailCustomHelp: 'Use the manual configuration from your hosting provider: SMTP server, port, user and password.',
+  wsEmailMitikusHelp: 'Replies go to the email you enter. Delivery is handled by MITIKUS infrastructure.',
+  wsSenderName: 'Sender display name',
+  wsSenderNamePlaceholder: 'Your company',
+  wsReplyTo: 'Reply-to email',
+  wsReplyToPlaceholder: 'you@yourcompany.com',
+  wsSignature: 'Default signature',
+  wsSignaturePlaceholder: 'Regards,\n{name}',
+  wsSmtpTitle: 'SMTP configuration (outgoing)',
+  wsSmtpServer: 'SMTP server',
+  wsSmtpPort: 'Port',
+  wsSmtpUser: 'User / email',
+  wsSmtpPassword: 'Password',
+  wsSmtpPasswordPlaceholder: 'Leave blank to keep current',
+  wsSmtpTls: 'Use direct TLS (port 465)',
+  wsImapTitle: 'IMAP configuration (inbox)',
+  wsImapServer: 'IMAP server',
+  wsImapPort: 'IMAP port',
+  wsImapUser: 'IMAP user',
+  wsImapPassword: 'IMAP password',
+  wsImapPasswordPlaceholder: 'Leave blank if same as SMTP',
+  wsImapTls: 'Use TLS (IMAPS, recommended)',
+  wsImapNote: 'Passwords are encrypted before saving. If outgoing and incoming use the same email, you can leave the IMAP password blank.',
+  wsEmailConnectionOk: 'Email connection successful. You can save this configuration.',
+  wsEmailTest: 'Test connection',
+  wsEmailTesting: 'Testing…',
+  wsEmailTestOk: '✓ Connection OK',
+  wsEmailSave: 'Save email',
+  wsEmailSaving: 'Saving…',
+  wsEmailSaved: '✓ Saved',
+  wsEmailSaveError: 'Could not save email settings. Check your details and try again.',
+  wsEmailTestError: 'Could not test the SMTP connection. Check the server and port.',
+  wsNameSection: 'Workspace name',
+  wsNameDesc: 'Visible in the sidebar and in invitation emails.',
+  wsBrandColorSection: 'Brand colour',
+  wsBrandColorDesc: 'Used for the logo initial when no image is set.',
+  wsBrandColorPreview: 'Initial preview',
+  wsBrandColorCustom: 'Custom colour',
+  wsPermSection: 'Creation permissions',
+  wsPermDesc: 'Control who can install tools and create missions in this workspace.',
+  wsPermOnlyAdmins: 'Only Admins and Owners can create',
+  wsPermOnlyAdminsActive: 'Active — Editors and below cannot install tools or create missions.',
+  wsPermOnlyAdminsInactive: 'Disabled — All Editors can install tools and create missions.',
+  wsPermOwnerOnly: 'Only the workspace Owner can change this setting.',
+  wsPermSaved: '✓ Saved',
+  wsSave: 'Save changes',
+  wsSaving: 'Saving…',
+  wsSaved: '✓ Saved',
   // Receipts page
   receiptsOffice: 'My Office',
   receiptsTitle: 'Expenses',
   receiptsSubtitle: 'Scan receipts and invoices — AI extracts the data automatically',
+  // ReceiptsClient
+  receiptsStatusPending: 'Pending',
+  receiptsStatusReviewed: 'Reviewed',
+  receiptsStatusAccounted: 'Accounted',
+  receiptsTotalMonth: 'Total this month',
+  receiptsPendingReview: 'Pending review',
+  receiptsCount: 'Receipts recorded',
+  receiptsScan: 'Scan receipt',
+  receiptsEmpty: 'No receipts recorded',
+  receiptsEmptyHint: 'Scan your first receipt to get started',
+  receiptsScanNow: 'Scan now →',
+  receiptsNoVendor: 'No vendor',
+  receiptsDetail: 'Detail',
+  receiptsDelete: 'Delete',
+  receiptsSelectHint: 'Select a receipt to see details',
+  receiptsVendor: 'Vendor',
+  receiptsDate: 'Date',
+  receiptsTotal: 'Total',
+  receiptsTaxBase: 'Tax base',
+  receiptsTax: 'Tax',
+  receiptsCategory: 'Category',
+  receiptsNotes: 'Notes',
+  receiptsStatus: 'Status',
+  receiptsLines: 'Lines',
   // Usage page
   usageTitle: 'Plan usage',
   usagePlanSection: 'Account & plan',
@@ -2857,10 +3045,104 @@ const es: DashboardTranslations = {
   // Workspace settings page
   wsSettingsTitle: 'Ajustes del workspace',
   wsSettingsSubtitle: 'Personaliza marca, datos visibles y envíos de tu espacio de trabajo.',
+  // Workspace settings client
+  wsLogoSection: 'Logo de la empresa',
+  wsLogoDesc: 'Aparece en la barra lateral del workspace.',
+  wsLogoShowName: 'Mostrar el nombre encima del logo en la barra lateral',
+  wsLogoNameAdjust: 'Ajuste del nombre sobre el logo',
+  wsLogoHorizontal: 'Horizontal',
+  wsLogoVertical: 'Vertical',
+  wsLogoSize: 'Tamaño',
+  wsLogoFontColor: 'Color de letra',
+  wsLogoFont: 'Fuente',
+  wsEmailSection: 'Correo y envíos',
+  wsEmailDesc: 'Elige cómo salen los correos desde este workspace.',
+  wsEmailMitikusLabel: 'MITIKUS',
+  wsEmailMitikusDesc: 'MITIKUS envía por ti. Las respuestas llegan al email que indiques.',
+  wsEmailSmtpLabel: 'SMTP propio',
+  wsEmailSmtpDesc: 'Hosting, webmail o correo corporativo.',
+  wsEmailGmailLabel: 'Gmail',
+  wsEmailGmailDesc: 'Usa smtp.gmail.com con contraseña de aplicación.',
+  wsEmailOutlookLabel: 'Outlook / Microsoft 365',
+  wsEmailOutlookDesc: 'Usa Microsoft 365 con SMTP AUTH activo.',
+  wsEmailGmailHelp: 'Gmail necesita una contraseña de aplicación de Google. No uses tu contraseña normal si tienes doble factor.',
+  wsEmailOutlookHelp: 'Outlook y Microsoft 365 pueden requerir activar SMTP AUTH o usar una contraseña de aplicación.',
+  wsEmailCustomHelp: 'Usa los datos de configuración manual de tu hosting: servidor SMTP, puerto, usuario y contraseña.',
+  wsEmailMitikusHelp: 'Las respuestas llegarán al email indicado. La entrega real se gestiona desde la infraestructura de MITIKUS.',
+  wsSenderName: 'Nombre visible del remitente',
+  wsSenderNamePlaceholder: 'Tu empresa',
+  wsReplyTo: 'Email de respuesta',
+  wsReplyToPlaceholder: 'tu@empresa.com',
+  wsSignature: 'Firma o cierre por defecto',
+  wsSignaturePlaceholder: 'Gracias,\n{name}',
+  wsSmtpTitle: 'Configuración SMTP (salida)',
+  wsSmtpServer: 'Servidor SMTP',
+  wsSmtpPort: 'Puerto',
+  wsSmtpUser: 'Usuario / email',
+  wsSmtpPassword: 'Contraseña',
+  wsSmtpPasswordPlaceholder: 'Déjalo vacío para no cambiarla',
+  wsSmtpTls: 'Usar TLS directo (puerto 465)',
+  wsImapTitle: 'Configuración IMAP (bandeja de entrada)',
+  wsImapServer: 'Servidor IMAP',
+  wsImapPort: 'Puerto IMAP',
+  wsImapUser: 'Usuario IMAP',
+  wsImapPassword: 'Contraseña IMAP',
+  wsImapPasswordPlaceholder: 'Vacío si es la misma que SMTP',
+  wsImapTls: 'Usar TLS (IMAPS, recomendado)',
+  wsImapNote: 'Las contraseñas se cifran antes de guardarse. Si salida y entrada usan el mismo email, puedes dejar la contraseña IMAP vacía.',
+  wsEmailConnectionOk: 'Conexión de correo correcta. Ya puedes guardar esta configuración.',
+  wsEmailTest: 'Probar conexión',
+  wsEmailTesting: 'Probando…',
+  wsEmailTestOk: '✓ Conexión correcta',
+  wsEmailSave: 'Guardar correo',
+  wsEmailSaving: 'Guardando…',
+  wsEmailSaved: '✓ Guardado',
+  wsEmailSaveError: 'No se han podido guardar los ajustes de correo. Revisa los datos e inténtalo de nuevo.',
+  wsEmailTestError: 'No se ha podido probar la conexión SMTP. Comprueba el servidor y el puerto.',
+  wsNameSection: 'Nombre del workspace',
+  wsNameDesc: 'Visible en la barra lateral y en los correos de invitación.',
+  wsBrandColorSection: 'Color de marca',
+  wsBrandColorDesc: 'Se usa en la inicial del logo cuando no hay imagen.',
+  wsBrandColorPreview: 'Vista previa de la inicial',
+  wsBrandColorCustom: 'Color personalizado',
+  wsPermSection: 'Permisos de creación',
+  wsPermDesc: 'Controla quién puede instalar herramientas y crear misiones en este workspace.',
+  wsPermOnlyAdmins: 'Solo Admins y Owners pueden crear',
+  wsPermOnlyAdminsActive: 'Activo — Editores y rangos inferiores no pueden instalar herramientas ni crear misiones.',
+  wsPermOnlyAdminsInactive: 'Desactivado — Todos los Editores pueden instalar herramientas y crear misiones.',
+  wsPermOwnerOnly: 'Solo el Owner del workspace puede cambiar este ajuste.',
+  wsPermSaved: '✓ Guardado',
+  wsSave: 'Guardar cambios',
+  wsSaving: 'Guardando…',
+  wsSaved: '✓ Guardado',
   // Receipts page
   receiptsOffice: 'Mi Office',
   receiptsTitle: 'Gastos',
   receiptsSubtitle: 'Escanea tickets y facturas — la IA extrae los datos automáticamente',
+  // ReceiptsClient
+  receiptsStatusPending: 'Pendiente',
+  receiptsStatusReviewed: 'Revisado',
+  receiptsStatusAccounted: 'Contabilizado',
+  receiptsTotalMonth: 'Total este mes',
+  receiptsPendingReview: 'Pendientes de revisar',
+  receiptsCount: 'Tickets registrados',
+  receiptsScan: 'Escanear ticket',
+  receiptsEmpty: 'Sin tickets registrados',
+  receiptsEmptyHint: 'Escanea tu primer recibo para empezar',
+  receiptsScanNow: 'Escanear ahora →',
+  receiptsNoVendor: 'Sin proveedor',
+  receiptsDetail: 'Detalle',
+  receiptsDelete: 'Eliminar',
+  receiptsSelectHint: 'Selecciona un ticket para ver el detalle',
+  receiptsVendor: 'Proveedor',
+  receiptsDate: 'Fecha',
+  receiptsTotal: 'Total',
+  receiptsTaxBase: 'Base imp.',
+  receiptsTax: 'IVA',
+  receiptsCategory: 'Categoría',
+  receiptsNotes: 'Notas',
+  receiptsStatus: 'Estado',
+  receiptsLines: 'Líneas',
   // Usage page
   usageTitle: 'Uso del plan',
   usagePlanSection: 'Cuenta y plan',
