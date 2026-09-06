@@ -5,6 +5,8 @@ import { useClerk, useUser } from '@clerk/nextjs'
 import { Camera, ChevronDown, LogOut, UserRound } from 'lucide-react'
 import Link from 'next/link'
 import { ThemeToggle } from './ThemeToggle'
+import { getDashboardTranslations } from '@/i18n/dashboard-translations'
+import { useLocale } from '@/i18n/locale-context'
 
 interface UserNavProps {
   signOutLabel?: string
@@ -15,6 +17,8 @@ interface UserNavProps {
 export function UserNav({ signOutLabel = 'Cerrar sesión', avatarUrl, workspaceId }: UserNavProps) {
   const { signOut } = useClerk()
   const { user } = useUser()
+  const locale = useLocale()
+  const t = getDashboardTranslations(locale)
   const [open, setOpen] = useState(false)
   const menuRef = useRef<HTMLDivElement>(null)
   const displayName =
@@ -62,14 +66,13 @@ export function UserNav({ signOutLabel = 'Cerrar sesión', avatarUrl, workspaceI
           onClick={() => setOpen((value) => !value)}
           aria-expanded={open}
           aria-haspopup="menu"
-          aria-label="Abrir menú de cuenta"
-          title="Mi cuenta"
+          aria-label={t.accountMenuOpen}
+          title={t.accountMenu}
           className="flex h-9 items-center gap-1 rounded-full px-1 text-muted-foreground transition-colors hover:bg-muted hover:text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
         >
           <span className="h-7 w-7 rounded-full overflow-hidden flex-shrink-0">
             {avatarUrl ? (
-              // eslint-disable-next-line @next/next/no-img-element
-              <img src={avatarUrl} alt={displayName} className="w-full h-full object-cover" />
+              <img src={avatarUrl} alt={displayName} width={28} height={28} className="w-full h-full object-cover" decoding="async" />
             ) : (
               <span className="w-full h-full bg-primary/10 flex items-center justify-center text-xs font-semibold text-primary select-none">
                 {initial}
@@ -82,7 +85,7 @@ export function UserNav({ signOutLabel = 'Cerrar sesión', avatarUrl, workspaceI
         {open && (
           <div
             role="menu"
-            aria-label="Menú de cuenta"
+            aria-label={t.accountMenu}
             className="absolute right-0 top-full z-50 mt-2 w-56 overflow-hidden rounded-lg border border-border bg-card py-1 shadow-lg"
           >
             <Link
@@ -92,7 +95,7 @@ export function UserNav({ signOutLabel = 'Cerrar sesión', avatarUrl, workspaceI
               className="flex items-center gap-2 px-3 py-2 text-sm text-foreground transition-colors hover:bg-muted"
             >
               <UserRound className="h-4 w-4 text-muted-foreground" aria-hidden />
-              <span>Datos personales</span>
+              <span>{t.accountPersonalData}</span>
             </Link>
             <Link
               href={avatarHref}
@@ -101,7 +104,7 @@ export function UserNav({ signOutLabel = 'Cerrar sesión', avatarUrl, workspaceI
               className="flex items-center gap-2 px-3 py-2 text-sm text-foreground transition-colors hover:bg-muted"
             >
               <Camera className="h-4 w-4 text-muted-foreground" aria-hidden />
-              <span>Foto de perfil</span>
+              <span>{t.accountProfilePhoto}</span>
             </Link>
             <div className="my-1 h-px bg-border" />
             <button
@@ -111,7 +114,7 @@ export function UserNav({ signOutLabel = 'Cerrar sesión', avatarUrl, workspaceI
               className="flex w-full items-center gap-2 px-3 py-2 text-left text-sm text-destructive transition-colors hover:bg-destructive/10"
             >
               <LogOut className="h-4 w-4" aria-hidden />
-              <span>{signOutLabel}</span>
+              <span>{signOutLabel === 'Cerrar sesión' ? t.accountSignOut : signOutLabel}</span>
             </button>
           </div>
         )}
