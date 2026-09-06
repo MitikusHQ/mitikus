@@ -109,7 +109,7 @@ export default async function WorkspacePage({ params, searchParams }: Props) {
       </div>
 
       {/* Trial banner — visible solo durante el periodo de prueba */}
-      <TrialBanner orgId={user.orgId} />
+      <TrialBanner orgId={user.orgId} locale={locale} />
 
       {/* Sprint 1 — Banda de Inteligencia */}
       {showSinceLastVisit && (
@@ -121,7 +121,7 @@ export default async function WorkspacePage({ params, searchParams }: Props) {
       )}
 
       {/* Acceso rápido a última ejecución */}
-      <LastExecutionWidget workspaceId={workspaceId} />
+      <LastExecutionWidget workspaceId={workspaceId} locale={locale} />
 
       {/* Onboarding — desaparece cuando todos los pasos están completos */}
       <OnboardingChecklist workspaceId={workspaceId} userId={user.id} />
@@ -134,7 +134,7 @@ export default async function WorkspacePage({ params, searchParams }: Props) {
         <div className="flex items-center justify-between mb-1">
           <h2 className="text-base font-semibold">{t.homeMissionsTitle}</h2>
           <div className="flex items-center gap-3">
-            <MissionTemplateButton workspaceId={workspaceId} />
+            <MissionTemplateButton workspaceId={workspaceId} locale={locale} />
             <Link href={`/workspace/${workspaceId}/copilot`} className="text-sm text-primary hover:underline">
               {t.homeCreateMission}
             </Link>
@@ -207,7 +207,7 @@ export default async function WorkspacePage({ params, searchParams }: Props) {
               {t.homeNoMissionsDesc}
             </p>
             <div className="flex items-center justify-center gap-3 flex-wrap">
-              <MissionTemplateButton workspaceId={workspaceId} />
+              <MissionTemplateButton workspaceId={workspaceId} locale={locale} />
               <Link
                 href={`/workspace/${workspaceId}/copilot`}
                 className="text-sm text-primary hover:underline font-medium"

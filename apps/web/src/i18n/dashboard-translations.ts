@@ -770,6 +770,40 @@ export interface DashboardTranslations {
   homeStepsProgressPlural: string
   homeContinueMission: string
   homeNowColon: string
+  // TrialBanner
+  trialUrgentPrefix: string
+  trialDaySingular: string
+  trialDayPlural: string
+  trialUrgentSuffix: string
+  trialNormalPrefix: string
+  trialNormalSingularSuffix: string
+  trialNormalPluralSuffix: string
+  trialActivate: string
+  // LastExecutionWidget
+  lastExecEmpty: string
+  lastExecSeeTools: string
+  lastExecLabel: string
+  lastExecDaysAgoPrefix: string
+  lastExecDaysAgoSuffix: string
+  lastExecHoursAgoPrefix: string
+  lastExecHoursAgoSuffix: string
+  lastExecJustNow: string
+  lastExecRerun: string
+  // MissionTemplateModal
+  templateFromTemplate: string
+  templateModalTitle: string
+  templateModalSubtitle: string
+  templateSteps: string
+  templateBackToList: string
+  templateIncludedStepsPrefix: string
+  templateActorAI: string
+  templateActorShared: string
+  templateActorUser: string
+  templateMinutes: string
+  templateError: string
+  templateBack: string
+  templateCreating: string
+  templateCreate: string
 }
 
 const en: DashboardTranslations = {
@@ -1531,6 +1565,40 @@ const en: DashboardTranslations = {
   homeStepsProgressPlural: 'steps',
   homeContinueMission: 'Continue mission →',
   homeNowColon: 'Now:',
+  // TrialBanner
+  trialUrgentPrefix: '⚠️ Your trial ends in ',
+  trialDaySingular: ' day',
+  trialDayPlural: ' days',
+  trialUrgentSuffix: '. You won\'t lose anything if you activate your plan now.',
+  trialNormalPrefix: 'Trial period · ',
+  trialNormalSingularSuffix: ' day remaining',
+  trialNormalPluralSuffix: ' days remaining',
+  trialActivate: 'Activate plan →',
+  // LastExecutionWidget
+  lastExecEmpty: 'You haven\'t executed any tool yet.',
+  lastExecSeeTools: 'See tools →',
+  lastExecLabel: 'Last execution',
+  lastExecDaysAgoPrefix: '',
+  lastExecDaysAgoSuffix: 'd ago',
+  lastExecHoursAgoPrefix: '',
+  lastExecHoursAgoSuffix: 'h ago',
+  lastExecJustNow: 'less than 1h ago',
+  lastExecRerun: 'Run again →',
+  // MissionTemplateModal
+  templateFromTemplate: 'From template',
+  templateModalTitle: 'Mission templates',
+  templateModalSubtitle: 'Choose one to start with predefined steps.',
+  templateSteps: 'steps',
+  templateBackToList: '← Back to templates',
+  templateIncludedStepsPrefix: 'Included steps (',
+  templateActorAI: '✨ AI',
+  templateActorShared: '🤝 Shared',
+  templateActorUser: '👤 You',
+  templateMinutes: 'min',
+  templateError: 'Could not create the mission. Please try again.',
+  templateBack: 'Back',
+  templateCreating: 'Creating...',
+  templateCreate: 'Create mission',
 }
 
 const es: DashboardTranslations = {
@@ -2292,6 +2360,40 @@ const es: DashboardTranslations = {
   homeStepsProgressPlural: 'pasos',
   homeContinueMission: 'Continuar misión →',
   homeNowColon: 'Ahora:',
+  // TrialBanner
+  trialUrgentPrefix: '⚠️ Tu periodo de prueba termina en ',
+  trialDaySingular: ' día',
+  trialDayPlural: ' días',
+  trialUrgentSuffix: '. No perderás nada si activas tu plan ahora.',
+  trialNormalPrefix: 'Periodo de prueba · ',
+  trialNormalSingularSuffix: ' día restante',
+  trialNormalPluralSuffix: ' días restantes',
+  trialActivate: 'Activar plan →',
+  // LastExecutionWidget
+  lastExecEmpty: 'Aún no has ejecutado ninguna herramienta.',
+  lastExecSeeTools: 'Ver herramientas →',
+  lastExecLabel: 'Última ejecución',
+  lastExecDaysAgoPrefix: 'hace ',
+  lastExecDaysAgoSuffix: 'd',
+  lastExecHoursAgoPrefix: 'hace ',
+  lastExecHoursAgoSuffix: 'h',
+  lastExecJustNow: 'hace menos de 1h',
+  lastExecRerun: 'Ejecutar de nuevo →',
+  // MissionTemplateModal
+  templateFromTemplate: 'Desde plantilla',
+  templateModalTitle: 'Plantillas de misión',
+  templateModalSubtitle: 'Elige una para empezar con los pasos ya definidos.',
+  templateSteps: 'pasos',
+  templateBackToList: '← Volver a plantillas',
+  templateIncludedStepsPrefix: 'Pasos incluidos (',
+  templateActorAI: '✨ IA',
+  templateActorShared: '🤝 Compartido',
+  templateActorUser: '👤 Tú',
+  templateMinutes: 'min',
+  templateError: 'No se pudo crear la misión. Inténtalo de nuevo.',
+  templateBack: 'Atrás',
+  templateCreating: 'Creando...',
+  templateCreate: 'Crear misión',
 }
 
 const fr: DashboardTranslations = {
