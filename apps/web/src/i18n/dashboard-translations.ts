@@ -804,6 +804,62 @@ export interface DashboardTranslations {
   templateBack: string
   templateCreating: string
   templateCreate: string
+  // GlobalSearch
+  searchLabel: string
+  searchGlobalLabel: string
+  searchPlaceholder: string
+  searchFilters: string
+  searchClearFilters: string
+  searchTypeDoc: string
+  searchTypePdf: string
+  searchTypeContract: string
+  searchTypeNotebook: string
+  searchTypeSheet: string
+  searchTypePresentation: string
+  searchTypeTask: string
+  searchTypeMission: string
+  searchTypeClient: string
+  searchTypeTool: string
+  searchCreatedBetween: string
+  searchModifiedBetween: string
+  searchClearDates: string
+  searchNoResults: string
+  searchNoResultsHint: string
+  searchMinChars: string
+  searchMinCharsFilters: string
+  searchCreated: string
+  searchModified: string
+  searchNav: string
+  searchOpen: string
+  searchClose: string
+  searchResultsSuffix: string
+  searchRelativeToday: string
+  searchRelativeYesterday: string
+  searchRelativeDaysAgo: string
+  searchRelativeWeeks: string
+  searchRelativeMonths: string
+  // TaskList
+  tasksTitle: string
+  tasksNew: string
+  tasksFilterAll: string
+  tasksFilterPending: string
+  tasksFilterInProgress: string
+  tasksFilterDone: string
+  tasksFilterMine: string
+  tasksEmpty: string
+  tasksCreateFirst: string
+  tasksPendingSingular: string
+  tasksPendingPlural: string
+  tasksTotal: string
+  // Analytics
+  analyticsEmpty: string
+  analyticsEmptyHint: string
+  analyticsNoExecutions: string
+  analyticsCompleted: string
+  analyticsFailed: string
+  analyticsCancelled: string
+  analyticsRunning: string
+  analyticsPending: string
 }
 
 const en: DashboardTranslations = {
@@ -1599,6 +1655,62 @@ const en: DashboardTranslations = {
   templateBack: 'Back',
   templateCreating: 'Creating...',
   templateCreate: 'Create mission',
+  // GlobalSearch
+  searchLabel: 'Search',
+  searchGlobalLabel: 'Global search',
+  searchPlaceholder: 'Search across documents, clients, contracts…',
+  searchFilters: 'Filters',
+  searchClearFilters: 'Clear',
+  searchTypeDoc: 'Document',
+  searchTypePdf: 'PDF',
+  searchTypeContract: 'Contract',
+  searchTypeNotebook: 'Notebook',
+  searchTypeSheet: 'Spreadsheet',
+  searchTypePresentation: 'Presentation',
+  searchTypeTask: 'Task',
+  searchTypeMission: 'Mission',
+  searchTypeClient: 'Client',
+  searchTypeTool: 'Tool',
+  searchCreatedBetween: 'Created between',
+  searchModifiedBetween: 'Modified between',
+  searchClearDates: 'Clear dates',
+  searchNoResults: 'No results for',
+  searchNoResultsHint: 'Try broadening your date or type filters',
+  searchMinChars: 'Type at least 2 characters · Search across documents, PDFs, contracts, sheets, presentations, tasks, missions, clients and tools',
+  searchMinCharsFilters: 'Type at least 2 characters to search with the applied filters',
+  searchCreated: 'Created',
+  searchModified: 'Modified',
+  searchNav: '↑↓ navigate',
+  searchOpen: '↵ open',
+  searchClose: 'Esc close',
+  searchResultsSuffix: 'result',
+  searchRelativeToday: 'today',
+  searchRelativeYesterday: 'yesterday',
+  searchRelativeDaysAgo: 'd ago',
+  searchRelativeWeeks: 'w ago',
+  searchRelativeMonths: 'mo ago',
+  // TaskList
+  tasksTitle: 'Tasks',
+  tasksNew: 'New task',
+  tasksFilterAll: 'All',
+  tasksFilterPending: 'Pending',
+  tasksFilterInProgress: 'In progress',
+  tasksFilterDone: 'Done',
+  tasksFilterMine: 'Mine only',
+  tasksEmpty: 'No tasks match these filters.',
+  tasksCreateFirst: 'Create the first →',
+  tasksPendingSingular: 'pending',
+  tasksPendingPlural: 'pending',
+  tasksTotal: 'total',
+  // Analytics
+  analyticsEmpty: 'No activity in this period',
+  analyticsEmptyHint: 'Run tools or workflows to see metrics here.',
+  analyticsNoExecutions: 'No executions',
+  analyticsCompleted: 'Completed',
+  analyticsFailed: 'Failed',
+  analyticsCancelled: 'Cancelled',
+  analyticsRunning: 'Running',
+  analyticsPending: 'Pending',
 }
 
 const es: DashboardTranslations = {
@@ -2394,6 +2506,62 @@ const es: DashboardTranslations = {
   templateBack: 'Atrás',
   templateCreating: 'Creando...',
   templateCreate: 'Crear misión',
+  // GlobalSearch
+  searchLabel: 'Buscar',
+  searchGlobalLabel: 'Búsqueda global',
+  searchPlaceholder: 'Busca entre documentos, clientes, contratos…',
+  searchFilters: 'Filtros',
+  searchClearFilters: 'Limpiar',
+  searchTypeDoc: 'Documento',
+  searchTypePdf: 'PDF',
+  searchTypeContract: 'Contrato',
+  searchTypeNotebook: 'Cuaderno',
+  searchTypeSheet: 'Hoja de cálculo',
+  searchTypePresentation: 'Presentación',
+  searchTypeTask: 'Tarea',
+  searchTypeMission: 'Misión',
+  searchTypeClient: 'Cliente',
+  searchTypeTool: 'Herramienta',
+  searchCreatedBetween: 'Creado entre',
+  searchModifiedBetween: 'Modificado entre',
+  searchClearDates: 'Limpiar fechas',
+  searchNoResults: 'Sin resultados para',
+  searchNoResultsHint: 'Prueba a ampliar los filtros de fecha o tipo',
+  searchMinChars: 'Escribe al menos 2 caracteres · Busca entre documentos, PDFs, contratos, hojas, presentaciones, tareas, misiones, clientes y herramientas',
+  searchMinCharsFilters: 'Escribe al menos 2 caracteres para buscar con los filtros aplicados',
+  searchCreated: 'Creado',
+  searchModified: 'Modificado',
+  searchNav: '↑↓ navegar',
+  searchOpen: '↵ abrir',
+  searchClose: 'Esc cerrar',
+  searchResultsSuffix: 'resultado',
+  searchRelativeToday: 'hoy',
+  searchRelativeYesterday: 'ayer',
+  searchRelativeDaysAgo: 'd atrás',
+  searchRelativeWeeks: 'sem atrás',
+  searchRelativeMonths: 'mes atrás',
+  // TaskList
+  tasksTitle: 'Tareas',
+  tasksNew: 'Nueva tarea',
+  tasksFilterAll: 'Todas',
+  tasksFilterPending: 'Pendiente',
+  tasksFilterInProgress: 'En curso',
+  tasksFilterDone: 'Completada',
+  tasksFilterMine: 'Solo las mías',
+  tasksEmpty: 'Ninguna tarea coincide con estos filtros.',
+  tasksCreateFirst: 'Crea la primera →',
+  tasksPendingSingular: 'pendiente',
+  tasksPendingPlural: 'pendientes',
+  tasksTotal: 'total',
+  // Analytics
+  analyticsEmpty: 'Sin actividad en este periodo',
+  analyticsEmptyHint: 'Ejecuta herramientas o workflows para ver métricas aquí.',
+  analyticsNoExecutions: 'Sin ejecuciones',
+  analyticsCompleted: 'Completadas',
+  analyticsFailed: 'Fallidas',
+  analyticsCancelled: 'Canceladas',
+  analyticsRunning: 'En curso',
+  analyticsPending: 'Pendientes',
 }
 
 const fr: DashboardTranslations = {

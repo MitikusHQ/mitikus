@@ -3,6 +3,7 @@ import { requireUser } from '@/lib/auth'
 import { db } from '@/lib/db'
 import { getTasks } from '@/app/actions/tasks'
 import { TaskList } from './_components/TaskList'
+import { getLocale } from '@/i18n/locale'
 
 interface Props {
   params: Promise<{ workspaceId: string }>
@@ -10,7 +11,7 @@ interface Props {
 }
 
 export default async function TasksPage({ params, searchParams }: Props) {
-  const [{ workspaceId }, sp, user] = await Promise.all([params, searchParams, requireUser()])
+  const [{ workspaceId }, sp, user, locale] = await Promise.all([params, searchParams, requireUser(), getLocale()])
 
   const workspace = await db.workspace.findFirst({ where: { id: workspaceId, orgId: user.orgId } })
   if (!workspace) notFound()
@@ -33,6 +34,7 @@ export default async function TasksPage({ params, searchParams }: Props) {
           status: sp.status ?? 'all',
           mine: sp.mine === 'true',
         }}
+        locale={locale}
       />
     </div>
   )

@@ -2,6 +2,8 @@
 
 import { useState, useEffect, useRef, useCallback } from 'react'
 import { useRouter } from 'next/navigation'
+import { getDashboardTranslations } from '@/i18n/dashboard-translations'
+import type { Locale } from '@/i18n/config'
 
 type ResultType =
   | 'doc' | 'pdf' | 'contract' | 'notebook'
@@ -16,19 +18,6 @@ interface SearchResult {
   href:      string
   createdAt: string
   updatedAt: string
-}
-
-const TYPE_LABEL: Record<ResultType, string> = {
-  doc:          'Documento',
-  pdf:          'PDF',
-  contract:     'Contrato',
-  notebook:     'Notebook',
-  sheet:        'Hoja de cálculo',
-  presentation: 'Presentación',
-  task:         'Tarea',
-  mission:      'Misión',
-  client:       'Cliente',
-  tool:         'Herramienta',
 }
 
 const TYPE_ICON: Record<ResultType, string> = {
@@ -49,22 +38,10 @@ const ALL_TYPES: ResultType[] = [
   'sheet', 'presentation', 'task', 'mission', 'client', 'tool',
 ]
 
-function relativeDate(iso: string): string {
-  const d    = new Date(iso)
-  const now  = new Date()
-  const diff = now.getTime() - d.getTime()
-  const days = Math.floor(diff / 86_400_000)
-  if (days === 0) return 'hoy'
-  if (days === 1) return 'ayer'
-  if (days < 7)  return `hace ${days} días`
-  if (days < 30) return `hace ${Math.floor(days / 7)} sem.`
-  if (days < 365) return `hace ${Math.floor(days / 30)} meses`
-  return d.toLocaleDateString('es-ES', { day: '2-digit', month: 'short', year: 'numeric' })
-}
+interface Props { workspaceId: string; locale: Locale }
 
-interface Props { workspaceId: string }
-
-export function GlobalSearch({ workspaceId }: Props) {
+export function GlobalSearch({ workspaceId, locale }: Props) {
+  const t = getDashboardTranslations(locale)
   const router = useRouter()
   const [open,       setOpen]       = useState(false)
   const [query,      setQuery]      = useState('')
@@ -80,6 +57,32 @@ export function GlobalSearch({ workspaceId }: Props) {
 
   const inputRef  = useRef<HTMLInputElement>(null)
   const debouncer = useRef<ReturnType<typeof setTimeout> | null>(null)
+
+  const TYPE_LABEL: Record<ResultType, string> = {
+    doc:          t.searchTypeDoc,
+    pdf:          t.searchTypePdf,
+    contract:     t.searchTypeContract,
+    notebook:     t.searchTypeNotebook,
+    sheet:        t.searchTypeSheet,
+    presentation: t.searchTypePresentation,
+    task:         t.searchTypeTask,
+    mission:      t.searchTypeMission,
+    client:       t.searchTypeClient,
+    tool:         t.searchTypeTool,
+  }
+
+  function relativeDate(iso: string): string {
+    const d    = new Date(iso)
+    const now  = new Date()
+    const diff = now.getTime() - d.getTime()
+    const days = Math.floor(diff / 86_400_000)
+    if (days === 0) return t.searchRelativeToday
+    if (days === 1) return t.searchRelativeYesterday
+    if (days < 7)  return `${days}${t.searchRelativeDaysAgo}`
+    if (days < 30) return `${Math.floor(days / 7)}${t.searchRelativeWeeks}`
+    if (days < 365) return `${Math.floor(days / 30)}${t.searchRelativeMonths}`
+    return d.toLocaleDateString(locale, { day: '2-digit', month: 'short', year: 'numeric' })
+  }
 
   // Cmd+K / Ctrl+K
   useEffect(() => {
@@ -143,9 +146,9 @@ export function GlobalSearch({ workspaceId }: Props) {
     router.push(href)
   }
 
-  function toggleType(t: ResultType) {
+  function toggleType(type: ResultType) {
     setActiveTypes((prev) =>
-      prev.includes(t) ? prev.filter((x) => x !== t) : [...prev, t]
+      prev.includes(type) ? prev.filter((x) => x !== type) : [...prev, type]
     )
   }
 
@@ -172,11 +175,11 @@ export function GlobalSearch({ workspaceId }: Props) {
       <button
         type="button"
         onClick={() => setOpen(true)}
-        aria-label="Buscar"
+        aria-label={t.searchLabel}
         className="hidden sm:flex items-center gap-2 h-8 px-3 rounded-md border bg-background text-muted-foreground text-xs hover:bg-muted hover:text-foreground transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
       >
         <SearchIcon />
-        <span>Buscar…</span>
+        <span>{t.searchLabel}…</span>
         <kbd className="ml-1 text-[10px] font-mono bg-muted border rounded px-1 py-0.5 leading-none">⌘K</kbd>
       </button>
     )
@@ -189,7 +192,7 @@ export function GlobalSearch({ workspaceId }: Props) {
       <div
         role="dialog"
         aria-modal
-        aria-label="Búsqueda global"
+        aria-label={t.searchGlobalLabel}
         className="fixed top-[8%] left-1/2 -translate-x-1/2 z-50 w-full max-w-2xl bg-card border rounded-xl shadow-2xl overflow-hidden"
       >
         {/* Input */}
@@ -201,7 +204,7 @@ export function GlobalSearch({ workspaceId }: Props) {
             value={query}
             onChange={handleInput}
             onKeyDown={handleKeyDown}
-            placeholder="Buscar en todos los documentos, clientes, contratos…"
+            placeholder={t.searchPlaceholder}
             className="flex-1 bg-transparent text-sm placeholder:text-muted-foreground focus:outline-none"
           />
           {loading && <LoadingDots />}
@@ -214,7 +217,7 @@ export function GlobalSearch({ workspaceId }: Props) {
                 : 'border-input text-muted-foreground hover:bg-muted'
             }`}
           >
-            Filtros{hasFilters ? ' ●' : ''}
+            {t.searchFilters}{hasFilters ? ' ●' : ''}
           </button>
           <kbd
             className="text-[10px] font-mono text-muted-foreground bg-muted border rounded px-1.5 py-0.5 leading-none shrink-0 cursor-pointer"
@@ -229,18 +232,18 @@ export function GlobalSearch({ workspaceId }: Props) {
           <div className="border-b bg-muted/30 px-4 py-3 space-y-3">
             {/* Type chips */}
             <div className="flex flex-wrap gap-1.5">
-              {ALL_TYPES.map((t) => (
+              {ALL_TYPES.map((type) => (
                 <button
-                  key={t}
+                  key={type}
                   type="button"
-                  onClick={() => toggleType(t)}
+                  onClick={() => toggleType(type)}
                   className={`text-[11px] px-2 py-0.5 rounded-full border transition-colors ${
-                    activeTypes.includes(t)
+                    activeTypes.includes(type)
                       ? 'border-primary bg-primary/10 text-primary font-medium'
                       : 'border-input text-muted-foreground hover:border-primary/50'
                   }`}
                 >
-                  {TYPE_ICON[t]} {TYPE_LABEL[t]}
+                  {TYPE_ICON[type]} {TYPE_LABEL[type]}
                 </button>
               ))}
               {activeTypes.length > 0 && (
@@ -249,7 +252,7 @@ export function GlobalSearch({ workspaceId }: Props) {
                   onClick={() => setActiveTypes([])}
                   className="text-[11px] px-2 py-0.5 text-muted-foreground hover:text-foreground"
                 >
-                  Limpiar
+                  {t.searchClearFilters}
                 </button>
               )}
             </div>
@@ -257,7 +260,7 @@ export function GlobalSearch({ workspaceId }: Props) {
             {/* Date filters */}
             <div className="grid grid-cols-2 gap-3">
               <div className="space-y-1">
-                <p className="text-[10px] font-medium text-muted-foreground uppercase tracking-wide">Creado entre</p>
+                <p className="text-[10px] font-medium text-muted-foreground uppercase tracking-wide">{t.searchCreatedBetween}</p>
                 <div className="flex items-center gap-1.5">
                   <input
                     type="date"
@@ -275,7 +278,7 @@ export function GlobalSearch({ workspaceId }: Props) {
                 </div>
               </div>
               <div className="space-y-1">
-                <p className="text-[10px] font-medium text-muted-foreground uppercase tracking-wide">Modificado entre</p>
+                <p className="text-[10px] font-medium text-muted-foreground uppercase tracking-wide">{t.searchModifiedBetween}</p>
                 <div className="flex items-center gap-1.5">
                   <input
                     type="date"
@@ -299,7 +302,7 @@ export function GlobalSearch({ workspaceId }: Props) {
                 onClick={() => { setFrom(''); setTo(''); setModifiedFrom(''); setModifiedTo('') }}
                 className="text-[11px] text-muted-foreground hover:text-foreground"
               >
-                Limpiar fechas
+                {t.searchClearDates}
               </button>
             )}
           </div>
@@ -309,20 +312,20 @@ export function GlobalSearch({ workspaceId }: Props) {
         <div className="max-h-[60vh] overflow-y-auto">
           {query.length >= 2 && !loading && results.length === 0 && (
             <p className="px-4 py-8 text-center text-sm text-muted-foreground">
-              Sin resultados para &ldquo;{query}&rdquo;
-              {hasFilters && <span className="block text-xs mt-1">Prueba a ampliar los filtros de fecha o tipo</span>}
+              {t.searchNoResults} &ldquo;{query}&rdquo;
+              {hasFilters && <span className="block text-xs mt-1">{t.searchNoResultsHint}</span>}
             </p>
           )}
 
           {query.length < 2 && !hasFilters && (
             <p className="px-4 py-6 text-center text-xs text-muted-foreground">
-              Escribe al menos 2 caracteres · Busca en documentos, PDFs, contratos, hojas, presentaciones, tareas, misiones, clientes y herramientas
+              {t.searchMinChars}
             </p>
           )}
 
           {query.length < 2 && hasFilters && (
             <p className="px-4 py-6 text-center text-xs text-muted-foreground">
-              Escribe al menos 2 caracteres para buscar con los filtros aplicados
+              {t.searchMinCharsFilters}
             </p>
           )}
 
@@ -352,9 +355,9 @@ export function GlobalSearch({ workspaceId }: Props) {
                         <p className="text-xs text-muted-foreground truncate">{item.sub}</p>
                       )}
                       <p className="text-[10px] text-muted-foreground/70 mt-0.5">
-                        Creado {relativeDate(item.createdAt)}
+                        {t.searchCreated} {relativeDate(item.createdAt)}
                         {item.updatedAt !== item.createdAt && (
-                          <> · Modificado {relativeDate(item.updatedAt)}</>
+                          <> · {t.searchModified} {relativeDate(item.updatedAt)}</>
                         )}
                       </p>
                     </div>
@@ -368,10 +371,10 @@ export function GlobalSearch({ workspaceId }: Props) {
 
         {results.length > 0 && (
           <div className="px-4 py-2 border-t bg-muted/20 flex items-center gap-3 text-[10px] text-muted-foreground">
-            <span>↑↓ navegar</span>
-            <span>↵ abrir</span>
-            <span>Esc cerrar</span>
-            <span className="ml-auto">{results.length} resultado{results.length !== 1 ? 's' : ''}</span>
+            <span>{t.searchNav}</span>
+            <span>{t.searchOpen}</span>
+            <span>{t.searchClose}</span>
+            <span className="ml-auto">{results.length} {t.searchResultsSuffix}{results.length !== 1 ? 's' : ''}</span>
           </div>
         )}
       </div>

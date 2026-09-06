@@ -119,7 +119,7 @@ function AnalyticsDashboard({ data, workspaceId, t }: { data: WorkspaceAnalytics
       </div>
 
       {!hasAnyData ? (
-        <EmptyState />
+        <EmptyState t={t} />
       ) : (
         <>
           {/* Row: Cost timeseries + Health */}
@@ -135,7 +135,7 @@ function AnalyticsDashboard({ data, workspaceId, t }: { data: WorkspaceAnalytics
             </Section>
 
             <Section title={t.analyticsExecutionStatus}>
-              <ExecutionHealthView points={executionHealth} />
+              <ExecutionHealthView points={executionHealth} t={t} />
             </Section>
           </div>
 
@@ -242,28 +242,26 @@ function Section({ title, children }: { title: string; children: React.ReactNode
   )
 }
 
-function EmptyState() {
+function EmptyState({ t }: { t: DashboardTranslations }) {
   return (
     <div className="rounded-lg border border-dashed p-14 text-center">
-      <p className="text-muted-foreground text-sm font-medium">Sin actividad en este periodo</p>
-      <p className="text-muted-foreground text-xs mt-1">
-        Ejecuta herramientas o workflows para ver métricas aquí.
-      </p>
+      <p className="text-muted-foreground text-sm font-medium">{t.analyticsEmpty}</p>
+      <p className="text-muted-foreground text-xs mt-1">{t.analyticsEmptyHint}</p>
     </div>
   )
 }
 
-const STATUS_CONFIG: Record<string, { label: string; colorClass: string }> = {
-  COMPLETED: { label: 'Completadas', colorClass: 'bg-green-500' },
-  FAILED:    { label: 'Fallidas',    colorClass: 'bg-red-500'   },
-  CANCELLED: { label: 'Canceladas',  colorClass: 'bg-amber-500' },
-  RUNNING:   { label: 'En curso',    colorClass: 'bg-blue-500'  },
-  PENDING:   { label: 'Pendientes',  colorClass: 'bg-muted-foreground' },
-}
+function ExecutionHealthView({ points, t }: { points: HealthPoint[]; t: DashboardTranslations }) {
+  const STATUS_CONFIG: Record<string, { label: string; colorClass: string }> = {
+    COMPLETED: { label: t.analyticsCompleted, colorClass: 'bg-green-500' },
+    FAILED:    { label: t.analyticsFailed,    colorClass: 'bg-red-500'   },
+    CANCELLED: { label: t.analyticsCancelled, colorClass: 'bg-amber-500' },
+    RUNNING:   { label: t.analyticsRunning,   colorClass: 'bg-blue-500'  },
+    PENDING:   { label: t.analyticsPending,   colorClass: 'bg-muted-foreground' },
+  }
 
-function ExecutionHealthView({ points }: { points: HealthPoint[] }) {
   if (points.length === 0) {
-    return <p className="text-xs text-muted-foreground py-4 text-center">Sin ejecuciones</p>
+    return <p className="text-xs text-muted-foreground py-4 text-center">{t.analyticsNoExecutions}</p>
   }
 
   const total = points.reduce((s, p) => s + p.count, 0)
