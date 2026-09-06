@@ -3,6 +3,8 @@
 import { useState, useRef } from 'react'
 import type { BrainFragment } from '@/lib/brain/brain-search'
 import { UpgradeModal } from '@/app/(dashboard)/_components/UpgradeModal'
+import type { Locale } from '@/i18n/config'
+import { getDashboardTranslations } from '@/i18n/dashboard-translations'
 
 interface BrainResult {
   answer: string
@@ -14,24 +16,7 @@ interface Props {
   compact?: boolean
   onNavigateToFull?: () => void
   onOpenMemorySource?: (memoryId: string) => void
-}
-
-const QUICK_ACTIONS = [
-  { label: '¿Qué hago ahora?', query: '¿Cuáles son las tareas y objetivos más urgentes actualmente?' },
-  { label: 'Decisiones recientes', query: 'Decisiones importantes tomadas recientemente en el workspace' },
-  { label: 'Objetivos activos', query: 'Objetivos y misiones activas en este momento' },
-  { label: 'Fricciones', query: 'Problemas, riesgos o fricciones identificadas en el workspace' },
-]
-
-const SOURCE_TYPE_LABELS: Record<BrainFragment['type'], string> = {
-  document:     'Documento',
-  memory:       'Memoria',
-  conversation: 'Conversación',
-  tool:         'Herramienta',
-  help:         'Ayuda MITIKUS',
-  objective:    'Objetivo',
-  mission_step: 'Paso',
-  task:         'Tarea',
+  locale: Locale
 }
 
 const SOURCE_TYPE_COLORS: Record<BrainFragment['type'], string> = {
@@ -45,7 +30,24 @@ const SOURCE_TYPE_COLORS: Record<BrainFragment['type'], string> = {
   task:         'bg-rose-500/10 text-rose-600 dark:text-rose-300',
 }
 
-export function BrainPanel({ workspaceId, compact = false, onNavigateToFull, onOpenMemorySource }: Props) {
+export function BrainPanel({ workspaceId, compact = false, onNavigateToFull, onOpenMemorySource, locale }: Props) {
+  const t = getDashboardTranslations(locale)
+  const quickActions = [
+    { label: t.brainQuickWhatNow, query: t.brainQuickWhatNowQuery },
+    { label: t.brainQuickRecentDecisions, query: t.brainQuickRecentDecisionsQuery },
+    { label: t.brainQuickActiveGoals, query: t.brainQuickActiveGoalsQuery },
+    { label: t.brainQuickFriction, query: t.brainQuickFrictionQuery },
+  ]
+  const sourceTypeLabels: Record<BrainFragment['type'], string> = {
+    document:     t.brainSourceDocument,
+    memory:       t.brainSourceMemory,
+    conversation: t.brainSourceConversation,
+    tool:         t.brainSourceTool,
+    help:         t.brainSourceHelp,
+    objective:    t.brainSourceObjective,
+    mission_step: t.brainSourceMissionStep,
+    task:         t.brainSourceTask,
+  }
   const [query, setQuery] = useState('')
   const [loading, setLoading] = useState(false)
   const [result, setResult] = useState<BrainResult | null>(null)
@@ -74,13 +76,13 @@ export function BrainPanel({ workspaceId, compact = false, onNavigateToFull, onO
         if (res.status === 429) {
           setLimitReached(true)
         } else {
-          setError((data as { error: string }).error ?? 'Error al consultar el Brain')
+          setError((data as { error: string }).error ?? t.brainQueryError)
         }
       } else {
         setResult(data as BrainResult)
       }
     } catch {
-      setError('Error de conexión. Inténtalo de nuevo.')
+      setError(t.brainConnectionError)
     } finally {
       setLoading(false)
     }
@@ -115,7 +117,7 @@ export function BrainPanel({ workspaceId, compact = false, onNavigateToFull, onO
           value={query}
           onChange={(e) => setQuery(e.target.value)}
           onKeyDown={handleKeyDown}
-          placeholder="¿Qué quieres consultar?"
+          placeholder={t.brainQueryPlaceholder}
           className="flex-1 rounded-lg border border-border bg-background px-4 py-2.5 text-sm placeholder:text-muted-foreground/50 focus:outline-none focus:ring-2 focus:ring-ring"
           disabled={loading}
           autoFocus
@@ -139,7 +141,7 @@ export function BrainPanel({ workspaceId, compact = false, onNavigateToFull, onO
 
       {!result && !loading && (
         <div className="flex flex-wrap gap-2">
-          {QUICK_ACTIONS.map((action) => (
+          {quickActions.map((action) => (
             <button
               key={action.label}
               type="button"
@@ -163,7 +165,7 @@ export function BrainPanel({ workspaceId, compact = false, onNavigateToFull, onO
           <div className="rounded-xl border border-border bg-card p-4">
             <div className="flex items-center justify-between mb-3">
               <span className="text-xs font-medium text-muted-foreground">
-                Respuesta · {result.sources.length} fuente{result.sources.length !== 1 ? 's' : ''}
+                {t.brainAnswer} · {result.sources.length} {result.sources.length === 1 ? t.brainSourceSingular : t.brainSourcePlural}
               </span>
               <div className="flex gap-1.5">
                 <button
@@ -171,14 +173,14 @@ export function BrainPanel({ workspaceId, compact = false, onNavigateToFull, onO
                   onClick={handleCopy}
                   className="text-xs text-muted-foreground hover:text-foreground transition-colors px-2 py-1 rounded hover:bg-muted"
                 >
-                  {copied ? '✓ Copiado' : 'Copiar'}
+                  {copied ? `✓ ${t.brainCopied}` : t.brainCopy}
                 </button>
                 <button
                   type="button"
                   onClick={handleClear}
                   className="text-xs text-muted-foreground hover:text-foreground transition-colors px-2 py-1 rounded hover:bg-muted"
                 >
-                  Limpiar
+                  {t.brainClear}
                 </button>
               </div>
             </div>
@@ -187,7 +189,7 @@ export function BrainPanel({ workspaceId, compact = false, onNavigateToFull, onO
 
           {result.sources.length > 0 && (
             <div className="space-y-2">
-              <p className="text-xs font-semibold uppercase tracking-widest text-muted-foreground/60">Fuentes</p>
+              <p className="text-xs font-semibold uppercase tracking-widest text-muted-foreground/60">{t.brainSources}</p>
               {result.sources.map((source, i) => (
                 <div
                   key={`${source.type}-${source.id}`}
@@ -195,7 +197,7 @@ export function BrainPanel({ workspaceId, compact = false, onNavigateToFull, onO
                 >
                   <div className="flex items-center gap-2">
                     <span className={`text-[10px] font-medium px-1.5 py-0.5 rounded ${SOURCE_TYPE_COLORS[source.type]}`}>
-                      {SOURCE_TYPE_LABELS[source.type]}
+                      {sourceTypeLabels[source.type]}
                     </span>
                     <span className="text-xs font-medium truncate flex-1">{source.title}</span>
                     <span className="text-[10px] text-muted-foreground/40 shrink-0">[{i + 1}]</span>
@@ -207,7 +209,7 @@ export function BrainPanel({ workspaceId, compact = false, onNavigateToFull, onO
                       onClick={() => onOpenMemorySource(source.id)}
                       className="text-xs font-medium text-primary hover:underline"
                     >
-                      Ver memoria
+                      {t.brainViewMemory}
                     </button>
                   )}
                 </div>
@@ -221,7 +223,7 @@ export function BrainPanel({ workspaceId, compact = false, onNavigateToFull, onO
               onClick={onNavigateToFull}
               className="mt-auto text-xs text-primary hover:underline self-end"
             >
-              Ver en Brain →
+              {t.brainViewFull} →
             </button>
           )}
         </div>
@@ -230,4 +232,3 @@ export function BrainPanel({ workspaceId, compact = false, onNavigateToFull, onO
     </>
   )
 }
-

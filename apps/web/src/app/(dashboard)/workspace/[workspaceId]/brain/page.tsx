@@ -1,5 +1,7 @@
 import type { Metadata } from 'next'
 import { BrainTabs } from './_components/BrainTabs'
+import { getLocale } from '@/i18n/locale'
+import { getDashboardTranslations } from '@/i18n/dashboard-translations'
 
 export const metadata: Metadata = { title: 'Brain — MITIKUS' }
 
@@ -8,7 +10,8 @@ interface Props {
 }
 
 export default async function BrainPage({ params }: Props) {
-  const { workspaceId } = await params
+  const [{ workspaceId }, locale] = await Promise.all([params, getLocale()])
+  const t = getDashboardTranslations(locale)
 
   return (
     <div className="flex flex-col h-full">
@@ -18,13 +21,13 @@ export default async function BrainPage({ params }: Props) {
           <h1 className="text-2xl font-bold">Brain</h1>
         </div>
         <p className="text-sm text-muted-foreground">
-          Consulta la memoria de tu workspace — documentos, objetivos, conversaciones y herramientas.
+          {t.brainDescription}
         </p>
       </div>
 
       <div className="flex-1 min-h-0 overflow-y-auto px-6 py-6">
         <div className="max-w-2xl mx-auto h-full">
-          <BrainTabs workspaceId={workspaceId} />
+          <BrainTabs workspaceId={workspaceId} locale={locale} />
         </div>
       </div>
     </div>

@@ -6,15 +6,19 @@ import { CoreMemoryPanel } from "./CoreMemoryPanel";
 import { BrainHistoryPanel } from "./BrainHistoryPanel";
 import { MemoryCloudPanel } from "./MemoryCloudPanel";
 import { cn } from "@/lib/utils";
+import type { Locale } from "@/i18n/config";
+import { getDashboardTranslations } from "@/i18n/dashboard-translations";
 
 interface Props {
   workspaceId: string;
+  locale: Locale;
 }
 
 type Tab = "cloud" | "local" | "history" | "memory";
 const VALID_TABS = new Set<Tab>(["cloud", "local", "history", "memory"]);
 
-export function BrainTabs({ workspaceId }: Props) {
+export function BrainTabs({ workspaceId, locale }: Props) {
+  const t = getDashboardTranslations(locale);
   const [tab, setTab] = useState<Tab>("cloud");
   const [focusedMemoryId, setFocusedMemoryId] = useState<string | null>(null);
   const [focusedMemoryKey, setFocusedMemoryKey] = useState(0);
@@ -82,7 +86,7 @@ export function BrainTabs({ workspaceId }: Props) {
               : "border-transparent text-muted-foreground hover:text-foreground"
           )}
         >
-          ✦ Brain
+          ✦ {t.brainTabBrain}
         </button>
         <button
           type="button"
@@ -94,7 +98,7 @@ export function BrainTabs({ workspaceId }: Props) {
               : "border-transparent text-muted-foreground hover:text-foreground"
           )}
         >
-          Historial
+          {t.brainTabHistory}
         </button>
         <button
           type="button"
@@ -106,7 +110,7 @@ export function BrainTabs({ workspaceId }: Props) {
               : "border-transparent text-muted-foreground hover:text-foreground"
           )}
         >
-          Memoria
+          {t.brainTabMemory}
         </button>
         <button
           type="button"
@@ -118,7 +122,7 @@ export function BrainTabs({ workspaceId }: Props) {
               : "border-transparent text-muted-foreground hover:text-foreground"
           )}
         >
-          Local
+          {t.brainTabLocal}
         </button>
       </div>
 
@@ -129,15 +133,17 @@ export function BrainTabs({ workspaceId }: Props) {
             workspaceId={workspaceId}
             compact={false}
             onOpenMemorySource={openMemorySource}
+            locale={locale}
           />
         )}
         {tab === "local" && (
-          <CoreMemoryPanel workspaceId={workspaceId} />
+          <CoreMemoryPanel workspaceId={workspaceId} locale={locale} />
         )}
         {tab === "history" && (
           <BrainHistoryPanel
             workspaceId={workspaceId}
             onOpenMemorySource={openMemorySource}
+            locale={locale}
           />
         )}
         {tab === "memory" && (
@@ -145,6 +151,7 @@ export function BrainTabs({ workspaceId }: Props) {
             workspaceId={workspaceId}
             focusMemoryId={focusedMemoryId}
             focusMemoryKey={focusedMemoryKey}
+            locale={locale}
           />
         )}
       </div>

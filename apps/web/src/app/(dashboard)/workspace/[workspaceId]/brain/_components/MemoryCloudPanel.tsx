@@ -2,6 +2,8 @@
 
 import { useEffect, useMemo, useRef, useState } from "react";
 import { cn } from "@/lib/utils";
+import type { Locale } from "@/i18n/config";
+import { getDashboardTranslations } from "@/i18n/dashboard-translations";
 
 // CLOUD5 — MemoryCloudPanel
 // Cloud source of truth for free-form workspace memory.
@@ -24,13 +26,6 @@ interface MemoryItemRecord {
   updatedAt: string;
 }
 
-const TYPE_OPTIONS = [
-  { value: "note", label: "Nota" },
-  { value: "decision", label: "Decisión" },
-  { value: "hypothesis", label: "Hipótesis" },
-  { value: "context", label: "Contexto" },
-];
-
 const TYPE_BADGE: Record<string, string> = {
   note: "bg-slate-100 text-slate-700 dark:bg-slate-800 dark:text-slate-300",
   decision: "bg-blue-100 text-blue-800 dark:bg-blue-900/40 dark:text-blue-300",
@@ -38,20 +33,24 @@ const TYPE_BADGE: Record<string, string> = {
   context: "bg-emerald-100 text-emerald-800 dark:bg-emerald-900/40 dark:text-emerald-300",
 };
 
-const TYPE_LABEL: Record<string, string> = {
-  note: "Nota",
-  decision: "Decisión",
-  hypothesis: "Hipótesis",
-  context: "Contexto",
-};
-
 interface Props {
   workspaceId: string;
   focusMemoryId?: string | null;
   focusMemoryKey?: number;
+  locale: Locale;
 }
 
-export function MemoryCloudPanel({ workspaceId, focusMemoryId, focusMemoryKey = 0 }: Props) {
+export function MemoryCloudPanel({ workspaceId, focusMemoryId, focusMemoryKey = 0, locale }: Props) {
+  const t = getDashboardTranslations(locale);
+  const typeOptions = [
+    { value: "note", label: t.brainMemoryTypeNote },
+    { value: "decision", label: t.brainMemoryTypeDecision },
+    { value: "hypothesis", label: t.brainMemoryTypeHypothesis },
+    { value: "context", label: t.brainMemoryTypeContext },
+  ];
+  const typeLabels: Record<string, string> = Object.fromEntries(
+    typeOptions.map((option) => [option.value, option.label]),
+  );
   const [items, setItems] = useState<MemoryItemRecord[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -91,12 +90,12 @@ export function MemoryCloudPanel({ workspaceId, focusMemoryId, focusMemoryKey = 
       const res = await fetch(`/api/workspace/${workspaceId}/memory${query}`);
       const data = (await res.json()) as { items?: MemoryItemRecord[]; error?: string };
       if (!res.ok || data.error) {
-        setError(data.error && !/^\d/.test(data.error) ? data.error : 'No se pudo cargar la memoria cloud. Inténtalo de nuevo.');
+        setError(data.error && !/^\d/.test(data.error) ? data.error : t.brainMemoryLoadError);
       } else {
         setItems(data.items ?? []);
       }
     } catch {
-      setError("No se pudo cargar la memoria cloud.");
+      setError(t.brainMemoryLoadError);
     } finally {
       setLoading(false);
     }
@@ -142,7 +141,7 @@ export function MemoryCloudPanel({ workspaceId, focusMemoryId, focusMemoryKey = 
       .then(({ res, data }) => {
         if (cancelled) return;
         if (!res.ok || data.error || !data.item) {
-          setFocusLoadError(data.error ?? "No se pudo abrir la memoria.");
+          setFocusLoadError(data.error ?? t.brainMemoryOpenError);
           return;
         }
 
@@ -155,7 +154,7 @@ export function MemoryCloudPanel({ workspaceId, focusMemoryId, focusMemoryKey = 
       })
       .catch(() => {
         if (!cancelled) {
-          setFocusLoadError("No se pudo abrir la memoria.");
+          setFocusLoadError(t.brainMemoryOpenError);
         }
       });
 
@@ -181,8 +180,8 @@ export function MemoryCloudPanel({ workspaceId, focusMemoryId, focusMemoryKey = 
 
   const handleSave = async () => {
     setSaveError(null);
-    if (!title.trim()) { setSaveError("El título es obligatorio."); return; }
-    if (!content.trim()) { setSaveError("El contenido es obligatorio."); return; }
+    if (!title.trim()) { setSaveError(t.brainMemoryTitleRequired); return; }
+    if (!content.trim()) { setSaveError(t.brainMemoryContentRequired); return; }
 
     setSaving(true);
     try {
@@ -193,7 +192,7 @@ export function MemoryCloudPanel({ workspaceId, focusMemoryId, focusMemoryKey = 
       });
       const data = (await res.json()) as { item?: MemoryItemRecord; error?: string };
       if (!res.ok || data.error) {
-        setSaveError(data.error ?? 'No se pudo guardar. Inténtalo de nuevo.');
+        setSaveError(data.error ?? t.brainMemorySaveError);
       } else if (data.item) {
         setItems((prev) => [data.item!, ...prev]);
         setTitle("");
@@ -203,7 +202,7 @@ export function MemoryCloudPanel({ workspaceId, focusMemoryId, focusMemoryKey = 
         setExpandedId(data.item.id);
       }
     } catch {
-      setSaveError("Error al guardar. Inténtalo de nuevo.");
+      setSaveError(t.brainMemorySaveError);
     } finally {
       setSaving(false);
     }
@@ -229,8 +228,8 @@ export function MemoryCloudPanel({ workspaceId, focusMemoryId, focusMemoryKey = 
   const handleUpdate = async () => {
     if (!editingId || editSaving) return;
     setEditError(null);
-    if (!editTitle.trim()) { setEditError("El título es obligatorio."); return; }
-    if (!editContent.trim()) { setEditError("El contenido es obligatorio."); return; }
+    if (!editTitle.trim()) { setEditError(t.brainMemoryTitleRequired); return; }
+    if (!editContent.trim()) { setEditError(t.brainMemoryContentRequired); return; }
 
     setEditSaving(true);
     try {
@@ -246,14 +245,14 @@ export function MemoryCloudPanel({ workspaceId, focusMemoryId, focusMemoryKey = 
       });
       const data = (await res.json()) as { item?: MemoryItemRecord; error?: string };
       if (!res.ok || data.error) {
-        setEditError(data.error ?? 'No se pudo actualizar. Inténtalo de nuevo.');
+        setEditError(data.error ?? t.brainMemoryUpdateError);
       } else if (data.item) {
         setItems((prev) => prev.map((item) => (item.id === data.item!.id ? data.item! : item)));
         cancelEdit();
         setExpandedId(data.item.id);
       }
     } catch {
-      setEditError("Error al actualizar. Inténtalo de nuevo.");
+      setEditError(t.brainMemoryUpdateError);
     } finally {
       setEditSaving(false);
     }
@@ -261,7 +260,7 @@ export function MemoryCloudPanel({ workspaceId, focusMemoryId, focusMemoryKey = 
 
   const handleArchive = async (item: MemoryItemRecord) => {
     if (archivingId) return;
-    const confirmed = window.confirm(`¿Archivar "${item.title}"? Dejará de aparecer en Brain, pero no se borrará.`);
+    const confirmed = window.confirm(`${t.brainMemoryArchiveConfirmPrefix}${item.title}${t.brainMemoryArchiveConfirmSuffix}`);
     if (!confirmed) return;
 
     setArchivingId(item.id);
@@ -274,7 +273,7 @@ export function MemoryCloudPanel({ workspaceId, focusMemoryId, focusMemoryKey = 
       });
       const data = (await res.json()) as { error?: string };
       if (!res.ok || data.error) {
-        setEditError(data.error ?? 'No se pudo archivar. Inténtalo de nuevo.');
+        setEditError(data.error ?? t.brainMemoryArchiveError);
         setExpandedId(item.id);
       } else {
         setItems((prev) => prev.filter((memory) => memory.id !== item.id));
@@ -282,7 +281,7 @@ export function MemoryCloudPanel({ workspaceId, focusMemoryId, focusMemoryKey = 
         if (editingId === item.id) cancelEdit();
       }
     } catch {
-      setEditError("Error al archivar. Inténtalo de nuevo.");
+      setEditError(t.brainMemoryArchiveError);
       setExpandedId(item.id);
     } finally {
       setArchivingId(null);
@@ -301,14 +300,14 @@ export function MemoryCloudPanel({ workspaceId, focusMemoryId, focusMemoryKey = 
       });
       const data = (await res.json()) as { error?: string };
       if (!res.ok || data.error) {
-        setEditError(data.error ?? 'No se pudo restaurar. Inténtalo de nuevo.');
+        setEditError(data.error ?? t.brainMemoryRestoreError);
         setExpandedId(item.id);
       } else {
         setItems((prev) => prev.filter((memory) => memory.id !== item.id));
         if (expandedId === item.id) setExpandedId(null);
       }
     } catch {
-      setEditError("Error al restaurar. Inténtalo de nuevo.");
+      setEditError(t.brainMemoryRestoreError);
       setExpandedId(item.id);
     } finally {
       setRestoringId(null);
@@ -332,7 +331,7 @@ export function MemoryCloudPanel({ workspaceId, focusMemoryId, focusMemoryKey = 
   const filtersActive = searchTerm.trim().length > 0 || typeFilter !== "all";
 
   const formatDate = (iso: string) =>
-    new Date(iso).toLocaleString("es-ES", {
+    new Date(iso).toLocaleString(locale, {
       day: "2-digit",
       month: "2-digit",
       year: "2-digit",
@@ -349,9 +348,7 @@ export function MemoryCloudPanel({ workspaceId, focusMemoryId, focusMemoryKey = 
       <div className="rounded-md border border-blue-200 bg-blue-50 dark:border-blue-900/50 dark:bg-blue-950/30 px-4 py-3 text-sm text-blue-700 dark:text-blue-300 flex items-start gap-2">
         <span className="shrink-0 mt-0.5">☁</span>
         <span>
-          Esta memoria se guarda en MITIKUS Cloud como fuente de verdad.
-          Cuando el Core local está disponible, MITIKUS intenta indexarla también
-          como copia secundaria.
+          {t.brainMemoryCloudNotice}
         </span>
       </div>
 
@@ -368,7 +365,7 @@ export function MemoryCloudPanel({ workspaceId, focusMemoryId, focusMemoryKey = 
                 : "text-muted-foreground hover:text-foreground"
             )}
           >
-            Activas
+            {t.brainMemoryActive}
           </button>
           <button
             type="button"
@@ -380,7 +377,7 @@ export function MemoryCloudPanel({ workspaceId, focusMemoryId, focusMemoryKey = 
                 : "text-muted-foreground hover:text-foreground"
             )}
           >
-            Archivadas
+            {t.brainMemoryArchived}
           </button>
         </div>
 
@@ -397,7 +394,7 @@ export function MemoryCloudPanel({ workspaceId, focusMemoryId, focusMemoryKey = 
               : "bg-foreground text-background hover:bg-foreground/90"
           )}
         >
-          {formOpen ? "Cancelar" : "+ Nueva memoria"}
+          {formOpen ? t.brainMemoryCancel : t.brainMemoryNew}
         </button>
       </div>
 
@@ -405,7 +402,7 @@ export function MemoryCloudPanel({ workspaceId, focusMemoryId, focusMemoryKey = 
       <div className="grid gap-3 sm:grid-cols-[1fr_180px]">
         <div className="flex flex-col gap-1">
           <label className="text-xs font-medium text-muted-foreground uppercase tracking-wide">
-            Buscar
+            {t.brainMemorySearch}
           </label>
           <input
             type="search"
@@ -414,14 +411,14 @@ export function MemoryCloudPanel({ workspaceId, focusMemoryId, focusMemoryKey = 
               setSearchTerm(e.target.value);
               setExpandedId(null);
             }}
-            placeholder="Busca por título o contenido"
+            placeholder={t.brainMemorySearchPlaceholder}
             className="w-full rounded-md border border-input bg-background px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-ring"
           />
         </div>
 
         <div className="flex flex-col gap-1">
           <label className="text-xs font-medium text-muted-foreground uppercase tracking-wide">
-            Tipo
+            {t.brainMemoryType}
           </label>
           <select
             value={typeFilter}
@@ -431,8 +428,8 @@ export function MemoryCloudPanel({ workspaceId, focusMemoryId, focusMemoryKey = 
             }}
             className="w-full rounded-md border border-input bg-background px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-ring"
           >
-            <option value="all">Todos</option>
-            {TYPE_OPTIONS.map((o) => (
+            <option value="all">{t.brainMemoryAll}</option>
+            {typeOptions.map((o) => (
               <option key={o.value} value={o.value}>{o.label}</option>
             ))}
           </select>
@@ -442,7 +439,7 @@ export function MemoryCloudPanel({ workspaceId, focusMemoryId, focusMemoryKey = 
       {!loading && !error && items.length > 0 && (
         <div className="flex items-center justify-between gap-3 text-xs text-muted-foreground">
           <span>
-            {filteredItems.length} de {items.length} memorias
+            {filteredItems.length} / {items.length} {t.brainMemoryCount}
           </span>
           {filtersActive && (
             <button
@@ -454,7 +451,7 @@ export function MemoryCloudPanel({ workspaceId, focusMemoryId, focusMemoryKey = 
               }}
               className="font-medium hover:text-foreground transition-colors"
             >
-              Limpiar filtros
+              {t.brainMemoryClearFilters}
             </button>
           )}
         </div>
@@ -465,14 +462,14 @@ export function MemoryCloudPanel({ workspaceId, focusMemoryId, focusMemoryKey = 
         <div className="border border-border rounded-lg p-4 flex flex-col gap-3 bg-muted/20">
           <div className="flex flex-col gap-1">
             <label className="text-xs font-medium text-muted-foreground uppercase tracking-wide">
-              Título
+              {t.brainMemoryTitle}
             </label>
             <input
               ref={titleRef}
               type="text"
               value={title}
               onChange={(e) => setTitle(e.target.value)}
-              placeholder="p. ej. Decisión sobre arquitectura de auth"
+              placeholder={t.brainMemoryTitlePlaceholder}
               maxLength={200}
               className="w-full rounded-md border border-input bg-background px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-ring"
             />
@@ -480,14 +477,14 @@ export function MemoryCloudPanel({ workspaceId, focusMemoryId, focusMemoryKey = 
 
           <div className="flex flex-col gap-1">
             <label className="text-xs font-medium text-muted-foreground uppercase tracking-wide">
-              Tipo
+              {t.brainMemoryType}
             </label>
             <select
               value={type}
               onChange={(e) => setType(e.target.value)}
               className="w-full rounded-md border border-input bg-background px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-ring"
             >
-              {TYPE_OPTIONS.map((o) => (
+              {typeOptions.map((o) => (
                 <option key={o.value} value={o.value}>{o.label}</option>
               ))}
             </select>
@@ -495,13 +492,13 @@ export function MemoryCloudPanel({ workspaceId, focusMemoryId, focusMemoryKey = 
 
           <div className="flex flex-col gap-1">
             <label className="text-xs font-medium text-muted-foreground uppercase tracking-wide">
-              Contenido
+              {t.brainMemoryContent}
             </label>
             <textarea
               value={content}
               onChange={(e) => setContent(e.target.value)}
               rows={5}
-              placeholder="Escribe aquí el contenido de la memoria…"
+              placeholder={t.brainMemoryContentPlaceholder}
               className="w-full rounded-md border border-input bg-background px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-ring resize-y"
             />
           </div>
@@ -517,7 +514,7 @@ export function MemoryCloudPanel({ workspaceId, focusMemoryId, focusMemoryKey = 
               disabled={saving}
               className="px-4 py-2 rounded-md text-sm font-medium bg-foreground text-background hover:bg-foreground/90 disabled:opacity-50 transition-colors"
             >
-              {saving ? "Guardando…" : "Guardar en cloud"}
+              {saving ? `${t.toolApprovalSaving.replace('...', '')}…` : t.brainMemorySaveCloud}
             </button>
           </div>
         </div>
@@ -526,7 +523,7 @@ export function MemoryCloudPanel({ workspaceId, focusMemoryId, focusMemoryKey = 
       {/* list */}
       {loading && (
         <div className="flex items-center justify-center h-24 text-muted-foreground text-sm">
-          Cargando memoria cloud…
+          {t.brainMemoryLoading}
         </div>
       )}
 
@@ -547,17 +544,17 @@ export function MemoryCloudPanel({ workspaceId, focusMemoryId, focusMemoryKey = 
           <span className="text-2xl">🧠</span>
           <p className="text-sm font-medium">
             {filtersActive
-              ? "No hay memorias que coincidan."
+              ? t.brainMemoryNoMatches
               : statusView === "archived"
-              ? "No hay memorias archivadas."
-              : "No hay memoria cloud todavía."}
+              ? t.brainMemoryNoArchived
+              : t.brainMemoryEmpty}
           </p>
           <p className="text-xs">
             {filtersActive
-              ? "Prueba con otra búsqueda o limpia los filtros."
+              ? t.brainMemoryTrySearch
               : statusView === "archived"
-              ? "Cuando archives una memoria, aparecerá aquí."
-              : "Crea la primera con el botón de arriba."}
+              ? t.brainMemoryArchivedHint
+              : t.brainMemoryCreateFirst}
           </p>
         </div>
       )}
@@ -592,14 +589,14 @@ export function MemoryCloudPanel({ workspaceId, focusMemoryId, focusMemoryKey = 
                           TYPE_BADGE[item.type] ?? TYPE_BADGE["note"]
                         )}
                       >
-                        {TYPE_LABEL[item.type] ?? item.type}
+                        {typeLabels[item.type] ?? item.type}
                       </span>
                       <span className="px-1.5 py-0.5 rounded text-xs font-medium bg-blue-100 text-blue-800 dark:bg-blue-900/40 dark:text-blue-300">
                         cloud
                       </span>
                       {statusView === "archived" && (
                         <span className="px-1.5 py-0.5 rounded text-xs font-medium bg-muted text-muted-foreground">
-                          archivada
+                          {t.brainMemoryArchivedBadge}
                         </span>
                       )}
                     </div>
@@ -615,7 +612,7 @@ export function MemoryCloudPanel({ workspaceId, focusMemoryId, focusMemoryKey = 
                       <div className="flex flex-col gap-3">
                         <div className="flex flex-col gap-1">
                           <label className="text-xs font-medium text-muted-foreground uppercase tracking-wide">
-                            Título
+                            {t.brainMemoryTitle}
                           </label>
                           <input
                             type="text"
@@ -628,14 +625,14 @@ export function MemoryCloudPanel({ workspaceId, focusMemoryId, focusMemoryKey = 
 
                         <div className="flex flex-col gap-1">
                           <label className="text-xs font-medium text-muted-foreground uppercase tracking-wide">
-                            Tipo
+                            {t.brainMemoryType}
                           </label>
                           <select
                             value={editType}
                             onChange={(e) => setEditType(e.target.value)}
                             className="w-full rounded-md border border-input bg-background px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-ring"
                           >
-                            {TYPE_OPTIONS.map((o) => (
+                            {typeOptions.map((o) => (
                               <option key={o.value} value={o.value}>{o.label}</option>
                             ))}
                           </select>
@@ -643,7 +640,7 @@ export function MemoryCloudPanel({ workspaceId, focusMemoryId, focusMemoryKey = 
 
                         <div className="flex flex-col gap-1">
                           <label className="text-xs font-medium text-muted-foreground uppercase tracking-wide">
-                            Contenido
+                            {t.brainMemoryContent}
                           </label>
                           <textarea
                             value={editContent}
@@ -664,7 +661,7 @@ export function MemoryCloudPanel({ workspaceId, focusMemoryId, focusMemoryKey = 
                             disabled={editSaving}
                             className="px-3 py-2 rounded-md text-sm font-medium border border-border hover:bg-muted transition-colors disabled:opacity-50"
                           >
-                            Cancelar
+                            {t.brainMemoryCancel}
                           </button>
                           <button
                             type="button"
@@ -672,7 +669,7 @@ export function MemoryCloudPanel({ workspaceId, focusMemoryId, focusMemoryKey = 
                             disabled={editSaving}
                             className="px-3 py-2 rounded-md text-sm font-medium bg-foreground text-background hover:bg-foreground/90 disabled:opacity-50 transition-colors"
                           >
-                            {editSaving ? "Guardando…" : "Guardar cambios"}
+                            {editSaving ? `${t.toolApprovalSaving.replace('...', '')}…` : t.brainMemorySaveChanges}
                           </button>
                         </div>
                       </div>
@@ -691,7 +688,7 @@ export function MemoryCloudPanel({ workspaceId, focusMemoryId, focusMemoryKey = 
                               onClick={() => startEdit(item)}
                               className="px-3 py-2 rounded-md text-sm font-medium border border-border hover:bg-muted transition-colors"
                             >
-                              Editar
+                              {t.brainMemoryEdit}
                             </button>
                             <button
                               type="button"
@@ -699,7 +696,7 @@ export function MemoryCloudPanel({ workspaceId, focusMemoryId, focusMemoryKey = 
                               disabled={archivingId === item.id}
                               className="px-3 py-2 rounded-md text-sm font-medium border border-destructive/30 text-destructive hover:bg-destructive/10 transition-colors disabled:opacity-50"
                             >
-                              {archivingId === item.id ? "Archivando…" : "Archivar"}
+                              {archivingId === item.id ? t.brainMemoryArchiving : t.brainMemoryArchive}
                             </button>
                           </div>
                         ) : (
@@ -710,7 +707,7 @@ export function MemoryCloudPanel({ workspaceId, focusMemoryId, focusMemoryKey = 
                               disabled={restoringId === item.id}
                               className="px-3 py-2 rounded-md text-sm font-medium border border-border hover:bg-muted transition-colors disabled:opacity-50"
                             >
-                              {restoringId === item.id ? "Restaurando…" : "Restaurar"}
+                              {restoringId === item.id ? t.brainMemoryRestoring : t.brainMemoryRestore}
                             </button>
                           </div>
                         )}

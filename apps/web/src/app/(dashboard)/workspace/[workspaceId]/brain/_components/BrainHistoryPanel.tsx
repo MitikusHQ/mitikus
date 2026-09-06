@@ -2,6 +2,8 @@
 
 import { useEffect, useState } from "react";
 import { cn } from "@/lib/utils";
+import type { Locale } from "@/i18n/config";
+import { getDashboardTranslations } from "@/i18n/dashboard-translations";
 
 // CLOUD4 — Brain Query History UI
 // Displays the last 20 BrainQuery records for the workspace.
@@ -37,9 +39,11 @@ type OriginFilter = "all" | "cloud-memory" | "local-memory" | "product-help";
 interface Props {
   workspaceId: string;
   onOpenMemorySource?: (memoryId: string) => void;
+  locale: Locale;
 }
 
-export function BrainHistoryPanel({ workspaceId, onOpenMemorySource }: Props) {
+export function BrainHistoryPanel({ workspaceId, onOpenMemorySource, locale }: Props) {
+  const t = getDashboardTranslations(locale);
   const [queries, setQueries] = useState<BrainQueryRecord[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -62,7 +66,7 @@ export function BrainHistoryPanel({ workspaceId, onOpenMemorySource }: Props) {
         }
       })
       .catch(() => {
-        if (!cancelled) setError("No se pudo cargar el historial.");
+        if (!cancelled) setError(t.brainHistoryLoadError);
       })
       .finally(() => {
         if (!cancelled) setLoading(false);
@@ -93,9 +97,9 @@ export function BrainHistoryPanel({ workspaceId, onOpenMemorySource }: Props) {
   });
 
   const modeLabel: Record<string, string> = {
-    evidence: "Evidencia",
-    insufficient: "Sin evidencia",
-    orientation: "Orientación",
+    evidence: t.brainModeEvidence,
+    insufficient: t.brainModeInsufficient,
+    orientation: t.brainModeOrientation,
   };
 
   const modeBadge = (mode: string | null) => {
@@ -127,14 +131,14 @@ export function BrainHistoryPanel({ workspaceId, onOpenMemorySource }: Props) {
             : "bg-violet-100 text-violet-800 dark:bg-violet-900/40 dark:text-violet-300"
         )}
       >
-        {isCloud ? "cloud" : isHelp ? "ayuda" : "local"}
+        {isCloud ? t.brainOriginCloud.toLowerCase() : isHelp ? t.brainOriginHelp.toLowerCase() : t.brainOriginLocal.toLowerCase()}
       </span>
     );
   };
 
   const formatDate = (iso: string) => {
     const d = new Date(iso);
-    return d.toLocaleString("es-ES", {
+    return d.toLocaleString(locale, {
       day: "2-digit",
       month: "2-digit",
       year: "2-digit",
@@ -175,11 +179,11 @@ export function BrainHistoryPanel({ workspaceId, onOpenMemorySource }: Props) {
                 : "bg-muted text-muted-foreground hover:text-foreground"
             )}
           >
-            {o === "all" ? "Todos" : o === "cloud-memory" ? "Cloud" : o === "product-help" ? "Ayuda" : "Local"}
+            {o === "all" ? t.brainOriginAll : o === "cloud-memory" ? t.brainOriginCloud : o === "product-help" ? t.brainOriginHelp : t.brainOriginLocal}
           </button>
         ))}
         <span className="ml-auto text-xs text-muted-foreground self-center">
-          {filteredQueries.length} consulta{filteredQueries.length !== 1 ? "s" : ""}
+          {filteredQueries.length} {filteredQueries.length === 1 ? t.brainQuerySingular : t.brainQueryPlural}
         </span>
       </div>
 
@@ -187,10 +191,10 @@ export function BrainHistoryPanel({ workspaceId, onOpenMemorySource }: Props) {
       {filteredQueries.length === 0 && (
         <div className="flex flex-col items-center justify-center gap-2 py-16 text-muted-foreground">
           <span className="text-2xl">📭</span>
-          <p className="text-sm">No hay consultas registradas todavía.</p>
+          <p className="text-sm">{t.brainNoQueries}</p>
           {filter !== "all" && (
             <p className="text-xs">
-              Prueba a seleccionar "Todos" para ver todas las fuentes.
+              {t.brainTryAllSources}
             </p>
           )}
         </div>
@@ -229,7 +233,7 @@ export function BrainHistoryPanel({ workspaceId, onOpenMemorySource }: Props) {
                     {originBadge(inferredOrigin)}
                     {q.sources > 0 && (
                       <span className="text-xs text-muted-foreground">
-                        {q.sources} fuente{q.sources !== 1 ? "s" : ""}
+                        {q.sources} {q.sources === 1 ? t.brainSourceSingular : t.brainSourcePlural}
                       </span>
                     )}
                   </div>
@@ -246,7 +250,7 @@ export function BrainHistoryPanel({ workspaceId, onOpenMemorySource }: Props) {
                   {q.normalizedQuery && q.normalizedQuery !== q.query && (
                     <div>
                       <p className="text-xs font-medium text-muted-foreground uppercase tracking-wide mb-1">
-                        Consulta normalizada
+                        {t.brainNormalizedQuery}
                       </p>
                       <p className="text-sm text-muted-foreground italic">
                         {q.normalizedQuery}
@@ -258,7 +262,7 @@ export function BrainHistoryPanel({ workspaceId, onOpenMemorySource }: Props) {
                   {q.answer && (
                     <div>
                       <p className="text-xs font-medium text-muted-foreground uppercase tracking-wide mb-1">
-                        Respuesta
+                        {t.brainAnswer}
                       </p>
                       <p className="text-sm whitespace-pre-wrap">{q.answer}</p>
                     </div>
@@ -268,7 +272,7 @@ export function BrainHistoryPanel({ workspaceId, onOpenMemorySource }: Props) {
                   {w.length > 0 && (
                     <div>
                       <p className="text-xs font-medium text-muted-foreground uppercase tracking-wide mb-1">
-                        Avisos
+                        {t.brainWarnings}
                       </p>
                       <ul className="flex flex-col gap-1">
                         {w.map((warn, i) => (
@@ -287,7 +291,7 @@ export function BrainHistoryPanel({ workspaceId, onOpenMemorySource }: Props) {
                   {q.sourcesList.length > 0 && (
                     <div>
                       <p className="text-xs font-medium text-muted-foreground uppercase tracking-wide mb-2">
-                        Fuentes ({q.sourcesList.length})
+                        {t.brainSources} ({q.sourcesList.length})
                       </p>
                       <ul className="flex flex-col gap-3">
                         {q.sourcesList.map((s) => (
@@ -316,7 +320,7 @@ export function BrainHistoryPanel({ workspaceId, onOpenMemorySource }: Props) {
                                 onClick={() => onOpenMemorySource(s.sourceId)}
                                 className="mt-2 text-xs font-medium text-primary hover:underline"
                               >
-                                Ver memoria
+                                {t.brainViewMemory}
                               </button>
                             )}
                           </li>

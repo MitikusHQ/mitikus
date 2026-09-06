@@ -3,12 +3,16 @@
 import { useState, useEffect, useCallback } from 'react'
 import { useRouter } from 'next/navigation'
 import { BrainPanel } from '@/app/(dashboard)/workspace/[workspaceId]/brain/_components/BrainPanel'
+import { useLocale } from '@/i18n/locale-context'
+import { getDashboardTranslations } from '@/i18n/dashboard-translations'
 
 interface Props {
   workspaceId: string
 }
 
 export function BrainOverlay({ workspaceId }: Props) {
+  const locale = useLocale()
+  const t = getDashboardTranslations(locale)
   const [open, setOpen] = useState(false)
   const router = useRouter()
 
@@ -38,8 +42,8 @@ export function BrainOverlay({ workspaceId }: Props) {
         <button
           type="button"
           onClick={() => setOpen(true)}
-          aria-label="Abrir Brain (Cmd+K)"
-          title="Brain — consulta la memoria del workspace (Cmd+K)"
+          aria-label={`${t.openMenu} Brain (Cmd+K)`}
+          title={`Brain — ${t.brainDescription} (Cmd+K)`}
           className="fixed bottom-[calc(4rem+env(safe-area-inset-bottom))] right-6 z-40 w-12 h-12 rounded-full bg-primary text-primary-foreground shadow-lg flex items-center justify-center text-lg hover:bg-primary/90 transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring md:bottom-[calc(5rem+env(safe-area-inset-bottom))]"
         >
           ✦
@@ -63,7 +67,7 @@ export function BrainOverlay({ workspaceId }: Props) {
               <button
                 type="button"
                 onClick={() => setOpen(false)}
-                aria-label="Cerrar Brain"
+                aria-label={`${t.closeTeamPanel.replace('team panel', 'Brain')}`}
                 className="p-1.5 rounded-md text-muted-foreground hover:text-foreground hover:bg-muted transition-colors"
               >
                 <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" aria-hidden>
@@ -77,6 +81,7 @@ export function BrainOverlay({ workspaceId }: Props) {
                 workspaceId={workspaceId}
                 compact={true}
                 onNavigateToFull={handleNavigateToFull}
+                locale={locale}
               />
             </div>
           </div>

@@ -2,6 +2,8 @@
 
 import { useCallback, useEffect, useRef, useState } from "react";
 import type { BrainAnswer, Note, Project } from "@/lib/core-client/types";
+import type { Locale } from "@/i18n/config";
+import { getDashboardTranslations } from "@/i18n/dashboard-translations";
 
 // ─── helpers ────────────────────────────────────────────────────────────────
 
@@ -52,32 +54,32 @@ async function resolveLocalCoreProject(workspaceId: string): Promise<{ projectId
 type CoreStatus = { ok: boolean; version?: string } | null;
 type CoreAccess = "server" | "browser" | null;
 
-const MODE_LABEL: Record<string, string> = {
-  evidence: "Con evidencia",
-  insufficient: "Sin evidencia suficiente",
-  orientation: "Orientación",
-};
-
 const MODE_COLOR: Record<string, string> = {
   evidence: "text-emerald-600 dark:text-emerald-400",
   insufficient: "text-amber-600 dark:text-amber-400",
   orientation: "text-blue-600 dark:text-blue-400",
 };
 
-const QUICK_QUERIES = [
-  { label: "¿En qué estamos ahora?", query: "Cuál es el estado actual y foco del proyecto" },
-  { label: "¿Qué hipótesis tenemos?", query: "Hipótesis y supuestos del proyecto" },
-  { label: "¿Qué sabemos del usuario?", query: "Perfil de usuario cliente y problema que resuelve" },
-  { label: "¿Qué decisiones están pendientes?", query: "Decisiones pendientes y dudas sin resolver" },
-];
-
 // ─── component ──────────────────────────────────────────────────────────────
 
 interface Props {
   workspaceId: string;
+  locale: Locale;
 }
 
-export function CoreMemoryPanel({ workspaceId }: Props) {
+export function CoreMemoryPanel({ workspaceId, locale }: Props) {
+  const t = getDashboardTranslations(locale);
+  const modeLabel: Record<string, string> = {
+    evidence: t.brainModeEvidence,
+    insufficient: t.brainModeInsufficient,
+    orientation: t.brainModeOrientation,
+  };
+  const quickQueries = [
+    { label: t.brainLocalQuickCurrentState, query: t.brainLocalQuickCurrentStateQuery },
+    { label: t.brainLocalQuickHypotheses, query: t.brainLocalQuickHypothesesQuery },
+    { label: t.brainLocalQuickUserProfile, query: t.brainLocalQuickUserProfileQuery },
+    { label: t.brainLocalQuickPendingDecisions, query: t.brainLocalQuickPendingDecisionsQuery },
+  ];
   const [coreStatus, setCoreStatus] = useState<CoreStatus>(null);
   const [coreAccess, setCoreAccess] = useState<CoreAccess>(null);
   const [statusLoading, setStatusLoading] = useState(true);
@@ -225,8 +227,7 @@ export function CoreMemoryPanel({ workspaceId }: Props) {
         <div className="space-y-1">
           <p className="text-sm font-medium">Memoria local no activa</p>
           <p className="text-xs text-muted-foreground leading-relaxed">
-            MITIKUS sigue funcionando con Brain, memoria cloud, historial y datos del workspace.
-            Activa el Core solo si quieres añadir una capa privada en este ordenador.
+            {t.brainLocalSetupDescription}
           </p>
         </div>
         <p className="text-xs font-medium text-muted-foreground">
@@ -239,7 +240,7 @@ export function CoreMemoryPanel({ workspaceId }: Props) {
           onClick={init}
           className="mt-2 text-xs text-primary hover:underline"
         >
-          Reintentar conexión
+          {t.brainLocalRetry}
         </button>
       </div>
     );
@@ -293,7 +294,7 @@ export function CoreMemoryPanel({ workspaceId }: Props) {
           disabled={!selectedId}
           className="w-full flex items-center justify-between px-4 py-3 text-sm font-medium hover:bg-muted/50 transition-colors disabled:opacity-40 text-left"
         >
-          <span>Añadir memoria base</span>
+          <span>{t.brainLocalAddBaseMemory}</span>
           <svg
             className={`w-4 h-4 text-muted-foreground transition-transform ${memOpen ? "rotate-180" : ""}`}
             viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" aria-hidden
@@ -305,27 +306,27 @@ export function CoreMemoryPanel({ workspaceId }: Props) {
         {memOpen && (
           <div className="px-4 pb-4 pt-1 border-t border-border space-y-3">
             <p className="text-xs text-muted-foreground">
-              Pega aquí contexto privado para este ordenador. La memoria principal del producto está en la pestaña Memoria.
+              {t.brainLocalBaseMemoryDescription}
             </p>
 
             <label className="flex flex-col gap-1">
-              <span className="text-xs text-muted-foreground">Título *</span>
+              <span className="text-xs text-muted-foreground">{t.brainMemoryTitle} *</span>
               <input
                 type="text"
                 value={memTitle}
                 onChange={(e) => setMemTitle(e.target.value)}
-                placeholder="Memoria base — tema del proyecto"
+                placeholder={t.brainLocalTitlePlaceholder}
                 className="rounded-lg border border-border bg-background px-3 py-2 text-sm placeholder:text-muted-foreground/50 focus:outline-none focus:ring-2 focus:ring-ring"
               />
             </label>
 
             <label className="flex flex-col gap-1">
-              <span className="text-xs text-muted-foreground">Contenido *</span>
+              <span className="text-xs text-muted-foreground">{t.brainMemoryContent} *</span>
               <textarea
                 value={memContent}
                 onChange={(e) => setMemContent(e.target.value)}
                 rows={5}
-                placeholder="Qué es el proyecto, objetivo actual, usuarios posibles, dudas, decisiones y próximos pasos."
+                placeholder={t.brainLocalContentPlaceholder}
                 className="rounded-lg border border-border bg-background px-3 py-2 text-sm placeholder:text-muted-foreground/50 focus:outline-none focus:ring-2 focus:ring-ring resize-y"
               />
             </label>
@@ -345,7 +346,7 @@ export function CoreMemoryPanel({ workspaceId }: Props) {
               disabled={memSaving || !memTitle.trim() || !memContent.trim()}
               className="rounded-lg bg-primary px-4 py-2 text-sm font-medium text-primary-foreground hover:bg-primary/90 transition-colors disabled:opacity-50"
             >
-              {memSaving ? "Guardando…" : "Guardar memoria"}
+              {memSaving ? `${t.toolApprovalSaving.replace('...', '')}…` : t.brainMemorySaveChanges}
             </button>
           </div>
         )}
@@ -359,7 +360,7 @@ export function CoreMemoryPanel({ workspaceId }: Props) {
           value={query}
           onChange={(e) => setQuery(e.target.value)}
           onKeyDown={(e) => { if (e.key === "Enter") handleQuery(query); }}
-          placeholder="¿Qué necesitas saber ahora?"
+          placeholder={t.brainLocalQuestionPlaceholder}
           disabled={loading || !selectedId}
           className="flex-1 rounded-lg border border-border bg-background px-4 py-2.5 text-sm placeholder:text-muted-foreground/50 focus:outline-none focus:ring-2 focus:ring-ring"
           autoFocus
@@ -382,7 +383,7 @@ export function CoreMemoryPanel({ workspaceId }: Props) {
       {/* quick queries */}
       {!answer && !loading && (
         <div className="flex flex-wrap gap-2">
-          {QUICK_QUERIES.map((q) => (
+          {quickQueries.map((q) => (
             <button
               key={q.label}
               type="button"
@@ -410,10 +411,10 @@ export function CoreMemoryPanel({ workspaceId }: Props) {
           {/* meta */}
           <div className="flex items-center gap-3 text-xs flex-wrap">
             <span className={`font-medium ${MODE_COLOR[answer.mode] ?? "text-muted-foreground"}`}>
-              {MODE_LABEL[answer.mode] ?? answer.mode}
+              {modeLabel[answer.mode] ?? answer.mode}
             </span>
             <span className="text-muted-foreground">·</span>
-            <span className="text-muted-foreground">{answer.evidenceCount} fuente{answer.evidenceCount !== 1 ? "s" : ""}</span>
+            <span className="text-muted-foreground">{answer.evidenceCount} {answer.evidenceCount === 1 ? t.brainSourceSingular : t.brainSourcePlural}</span>
             <span className="text-muted-foreground">·</span>
             <span className="text-muted-foreground font-mono truncate max-w-xs">{answer.normalizedQuery}</span>
           </div>
@@ -421,13 +422,13 @@ export function CoreMemoryPanel({ workspaceId }: Props) {
           {/* answer */}
           <div className="rounded-xl border border-border bg-card p-4">
             <div className="flex items-center justify-between mb-3">
-              <span className="text-xs font-medium text-muted-foreground">Respuesta</span>
+              <span className="text-xs font-medium text-muted-foreground">{t.brainAnswer}</span>
               <button
                 type="button"
                 onClick={handleClear}
                 className="text-xs text-muted-foreground hover:text-foreground transition-colors px-2 py-1 rounded hover:bg-muted"
               >
-                Limpiar
+                {t.brainClear}
               </button>
             </div>
             <p className="text-sm leading-relaxed whitespace-pre-wrap">{answer.answer}</p>
@@ -436,7 +437,7 @@ export function CoreMemoryPanel({ workspaceId }: Props) {
           {/* warnings — no se reescriben */}
           {answer.warnings && answer.warnings.length > 0 && (
             <div className="rounded-lg border border-amber-200 dark:border-amber-900 bg-amber-50 dark:bg-amber-950/30 px-4 py-3 space-y-1">
-              <p className="text-xs font-semibold text-amber-700 dark:text-amber-400 uppercase tracking-wide">Advertencias</p>
+              <p className="text-xs font-semibold text-amber-700 dark:text-amber-400 uppercase tracking-wide">{t.brainWarnings}</p>
               {answer.warnings.map((w, i) => (
                 <p key={i} className="text-xs text-amber-700 dark:text-amber-400">{w}</p>
               ))}
@@ -446,7 +447,7 @@ export function CoreMemoryPanel({ workspaceId }: Props) {
           {/* sources — siempre visibles */}
           {answer.sources.length > 0 && (
             <div className="space-y-2">
-              <p className="text-xs font-semibold uppercase tracking-widest text-muted-foreground/60">Fuentes</p>
+              <p className="text-xs font-semibold uppercase tracking-widest text-muted-foreground/60">{t.brainSources}</p>
               {answer.sources.map((s, i) => (
                 <div key={`${s.type}-${s.id}`} className="rounded-lg border border-border bg-card/50 px-3 py-2.5 space-y-1">
                   <div className="flex items-center gap-2">
@@ -465,8 +466,9 @@ export function CoreMemoryPanel({ workspaceId }: Props) {
 
           {answer.sources.length === 0 && (
             <p className="text-xs text-muted-foreground">
-              Sin fuentes en la memoria local para esta consulta.
-              La respuesta principal de MITIKUS vive en Brain y en la memoria cloud.
+              {t.brainLocalNoSources}
+              {' '}
+              {t.brainLocalNoSourcesHint}
             </p>
           )}
         </div>

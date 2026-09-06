@@ -539,6 +539,8 @@ export interface DashboardTranslations {
   clientsArchive: string
   clientsArchiving: string
   clientsArchiveConfirm: string
+  clientsArchiveConfirmPrefix: string
+  clientsArchiveConfirmSuffix: string
   clientsSince: string
   clientsSendEmail: string
   clientsFiscalDataShort: string
@@ -585,6 +587,181 @@ export interface DashboardTranslations {
   clientsDownload: string
   clientsPortalCopied: string
   clientsPortal: string
+  // Brain page
+  brainDescription: string
+  brainTabBrain: string
+  brainTabHistory: string
+  brainTabMemory: string
+  brainTabLocal: string
+  brainQuickWhatNow: string
+  brainQuickWhatNowQuery: string
+  brainQuickRecentDecisions: string
+  brainQuickRecentDecisionsQuery: string
+  brainQuickActiveGoals: string
+  brainQuickActiveGoalsQuery: string
+  brainQuickFriction: string
+  brainQuickFrictionQuery: string
+  brainSourceDocument: string
+  brainSourceMemory: string
+  brainSourceConversation: string
+  brainSourceTool: string
+  brainSourceHelp: string
+  brainSourceObjective: string
+  brainSourceMissionStep: string
+  brainSourceTask: string
+  brainQueryPlaceholder: string
+  brainQueryError: string
+  brainConnectionError: string
+  brainAnswer: string
+  brainSourceSingular: string
+  brainSourcePlural: string
+  brainCopied: string
+  brainCopy: string
+  brainClear: string
+  brainSources: string
+  brainViewMemory: string
+  brainViewFull: string
+  brainHistoryLoadError: string
+  brainModeEvidence: string
+  brainModeInsufficient: string
+  brainModeOrientation: string
+  brainOriginAll: string
+  brainOriginCloud: string
+  brainOriginHelp: string
+  brainOriginLocal: string
+  brainQuerySingular: string
+  brainQueryPlural: string
+  brainNoQueries: string
+  brainTryAllSources: string
+  brainNormalizedQuery: string
+  brainWarnings: string
+  brainMemoryTypeNote: string
+  brainMemoryTypeDecision: string
+  brainMemoryTypeHypothesis: string
+  brainMemoryTypeContext: string
+  brainMemoryLoadError: string
+  brainMemoryOpenError: string
+  brainMemoryTitleRequired: string
+  brainMemoryContentRequired: string
+  brainMemorySaveError: string
+  brainMemoryUpdateError: string
+  brainMemoryArchiveError: string
+  brainMemoryRestoreError: string
+  brainMemoryArchiveConfirmPrefix: string
+  brainMemoryArchiveConfirmSuffix: string
+  brainMemoryCloudNotice: string
+  brainMemoryActive: string
+  brainMemoryArchived: string
+  brainMemoryNew: string
+  brainMemoryCancel: string
+  brainMemorySearch: string
+  brainMemorySearchPlaceholder: string
+  brainMemoryType: string
+  brainMemoryAll: string
+  brainMemoryCount: string
+  brainMemoryClearFilters: string
+  brainMemoryTitle: string
+  brainMemoryTitlePlaceholder: string
+  brainMemoryContent: string
+  brainMemoryContentPlaceholder: string
+  brainMemorySaveCloud: string
+  brainMemoryLoading: string
+  brainMemoryNoMatches: string
+  brainMemoryNoArchived: string
+  brainMemoryEmpty: string
+  brainMemoryTrySearch: string
+  brainMemoryArchivedHint: string
+  brainMemoryCreateFirst: string
+  brainMemoryArchivedBadge: string
+  brainMemoryEdit: string
+  brainMemorySaveChanges: string
+  brainMemoryArchiving: string
+  brainMemoryArchive: string
+  brainMemoryRestoring: string
+  brainMemoryRestore: string
+  brainLocalQuickCurrentState: string
+  brainLocalQuickCurrentStateQuery: string
+  brainLocalQuickHypotheses: string
+  brainLocalQuickHypothesesQuery: string
+  brainLocalQuickUserProfile: string
+  brainLocalQuickUserProfileQuery: string
+  brainLocalQuickPendingDecisions: string
+  brainLocalQuickPendingDecisionsQuery: string
+  brainLocalSetupDescription: string
+  brainLocalRetry: string
+  brainLocalAddBaseMemory: string
+  brainLocalBaseMemoryDescription: string
+  brainLocalTitlePlaceholder: string
+  brainLocalContentPlaceholder: string
+  brainLocalQuestionPlaceholder: string
+  brainLocalNoSources: string
+  brainLocalNoSourcesHint: string
+  // Office files
+  officeFilesTitle: string
+  officeFilesDescription: string
+  officeFilesRoot: string
+  officeFilesNewFolder: string
+  officeFilesNewSubfolder: string
+  officeFilesDownloadZipTitle: string
+  officeFilesPreparing: string
+  officeFilesDownloadZip: string
+  officeFilesStorage: string
+  officeFilesLimitReached: string
+  officeFilesAlmostFull: string
+  officeFilesUpgradeStorage: string
+  officeFilesAddStorage: string
+  officeFilesProcessing: string
+  officeFilesPurchaseError: string
+  officeFilesNetworkError: string
+  officeFilesDeleteConfirm: string
+  officeFilesEmpty: string
+  officeFilesDropToUpload: string
+  officeFilesDownload: string
+  officeFilesMove: string
+  officeFilesDelete: string
+  officeFilesUploadingPrefix: string
+  officeFilesUploadPrompt: string
+  officeFilesUploadHelp: string
+  officeFilesFolderNamePlaceholder: string
+  officeFilesCreating: string
+  officeFilesCreate: string
+  officeFilesMoveTitle: string
+  officeFilesMoving: string
+  officeFilesMoveHere: string
+  // Contracts
+  contractsTitle: string
+  contractsSingular: string
+  contractsPlural: string
+  contractsPdfOnlyError: string
+  contractsUploadError: string
+  contractsUnexpectedResponse: string
+  contractsConnectionError: string
+  contractsSelectPdf: string
+  contractsUploading: string
+  contractsUploadPromptPrefix: string
+  contractsChooseFile: string
+  contractsEmptyTitle: string
+  contractsEmptyDescription: string
+  contractsStatusDraft: string
+  contractsStatusSent: string
+  contractsStatusSigned: string
+  contractsSignedPdf: string
+  contractsSendToClient: string
+  contractsSaveSignatureError: string
+  contractsSendError: string
+  contractsYourSignature: string
+  contractsSavingSignature: string
+  contractsAcceptTerms: string
+  contractsSignedOn: string
+  contractsClientSignature: string
+  contractsPendingSend: string
+  contractsSentToPrefix: string
+  contractsPendingSignature: string
+  contractsClientName: string
+  contractsClientNamePlaceholder: string
+  contractsClientEmail: string
+  contractsSending: string
+  contractsSend: string
   // Leads page
   leadsTitle: string
   leadsSubtitle: string
@@ -1613,6 +1790,8 @@ const en: DashboardTranslations = {
   clientsArchive: 'Archive',
   clientsArchiving: 'Archiving...',
   clientsArchiveConfirm: 'Archive this client? It will be hidden from the list.',
+  clientsArchiveConfirmPrefix: 'Archive "',
+  clientsArchiveConfirmSuffix: '"? It will be hidden from the list.',
   clientsSince: 'Since',
   clientsSendEmail: 'Send email',
   clientsFiscalDataShort: 'Tax details',
@@ -1659,6 +1838,178 @@ const en: DashboardTranslations = {
   clientsDownload: 'Download',
   clientsPortalCopied: 'Link copied',
   clientsPortal: 'Client portal',
+  brainDescription: 'Query your workspace memory — documents, goals, conversations and tools.',
+  brainTabBrain: 'Brain',
+  brainTabHistory: 'History',
+  brainTabMemory: 'Memory',
+  brainTabLocal: 'Local',
+  brainQuickWhatNow: 'What should I do now?',
+  brainQuickWhatNowQuery: 'What are the most urgent tasks and goals right now?',
+  brainQuickRecentDecisions: 'Recent decisions',
+  brainQuickRecentDecisionsQuery: 'Important decisions recently made in the workspace',
+  brainQuickActiveGoals: 'Active goals',
+  brainQuickActiveGoalsQuery: 'Active goals and missions right now',
+  brainQuickFriction: 'Friction',
+  brainQuickFrictionQuery: 'Problems, risks or friction identified in the workspace',
+  brainSourceDocument: 'Document',
+  brainSourceMemory: 'Memory',
+  brainSourceConversation: 'Conversation',
+  brainSourceTool: 'Tool',
+  brainSourceHelp: 'MITIKUS help',
+  brainSourceObjective: 'Goal',
+  brainSourceMissionStep: 'Step',
+  brainSourceTask: 'Task',
+  brainQueryPlaceholder: 'What do you want to query?',
+  brainQueryError: 'Error querying Brain',
+  brainConnectionError: 'Connection error. Try again.',
+  brainAnswer: 'Answer',
+  brainSourceSingular: 'source',
+  brainSourcePlural: 'sources',
+  brainCopied: 'Copied',
+  brainCopy: 'Copy',
+  brainClear: 'Clear',
+  brainSources: 'Sources',
+  brainViewMemory: 'View memory',
+  brainViewFull: 'View in Brain',
+  brainHistoryLoadError: 'Could not load history.',
+  brainModeEvidence: 'Evidence',
+  brainModeInsufficient: 'Insufficient evidence',
+  brainModeOrientation: 'Orientation',
+  brainOriginAll: 'All',
+  brainOriginCloud: 'Cloud',
+  brainOriginHelp: 'Help',
+  brainOriginLocal: 'Local',
+  brainQuerySingular: 'query',
+  brainQueryPlural: 'queries',
+  brainNoQueries: 'No queries have been recorded yet.',
+  brainTryAllSources: 'Try selecting "All" to view every source.',
+  brainNormalizedQuery: 'Normalized query',
+  brainWarnings: 'Warnings',
+  brainMemoryTypeNote: 'Note',
+  brainMemoryTypeDecision: 'Decision',
+  brainMemoryTypeHypothesis: 'Hypothesis',
+  brainMemoryTypeContext: 'Context',
+  brainMemoryLoadError: 'Could not load cloud memory. Try again.',
+  brainMemoryOpenError: 'Could not open memory.',
+  brainMemoryTitleRequired: 'The title is required.',
+  brainMemoryContentRequired: 'The content is required.',
+  brainMemorySaveError: 'Could not save. Try again.',
+  brainMemoryUpdateError: 'Could not update. Try again.',
+  brainMemoryArchiveError: 'Could not archive. Try again.',
+  brainMemoryRestoreError: 'Could not restore. Try again.',
+  brainMemoryArchiveConfirmPrefix: 'Archive "',
+  brainMemoryArchiveConfirmSuffix: '"? It will stop appearing in Brain, but it will not be deleted.',
+  brainMemoryCloudNotice: 'This memory is saved in MITIKUS Cloud as the source of truth. When the local Core is available, MITIKUS also tries to index it as a secondary copy.',
+  brainMemoryActive: 'Active',
+  brainMemoryArchived: 'Archived',
+  brainMemoryNew: '+ New memory',
+  brainMemoryCancel: 'Cancel',
+  brainMemorySearch: 'Search',
+  brainMemorySearchPlaceholder: 'Search by title or content',
+  brainMemoryType: 'Type',
+  brainMemoryAll: 'All',
+  brainMemoryCount: 'memories',
+  brainMemoryClearFilters: 'Clear filters',
+  brainMemoryTitle: 'Title',
+  brainMemoryTitlePlaceholder: 'e.g. Decision about auth architecture',
+  brainMemoryContent: 'Content',
+  brainMemoryContentPlaceholder: 'Write the memory content here...',
+  brainMemorySaveCloud: 'Save to cloud',
+  brainMemoryLoading: 'Loading cloud memory...',
+  brainMemoryNoMatches: 'No matching memories.',
+  brainMemoryNoArchived: 'No archived memories.',
+  brainMemoryEmpty: 'No cloud memory yet.',
+  brainMemoryTrySearch: 'Try another search or clear filters.',
+  brainMemoryArchivedHint: 'When you archive a memory, it will appear here.',
+  brainMemoryCreateFirst: 'Create the first one with the button above.',
+  brainMemoryArchivedBadge: 'archived',
+  brainMemoryEdit: 'Edit',
+  brainMemorySaveChanges: 'Save changes',
+  brainMemoryArchiving: 'Archiving...',
+  brainMemoryArchive: 'Archive',
+  brainMemoryRestoring: 'Restoring...',
+  brainMemoryRestore: 'Restore',
+  brainLocalQuickCurrentState: 'Where are we now?',
+  brainLocalQuickCurrentStateQuery: 'What is the current project state and focus?',
+  brainLocalQuickHypotheses: 'What hypotheses do we have?',
+  brainLocalQuickHypothesesQuery: 'Project hypotheses and assumptions',
+  brainLocalQuickUserProfile: 'What do we know about the user?',
+  brainLocalQuickUserProfileQuery: 'Client user profile and the problem being solved',
+  brainLocalQuickPendingDecisions: 'What decisions are pending?',
+  brainLocalQuickPendingDecisionsQuery: 'Pending decisions and unresolved questions',
+  brainLocalSetupDescription: 'MITIKUS keeps working with Brain, cloud memory, history and workspace data. Enable Core only if you want to add a private layer on this computer.',
+  brainLocalRetry: 'Retry connection',
+  brainLocalAddBaseMemory: 'Add base memory',
+  brainLocalBaseMemoryDescription: 'Paste private context for this computer here. The product main memory is in the Memory tab.',
+  brainLocalTitlePlaceholder: 'Base memory — project topic',
+  brainLocalContentPlaceholder: 'What the project is, current goal, possible users, doubts, decisions and next steps.',
+  brainLocalQuestionPlaceholder: 'What do you need to know now?',
+  brainLocalNoSources: 'No sources in local memory for this query.',
+  brainLocalNoSourcesHint: 'The main MITIKUS answer lives in Brain and cloud memory.',
+  officeFilesTitle: 'Files',
+  officeFilesDescription: 'Organize documents, images and spreadsheets in folders',
+  officeFilesRoot: 'Root',
+  officeFilesNewFolder: 'New folder',
+  officeFilesNewSubfolder: 'New subfolder',
+  officeFilesDownloadZipTitle: 'Download all files as ZIP',
+  officeFilesPreparing: 'Preparing...',
+  officeFilesDownloadZip: 'Download ZIP',
+  officeFilesStorage: 'Storage',
+  officeFilesLimitReached: 'Limit reached',
+  officeFilesAlmostFull: 'Almost full',
+  officeFilesUpgradeStorage: 'Upgrade your storage — €2/GB/month',
+  officeFilesAddStorage: 'Add storage',
+  officeFilesProcessing: 'Processing...',
+  officeFilesPurchaseError: 'Error processing the purchase.',
+  officeFilesNetworkError: 'Network error. Try again.',
+  officeFilesDeleteConfirm: 'Delete this file? This action cannot be undone.',
+  officeFilesEmpty: 'No files in this location',
+  officeFilesDropToUpload: 'Drag files above to upload them',
+  officeFilesDownload: 'Download',
+  officeFilesMove: 'Move',
+  officeFilesDelete: 'Delete',
+  officeFilesUploadingPrefix: 'Uploading',
+  officeFilesUploadPrompt: 'Drag files or click to select',
+  officeFilesUploadHelp: 'PDF, DOCX, XLSX, images, TXT, MD, JSON, ZIP — max. 50 MB',
+  officeFilesFolderNamePlaceholder: 'Folder name',
+  officeFilesCreating: 'Creating...',
+  officeFilesCreate: 'Create',
+  officeFilesMoveTitle: 'Move file to...',
+  officeFilesMoving: 'Moving...',
+  officeFilesMoveHere: 'Move here',
+  contractsTitle: 'Contracts',
+  contractsSingular: 'contract',
+  contractsPlural: 'contracts',
+  contractsPdfOnlyError: 'Only PDF files (.pdf) are allowed',
+  contractsUploadError: 'Error uploading the contract',
+  contractsUnexpectedResponse: 'Unexpected server response',
+  contractsConnectionError: 'Connection error. Try again.',
+  contractsSelectPdf: 'Select contract PDF',
+  contractsUploading: 'Uploading contract...',
+  contractsUploadPromptPrefix: 'Drag a',
+  contractsChooseFile: 'choose file',
+  contractsEmptyTitle: 'Upload your first contract',
+  contractsEmptyDescription: 'Drag a PDF above or use the upload button. The client can sign it digitally with OTP verification.',
+  contractsStatusDraft: 'DRAFT',
+  contractsStatusSent: 'SENT',
+  contractsStatusSigned: 'SIGNED',
+  contractsSignedPdf: 'Signed PDF',
+  contractsSendToClient: 'Send to client',
+  contractsSaveSignatureError: 'Error saving the signature. Try again.',
+  contractsSendError: 'Error sending to the client. Try again.',
+  contractsYourSignature: 'Your signature',
+  contractsSavingSignature: 'Saving signature...',
+  contractsAcceptTerms: 'I accept the terms',
+  contractsSignedOn: 'Signed on',
+  contractsClientSignature: 'Client signature',
+  contractsPendingSend: 'Pending send',
+  contractsSentToPrefix: 'Sent to',
+  contractsPendingSignature: 'pending signature',
+  contractsClientName: 'Client name',
+  contractsClientNamePlaceholder: 'John Smith',
+  contractsClientEmail: 'Client email',
+  contractsSending: 'Sending...',
+  contractsSend: 'Send',
   // Leads
   leadsTitle: 'Leads',
   leadsSubtitle: 'Potential clients — captured from your public form.',
@@ -2687,6 +3038,8 @@ const es: DashboardTranslations = {
   clientsArchive: 'Archivar',
   clientsArchiving: 'Archivando...',
   clientsArchiveConfirm: '¿Archivar este cliente? Se ocultará de la lista.',
+  clientsArchiveConfirmPrefix: '¿Archivar a "',
+  clientsArchiveConfirmSuffix: '"? Se ocultará de la lista.',
   clientsSince: 'Desde',
   clientsSendEmail: 'Enviar correo',
   clientsFiscalDataShort: 'Datos fiscales',
@@ -2733,6 +3086,178 @@ const es: DashboardTranslations = {
   clientsDownload: 'Descargar',
   clientsPortalCopied: 'Enlace copiado',
   clientsPortal: 'Portal del cliente',
+  brainDescription: 'Consulta la memoria de tu workspace — documentos, objetivos, conversaciones y herramientas.',
+  brainTabBrain: 'Brain',
+  brainTabHistory: 'Historial',
+  brainTabMemory: 'Memoria',
+  brainTabLocal: 'Local',
+  brainQuickWhatNow: '¿Qué hago ahora?',
+  brainQuickWhatNowQuery: '¿Cuáles son las tareas y objetivos más urgentes actualmente?',
+  brainQuickRecentDecisions: 'Decisiones recientes',
+  brainQuickRecentDecisionsQuery: 'Decisiones importantes tomadas recientemente en el workspace',
+  brainQuickActiveGoals: 'Objetivos activos',
+  brainQuickActiveGoalsQuery: 'Objetivos y misiones activas en este momento',
+  brainQuickFriction: 'Fricciones',
+  brainQuickFrictionQuery: 'Problemas, riesgos o fricciones identificadas en el workspace',
+  brainSourceDocument: 'Documento',
+  brainSourceMemory: 'Memoria',
+  brainSourceConversation: 'Conversación',
+  brainSourceTool: 'Herramienta',
+  brainSourceHelp: 'Ayuda MITIKUS',
+  brainSourceObjective: 'Objetivo',
+  brainSourceMissionStep: 'Paso',
+  brainSourceTask: 'Tarea',
+  brainQueryPlaceholder: '¿Qué quieres consultar?',
+  brainQueryError: 'Error al consultar el Brain',
+  brainConnectionError: 'Error de conexión. Inténtalo de nuevo.',
+  brainAnswer: 'Respuesta',
+  brainSourceSingular: 'fuente',
+  brainSourcePlural: 'fuentes',
+  brainCopied: 'Copiado',
+  brainCopy: 'Copiar',
+  brainClear: 'Limpiar',
+  brainSources: 'Fuentes',
+  brainViewMemory: 'Ver memoria',
+  brainViewFull: 'Ver en Brain',
+  brainHistoryLoadError: 'No se pudo cargar el historial.',
+  brainModeEvidence: 'Evidencia',
+  brainModeInsufficient: 'Sin evidencia',
+  brainModeOrientation: 'Orientación',
+  brainOriginAll: 'Todos',
+  brainOriginCloud: 'Cloud',
+  brainOriginHelp: 'Ayuda',
+  brainOriginLocal: 'Local',
+  brainQuerySingular: 'consulta',
+  brainQueryPlural: 'consultas',
+  brainNoQueries: 'No hay consultas registradas todavía.',
+  brainTryAllSources: 'Prueba a seleccionar "Todos" para ver todas las fuentes.',
+  brainNormalizedQuery: 'Consulta normalizada',
+  brainWarnings: 'Avisos',
+  brainMemoryTypeNote: 'Nota',
+  brainMemoryTypeDecision: 'Decisión',
+  brainMemoryTypeHypothesis: 'Hipótesis',
+  brainMemoryTypeContext: 'Contexto',
+  brainMemoryLoadError: 'No se pudo cargar la memoria cloud. Inténtalo de nuevo.',
+  brainMemoryOpenError: 'No se pudo abrir la memoria.',
+  brainMemoryTitleRequired: 'El título es obligatorio.',
+  brainMemoryContentRequired: 'El contenido es obligatorio.',
+  brainMemorySaveError: 'No se pudo guardar. Inténtalo de nuevo.',
+  brainMemoryUpdateError: 'No se pudo actualizar. Inténtalo de nuevo.',
+  brainMemoryArchiveError: 'No se pudo archivar. Inténtalo de nuevo.',
+  brainMemoryRestoreError: 'No se pudo restaurar. Inténtalo de nuevo.',
+  brainMemoryArchiveConfirmPrefix: '¿Archivar "',
+  brainMemoryArchiveConfirmSuffix: '"? Dejará de aparecer en Brain, pero no se borrará.',
+  brainMemoryCloudNotice: 'Esta memoria se guarda en MITIKUS Cloud como fuente de verdad. Cuando el Core local está disponible, MITIKUS intenta indexarla también como copia secundaria.',
+  brainMemoryActive: 'Activas',
+  brainMemoryArchived: 'Archivadas',
+  brainMemoryNew: '+ Nueva memoria',
+  brainMemoryCancel: 'Cancelar',
+  brainMemorySearch: 'Buscar',
+  brainMemorySearchPlaceholder: 'Busca por título o contenido',
+  brainMemoryType: 'Tipo',
+  brainMemoryAll: 'Todos',
+  brainMemoryCount: 'memorias',
+  brainMemoryClearFilters: 'Limpiar filtros',
+  brainMemoryTitle: 'Título',
+  brainMemoryTitlePlaceholder: 'p. ej. Decisión sobre arquitectura de auth',
+  brainMemoryContent: 'Contenido',
+  brainMemoryContentPlaceholder: 'Escribe aquí el contenido de la memoria...',
+  brainMemorySaveCloud: 'Guardar en cloud',
+  brainMemoryLoading: 'Cargando memoria cloud...',
+  brainMemoryNoMatches: 'No hay memorias que coincidan.',
+  brainMemoryNoArchived: 'No hay memorias archivadas.',
+  brainMemoryEmpty: 'No hay memoria cloud todavía.',
+  brainMemoryTrySearch: 'Prueba con otra búsqueda o limpia los filtros.',
+  brainMemoryArchivedHint: 'Cuando archives una memoria, aparecerá aquí.',
+  brainMemoryCreateFirst: 'Crea la primera con el botón de arriba.',
+  brainMemoryArchivedBadge: 'archivada',
+  brainMemoryEdit: 'Editar',
+  brainMemorySaveChanges: 'Guardar cambios',
+  brainMemoryArchiving: 'Archivando...',
+  brainMemoryArchive: 'Archivar',
+  brainMemoryRestoring: 'Restaurando...',
+  brainMemoryRestore: 'Restaurar',
+  brainLocalQuickCurrentState: '¿En qué estamos ahora?',
+  brainLocalQuickCurrentStateQuery: 'Cuál es el estado actual y foco del proyecto',
+  brainLocalQuickHypotheses: '¿Qué hipótesis tenemos?',
+  brainLocalQuickHypothesesQuery: 'Hipótesis y supuestos del proyecto',
+  brainLocalQuickUserProfile: '¿Qué sabemos del usuario?',
+  brainLocalQuickUserProfileQuery: 'Perfil de usuario cliente y problema que resuelve',
+  brainLocalQuickPendingDecisions: '¿Qué decisiones están pendientes?',
+  brainLocalQuickPendingDecisionsQuery: 'Decisiones pendientes y dudas sin resolver',
+  brainLocalSetupDescription: 'MITIKUS sigue funcionando con Brain, memoria cloud, historial y datos del workspace. Activa el Core solo si quieres añadir una capa privada en este ordenador.',
+  brainLocalRetry: 'Reintentar conexión',
+  brainLocalAddBaseMemory: 'Añadir memoria base',
+  brainLocalBaseMemoryDescription: 'Pega aquí contexto privado para este ordenador. La memoria principal del producto está en la pestaña Memoria.',
+  brainLocalTitlePlaceholder: 'Memoria base — tema del proyecto',
+  brainLocalContentPlaceholder: 'Qué es el proyecto, objetivo actual, usuarios posibles, dudas, decisiones y próximos pasos.',
+  brainLocalQuestionPlaceholder: '¿Qué necesitas saber ahora?',
+  brainLocalNoSources: 'Sin fuentes en la memoria local para esta consulta.',
+  brainLocalNoSourcesHint: 'La respuesta principal de MITIKUS vive en Brain y en la memoria cloud.',
+  officeFilesTitle: 'Archivos',
+  officeFilesDescription: 'Organiza documentos, imágenes y hojas de cálculo en carpetas',
+  officeFilesRoot: 'Raíz',
+  officeFilesNewFolder: 'Nueva carpeta',
+  officeFilesNewSubfolder: 'Nueva subcarpeta',
+  officeFilesDownloadZipTitle: 'Descargar todos los archivos como ZIP',
+  officeFilesPreparing: 'Preparando...',
+  officeFilesDownloadZip: 'Descargar ZIP',
+  officeFilesStorage: 'Almacenamiento',
+  officeFilesLimitReached: 'Límite alcanzado',
+  officeFilesAlmostFull: 'Casi lleno',
+  officeFilesUpgradeStorage: 'Amplía tu almacenamiento — €2/GB/mes',
+  officeFilesAddStorage: 'Añadir almacenamiento',
+  officeFilesProcessing: 'Procesando...',
+  officeFilesPurchaseError: 'Error al procesar la compra.',
+  officeFilesNetworkError: 'Error de red. Inténtalo de nuevo.',
+  officeFilesDeleteConfirm: '¿Eliminar este archivo? Esta acción no se puede deshacer.',
+  officeFilesEmpty: 'Sin archivos en esta ubicación',
+  officeFilesDropToUpload: 'Arrastra archivos arriba para subirlos',
+  officeFilesDownload: 'Descargar',
+  officeFilesMove: 'Mover',
+  officeFilesDelete: 'Eliminar',
+  officeFilesUploadingPrefix: 'Subiendo',
+  officeFilesUploadPrompt: 'Arrastra archivos o haz clic para seleccionar',
+  officeFilesUploadHelp: 'PDF, DOCX, XLSX, imágenes, TXT, MD, JSON, ZIP — máx. 50 MB',
+  officeFilesFolderNamePlaceholder: 'Nombre de la carpeta',
+  officeFilesCreating: 'Creando...',
+  officeFilesCreate: 'Crear',
+  officeFilesMoveTitle: 'Mover archivo a...',
+  officeFilesMoving: 'Moviendo...',
+  officeFilesMoveHere: 'Mover aquí',
+  contractsTitle: 'Contratos',
+  contractsSingular: 'contrato',
+  contractsPlural: 'contratos',
+  contractsPdfOnlyError: 'Solo se admiten archivos PDF (.pdf)',
+  contractsUploadError: 'Error al subir el contrato',
+  contractsUnexpectedResponse: 'Respuesta inesperada del servidor',
+  contractsConnectionError: 'Error de conexión. Inténtalo de nuevo.',
+  contractsSelectPdf: 'Seleccionar PDF de contrato',
+  contractsUploading: 'Subiendo contrato...',
+  contractsUploadPromptPrefix: 'Arrastra un',
+  contractsChooseFile: 'elige archivo',
+  contractsEmptyTitle: 'Sube tu primer contrato',
+  contractsEmptyDescription: 'Arrastra un PDF arriba o usa el botón de carga. El cliente puede firmarlo digitalmente con verificación OTP.',
+  contractsStatusDraft: 'BORRADOR',
+  contractsStatusSent: 'ENVIADO',
+  contractsStatusSigned: 'FIRMADO',
+  contractsSignedPdf: 'PDF firmado',
+  contractsSendToClient: 'Enviar al cliente',
+  contractsSaveSignatureError: 'Error al guardar la firma. Inténtalo de nuevo.',
+  contractsSendError: 'Error al enviar al cliente. Inténtalo de nuevo.',
+  contractsYourSignature: 'Tu firma',
+  contractsSavingSignature: 'Guardando firma...',
+  contractsAcceptTerms: 'Acepto los términos',
+  contractsSignedOn: 'Firmado el',
+  contractsClientSignature: 'Firma cliente',
+  contractsPendingSend: 'Pendiente de envío',
+  contractsSentToPrefix: 'Enviado a',
+  contractsPendingSignature: 'pendiente de firma',
+  contractsClientName: 'Nombre del cliente',
+  contractsClientNamePlaceholder: 'Juan García',
+  contractsClientEmail: 'Email del cliente',
+  contractsSending: 'Enviando...',
+  contractsSend: 'Enviar',
   // Leads
   leadsTitle: 'Leads',
   leadsSubtitle: 'Potenciales clientes — captados desde tu formulario público.',
