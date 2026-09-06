@@ -4,13 +4,16 @@ import { notFound } from 'next/navigation'
 import { getFolderTree, getFiles } from '@/app/actions/files'
 import { FilesClient } from './_components/FilesClient'
 import { getEntitlements } from '@/lib/billing/entitlements'
+import { getLocale } from '@/i18n/locale'
+import { getDashboardTranslations } from '@/i18n/dashboard-translations'
 
 interface Props {
   params: Promise<{ workspaceId: string }>
 }
 
 export default async function FilesPage({ params }: Props) {
-  const [{ workspaceId }, user] = await Promise.all([params, requireUser()])
+  const [{ workspaceId }, user, locale] = await Promise.all([params, requireUser(), getLocale()])
+  const t = getDashboardTranslations(locale)
 
   const workspace = await db.workspace.findFirst({
     where: { id: workspaceId, orgId: user.orgId },
@@ -34,8 +37,8 @@ export default async function FilesPage({ params }: Props) {
   return (
     <div className="flex flex-col h-[calc(100vh-56px)]">
       <div className="px-6 py-4 border-b border-border shrink-0">
-        <h1 className="text-xl font-semibold">Archivos</h1>
-        <p className="text-sm text-muted-foreground mt-0.5">Organiza documentos, imágenes y hojas de cálculo en carpetas</p>
+        <h1 className="text-xl font-semibold">{t.officeFilesTitle}</h1>
+        <p className="text-sm text-muted-foreground mt-0.5">{t.officeFilesDescription}</p>
       </div>
       <FilesClient
         workspaceId={workspaceId}
@@ -43,6 +46,7 @@ export default async function FilesPage({ params }: Props) {
         initialFiles={files}
         usedBytes={usedBytes}
         limitGB={limitGB}
+        locale={locale}
       />
     </div>
   )

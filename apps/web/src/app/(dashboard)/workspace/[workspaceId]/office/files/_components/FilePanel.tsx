@@ -4,6 +4,8 @@ import { type FileData } from '@/app/actions/files'
 import { deleteFile } from '@/app/actions/files'
 import { useState } from 'react'
 import type { FolderData } from '@/app/actions/files'
+import type { Locale } from '@/i18n/config'
+import { getDashboardTranslations } from '@/i18n/dashboard-translations'
 
 const TYPE_ICON: Record<string, string> = {
   PDF: '📑',
@@ -25,13 +27,15 @@ interface Props {
   folders: FolderData[]
   onRequestMove: (fileId: string) => void
   onRefresh: () => void
+  locale: Locale
 }
 
-export function FilePanel({ workspaceId, files, onRequestMove, onRefresh }: Props) {
+export function FilePanel({ workspaceId, files, onRequestMove, onRefresh, locale }: Props) {
+  const t = getDashboardTranslations(locale)
   const [deleting, setDeleting] = useState<string | null>(null)
 
   async function handleDelete(fileId: string) {
-    if (!confirm('¿Eliminar este archivo? Esta acción no se puede deshacer.')) return
+    if (!confirm(t.officeFilesDeleteConfirm)) return
     setDeleting(fileId)
     await deleteFile(workspaceId, fileId)
     setDeleting(null)
@@ -45,8 +49,8 @@ export function FilePanel({ workspaceId, files, onRequestMove, onRefresh }: Prop
           <path d="M13 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V9z" />
           <polyline points="13 2 13 9 20 9" />
         </svg>
-        <p className="text-sm">Sin archivos en esta ubicación</p>
-        <p className="text-xs text-muted-foreground/60">Arrastra archivos arriba para subirlos</p>
+        <p className="text-sm">{t.officeFilesEmpty}</p>
+        <p className="text-xs text-muted-foreground/60">{t.officeFilesDropToUpload}</p>
       </div>
     )
   }
@@ -69,7 +73,7 @@ export function FilePanel({ workspaceId, files, onRequestMove, onRefresh }: Prop
                 href={file.url}
                 download={file.name}
                 className="p-1.5 rounded-md hover:bg-background text-muted-foreground hover:text-foreground transition-colors"
-                title="Descargar"
+                title={t.officeFilesDownload}
                 onClick={(e) => e.stopPropagation()}
               >
                 <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" aria-hidden>
@@ -82,7 +86,7 @@ export function FilePanel({ workspaceId, files, onRequestMove, onRefresh }: Prop
                 type="button"
                 onClick={() => onRequestMove(file.id)}
                 className="p-1.5 rounded-md hover:bg-background text-muted-foreground hover:text-foreground transition-colors"
-                title="Mover"
+                title={t.officeFilesMove}
               >
                 <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" aria-hidden>
                   <polyline points="5 9 2 12 5 15" />
@@ -96,7 +100,7 @@ export function FilePanel({ workspaceId, files, onRequestMove, onRefresh }: Prop
                 disabled={deleting === file.id}
                 onClick={() => handleDelete(file.id)}
                 className="p-1.5 rounded-md hover:bg-destructive/10 text-muted-foreground hover:text-destructive transition-colors disabled:opacity-50"
-                title="Eliminar"
+                title={t.officeFilesDelete}
               >
                 <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" aria-hidden>
                   <polyline points="3 6 5 6 21 6" />

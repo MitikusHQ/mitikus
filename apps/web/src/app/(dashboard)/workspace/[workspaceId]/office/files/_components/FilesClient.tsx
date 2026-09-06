@@ -1,8 +1,11 @@
 'use client'
 
 import { useState, useCallback, useTransition, useRef } from 'react'
+import type { Locale } from '@/i18n/config'
+import { getDashboardTranslations } from '@/i18n/dashboard-translations'
 
-function StorageAddonButton({ workspaceId }: { workspaceId: string }) {
+function StorageAddonButton({ workspaceId, locale }: { workspaceId: string; locale: Locale }) {
+  const t = getDashboardTranslations(locale)
   const [gb, setGb] = useState(5)
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState<string | null>(null)
@@ -17,11 +20,11 @@ function StorageAddonButton({ workspaceId }: { workspaceId: string }) {
         body: JSON.stringify({ gb, workspaceId }),
       })
       const data = await res.json() as { url?: string; error?: string }
-      if (!res.ok || data.error) { setError(data.error ?? 'Error al procesar la compra.'); return }
+      if (!res.ok || data.error) { setError(data.error ?? t.officeFilesPurchaseError); return }
       if (data.url && data.url !== window.location.href) window.location.href = data.url
       else window.location.reload()
     } catch {
-      setError('Error de red. Inténtalo de nuevo.')
+      setError(t.officeFilesNetworkError)
     } finally {
       setLoading(false)
     }
@@ -29,7 +32,7 @@ function StorageAddonButton({ workspaceId }: { workspaceId: string }) {
 
   return (
     <div className="mt-2 rounded-md border border-amber-200 dark:border-amber-800 bg-amber-50 dark:bg-amber-950/30 px-3 py-2 flex flex-col gap-1.5">
-      <p className="text-xs font-medium text-amber-800 dark:text-amber-300">Amplía tu almacenamiento — €2/GB/mes</p>
+      <p className="text-xs font-medium text-amber-800 dark:text-amber-300">{t.officeFilesUpgradeStorage}</p>
       <div className="flex items-center gap-2">
         <select
           value={gb}
@@ -46,7 +49,7 @@ function StorageAddonButton({ workspaceId }: { workspaceId: string }) {
           disabled={loading}
           className="text-xs px-3 py-1 rounded bg-amber-600 text-white hover:bg-amber-700 disabled:opacity-60 transition-colors"
         >
-          {loading ? 'Procesando…' : 'Añadir almacenamiento'}
+          {loading ? `${t.officeFilesProcessing.replace('...', '')}…` : t.officeFilesAddStorage}
         </button>
       </div>
       {error && <p className="text-xs text-destructive">{error}</p>}
@@ -66,6 +69,7 @@ interface Props {
   initialFiles: FileData[]
   usedBytes: number
   limitGB: number
+  locale: Locale
 }
 
 function findFolderName(folders: FolderData[], id: string): string | null {
@@ -84,7 +88,8 @@ function formatBytes(bytes: number): string {
   return `${(bytes / (1024 * 1024 * 1024)).toFixed(2)} GB`
 }
 
-export function FilesClient({ workspaceId, initialFolders, initialFiles, usedBytes, limitGB }: Props) {
+export function FilesClient({ workspaceId, initialFolders, initialFiles, usedBytes, limitGB, locale }: Props) {
+  const t = getDashboardTranslations(locale)
   const [folders] = useState<FolderData[]>(initialFolders)
   const [files, setFiles] = useState<FileData[]>(initialFiles)
   const [activeFolderId, setActiveFolderId] = useState<string | null>(null)
@@ -128,8 +133,8 @@ export function FilesClient({ workspaceId, initialFolders, initialFiles, usedByt
   }, [workspaceId])
 
   const breadcrumb = activeFolderId === null
-    ? 'Raíz'
-    : (findFolderName(folders, activeFolderId) ?? 'Raíz')
+    ? t.officeFilesRoot
+    : (findFolderName(folders, activeFolderId) ?? t.officeFilesRoot)
 
   const limitBytes = limitGB * 1024 * 1024 * 1024
   const usedPct = limitBytes > 0 ? Math.min(100, (usedBytes / limitBytes) * 100) : 0
@@ -143,6 +148,7 @@ export function FilesClient({ workspaceId, initialFolders, initialFiles, usedByt
         activeFolderId={activeFolderId}
         onSelect={handleSelectFolder}
         onNewFolder={(parentId) => setNewFolderParentId(parentId)}
+        locale={locale}
       />
 
       <div className="flex-1 flex flex-col overflow-hidden">
@@ -160,14 +166,14 @@ export function FilesClient({ workspaceId, initialFolders, initialFiles, usedByt
               onClick={handleExport}
               disabled={isExporting}
               className="text-xs flex items-center gap-1.5 px-2.5 py-1.5 rounded-md border border-border hover:bg-muted transition-colors disabled:opacity-50"
-              title="Descargar todos los archivos como ZIP"
+              title={t.officeFilesDownloadZipTitle}
             >
               <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" aria-hidden>
                 <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/>
                 <polyline points="7 10 12 15 17 10"/>
                 <line x1="12" y1="15" x2="12" y2="3"/>
               </svg>
-              {isExporting ? 'Preparando…' : 'Descargar ZIP'}
+              {isExporting ? `${t.officeFilesPreparing.replace('...', '')}…` : t.officeFilesDownloadZip}
             </button>
             <button
               type="button"
@@ -179,7 +185,7 @@ export function FilesClient({ workspaceId, initialFolders, initialFiles, usedByt
                 <line x1="12" y1="11" x2="12" y2="17" />
                 <line x1="9" y1="14" x2="15" y2="14" />
               </svg>
-              Nueva carpeta
+              {t.officeFilesNewFolder}
             </button>
           </div>
           {/* eslint-disable-next-line jsx-a11y/anchor-has-content */}
@@ -188,21 +194,21 @@ export function FilesClient({ workspaceId, initialFolders, initialFiles, usedByt
 
         {/* Upload zone */}
         <div className="px-4 pt-3 pb-2 shrink-0">
-          <UploadZone workspaceId={workspaceId} folderId={activeFolderId} onUploaded={refresh} />
+          <UploadZone workspaceId={workspaceId} folderId={activeFolderId} onUploaded={refresh} locale={locale} />
         </div>
 
         {/* Storage bar */}
         <div className="px-4 pb-2 shrink-0">
           <div className="flex items-center justify-between mb-1">
             <span className="text-xs text-muted-foreground">
-              Almacenamiento: <span className={isNearLimit ? 'font-semibold text-amber-600 dark:text-amber-400' : ''}>{formatBytes(usedBytes)}</span>
+              {t.officeFilesStorage}: <span className={isNearLimit ? 'font-semibold text-amber-600 dark:text-amber-400' : ''}>{formatBytes(usedBytes)}</span>
               {' '}/ {limitGB >= Number.MAX_SAFE_INTEGER ? '∞' : `${limitGB} GB`}
             </span>
             {isAtLimit && (
-              <span className="text-xs font-medium text-destructive">Límite alcanzado</span>
+              <span className="text-xs font-medium text-destructive">{t.officeFilesLimitReached}</span>
             )}
             {isNearLimit && !isAtLimit && (
-              <span className="text-xs font-medium text-amber-600 dark:text-amber-400">Casi lleno</span>
+              <span className="text-xs font-medium text-amber-600 dark:text-amber-400">{t.officeFilesAlmostFull}</span>
             )}
           </div>
           {limitGB < Number.MAX_SAFE_INTEGER && (
@@ -214,7 +220,7 @@ export function FilesClient({ workspaceId, initialFolders, initialFiles, usedByt
             </div>
           )}
           {isNearLimit && limitGB < Number.MAX_SAFE_INTEGER && (
-            <StorageAddonButton workspaceId={workspaceId} />
+            <StorageAddonButton workspaceId={workspaceId} locale={locale} />
           )}
         </div>
 
@@ -225,6 +231,7 @@ export function FilesClient({ workspaceId, initialFolders, initialFiles, usedByt
           folders={folders}
           onRequestMove={(fileId) => setMoveFileId(fileId)}
           onRefresh={refresh}
+          locale={locale}
         />
       </div>
 
@@ -235,6 +242,7 @@ export function FilesClient({ workspaceId, initialFolders, initialFiles, usedByt
           parentId={newFolderParentId}
           onCreated={() => window.location.reload()}
           onClose={() => setNewFolderParentId(undefined)}
+          locale={locale}
         />
       )}
       {moveFileId && (
@@ -244,6 +252,7 @@ export function FilesClient({ workspaceId, initialFolders, initialFiles, usedByt
           folders={folders}
           onMoved={refresh}
           onClose={() => setMoveFileId(null)}
+          locale={locale}
         />
       )}
     </div>

@@ -3,12 +3,15 @@
 import { cn } from '@/lib/utils'
 import type { FolderData } from '@/app/actions/files'
 import { useState } from 'react'
+import type { Locale } from '@/i18n/config'
+import { getDashboardTranslations } from '@/i18n/dashboard-translations'
 
 interface Props {
   folders: FolderData[]
   activeFolderId: string | null
   onSelect: (folderId: string | null) => void
   onNewFolder: (parentId: string | null) => void
+  locale: Locale
 }
 
 function FolderNode({
@@ -17,13 +20,16 @@ function FolderNode({
   activeFolderId,
   onSelect,
   onNewFolder,
+  locale,
 }: {
   folder: FolderData
   depth: number
   activeFolderId: string | null
   onSelect: (id: string | null) => void
   onNewFolder: (parentId: string | null) => void
+  locale: Locale
 }) {
+  const t = getDashboardTranslations(locale)
   const [open, setOpen] = useState(true)
   const hasChildren = folder.children.length > 0
 
@@ -57,7 +63,7 @@ function FolderNode({
         </span>
         <button
           type="button"
-          title="Nueva subcarpeta"
+          title={t.officeFilesNewSubfolder}
           onClick={(e) => { e.stopPropagation(); onNewFolder(folder.id) }}
           className="shrink-0 opacity-0 group-hover:opacity-100 text-muted-foreground hover:text-foreground p-0.5"
         >
@@ -76,6 +82,7 @@ function FolderNode({
               activeFolderId={activeFolderId}
               onSelect={onSelect}
               onNewFolder={onNewFolder}
+              locale={locale}
             />
           ))}
         </ul>
@@ -84,7 +91,8 @@ function FolderNode({
   )
 }
 
-export function FolderTree({ folders, activeFolderId, onSelect, onNewFolder }: Props) {
+export function FolderTree({ folders, activeFolderId, onSelect, onNewFolder, locale }: Props) {
+  const t = getDashboardTranslations(locale)
   return (
     <nav className="w-56 shrink-0 border-r border-border overflow-y-auto py-2">
       <div
@@ -97,7 +105,7 @@ export function FolderTree({ folders, activeFolderId, onSelect, onNewFolder }: P
         <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" aria-hidden className="text-muted-foreground shrink-0">
           <path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z" />
         </svg>
-        Raíz
+        {t.officeFilesRoot}
       </div>
       <ul>
         {folders.map((f) => (
@@ -108,6 +116,7 @@ export function FolderTree({ folders, activeFolderId, onSelect, onNewFolder }: P
             activeFolderId={activeFolderId}
             onSelect={onSelect}
             onNewFolder={onNewFolder}
+            locale={locale}
           />
         ))}
       </ul>
@@ -119,7 +128,7 @@ export function FolderTree({ folders, activeFolderId, onSelect, onNewFolder }: P
         <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" aria-hidden>
           <path d="M12 5v14M5 12h14" />
         </svg>
-        Nueva carpeta
+        {t.officeFilesNewFolder}
       </button>
     </nav>
   )

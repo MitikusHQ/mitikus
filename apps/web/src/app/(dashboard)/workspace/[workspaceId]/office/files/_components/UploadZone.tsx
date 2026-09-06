@@ -2,16 +2,20 @@
 
 import { useRef, useState } from 'react'
 import { cn } from '@/lib/utils'
+import type { Locale } from '@/i18n/config'
+import { getDashboardTranslations } from '@/i18n/dashboard-translations'
 
 interface Props {
   workspaceId: string
   folderId: string | null
   onUploaded: () => void
+  locale: Locale
 }
 
 const ACCEPTED = '.pdf,.docx,.xlsx,.jpg,.jpeg,.png,.webp,.gif,.txt,.md,.json,.zip'
 
-export function UploadZone({ workspaceId, folderId, onUploaded }: Props) {
+export function UploadZone({ workspaceId, folderId, onUploaded, locale }: Props) {
+  const t = getDashboardTranslations(locale)
   const inputRef = useRef<HTMLInputElement>(null)
   const [dragging, setDragging] = useState(false)
   const [uploading, setUploading] = useState(false)
@@ -22,7 +26,7 @@ export function UploadZone({ workspaceId, folderId, onUploaded }: Props) {
     const arr = Array.from(files)
     for (let i = 0; i < arr.length; i++) {
       const file = arr[i]!
-      setProgress(`Subiendo ${i + 1}/${arr.length}: ${file.name}`)
+      setProgress(`${t.officeFilesUploadingPrefix} ${i + 1}/${arr.length}: ${file.name}`)
       const fd = new FormData()
       fd.append('file', file)
       if (folderId) fd.append('folderId', folderId)
@@ -62,8 +66,8 @@ export function UploadZone({ workspaceId, folderId, onUploaded }: Props) {
         <p className="text-sm text-muted-foreground">{progress}</p>
       ) : (
         <>
-          <p className="text-sm text-muted-foreground">Arrastra archivos o haz clic para seleccionar</p>
-          <p className="text-xs text-muted-foreground/60 mt-0.5">PDF, DOCX, XLSX, imágenes, TXT, MD, JSON, ZIP — máx. 50 MB</p>
+          <p className="text-sm text-muted-foreground">{t.officeFilesUploadPrompt}</p>
+          <p className="text-xs text-muted-foreground/60 mt-0.5">{t.officeFilesUploadHelp}</p>
         </>
       )}
     </div>
