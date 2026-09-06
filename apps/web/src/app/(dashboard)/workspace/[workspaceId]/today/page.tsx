@@ -75,9 +75,10 @@ export default async function TodayPage({ params }: Props) {
     : []
 
   const isEmpty = data.pendingSteps.length === 0 && data.pendingWorkflows.length === 0
+  const rawName = user.name && !user.name.includes('@') ? user.name.split(' ')[0] : null
   const displayName =
     clerkUser?.firstName ??
-    user.name?.split(' ')[0] ??
+    rawName ??
     user.email?.split('@')[0] ??
     t.todayFallbackName
 
