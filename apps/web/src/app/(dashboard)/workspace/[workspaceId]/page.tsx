@@ -18,6 +18,9 @@ import { WorkspaceActivityFeed } from './_components/WorkspaceActivityFeed'
 import { TrialBanner } from './_components/TrialBanner'
 import { LastExecutionWidget } from './_components/LastExecutionWidget'
 import { MissionTemplateButton } from './_components/MissionTemplateModal'
+import { getLocale } from '@/i18n/locale'
+import { getDashboardTranslations } from '@/i18n/dashboard-translations'
+import type { DashboardTranslations } from '@/i18n/dashboard-translations'
 
 interface Props {
   params: Promise<{ workspaceId: string }>
@@ -25,7 +28,8 @@ interface Props {
 }
 
 export default async function WorkspacePage({ params, searchParams }: Props) {
-  const [{ workspaceId }, { skip }, user] = await Promise.all([params, searchParams, requireUser()])
+  const [{ workspaceId }, { skip }, user, locale] = await Promise.all([params, searchParams, requireUser(), getLocale()])
+  const t = getDashboardTranslations(locale)
 
   const [workspace, clientCount, toolInstanceCount, companyProfile] = await Promise.all([
     db.workspace.findFirst({ where: { id: workspaceId, orgId: user.orgId } }),
@@ -100,7 +104,7 @@ export default async function WorkspacePage({ params, searchParams }: Props) {
       <div>
         <h1 className="text-2xl font-semibold">{workspace.name}</h1>
         <p className="text-xs text-muted-foreground mt-0.5">
-          Panel — qué es lo más importante que debes hacer hoy
+          {t.homePanelSubtitle}
         </p>
       </div>
 
@@ -128,11 +132,11 @@ export default async function WorkspacePage({ params, searchParams }: Props) {
       {/* Misiones activas */}
       <section>
         <div className="flex items-center justify-between mb-1">
-          <h2 className="text-base font-semibold">Misiones activas</h2>
+          <h2 className="text-base font-semibold">{t.homeMissionsTitle}</h2>
           <div className="flex items-center gap-3">
             <MissionTemplateButton workspaceId={workspaceId} />
             <Link href={`/workspace/${workspaceId}/copilot`} className="text-sm text-primary hover:underline">
-              Crear misión →
+              {t.homeCreateMission}
             </Link>
           </div>
         </div>
@@ -140,20 +144,20 @@ export default async function WorkspacePage({ params, searchParams }: Props) {
         {/* Sprint 1 — Barra de estado del workload */}
         {sortedMissions.length > 0 && (
           <div className="flex flex-wrap gap-x-3 gap-y-1 text-xs mb-4">
-            <span className="text-muted-foreground">{sortedMissions.length} activa{sortedMissions.length !== 1 ? 's' : ''}</span>
+            <span className="text-muted-foreground">{sortedMissions.length} {sortedMissions.length === 1 ? t.homeActiveSingular : t.homeActivePlural}</span>
             {blockedCount > 0 && (
               <span className="text-red-600 dark:text-red-400 font-medium">
-                · {blockedCount} bloqueada{blockedCount !== 1 ? 's' : ''}
+                · {blockedCount} {blockedCount === 1 ? t.homeBlockedSingular : t.homeBlockedPlural}
               </span>
             )}
             {overdueCount > 0 && (
               <span className="text-red-600 dark:text-red-400 font-medium">
-                · {overdueCount} vencida{overdueCount !== 1 ? 's' : ''}
+                · {overdueCount} {overdueCount === 1 ? t.homeOverdueSingular : t.homeOverduePlural}
               </span>
             )}
             {dueSoonCount > 0 && (
               <span className="text-amber-600 dark:text-amber-400">
-                · {dueSoonCount} vence{dueSoonCount !== 1 ? 'n' : ''} esta semana
+                · {dueSoonCount} {dueSoonCount === 1 ? t.homeDueSoonSingularSuffix : t.homeDueSoonPluralSuffix}
               </span>
             )}
           </div>
@@ -161,7 +165,7 @@ export default async function WorkspacePage({ params, searchParams }: Props) {
 
         {sortedMissions.length === 0 && (
           <p className="text-xs text-muted-foreground mb-4">
-            Una misión es un objetivo de tu empresa dividido en pasos concretos — tú o la IA los vais completando.
+            {t.homeNoMissionsDesc}
           </p>
         )}
 
@@ -170,8 +174,8 @@ export default async function WorkspacePage({ params, searchParams }: Props) {
           <div className="rounded-lg border border-red-200 dark:border-red-900/40 bg-red-50/50 dark:bg-red-950/20 p-3 mb-4 space-y-3">
             <p className="text-xs font-semibold text-red-700 dark:text-red-400">
               {blockedCount === 1
-                ? 'Para continuar, resuelve este bloqueo:'
-                : `Para continuar, resuelve estos ${blockedCount} bloqueos:`}
+                ? t.homeUnblockSingle
+                : `${t.homeUnblockMultiPrefix}${blockedCount}${t.homeUnblockMultiSuffix}`}
             </p>
             {sortedMissions
               .filter((m) => m.state === 'blocked')
@@ -188,7 +192,7 @@ export default async function WorkspacePage({ params, searchParams }: Props) {
                       href={`/workspace/${workspaceId}/missions/${m.obj.id}`}
                       className="inline-block text-xs font-medium text-red-600 dark:text-red-400 hover:underline"
                     >
-                      Resolver bloqueo →
+                      {t.homeResolveBlocker}
                     </Link>
                   </div>
                 )
@@ -198,9 +202,9 @@ export default async function WorkspacePage({ params, searchParams }: Props) {
 
         {sortedMissions.length === 0 ? (
           <div className="rounded-lg border border-dashed p-8 text-center bg-card">
-            <p className="text-muted-foreground text-sm mb-2">No hay misiones activas.</p>
+            <p className="text-muted-foreground text-sm mb-2">{t.homeNoMissions}</p>
             <p className="text-xs text-muted-foreground mb-4">
-              Cuéntale a Arkos un objetivo de tu empresa y lo convertirá en una misión con pasos claros, o usa una plantilla para empezar al instante.
+              {t.homeNoMissionsDesc}
             </p>
             <div className="flex items-center justify-center gap-3 flex-wrap">
               <MissionTemplateButton workspaceId={workspaceId} />
@@ -208,7 +212,7 @@ export default async function WorkspacePage({ params, searchParams }: Props) {
                 href={`/workspace/${workspaceId}/copilot`}
                 className="text-sm text-primary hover:underline font-medium"
               >
-                Definir con Arkos →
+                {t.homeDefineWithArkos}
               </Link>
             </div>
           </div>
@@ -230,6 +234,7 @@ export default async function WorkspacePage({ params, searchParams }: Props) {
                   done={done}
                   progress={progress}
                   reasons={reasonsById.get(obj.id) ?? []}
+                  t={t}
                 />
               ))}
           </div>
@@ -271,12 +276,7 @@ const PRIORITY_BADGE: Record<string, string> = {
   low:      'bg-muted text-muted-foreground',
 }
 
-const PRIORITY_LABEL: Record<string, string> = {
-  critical: 'Crítica',
-  high:     'Alta',
-  medium:   'Media',
-  low:      'Baja',
-}
+// PRIORITY_LABEL is computed dynamically inside MissionCard from t.*
 
 const STATE_BADGE: Record<string, string> = {
   blocked:      'bg-red-100 text-red-800 dark:bg-red-900/30 dark:text-red-400',
@@ -300,6 +300,7 @@ function MissionCard({
   done,
   progress,
   reasons,
+  t,
 }: {
   obj: CompanyObjectiveData
   workspaceId: string
@@ -312,7 +313,14 @@ function MissionCard({
   done: number
   progress: number
   reasons: string[]
+  t: DashboardTranslations
 }) {
+  const PRIORITY_LABEL: Record<string, string> = {
+    critical: t.homePriorityCritical,
+    high:     t.homePriorityHigh,
+    medium:   t.homePriorityMedium,
+    low:      t.homePriorityLow,
+  }
   const days = daysUntilDue(obj.dueDate)
   const actionText = nextActionText && !nextActionText.startsWith('Define los pasos') ? nextActionText : null
   const significantReasons = reasons.filter((r) => r !== 'Objetivo activo del negocio')
@@ -335,7 +343,7 @@ function MissionCard({
               ? 'bg-orange-100 text-orange-800 dark:bg-orange-900/30 dark:text-orange-400'
               : 'bg-amber-100 text-amber-800 dark:bg-amber-900/30 dark:text-amber-400'
         }`}>
-          {days <= 0 ? 'Vencida' : `Vence en ${days}d`}
+          {days <= 0 ? t.homeDueOverdue : `${t.homeDueSoonPrefix}${days}${t.homeDueSoonSuffix}`}
         </span>
       )}
     </div>
@@ -362,7 +370,7 @@ function MissionCard({
         {/* Encabezado */}
         <div className="space-y-2">
           <div className="flex items-center gap-2 flex-wrap">
-            <p className="text-xs font-semibold text-primary uppercase tracking-wide">Foco de la jornada</p>
+            <p className="text-xs font-semibold text-primary uppercase tracking-wide">{t.homeFocusLabel}</p>
             {obj.clientName && (
               <span className="text-[10px] font-semibold uppercase tracking-wide text-primary/60 border border-primary/20 rounded px-1.5 py-0.5 leading-none">
                 {obj.clientName}
@@ -376,7 +384,7 @@ function MissionCard({
         {/* Acción concreta */}
         {actionText && (
           <div>
-            <p className="text-xs font-semibold text-muted-foreground uppercase tracking-wide mb-1">Ahora</p>
+            <p className="text-xs font-semibold text-muted-foreground uppercase tracking-wide mb-1">{t.homeNowLabel}</p>
             <p className="text-sm font-medium text-foreground">{actionText}</p>
           </div>
         )}
@@ -384,7 +392,7 @@ function MissionCard({
         {/* Razones de priorización */}
         {significantReasons.length > 0 && (
           <div>
-            <p className="text-xs font-semibold text-muted-foreground uppercase tracking-wide mb-1">¿Por qué primero?</p>
+            <p className="text-xs font-semibold text-muted-foreground uppercase tracking-wide mb-1">{t.homeWhyFirstLabel}</p>
             <ul className="space-y-0.5">
               {significantReasons.map((r) => (
                 <li key={r} className="text-xs flex gap-1.5 text-muted-foreground">
@@ -398,9 +406,9 @@ function MissionCard({
         {/* Contexto: desbloqueos + tiempo */}
         {(whatItUnlocks || (estimatedMinutes !== null && estimatedMinutes > 0)) && (
           <div className="flex flex-wrap gap-x-4 gap-y-1 text-xs text-muted-foreground">
-            {whatItUnlocks && <span><span className="font-medium">Desbloqueará:</span> {whatItUnlocks}</span>}
+            {whatItUnlocks && <span><span className="font-medium">{t.homeWillUnlock}</span> {whatItUnlocks}</span>}
             {estimatedMinutes !== null && estimatedMinutes > 0 && (
-              <span><span className="font-medium">Tiempo:</span> {formatMinutes(estimatedMinutes)}</span>
+              <span><span className="font-medium">{t.homeTimeLabel}</span> {formatMinutes(estimatedMinutes)}</span>
             )}
           </div>
         )}
@@ -410,10 +418,10 @@ function MissionCard({
           {progressBar}
           <div className="flex items-center justify-between">
             <span className="text-xs text-muted-foreground">
-              {total > 0 ? `${done}/${total} pasos · ${progress}%` : `${progress}%`}
+              {total > 0 ? `${done}/${total} ${total === 1 ? t.homeStepsProgressSingular : t.homeStepsProgressPlural} · ${progress}%` : `${progress}%`}
             </span>
             <span className="text-sm font-medium text-primary group-hover:underline">
-              Continuar misión →
+              {t.homeContinueMission}
             </span>
           </div>
         </div>
@@ -443,7 +451,7 @@ function MissionCard({
 
           {actionText && (
             <p className="text-sm text-foreground/80">
-              <span className="text-xs font-semibold text-muted-foreground uppercase tracking-wide mr-2">Ahora:</span>
+              <span className="text-xs font-semibold text-muted-foreground uppercase tracking-wide mr-2">{t.homeNowColon}</span>
               {actionText}
             </p>
           )}
@@ -458,7 +466,7 @@ function MissionCard({
           {progressBar}
 
           <span className="text-xs text-muted-foreground">
-            {total > 0 ? `${done}/${total} pasos · ${progress}%` : `${progress}%`}
+            {total > 0 ? `${done}/${total} ${total === 1 ? t.homeStepsProgressSingular : t.homeStepsProgressPlural} · ${progress}%` : `${progress}%`}
           </span>
         </div>
 

@@ -13,8 +13,8 @@ interface Props {
   params: Promise<{ workspaceId: string }>
 }
 
-function formatDate(iso: string): string {
-  return new Intl.DateTimeFormat('es-ES', {
+function formatDate(iso: string, locale: string): string {
+  return new Intl.DateTimeFormat(locale, {
     day: '2-digit',
     month: 'short',
     year: 'numeric',
@@ -141,7 +141,7 @@ export default async function WorkspaceHistoryPage({ params }: Props) {
                     )}
                   >
                     <td className="px-4 py-3 text-xs text-muted-foreground whitespace-nowrap">
-                      {formatDate(exec.createdAt.toISOString())}
+                      {formatDate(exec.createdAt.toISOString(), locale)}
                     </td>
                     <td className="px-4 py-3">
                       <Link
@@ -157,7 +157,7 @@ export default async function WorkspaceHistoryPage({ params }: Props) {
                     </td>
                     <td className="px-4 py-3 text-xs text-muted-foreground font-mono">
                       {exec.inputTokens + exec.outputTokens > 0
-                        ? (exec.inputTokens + exec.outputTokens).toLocaleString('es-ES')
+                        ? (exec.inputTokens + exec.outputTokens).toLocaleString(locale)
                         : '—'}
                     </td>
                     <td className="px-4 py-3 text-xs text-muted-foreground font-mono">

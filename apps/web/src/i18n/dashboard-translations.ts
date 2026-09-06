@@ -735,6 +735,41 @@ export interface DashboardTranslations {
   workflowsLastRun: string
   workflowsActiveTitle: string
   workflowsInactiveTitle: string
+  // Home/workspace page
+  homePanelSubtitle: string
+  homeMissionsTitle: string
+  homeCreateMission: string
+  homeActiveSingular: string
+  homeActivePlural: string
+  homeBlockedSingular: string
+  homeBlockedPlural: string
+  homeOverdueSingular: string
+  homeOverduePlural: string
+  homeDueSoonSingularSuffix: string
+  homeDueSoonPluralSuffix: string
+  homeUnblockSingle: string
+  homeUnblockMultiPrefix: string
+  homeUnblockMultiSuffix: string
+  homeResolveBlocker: string
+  homeNoMissions: string
+  homeNoMissionsDesc: string
+  homeDefineWithArkos: string
+  homePriorityCritical: string
+  homePriorityHigh: string
+  homePriorityMedium: string
+  homePriorityLow: string
+  homeDueOverdue: string
+  homeDueSoonPrefix: string
+  homeDueSoonSuffix: string
+  homeFocusLabel: string
+  homeNowLabel: string
+  homeWhyFirstLabel: string
+  homeWillUnlock: string
+  homeTimeLabel: string
+  homeStepsProgressSingular: string
+  homeStepsProgressPlural: string
+  homeContinueMission: string
+  homeNowColon: string
 }
 
 const en: DashboardTranslations = {
@@ -1461,6 +1496,41 @@ const en: DashboardTranslations = {
   workflowsLastRun: 'Last run',
   workflowsActiveTitle: 'Active',
   workflowsInactiveTitle: 'Inactive',
+  // Home/workspace page
+  homePanelSubtitle: 'Panel — what is most important for you to do today',
+  homeMissionsTitle: 'Active missions',
+  homeCreateMission: 'Create mission →',
+  homeActiveSingular: 'active',
+  homeActivePlural: 'active',
+  homeBlockedSingular: 'blocked',
+  homeBlockedPlural: 'blocked',
+  homeOverdueSingular: 'overdue',
+  homeOverduePlural: 'overdue',
+  homeDueSoonSingularSuffix: 'due this week',
+  homeDueSoonPluralSuffix: 'due this week',
+  homeUnblockSingle: 'To continue, resolve this blocker:',
+  homeUnblockMultiPrefix: 'To continue, resolve these ',
+  homeUnblockMultiSuffix: ' blockers:',
+  homeResolveBlocker: 'Resolve blocker →',
+  homeNoMissions: 'No active missions.',
+  homeNoMissionsDesc: 'Tell Arkos a business goal and it will turn it into a mission with clear steps — or use a template to start instantly.',
+  homeDefineWithArkos: 'Define with Arkos →',
+  homePriorityCritical: 'Critical',
+  homePriorityHigh: 'High',
+  homePriorityMedium: 'Medium',
+  homePriorityLow: 'Low',
+  homeDueOverdue: 'Overdue',
+  homeDueSoonPrefix: 'Due in ',
+  homeDueSoonSuffix: 'd',
+  homeFocusLabel: 'Focus of the day',
+  homeNowLabel: 'Now',
+  homeWhyFirstLabel: 'Why first?',
+  homeWillUnlock: 'Will unlock:',
+  homeTimeLabel: 'Time:',
+  homeStepsProgressSingular: 'step',
+  homeStepsProgressPlural: 'steps',
+  homeContinueMission: 'Continue mission →',
+  homeNowColon: 'Now:',
 }
 
 const es: DashboardTranslations = {
@@ -2187,6 +2257,41 @@ const es: DashboardTranslations = {
   workflowsLastRun: 'Última ejecución',
   workflowsActiveTitle: 'Activo',
   workflowsInactiveTitle: 'Inactivo',
+  // Home/workspace page
+  homePanelSubtitle: 'Panel — qué es lo más importante que debes hacer hoy',
+  homeMissionsTitle: 'Misiones activas',
+  homeCreateMission: 'Crear misión →',
+  homeActiveSingular: 'activa',
+  homeActivePlural: 'activas',
+  homeBlockedSingular: 'bloqueada',
+  homeBlockedPlural: 'bloqueadas',
+  homeOverdueSingular: 'vencida',
+  homeOverduePlural: 'vencidas',
+  homeDueSoonSingularSuffix: 'vence esta semana',
+  homeDueSoonPluralSuffix: 'vencen esta semana',
+  homeUnblockSingle: 'Para continuar, resuelve este bloqueo:',
+  homeUnblockMultiPrefix: 'Para continuar, resuelve estos ',
+  homeUnblockMultiSuffix: ' bloqueos:',
+  homeResolveBlocker: 'Resolver bloqueo →',
+  homeNoMissions: 'No hay misiones activas.',
+  homeNoMissionsDesc: 'Cuéntale a Arkos un objetivo de tu empresa y lo convertirá en una misión con pasos claros, o usa una plantilla para empezar al instante.',
+  homeDefineWithArkos: 'Definir con Arkos →',
+  homePriorityCritical: 'Crítica',
+  homePriorityHigh: 'Alta',
+  homePriorityMedium: 'Media',
+  homePriorityLow: 'Baja',
+  homeDueOverdue: 'Vencida',
+  homeDueSoonPrefix: 'Vence en ',
+  homeDueSoonSuffix: 'd',
+  homeFocusLabel: 'Foco de la jornada',
+  homeNowLabel: 'Ahora',
+  homeWhyFirstLabel: '¿Por qué primero?',
+  homeWillUnlock: 'Desbloqueará:',
+  homeTimeLabel: 'Tiempo:',
+  homeStepsProgressSingular: 'paso',
+  homeStepsProgressPlural: 'pasos',
+  homeContinueMission: 'Continuar misión →',
+  homeNowColon: 'Ahora:',
 }
 
 const fr: DashboardTranslations = {
