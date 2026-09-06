@@ -3,15 +3,18 @@ import { notFound } from 'next/navigation'
 import { db } from '@/lib/db'
 import { requireUser } from '@/lib/auth'
 import { WorkspaceSettingsClient } from './_components/WorkspaceSettingsClient'
+import { getLocale } from '@/i18n/locale'
+import { getDashboardTranslations } from '@/i18n/dashboard-translations'
 
-export const metadata: Metadata = { title: 'Ajustes del workspace — MITIKUS' }
+export const metadata: Metadata = { title: 'Settings — MITIKUS' }
 
 interface Props {
   params: Promise<{ workspaceId: string }>
 }
 
 export default async function WorkspaceSettingsPage({ params }: Props) {
-  const [{ workspaceId }, user] = await Promise.all([params, requireUser()])
+  const [{ workspaceId }, user, locale] = await Promise.all([params, requireUser(), getLocale()])
+  const t = getDashboardTranslations(locale)
 
   const workspace = await db.workspace.findFirst({
     where: { id: workspaceId, orgId: user.orgId },
@@ -55,10 +58,8 @@ export default async function WorkspaceSettingsPage({ params }: Props) {
 
   return (
     <div className="max-w-2xl mx-auto px-6 py-10">
-      <h1 className="text-2xl font-bold mb-1">Ajustes del workspace</h1>
-      <p className="text-muted-foreground text-sm mb-8">
-        Personaliza marca, datos visibles y envíos de tu espacio de trabajo.
-      </p>
+      <h1 className="text-2xl font-bold mb-1">{t.wsSettingsTitle}</h1>
+      <p className="text-muted-foreground text-sm mb-8">{t.wsSettingsSubtitle}</p>
       <WorkspaceSettingsClient workspace={workspace} userRole={user.role} />
     </div>
   )

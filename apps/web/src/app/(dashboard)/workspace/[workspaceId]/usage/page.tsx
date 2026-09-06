@@ -4,6 +4,8 @@ import { db } from '@/lib/db'
 import { notFound } from 'next/navigation'
 import Link from 'next/link'
 import { formatCostEUR } from '@/lib/ai-cost'
+import { getLocale } from '@/i18n/locale'
+import { getDashboardTranslations } from '@/i18n/dashboard-translations'
 import {
   getUserUsageToday,
   getWorkspaceUsageToday,
@@ -94,7 +96,8 @@ function UsageBar({ label, current, limit, format }: BarProps) {
 }
 
 export default async function UsagePage({ params }: Props) {
-  const [{ workspaceId }, user] = await Promise.all([params, requireUser()])
+  const [{ workspaceId }, user, locale] = await Promise.all([params, requireUser(), getLocale()])
+  const t = getDashboardTranslations(locale)
 
   const workspace = await db.workspace.findFirst({
     where: { id: workspaceId, orgId: user.orgId },
@@ -200,7 +203,7 @@ export default async function UsagePage({ params }: Props) {
 
   return (
     <div className="max-w-3xl mx-auto px-6 py-8 space-y-8">
-      <h1 className="text-xl font-semibold">Uso del plan</h1>
+      <h1 className="text-xl font-semibold">{t.usageTitle}</h1>
 
         {/* Tipo de cuenta y plan */}
         <section>
@@ -212,7 +215,7 @@ export default async function UsagePage({ params }: Props) {
                     Plan {catalogPlan.name}
                     {' · '}
                     <span className="font-normal text-muted-foreground">
-                      {subscription?.status === 'TRIALING' ? 'En prueba' : 'Activo'}
+                      {subscription?.status === 'TRIALING' ? t.usagePlanTrialing : t.usagePlanActive}
                     </span>
                   </p>
                   <p className="text-xs text-muted-foreground">{user.email}</p>
@@ -236,7 +239,7 @@ export default async function UsagePage({ params }: Props) {
               </span>
             ) : user.trialPlan === 'blocked' ? (
               <span className="shrink-0 text-xs text-red-700 bg-red-100 px-2 py-1 rounded font-medium">
-                Bloqueado
+                {t.usagePlanBlocked}
               </span>
             ) : null}
           </div>
@@ -244,49 +247,49 @@ export default async function UsagePage({ params }: Props) {
 
         {/* Límites del plan */}
         <section className="space-y-4">
-          <h2 className="text-base font-semibold">Uso IA de tu plan</h2>
+          <h2 className="text-base font-semibold">{t.usageAISection}</h2>
           <div className="rounded-lg border bg-card p-5 space-y-5">
             {catalogPlan ? (
               <>
                 <UsageBar
-                  label="Generaciones IA este mes"
+                  label={t.usageAIGenerations}
                   current={userMonthlyUsage}
                   limit={planLimits.aiGenerationsPerMonth < Number.MAX_SAFE_INTEGER ? planLimits.aiGenerationsPerMonth : 99999}
                   format={planLimits.aiGenerationsPerMonth < Number.MAX_SAFE_INTEGER
                     ? undefined
-                    : () => `${userMonthlyUsage} (ilimitado)`}
+                    : () => `${userMonthlyUsage} (${t.usageUnlimited})`}
                 />
                 <UsageBar
-                  label="Herramientas instaladas"
+                  label={t.usageTools}
                   current={installedToolsCount}
                   limit={planLimits.maxToolsInstalled < Number.MAX_SAFE_INTEGER ? planLimits.maxToolsInstalled : 99999}
                   format={planLimits.maxToolsInstalled < Number.MAX_SAFE_INTEGER
                     ? undefined
-                    : () => `${installedToolsCount} (ilimitado)`}
+                    : () => `${installedToolsCount} (${t.usageUnlimited})`}
                 />
                 <UsageBar
-                  label="Consultas Brain este mes"
+                  label={t.usageBrain}
                   current={brainQueriesThisMonth}
                   limit={catalogPlan.limits.brainQueriesPerMonth < Number.MAX_SAFE_INTEGER ? catalogPlan.limits.brainQueriesPerMonth : 99999}
                   format={catalogPlan.limits.brainQueriesPerMonth < Number.MAX_SAFE_INTEGER
                     ? undefined
-                    : () => `${brainQueriesThisMonth} (ilimitado)`}
+                    : () => `${brainQueriesThisMonth} (${t.usageUnlimited})`}
                 />
               </>
             ) : (
               <>
                 <UsageBar
-                  label="Ejecuciones hoy"
+                  label={t.usageDailyRunsToday}
                   current={userUsage}
                   limit={trialLimits.aiGenerationsPerDay}
                 />
                 <UsageBar
-                  label="Ejecuciones este mes"
+                  label={t.usageDailyRunsMonth}
                   current={userMonthlyUsage}
                   limit={trialLimits.aiGenerationsPerMonth}
                 />
                 <UsageBar
-                  label="Herramientas instaladas"
+                  label={t.usageTools}
                   current={installedToolsCount}
                   limit={trialLimits.maxToolsInstalled}
                 />
@@ -296,15 +299,15 @@ export default async function UsagePage({ params }: Props) {
           {catalogPlan && (
             <div className="rounded-lg border bg-muted/40 px-5 py-4 grid grid-cols-2 sm:grid-cols-5 gap-4 text-center">
               <div>
-                <p className="text-xs text-muted-foreground">Generaciones/mes</p>
+                <p className="text-xs text-muted-foreground">{t.usageGenPerMonth}</p>
                 <p className="font-semibold text-sm mt-0.5">
                   {catalogPlan.limits.aiGenerationsPerMonth < Number.MAX_SAFE_INTEGER
-                    ? catalogPlan.limits.aiGenerationsPerMonth.toLocaleString('es-ES')
+                    ? catalogPlan.limits.aiGenerationsPerMonth.toLocaleString(locale)
                     : '∞'}
                 </p>
               </div>
               <div>
-                <p className="text-xs text-muted-foreground">Brain/mes</p>
+                <p className="text-xs text-muted-foreground">{t.usageBrainPerMonth}</p>
                 <p className="font-semibold text-sm mt-0.5">
                   {catalogPlan.limits.brainQueriesPerMonth < Number.MAX_SAFE_INTEGER
                     ? catalogPlan.limits.brainQueriesPerMonth
@@ -312,7 +315,7 @@ export default async function UsagePage({ params }: Props) {
                 </p>
               </div>
               <div>
-                <p className="text-xs text-muted-foreground">Herramientas</p>
+                <p className="text-xs text-muted-foreground">{t.usageToolsLabel}</p>
                 <p className="font-semibold text-sm mt-0.5">
                   {catalogPlan.limits.maxToolsInstalled < Number.MAX_SAFE_INTEGER
                     ? catalogPlan.limits.maxToolsInstalled
@@ -320,13 +323,13 @@ export default async function UsagePage({ params }: Props) {
                 </p>
               </div>
               <div>
-                <p className="text-xs text-muted-foreground">Usuarios</p>
+                <p className="text-xs text-muted-foreground">{t.usageUsers}</p>
                 <p className="font-semibold text-sm mt-0.5">
                   {catalogPlan.limits.maxUsers < Number.MAX_SAFE_INTEGER ? catalogPlan.limits.maxUsers : '∞'}
                 </p>
               </div>
               <div>
-                <p className="text-xs text-muted-foreground">Workspaces</p>
+                <p className="text-xs text-muted-foreground">{t.usageWorkspaces}</p>
                 <p className="font-semibold text-sm mt-0.5">
                   {catalogPlan.limits.maxWorkspaces < Number.MAX_SAFE_INTEGER ? catalogPlan.limits.maxWorkspaces : '∞'}
                 </p>
@@ -337,16 +340,16 @@ export default async function UsagePage({ params }: Props) {
 
         {/* AI Saved — Registry Intelligence metrics */}
         <section className="space-y-4">
-          <h2 className="text-base font-semibold">Reutilización</h2>
+          <h2 className="text-base font-semibold">{t.usageReuseSection}</h2>
           <div className="grid gap-3 sm:grid-cols-3">
-            <StatCard label="Búsquedas en catálogo" value={String(totalSearches)} />
-            <StatCard label="Herramientas reutilizadas" value={String(toolsReused)} />
-            <StatCard label="Generaciones" value={String(toolsGenerated)} />
+            <StatCard label={t.usageCatalogSearches} value={String(totalSearches)} />
+            <StatCard label={t.usageToolsReused} value={String(toolsReused)} />
+            <StatCard label={t.usageGenerations} value={String(toolsGenerated)} />
           </div>
           {totalSearches > 0 && (
             <div className="rounded-lg border bg-card px-5 py-4">
               <div className="flex items-center justify-between text-sm">
-                <span className="text-muted-foreground">Tasa de reutilización</span>
+                <span className="text-muted-foreground">{t.usageReuseRate}</span>
                 <span className="font-semibold font-mono">
                   {totalSearches > 0
                     ? `${Math.round((toolsReused / totalSearches) * 100)}%`
@@ -354,8 +357,7 @@ export default async function UsagePage({ params }: Props) {
                 </span>
               </div>
               <p className="text-xs text-muted-foreground mt-1">
-                {toolsReused} de {totalSearches} búsquedas resultaron en instalación o fork
-                en lugar de generar una nueva.
+                {t.usageReuseRateDesc.replace('{reused}', String(toolsReused)).replace('{total}', String(totalSearches))}
               </p>
             </div>
           )}
@@ -363,27 +365,27 @@ export default async function UsagePage({ params }: Props) {
 
         {/* Almacenamiento */}
         <section className="space-y-4">
-          <h2 className="text-base font-semibold">Almacenamiento</h2>
+          <h2 className="text-base font-semibold">{t.usageStorageSection}</h2>
           <div className="rounded-lg border bg-card p-5 space-y-4">
             {storageLimitGB > 0 ? (
               <UsageBar
-                label="Archivos en este workspace"
+                label={t.usageStorageLabel}
                 current={storageGBUsed}
                 limit={storageLimitGB}
                 format={(n) => `${n < 0.01 ? '<0.01' : n.toFixed(2)} GB`}
               />
             ) : (
               <div className="flex items-center justify-between text-sm">
-                <span className="font-medium">Archivos en este workspace</span>
+                <span className="font-medium">{t.usageStorageLabel}</span>
                 <span className="font-mono text-xs text-muted-foreground">
                   {storageGBUsed < 0.01 ? '<0.01' : storageGBUsed.toFixed(2)} GB · {storageAgg._count} archivos
                 </span>
               </div>
             )}
             <div className="flex items-center justify-between text-xs text-muted-foreground pt-1 border-t">
-              <span>{storageAgg._count} archivo{storageAgg._count !== 1 ? 's' : ''} almacenado{storageAgg._count !== 1 ? 's' : ''}</span>
+              <span>{storageAgg._count} {t.usageStorageFiles}</span>
               <Link href={`/workspace/${workspaceId}/office/files`} className="hover:text-foreground transition-colors">
-                Gestionar archivos →
+                {t.usageManageFiles}
               </Link>
             </div>
           </div>
@@ -391,22 +393,22 @@ export default async function UsagePage({ params }: Props) {
 
         {/* Actividad del workspace */}
         <section className="space-y-4">
-          <h2 className="text-base font-semibold">Actividad acumulada</h2>
+          <h2 className="text-base font-semibold">{t.usageActivitySection}</h2>
           <div className="grid gap-3 sm:grid-cols-3">
-            <StatCard label="Contratos creados" value={String(contractsTotal)} />
-            <StatCard label="Facturas emitidas" value={String(invoicesTotal)} />
+            <StatCard label={t.usageContracts} value={String(contractsTotal)} />
+            <StatCard label={t.usageInvoices} value={String(invoicesTotal)} />
             <StatCard
-              label="Total facturado"
-              value={invoicesSumEUR > 0 ? `${invoicesSumEUR.toLocaleString('es-ES', { minimumFractionDigits: 2, maximumFractionDigits: 2 })} €` : '—'}
+              label={t.usageTotalInvoiced}
+              value={invoicesSumEUR > 0 ? `${invoicesSumEUR.toLocaleString(locale, { minimumFractionDigits: 2, maximumFractionDigits: 2 })} €` : '—'}
             />
           </div>
           {(contractsTotal > 0 || invoicesTotal > 0) && (
             <div className="flex gap-3 text-xs">
               <Link href={`/workspace/${workspaceId}/contracts`} className="text-muted-foreground hover:text-foreground transition-colors">
-                Ver contratos →
+                {t.usageViewContracts}
               </Link>
               <Link href={`/workspace/${workspaceId}/invoices`} className="text-muted-foreground hover:text-foreground transition-colors">
-                Ver facturas →
+                {t.usageViewInvoices}
               </Link>
             </div>
           )}
@@ -416,80 +418,70 @@ export default async function UsagePage({ params }: Props) {
         {(!catalogPlan || subscription?.status === 'TRIALING') && (
           <section className="rounded-lg border border-primary/20 bg-primary/5 px-5 py-4 flex items-center justify-between gap-4 flex-wrap">
             <div>
-              <p className="text-sm font-semibold">Activa un plan para eliminar los límites</p>
-              <p className="text-xs text-muted-foreground mt-0.5">
-                Más generaciones IA, más almacenamiento, más usuarios y acceso al Brain.
-              </p>
+              <p className="text-sm font-semibold">{t.usageUpgradeCta}</p>
+              <p className="text-xs text-muted-foreground mt-0.5">{t.usageUpgradeDesc}</p>
             </div>
             <Link
               href="/settings"
               className="shrink-0 text-sm font-semibold px-4 py-2 rounded-lg bg-primary text-primary-foreground hover:bg-primary/90 transition-colors"
             >
-              Ver planes →
+              {t.usageViewPlans}
             </Link>
           </section>
         )}
 
-        {/* Estadísticas de hoy */}
+        {/* Today stats */}
         <section className="space-y-4">
-          <h2 className="text-base font-semibold">Hoy</h2>
+          <h2 className="text-base font-semibold">{t.usageTodaySection}</h2>
           <div className="grid gap-3 sm:grid-cols-2">
-            <StatCard label="Generaciones" value={String(generationsToday)} />
-            <StatCard label="Tokens entrada" value={inputTokens.toLocaleString('es-ES')} />
-            <StatCard label="Tokens salida" value={outputTokens.toLocaleString('es-ES')} />
-            <StatCard label="Tokens totales" value={totalTokens.toLocaleString('es-ES')} />
+            <StatCard label={t.usageGenerations} value={String(generationsToday)} />
+            <StatCard label={t.usageInputTokens} value={inputTokens.toLocaleString(locale)} />
+            <StatCard label={t.usageOutputTokens} value={outputTokens.toLocaleString(locale)} />
+            <StatCard label={t.usageTotalTokens} value={totalTokens.toLocaleString(locale)} />
             <StatCard
-              label="Coste estimado (org)"
+              label={t.usageEstimatedCost}
               value={formatCostEUR(costEURToday)}
               className="sm:col-span-2"
             />
           </div>
         </section>
 
-        {/* Límites */}
+        {/* Daily limits */}
         <section className="space-y-4">
-          <h2 className="text-base font-semibold">Límites diarios</h2>
+          <h2 className="text-base font-semibold">{t.usageDailyLimits}</h2>
           <div className="rounded-lg border bg-card p-5 space-y-5">
             <UsageBar
-              label="Usuario (tú)"
+              label={t.usageLimitUser}
               current={userUsage}
               limit={limitUser}
             />
             <UsageBar
-              label="Workspace"
+              label={t.usageLimitWorkspace}
               current={workspaceUsage}
               limit={limitWorkspace}
             />
             <UsageBar
-              label="Sistema (global)"
+              label={t.usageLimitSystem}
               current={globalUsage}
               limit={limitGlobal}
             />
             <UsageBar
-              label="Coste estimado (global)"
+              label={t.usageLimitCost}
               current={globalCostEUR}
               limit={limitCostEUR}
               format={(n) => formatCostEUR(n)}
             />
           </div>
 
-          <p className="text-xs text-muted-foreground">
-            Los límites se reinician automáticamente a las 00:00 UTC.
-          </p>
+          <p className="text-xs text-muted-foreground">{t.usageLimitsReset}</p>
         </section>
 
-        {/* Generaciones restantes hoy */}
+        {/* Remaining generations */}
         <section className="rounded-lg border bg-muted/40 px-5 py-4">
           <p className="text-sm text-muted-foreground">
-            Puedes generar{' '}
-            <span className="font-semibold text-foreground">
-              {Math.max(0, limitUser - userUsage)}
-            </span>{' '}
-            herramientas más hoy (límite personal) y{' '}
-            <span className="font-semibold text-foreground">
-              {Math.max(0, limitWorkspace - workspaceUsage)}
-            </span>{' '}
-            en este workspace.
+            {t.usageRemainingText
+              .replace('{personal}', String(Math.max(0, limitUser - userUsage)))
+              .replace('{workspace}', String(Math.max(0, limitWorkspace - workspaceUsage)))}
           </p>
         </section>
 

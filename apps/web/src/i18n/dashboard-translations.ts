@@ -860,6 +860,122 @@ export interface DashboardTranslations {
   analyticsCancelled: string
   analyticsRunning: string
   analyticsPending: string
+  // Invoices
+  invoicesTitle: string
+  invoicesSubtitle: string
+  invoicesStatMonth: string
+  invoicesStatPending: string
+  invoicesStatPaid: string
+  invoicesNew: string
+  invoicesEmpty: string
+  invoicesCreateFirst: string
+  invoicesNoClient: string
+  invoicesDue: string
+  invoicesSelectHint: string
+  invoicesStatusDraft: string
+  invoicesStatusSent: string
+  invoicesStatusPaid: string
+  invoicesStatusOverdue: string
+  invoicesStatusCancelled: string
+  invoicesSend: string
+  invoicesReviewReplies: string
+  invoicesReviewingReplies: string
+  invoicesView: string
+  invoicesEdit: string
+  invoicesCreateRect: string
+  invoicesDelete: string
+  invoicesColDesc: string
+  invoicesColQty: string
+  invoicesColUnit: string
+  invoicesColTotal: string
+  invoicesSubtotal: string
+  invoicesVAT: string
+  invoicesTotal: string
+  invoicesChangeStatus: string
+  invoicesEmails: string
+  invoicesEmailInbound: string
+  invoicesEmailSent: string
+  invoicesRectTitle: string
+  invoicesRectDesc: string
+  invoicesRectReason: string
+  invoicesRectPlaceholder: string
+  invoicesRectCancel: string
+  invoicesRectCreate: string
+  invoicesRectCreating: string
+  invoicesRectError: string
+  invoicesRectReasonRequired: string
+  invoicesSendTitle: string
+  invoicesSendRecipient: string
+  invoicesSendRecipientPlaceholder: string
+  invoicesSendEmail: string
+  invoicesSendNote: string
+  invoicesSendClose: string
+  invoicesSendCancel: string
+  invoicesSendButton: string
+  invoicesSending: string
+  invoicesSentOk: string
+  invoicesSendError: string
+  invoicesSendErrorSettings: string
+  invoicesNoReplies: string
+  invoicesRepliesError: string
+  invoicesDeleteConfirm: string
+  invoicesSuffix: string
+  // Workspace settings page
+  wsSettingsTitle: string
+  wsSettingsSubtitle: string
+  // Receipts page
+  receiptsOffice: string
+  receiptsTitle: string
+  receiptsSubtitle: string
+  // Usage page
+  usageTitle: string
+  usagePlanSection: string
+  usagePlanTrialing: string
+  usagePlanActive: string
+  usagePlanBlocked: string
+  usageAISection: string
+  usageAIGenerations: string
+  usageTools: string
+  usageBrain: string
+  usageUnlimited: string
+  usageGenPerMonth: string
+  usageBrainPerMonth: string
+  usageToolsLabel: string
+  usageUsers: string
+  usageWorkspaces: string
+  usageReuseSection: string
+  usageCatalogSearches: string
+  usageToolsReused: string
+  usageGenerations: string
+  usageReuseRate: string
+  usageReuseRateDesc: string
+  usageStorageSection: string
+  usageStorageLabel: string
+  usageStorageFiles: string
+  usageManageFiles: string
+  usageActivitySection: string
+  usageContracts: string
+  usageInvoices: string
+  usageTotalInvoiced: string
+  usageViewContracts: string
+  usageViewInvoices: string
+  usageUpgradeCta: string
+  usageUpgradeDesc: string
+  usageViewPlans: string
+  usageTodaySection: string
+  usageInputTokens: string
+  usageOutputTokens: string
+  usageTotalTokens: string
+  usageEstimatedCost: string
+  usageDailyLimits: string
+  usageLimitUser: string
+  usageLimitWorkspace: string
+  usageLimitSystem: string
+  usageLimitCost: string
+  usageLimitsReset: string
+  usageRemainingText: string
+  usageDailyRunsToday: string
+  usageDailyRunsMonth: string
 }
 
 const en: DashboardTranslations = {
@@ -1711,6 +1827,122 @@ const en: DashboardTranslations = {
   analyticsCancelled: 'Cancelled',
   analyticsRunning: 'Running',
   analyticsPending: 'Pending',
+  // Invoices
+  invoicesTitle: 'Invoices',
+  invoicesSubtitle: 'Create and manage your invoices. Download the PDF ready to send.',
+  invoicesStatMonth: 'Issued this month',
+  invoicesStatPending: 'Pending payment',
+  invoicesStatPaid: 'Total collected',
+  invoicesNew: 'New invoice',
+  invoicesEmpty: 'No invoices yet',
+  invoicesCreateFirst: 'Create first invoice',
+  invoicesNoClient: 'No client',
+  invoicesDue: 'Due',
+  invoicesSelectHint: 'Select an invoice to see the detail',
+  invoicesStatusDraft: 'Draft',
+  invoicesStatusSent: 'Sent',
+  invoicesStatusPaid: 'Paid',
+  invoicesStatusOverdue: 'Overdue',
+  invoicesStatusCancelled: 'Cancelled',
+  invoicesSend: 'Send',
+  invoicesReviewReplies: 'Check replies',
+  invoicesReviewingReplies: 'Checking…',
+  invoicesView: 'View detail',
+  invoicesEdit: 'Edit',
+  invoicesCreateRect: 'Create credit note',
+  invoicesDelete: 'Delete',
+  invoicesColDesc: 'Description',
+  invoicesColQty: 'Qty.',
+  invoicesColUnit: 'Unit price',
+  invoicesColTotal: 'Total',
+  invoicesSubtotal: 'Subtotal',
+  invoicesVAT: 'VAT',
+  invoicesTotal: 'Total',
+  invoicesChangeStatus: 'Change status:',
+  invoicesEmails: 'Emails',
+  invoicesEmailInbound: 'Reply received',
+  invoicesEmailSent: 'Sent',
+  invoicesRectTitle: 'Create credit note',
+  invoicesRectDesc: 'A credit note (type R1) will be created as a draft referencing invoice',
+  invoicesRectReason: 'Reason for the credit note',
+  invoicesRectPlaceholder: 'E.g. Amount error, partial refund…',
+  invoicesRectCancel: 'Cancel',
+  invoicesRectCreate: 'Create credit note',
+  invoicesRectCreating: 'Creating…',
+  invoicesRectError: 'Could not create the credit note. Please try again.',
+  invoicesRectReasonRequired: 'Please enter the reason for the credit note',
+  invoicesSendTitle: 'Send invoice to client',
+  invoicesSendRecipient: 'Recipient',
+  invoicesSendRecipientPlaceholder: 'Contact or client name',
+  invoicesSendEmail: 'Client email',
+  invoicesSendNote: 'MITIKUS will send invoice {number} using the configured email identity. If sending fails, the invoice will not be marked as sent.',
+  invoicesSendClose: 'Close',
+  invoicesSendCancel: 'Cancel',
+  invoicesSendButton: 'Send invoice',
+  invoicesSending: 'Sending…',
+  invoicesSentOk: '✓ Invoice sent successfully.',
+  invoicesSendError: 'Could not send the invoice. Check that you have email configured in Settings → Email.',
+  invoicesSendErrorSettings: 'Settings → Email',
+  invoicesNoReplies: 'No new replies right now.',
+  invoicesRepliesError: 'Could not check mailbox replies.',
+  invoicesDeleteConfirm: 'Delete invoice {number}?',
+  invoicesSuffix: 'invoice',
+  // Workspace settings page
+  wsSettingsTitle: 'Workspace settings',
+  wsSettingsSubtitle: 'Customise branding, visible data and sending settings for your workspace.',
+  // Receipts page
+  receiptsOffice: 'My Office',
+  receiptsTitle: 'Expenses',
+  receiptsSubtitle: 'Scan receipts and invoices — AI extracts the data automatically',
+  // Usage page
+  usageTitle: 'Plan usage',
+  usagePlanSection: 'Account & plan',
+  usagePlanTrialing: 'In trial',
+  usagePlanActive: 'Active',
+  usagePlanBlocked: 'Blocked',
+  usageAISection: 'Your plan AI usage',
+  usageAIGenerations: 'AI generations this month',
+  usageTools: 'Tools installed',
+  usageBrain: 'Brain queries this month',
+  usageUnlimited: 'unlimited',
+  usageGenPerMonth: 'Generations/month',
+  usageBrainPerMonth: 'Brain/month',
+  usageToolsLabel: 'Tools',
+  usageUsers: 'Users',
+  usageWorkspaces: 'Workspaces',
+  usageReuseSection: 'Reuse',
+  usageCatalogSearches: 'Catalogue searches',
+  usageToolsReused: 'Tools reused',
+  usageGenerations: 'Generations',
+  usageReuseRate: 'Reuse rate',
+  usageReuseRateDesc: '{reused} of {total} searches resulted in install or fork instead of generating a new one.',
+  usageStorageSection: 'Storage',
+  usageStorageLabel: 'Files in this workspace',
+  usageStorageFiles: 'files stored',
+  usageManageFiles: 'Manage files →',
+  usageActivitySection: 'Accumulated activity',
+  usageContracts: 'Contracts created',
+  usageInvoices: 'Invoices issued',
+  usageTotalInvoiced: 'Total invoiced',
+  usageViewContracts: 'View contracts →',
+  usageViewInvoices: 'View invoices →',
+  usageUpgradeCta: 'Activate a plan to remove limits',
+  usageUpgradeDesc: 'More AI generations, more storage, more users and Brain access.',
+  usageViewPlans: 'View plans →',
+  usageTodaySection: 'Today',
+  usageInputTokens: 'Input tokens',
+  usageOutputTokens: 'Output tokens',
+  usageTotalTokens: 'Total tokens',
+  usageEstimatedCost: 'Estimated cost (org)',
+  usageDailyLimits: 'Daily limits',
+  usageLimitUser: 'You (personal)',
+  usageLimitWorkspace: 'Workspace',
+  usageLimitSystem: 'System (global)',
+  usageLimitCost: 'Estimated cost (global)',
+  usageLimitsReset: 'Limits reset automatically at 00:00 UTC.',
+  usageRemainingText: 'You can generate {personal} more tools today (personal limit) and {workspace} in this workspace.',
+  usageDailyRunsToday: 'Runs today',
+  usageDailyRunsMonth: 'Runs this month',
 }
 
 const es: DashboardTranslations = {
@@ -2562,6 +2794,122 @@ const es: DashboardTranslations = {
   analyticsCancelled: 'Canceladas',
   analyticsRunning: 'En curso',
   analyticsPending: 'Pendientes',
+  // Invoices
+  invoicesTitle: 'Facturas',
+  invoicesSubtitle: 'Crea y gestiona tus facturas. Descarga el PDF listo para enviar.',
+  invoicesStatMonth: 'Emitido este mes',
+  invoicesStatPending: 'Pendiente de cobro',
+  invoicesStatPaid: 'Cobrado total',
+  invoicesNew: 'Nueva factura',
+  invoicesEmpty: 'No hay facturas todavía',
+  invoicesCreateFirst: 'Crear primera factura',
+  invoicesNoClient: 'Sin cliente',
+  invoicesDue: 'Vence',
+  invoicesSelectHint: 'Selecciona una factura para ver el detalle',
+  invoicesStatusDraft: 'Borrador',
+  invoicesStatusSent: 'Enviada',
+  invoicesStatusPaid: 'Pagada',
+  invoicesStatusOverdue: 'Vencida',
+  invoicesStatusCancelled: 'Cancelada',
+  invoicesSend: 'Enviar',
+  invoicesReviewReplies: 'Revisar respuestas',
+  invoicesReviewingReplies: 'Revisando…',
+  invoicesView: 'Ver detalle',
+  invoicesEdit: 'Editar',
+  invoicesCreateRect: 'Crear rectificativa',
+  invoicesDelete: 'Eliminar',
+  invoicesColDesc: 'Descripción',
+  invoicesColQty: 'Cant.',
+  invoicesColUnit: 'P. unit.',
+  invoicesColTotal: 'Total',
+  invoicesSubtotal: 'Subtotal',
+  invoicesVAT: 'IVA',
+  invoicesTotal: 'Total',
+  invoicesChangeStatus: 'Cambiar estado:',
+  invoicesEmails: 'Correos',
+  invoicesEmailInbound: 'Respuesta recibida',
+  invoicesEmailSent: 'Enviado',
+  invoicesRectTitle: 'Crear factura rectificativa',
+  invoicesRectDesc: 'Se creará una factura rectificativa (tipo R1) en borrador referenciando la factura',
+  invoicesRectReason: 'Motivo de la rectificación',
+  invoicesRectPlaceholder: 'Ej: Error en importe, devolución parcial de servicio…',
+  invoicesRectCancel: 'Cancelar',
+  invoicesRectCreate: 'Crear rectificativa',
+  invoicesRectCreating: 'Creando…',
+  invoicesRectError: 'No se pudo crear la factura rectificativa. Inténtalo de nuevo.',
+  invoicesRectReasonRequired: 'Indica el motivo de la rectificación',
+  invoicesSendTitle: 'Enviar factura al cliente',
+  invoicesSendRecipient: 'Dirigido a',
+  invoicesSendRecipientPlaceholder: 'Persona de contacto o cliente',
+  invoicesSendEmail: 'Email del cliente',
+  invoicesSendNote: 'MITIKUS enviará la factura {number} usando la identidad de correo configurada. Si el envío falla, la factura no se marcará como enviada.',
+  invoicesSendClose: 'Cerrar',
+  invoicesSendCancel: 'Cancelar',
+  invoicesSendButton: 'Enviar factura',
+  invoicesSending: 'Enviando…',
+  invoicesSentOk: '✓ Factura enviada correctamente.',
+  invoicesSendError: 'No se pudo enviar la factura. Comprueba que tienes correo configurado en Ajustes → Correo y envíos.',
+  invoicesSendErrorSettings: 'Ajustes → Correo y envíos',
+  invoicesNoReplies: 'Sin respuestas nuevas por ahora.',
+  invoicesRepliesError: 'No se han podido revisar las respuestas del buzón.',
+  invoicesDeleteConfirm: '¿Eliminar factura {number}?',
+  invoicesSuffix: 'factura',
+  // Workspace settings page
+  wsSettingsTitle: 'Ajustes del workspace',
+  wsSettingsSubtitle: 'Personaliza marca, datos visibles y envíos de tu espacio de trabajo.',
+  // Receipts page
+  receiptsOffice: 'Mi Office',
+  receiptsTitle: 'Gastos',
+  receiptsSubtitle: 'Escanea tickets y facturas — la IA extrae los datos automáticamente',
+  // Usage page
+  usageTitle: 'Uso del plan',
+  usagePlanSection: 'Cuenta y plan',
+  usagePlanTrialing: 'En prueba',
+  usagePlanActive: 'Activo',
+  usagePlanBlocked: 'Bloqueado',
+  usageAISection: 'Uso IA de tu plan',
+  usageAIGenerations: 'Generaciones IA este mes',
+  usageTools: 'Herramientas instaladas',
+  usageBrain: 'Consultas Brain este mes',
+  usageUnlimited: 'ilimitado',
+  usageGenPerMonth: 'Generaciones/mes',
+  usageBrainPerMonth: 'Brain/mes',
+  usageToolsLabel: 'Herramientas',
+  usageUsers: 'Usuarios',
+  usageWorkspaces: 'Workspaces',
+  usageReuseSection: 'Reutilización',
+  usageCatalogSearches: 'Búsquedas en catálogo',
+  usageToolsReused: 'Herramientas reutilizadas',
+  usageGenerations: 'Generaciones',
+  usageReuseRate: 'Tasa de reutilización',
+  usageReuseRateDesc: '{reused} de {total} búsquedas resultaron en instalación o fork en lugar de generar una nueva.',
+  usageStorageSection: 'Almacenamiento',
+  usageStorageLabel: 'Archivos en este workspace',
+  usageStorageFiles: 'archivos almacenados',
+  usageManageFiles: 'Gestionar archivos →',
+  usageActivitySection: 'Actividad acumulada',
+  usageContracts: 'Contratos creados',
+  usageInvoices: 'Facturas emitidas',
+  usageTotalInvoiced: 'Total facturado',
+  usageViewContracts: 'Ver contratos →',
+  usageViewInvoices: 'Ver facturas →',
+  usageUpgradeCta: 'Activa un plan para eliminar los límites',
+  usageUpgradeDesc: 'Más generaciones IA, más almacenamiento, más usuarios y acceso al Brain.',
+  usageViewPlans: 'Ver planes →',
+  usageTodaySection: 'Hoy',
+  usageInputTokens: 'Tokens entrada',
+  usageOutputTokens: 'Tokens salida',
+  usageTotalTokens: 'Tokens totales',
+  usageEstimatedCost: 'Coste estimado (org)',
+  usageDailyLimits: 'Límites diarios',
+  usageLimitUser: 'Usuario (tú)',
+  usageLimitWorkspace: 'Workspace',
+  usageLimitSystem: 'Sistema (global)',
+  usageLimitCost: 'Coste estimado (global)',
+  usageLimitsReset: 'Los límites se reinician automáticamente a las 00:00 UTC.',
+  usageRemainingText: 'Puedes generar {personal} herramientas más hoy (límite personal) y {workspace} en este workspace.',
+  usageDailyRunsToday: 'Ejecuciones hoy',
+  usageDailyRunsMonth: 'Ejecuciones este mes',
 }
 
 const fr: DashboardTranslations = {
