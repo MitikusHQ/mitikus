@@ -10,6 +10,7 @@ import { getBusinessContext } from '@/lib/business-memory'
 import { computeContextDefaults } from '@/lib/context-autofill'
 import { getLocale } from '@/i18n/locale'
 import { getDashboardTranslations } from '@/i18n/dashboard-translations'
+import { localizeToolSchema } from '@/lib/localized-content'
 
 interface Props {
   params: Promise<{ workspaceId: string; instanceId: string }>
@@ -49,12 +50,13 @@ export default async function ToolRunPage({ params, searchParams }: Props) {
     )
   }
 
-  const { fields } = schemaResult.data.dataSchema
+  const schema = localizeToolSchema(schemaResult.data, locale)
+  const { fields } = schema.dataSchema
 
   // Extrae secciones del FORM default para el VariableForm
-  const defaultFormCap = schemaResult.data.capabilities.find(
+  const defaultFormCap = schema.capabilities.find(
     (c) => c.type === 'FORM' && c.isDefault,
-  ) ?? schemaResult.data.capabilities.find((c) => c.type === 'FORM')
+  ) ?? schema.capabilities.find((c) => c.type === 'FORM')
   const formSections =
     defaultFormCap?.config && 'layout' in defaultFormCap.config
       ? (defaultFormCap.config as FormConfig).sections

@@ -4,6 +4,7 @@ import type { DataSchema, FormConfig } from '@protools/schema'
 import { ImportButton } from './ImportButton'
 import type { Locale } from '@/i18n/config'
 import { getDashboardTranslations } from '@/i18n/dashboard-translations'
+import { localizeText } from '@/lib/localized-content'
 
 interface Props {
   fields: DataSchema['fields']
@@ -39,7 +40,7 @@ function VariableFieldInput({
         id={fieldId}
         rows={field.rows ?? 3}
         required={field.required}
-        placeholder={field.placeholder}
+        placeholder={localizeText(field.placeholder, locale)}
         value={value}
         onChange={(e) => onChange(e.target.value)}
         className={`${base} resize-y`}
@@ -59,7 +60,7 @@ function VariableFieldInput({
         <option value="">{t.toolSelectOption}</option>
         {field.options.map((opt) => (
           <option key={opt} value={opt}>
-            {opt}
+            {localizeText(opt, locale) ?? opt}
           </option>
         ))}
       </select>
@@ -84,7 +85,7 @@ function VariableFieldInput({
               onChange={() => toggle(opt)}
               className="h-4 w-4 rounded border-input accent-primary shrink-0"
             />
-            <span className="text-sm text-foreground group-hover:text-primary leading-snug">{opt}</span>
+            <span className="text-sm text-foreground group-hover:text-primary leading-snug">{localizeText(opt, locale) ?? opt}</span>
           </label>
         ))}
       </div>
@@ -114,7 +115,7 @@ function VariableFieldInput({
       id={fieldId}
       type={inputType}
       required={field.required}
-      placeholder={field.placeholder}
+      placeholder={localizeText(field.placeholder, locale)}
       min={field.min}
       max={field.max}
       value={value}
@@ -146,7 +147,7 @@ function FieldBlock({
         htmlFor={fieldId}
         className="text-sm font-medium flex items-center gap-1.5 flex-wrap"
       >
-        {field.label}
+        {localizeText(field.label, locale) ?? field.label}
         {field.required && (
           <span className="text-destructive text-xs" aria-hidden>
             *
@@ -169,7 +170,7 @@ function FieldBlock({
         locale={locale}
       />
       {field.helpText && (
-        <p className="text-xs text-muted-foreground">{field.helpText}</p>
+        <p className="text-xs text-muted-foreground">{localizeText(field.helpText, locale)}</p>
       )}
     </div>
   )
@@ -198,7 +199,7 @@ export function VariableForm({ fields, values, onChange, onSubmit, isLoading, co
           {formSections!.map((section) => (
             <fieldset key={section.id} className="space-y-4">
               <legend className="text-xs font-semibold text-foreground/60 uppercase tracking-wider pb-1 border-b border-border/60 w-full">
-                {section.title}
+                {localizeText(section.title, locale)}
               </legend>
               {section.fieldIds.map((fieldId) => {
                 const field = fields[fieldId]

@@ -5,6 +5,7 @@ import type { ScoringConfig } from '@protools/schema'
 import { saveScoringRecord } from '@/app/actions/record'
 import type { Locale } from '@/i18n/config'
 import { getDashboardTranslations } from '@/i18n/dashboard-translations'
+import { localizeText } from '@/lib/localized-content'
 
 interface Props {
   instanceId: string
@@ -104,7 +105,7 @@ export function ScoringRenderer({
           <p className="text-sm text-muted-foreground mb-1">{t.toolScoringTotal}</p>
           <p className="text-5xl font-bold tabular-nums">{total.toFixed(2)}</p>
           {threshold && (
-            <p className="text-sm font-semibold mt-2">{threshold.label}</p>
+            <p className="text-sm font-semibold mt-2">{localizeText(threshold.label, locale) ?? threshold.label}</p>
           )}
           {config.passingScore !== undefined && (
             <p className="text-xs text-muted-foreground mt-1">
@@ -119,7 +120,7 @@ export function ScoringRenderer({
         <div key={group.name || '__all__'} className="space-y-4">
           {group.name && (
             <h3 className="text-sm font-semibold text-foreground border-b pb-1">
-              {group.name}
+              {localizeText(group.name, locale)}
             </h3>
           )}
           {group.criteria.map((criterion) => {
@@ -130,7 +131,7 @@ export function ScoringRenderer({
               <div key={criterion.id} className="space-y-1.5">
                 <div className="flex items-center justify-between">
                   <label className="text-sm font-medium">
-                    {criterion.label}
+                    {localizeText(criterion.label, locale) ?? criterion.label}
                     {criterion.weight !== undefined && (
                       <span className="ml-2 text-xs text-muted-foreground font-normal">
                         ({Math.round(criterion.weight * 100)}%)
@@ -157,7 +158,7 @@ export function ScoringRenderer({
                   </span>
                 </div>
                 {criterion.helpText && (
-                  <p className="text-xs text-muted-foreground">{criterion.helpText}</p>
+                  <p className="text-xs text-muted-foreground">{localizeText(criterion.helpText, locale)}</p>
                 )}
               </div>
             )
@@ -173,7 +174,7 @@ export function ScoringRenderer({
               key={t.label}
               className={`text-xs px-2 py-1 rounded border ${THRESHOLD_COLORS[t.color] ?? ''}`}
             >
-              {t.min}–{t.max}: {t.label}
+              {t.min}–{t.max}: {localizeText(t.label, locale) ?? t.label}
             </span>
           ))}
         </div>

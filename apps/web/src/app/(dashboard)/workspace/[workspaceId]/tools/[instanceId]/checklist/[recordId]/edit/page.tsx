@@ -8,6 +8,7 @@ import { ChecklistRenderer } from '../../../_components/ChecklistRenderer'
 import { buildCapabilityTabs } from '@/lib/capability-tabs'
 import { getLocale } from '@/i18n/locale'
 import { getDashboardTranslations } from '@/i18n/dashboard-translations'
+import { localizeToolSchema } from '@/lib/localized-content'
 
 interface Props {
   params: Promise<{ workspaceId: string; instanceId: string; recordId: string }>
@@ -39,7 +40,7 @@ export default async function ChecklistEditPage({ params }: Props) {
     )
   }
 
-  const schema = schemaResult.data
+  const schema = localizeToolSchema(schemaResult.data, locale)
   const checklistCap = schema.capabilities.find((c) => c.type === 'CHECKLIST')
   if (!checklistCap) notFound()
   const checklistConfig = checklistCap.config as ChecklistConfig

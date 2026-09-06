@@ -359,6 +359,12 @@ export interface DashboardTranslations {
   toolScoringPassingMinimum: string
   toolScoringUpdate: string
   toolScoringSave: string
+  toolRecordDetail: string
+  toolExportPdf: string
+  toolCreatedOn: string
+  toolCompletedOfTotalPrefix: string
+  toolCompletedOfTotalMiddle: string
+  toolCompletedOfTotalSuffix: string
   toolEditRecord: string
   toolNewChecklist: string
   toolEditChecklist: string
@@ -1633,6 +1639,12 @@ const en: DashboardTranslations = {
   toolScoringPassingMinimum: 'Minimum to pass',
   toolScoringUpdate: 'Update evaluation',
   toolScoringSave: 'Save evaluation',
+  toolRecordDetail: 'Record detail',
+  toolExportPdf: 'Export PDF',
+  toolCreatedOn: 'Created on',
+  toolCompletedOfTotalPrefix: '',
+  toolCompletedOfTotalMiddle: 'of',
+  toolCompletedOfTotalSuffix: 'completed',
   toolEditRecord: 'Edit record',
   toolNewChecklist: 'New checklist',
   toolEditChecklist: 'Edit checklist',
@@ -2902,6 +2914,12 @@ const es: DashboardTranslations = {
   toolScoringPassingMinimum: 'Mínimo para pasar',
   toolScoringUpdate: 'Actualizar evaluación',
   toolScoringSave: 'Guardar evaluación',
+  toolRecordDetail: 'Detalle del registro',
+  toolExportPdf: 'Exportar PDF',
+  toolCreatedOn: 'Creado el',
+  toolCompletedOfTotalPrefix: '',
+  toolCompletedOfTotalMiddle: 'de',
+  toolCompletedOfTotalSuffix: 'completados',
   toolEditRecord: 'Editar registro',
   toolNewChecklist: 'Nuevo checklist',
   toolEditChecklist: 'Editar checklist',

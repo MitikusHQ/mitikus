@@ -4,30 +4,34 @@ import { notFound } from 'next/navigation'
 import Link from 'next/link'
 import { validateToolSchema } from '@protools/schema'
 import type { ChecklistConfig, ScoringConfig, ValidatedToolSchema } from '@protools/schema'
+import { getLocale } from '@/i18n/locale'
+import { getDashboardTranslations } from '@/i18n/dashboard-translations'
+import type { DashboardTranslations } from '@/i18n/dashboard-translations'
+import type { Locale } from '@/i18n/config'
+import { localizeText, localizeToolSchema } from '@/lib/localized-content'
+import { formatDate } from '@/lib/format-date'
 
 interface Props {
   params: Promise<{ workspaceId: string; instanceId: string; recordId: string }>
 }
 
-function formatValue(value: unknown, fieldType: string): string {
+function formatValue(value: unknown, fieldType: string, locale: Locale): string {
   if (value === null || value === undefined) return '—'
-  if (fieldType === 'boolean') return value ? 'Sí' : 'No'
+  if (fieldType === 'boolean') return value ? (locale === 'es' ? 'Sí' : 'Yes') : 'No'
   if (fieldType === 'date') {
     try {
-      return new Date(String(value)).toLocaleDateString('es-ES', {
-        day: '2-digit',
-        month: 'long',
-        year: 'numeric',
-      })
+      return formatDate(String(value), locale)
     } catch {
       return String(value)
     }
   }
-  return String(value)
+  const text = String(value)
+  return localizeText(text, locale) ?? text
 }
 
 export default async function RecordDetailPage({ params }: Props) {
-  const [{ workspaceId, instanceId, recordId }, user] = await Promise.all([params, requireUser()])
+  const [{ workspaceId, instanceId, recordId }, user, locale] = await Promise.all([params, requireUser(), getLocale()])
+  const t = getDashboardTranslations(locale)
 
   const [workspace, instance, record] = await Promise.all([
     db.workspace.findFirst({ where: { id: workspaceId, orgId: user.orgId } }),
@@ -46,12 +50,12 @@ export default async function RecordDetailPage({ params }: Props) {
   if (!schemaResult.success) {
     return (
       <div className="flex items-center justify-center py-16">
-        <p className="text-destructive text-sm">Schema de herramienta inválido.</p>
+        <p className="text-destructive text-sm">{t.toolInvalidSchema}</p>
       </div>
     )
   }
 
-  const schema = schemaResult.data
+  const schema = localizeToolSchema(schemaResult.data, locale)
   const data = (record.data ?? {}) as Record<string, unknown>
   const recordType = data._type as string | undefined
 
@@ -69,39 +73,35 @@ export default async function RecordDetailPage({ params }: Props) {
         {instance.name}
       </Link>
       <div className="flex items-center justify-between">
-        <h1 className="text-xl font-semibold">Detalle del registro</h1>
+        <h1 className="text-xl font-semibold">{t.toolRecordDetail}</h1>
         <div className="flex items-center gap-3">
           <a
             href={`/api/pdf/${recordId}`}
             download
             className="rounded-md border px-4 py-2 text-sm font-medium hover:bg-muted transition-colors"
           >
-            Exportar PDF
+            {t.toolExportPdf}
           </a>
           <Link
             href={editHref}
             className="rounded-md border px-4 py-2 text-sm font-medium hover:bg-muted transition-colors"
           >
-            Editar
+            {t.clientsEdit}
           </Link>
         </div>
       </div>
 
       <p className="text-xs text-muted-foreground">
-          Creado el{' '}
-          {new Date(record.createdAt).toLocaleDateString('es-ES', {
-            day: '2-digit',
-            month: 'long',
-            year: 'numeric',
-          })}
+          {t.toolCreatedOn}{' '}
+          {formatDate(record.createdAt, locale)}
         </p>
 
         {recordType === 'checklist' ? (
-          <ChecklistDetailView schema={schema} data={data} />
+          <ChecklistDetailView schema={schema} data={data} locale={locale} t={t} />
         ) : recordType === 'scoring' ? (
-          <ScoringDetailView schema={schema} data={data} />
+          <ScoringDetailView schema={schema} data={data} locale={locale} t={t} />
         ) : (
-          <FormDetailView schema={schema} data={data} />
+          <FormDetailView schema={schema} data={data} locale={locale} />
         )}
     </div>
   )
@@ -110,9 +110,11 @@ export default async function RecordDetailPage({ params }: Props) {
 function FormDetailView({
   schema,
   data,
+  locale,
 }: {
   schema: ValidatedToolSchema
   data: Record<string, unknown>
+  locale: Locale
 }) {
   const { fields } = schema.dataSchema
   return (
@@ -123,7 +125,7 @@ function FormDetailView({
             {field.label}
           </dt>
           <dd className="text-sm whitespace-pre-wrap break-words">
-            {formatValue(data[fieldId], field.type)}
+            {formatValue(data[fieldId], field.type, locale)}
           </dd>
         </div>
       ))}
@@ -134,9 +136,13 @@ function FormDetailView({
 function ChecklistDetailView({
   schema,
   data,
+  locale,
+  t,
 }: {
   schema: ValidatedToolSchema
   data: Record<string, unknown>
+  locale: Locale
+  t: DashboardTranslations
 }) {
   const checklistCap = schema.capabilities.find((c) => c.type === 'CHECKLIST')
   if (!checklistCap) return null
@@ -171,7 +177,7 @@ function ChecklistDetailView({
                 {field.label}
               </dt>
               <dd className="text-sm whitespace-pre-wrap break-words">
-                {formatValue(data[fieldId], field.type)}
+                {formatValue(data[fieldId], field.type, locale)}
               </dd>
             </div>
           ))}
@@ -181,7 +187,7 @@ function ChecklistDetailView({
       <div className="space-y-1.5">
         <div className="flex items-center justify-between text-sm">
           <span className="text-muted-foreground">
-            {checkedCount} de {totalItems} completados
+            {t.toolCompletedOfTotalPrefix}{checkedCount} {t.toolCompletedOfTotalMiddle} {totalItems} {t.toolCompletedOfTotalSuffix}
           </span>
           <span className="font-semibold">{percent}%</span>
         </div>
@@ -218,9 +224,13 @@ function ChecklistDetailView({
 function ScoringDetailView({
   schema,
   data,
+  locale,
+  t,
 }: {
   schema: ValidatedToolSchema
   data: Record<string, unknown>
+  locale: Locale
+  t: DashboardTranslations
 }) {
   const scoringCap = schema.capabilities.find((c) => c.type === 'SCORING')
   if (!scoringCap) return null
@@ -253,7 +263,7 @@ function ScoringDetailView({
           threshold ? (THRESHOLD_COLORS[threshold.color] ?? 'border-border') : 'border-border'
         }`}
       >
-        <p className="text-sm text-muted-foreground mb-1">Puntuación total</p>
+        <p className="text-sm text-muted-foreground mb-1">{t.toolScoringTotal}</p>
         <p className="text-4xl font-bold">{total.toFixed(2)}</p>
         {threshold && <p className="text-sm font-semibold mt-1">{threshold.label}</p>}
       </div>

@@ -4,6 +4,7 @@ import { useActionState } from 'react'
 import type { DataSchema, FormConfig } from '@protools/schema'
 import type { Locale } from '@/i18n/config'
 import { getDashboardTranslations } from '@/i18n/dashboard-translations'
+import { localizeText } from '@/lib/localized-content'
 
 type FormState = { error: string } | null
 type FormAction = (prev: FormState, formData: FormData) => Promise<FormState>
@@ -40,7 +41,7 @@ function FieldInput({
         name={fieldId}
         rows={field.rows ?? 3}
         required={field.required}
-        placeholder={field.placeholder}
+        placeholder={localizeText(field.placeholder, locale)}
         defaultValue={defaultValue != null ? String(defaultValue) : ''}
         className={`${base} resize-y`}
       />
@@ -61,7 +62,7 @@ function FieldInput({
               defaultChecked={selected.includes(opt)}
               className="h-4 w-4 rounded border-input accent-primary shrink-0"
             />
-            <span className="text-sm leading-snug">{opt}</span>
+            <span className="text-sm leading-snug">{localizeText(opt, locale) ?? opt}</span>
           </label>
         ))}
       </div>
@@ -80,7 +81,7 @@ function FieldInput({
         <option value="">{t.toolSelectPlaceholder}</option>
         {field.options.map((opt) => (
           <option key={opt} value={opt}>
-            {opt}
+            {localizeText(opt, locale) ?? opt}
           </option>
         ))}
       </select>
@@ -121,7 +122,7 @@ function FieldInput({
       name={fieldId}
       type={inputType}
       required={field.required}
-      placeholder={field.placeholder}
+      placeholder={localizeText(field.placeholder, locale)}
       min={field.min}
       max={field.max}
       defaultValue={dateValue ?? (defaultValue != null ? String(defaultValue) : '')}
@@ -142,7 +143,7 @@ export function FormRenderer({
   const t = getDashboardTranslations(locale)
   const [state, formAction, isPending] = useActionState<FormState, FormData>(action, null)
 
-  const submitLabel = formConfig.submitLabel ?? t.toolSettingsSave
+  const submitLabel = localizeText(formConfig.submitLabel, locale) ?? t.toolSettingsSave
 
   // Obtener la lista de secciones o crear una sección virtual con todos los campos
   const sections =
@@ -165,7 +166,7 @@ export function FormRenderer({
         <fieldset key={section.id} className="space-y-4">
           {section.title && (
             <legend className="text-sm font-semibold text-foreground pb-1 border-b w-full">
-              {section.title}
+              {localizeText(section.title, locale)}
             </legend>
           )}
 
@@ -178,7 +179,7 @@ export function FormRenderer({
                   htmlFor={fieldId}
                   className={`text-sm font-medium ${field.required ? '' : 'text-muted-foreground'}`}
                 >
-                  {field.label}
+                  {localizeText(field.label, locale) ?? field.label}
                   {field.required && (
                     <span className="ml-1 text-destructive" aria-hidden>
                       *
@@ -192,7 +193,7 @@ export function FormRenderer({
                   locale={locale}
                 />
                 {field.helpText && (
-                  <p className="text-xs text-muted-foreground">{field.helpText}</p>
+                  <p className="text-xs text-muted-foreground">{localizeText(field.helpText, locale)}</p>
                 )}
               </div>
             )

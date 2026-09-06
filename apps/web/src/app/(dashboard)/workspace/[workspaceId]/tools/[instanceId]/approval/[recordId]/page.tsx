@@ -9,6 +9,7 @@ import type { DashboardTranslations } from '@/i18n/dashboard-translations'
 import { getDashboardTranslations } from '@/i18n/dashboard-translations'
 import { getLocale } from '@/i18n/locale'
 import type { Locale } from '@/i18n/config'
+import { localizeText, localizeToolSchema } from '@/lib/localized-content'
 
 interface Props {
   params: Promise<{ workspaceId: string; instanceId: string; recordId: string }>
@@ -42,7 +43,8 @@ function formatValue(value: unknown, fieldType: string, locale: Locale): string 
     const n = Number(value)
     return isNaN(n) ? '—' : n.toLocaleString(locale, { maximumFractionDigits: 2 })
   }
-  return String(value)
+  const text = String(value)
+  return localizeText(text, locale) ?? text
 }
 
 export default async function ApprovalDetailPage({ params }: Props) {
@@ -65,7 +67,7 @@ export default async function ApprovalDetailPage({ params }: Props) {
   const schemaResult = validateToolSchema(instance.toolDefinition.schema)
   if (!schemaResult.success) notFound()
 
-  const schema = schemaResult.data
+  const schema = localizeToolSchema(schemaResult.data, locale)
   const approvalCap = schema.capabilities.find((c) => c.type === 'APPROVAL_FLOW')
   if (!approvalCap) notFound()
 
@@ -78,7 +80,7 @@ export default async function ApprovalDetailPage({ params }: Props) {
   const statusLabels = defaultStatusLabels(t)
 
   const labelFor = (s: string) =>
-    approvalConfig.statusLabels?.[s as keyof typeof approvalConfig.statusLabels] ??
+    localizeText(approvalConfig.statusLabels?.[s as keyof typeof approvalConfig.statusLabels], locale) ??
     statusLabels[s as keyof typeof statusLabels] ?? s
 
   const fields = Object.entries(schema.dataSchema.fields)

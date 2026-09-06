@@ -8,6 +8,7 @@ import { createRecord } from '@/app/actions/record'
 import { FormRenderer } from '../../_components/FormRenderer'
 import { getLocale } from '@/i18n/locale'
 import { getDashboardTranslations } from '@/i18n/dashboard-translations'
+import { localizeToolSchema } from '@/lib/localized-content'
 
 interface Props {
   params: Promise<{ workspaceId: string; instanceId: string }>
@@ -36,7 +37,7 @@ export default async function NewRecordPage({ params }: Props) {
     )
   }
 
-  const schema = schemaResult.data
+  const schema = localizeToolSchema(schemaResult.data, locale)
   const formCap = schema.capabilities.find((c) => c.type === 'FORM')
   const formConfig: FormConfig = (formCap?.config as FormConfig | undefined) ?? {
     layout: 'single-column',

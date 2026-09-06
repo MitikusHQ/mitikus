@@ -4,6 +4,7 @@ import { notFound } from 'next/navigation'
 import Link from 'next/link'
 import { validateToolSchema } from '@protools/schema'
 import type { TableConfig, DataSchema } from '@protools/schema'
+import type { Locale } from '@/i18n/config'
 import { DeleteButton } from './_components/DeleteButton'
 import { CapabilityNav } from './_components/CapabilityNav'
 import { ToolSectionNav } from './_components/ToolSectionNav'
@@ -14,12 +15,13 @@ import { getDashboardTranslations } from '@/i18n/dashboard-translations'
 import { formatDate, formatRelativeDate } from '@/lib/format-date'
 import { detectStatusVariant, scoreVariant } from '@/app/(dashboard)/_components/StatusBadge'
 import { cn } from '@/lib/utils'
+import { localizeText, localizeToolSchema } from '@/lib/localized-content'
 
 interface Props {
   params: Promise<{ workspaceId: string; instanceId: string }>
 }
 
-function SmartCell({ value, fieldType, locale }: { value: unknown; fieldType: string; locale: string }) {
+function SmartCell({ value, fieldType, locale }: { value: unknown; fieldType: string; locale: Locale }) {
   if (value === null || value === undefined || value === '') {
     return <span className="text-muted-foreground">—</span>
   }
@@ -79,12 +81,13 @@ function SmartCell({ value, fieldType, locale }: { value: unknown; fieldType: st
     }
     return (
       <span className={cn('inline-flex items-center rounded-full px-2 py-0.5 text-xs font-medium', cls[statusVariant])}>
-        {str}
+        {localizeText(str, locale) ?? str}
       </span>
     )
   }
 
-  return <span title={str.length > 80 ? str : undefined}>{str.length > 80 ? `${str.slice(0, 77)}…` : str}</span>
+  const localized = localizeText(str, locale) ?? str
+  return <span title={localized.length > 80 ? localized : undefined}>{localized.length > 80 ? `${localized.slice(0, 77)}…` : localized}</span>
 }
 
 export default async function ToolRunnerPage({ params }: Props) {
@@ -115,7 +118,7 @@ export default async function ToolRunnerPage({ params }: Props) {
     )
   }
 
-  const schema = schemaResult.data
+  const schema = localizeToolSchema(schemaResult.data, locale)
   const dataSchema: DataSchema = schema.dataSchema
 
   const tableCap = schema.capabilities.find((c) => c.type === 'TABLE')
@@ -354,5 +357,3 @@ export default async function ToolRunnerPage({ params }: Props) {
     </div>
   )
 }
-
-

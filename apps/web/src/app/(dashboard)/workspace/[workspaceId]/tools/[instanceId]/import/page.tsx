@@ -6,6 +6,7 @@ import Link from 'next/link'
 import { ImportClient } from './_components/ImportClient'
 import { getLocale } from '@/i18n/locale'
 import { getDashboardTranslations } from '@/i18n/dashboard-translations'
+import { localizeToolSchema } from '@/lib/localized-content'
 
 interface Props {
   params: Promise<{ workspaceId: string; instanceId: string }>
@@ -24,8 +25,9 @@ export default async function ImportPage({ params }: Props) {
   const schemaResult = validateToolSchema(instance.toolDefinition.schema)
   if (!schemaResult.success) notFound()
 
-  const { dataSchema } = schemaResult.data
-  const hasFormCap = schemaResult.data.capabilities.some((c) => c.type === 'FORM')
+  const schema = localizeToolSchema(schemaResult.data, locale)
+  const { dataSchema } = schema
+  const hasFormCap = schema.capabilities.some((c) => c.type === 'FORM')
   if (!hasFormCap) notFound()
 
   const fields = Object.entries(dataSchema.fields).map(([id, field]) => ({

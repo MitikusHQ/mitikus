@@ -8,6 +8,7 @@ import { ScoringRenderer } from '../../_components/ScoringRenderer'
 import { buildCapabilityTabs } from '@/lib/capability-tabs'
 import { getLocale } from '@/i18n/locale'
 import { getDashboardTranslations } from '@/i18n/dashboard-translations'
+import { localizeToolSchema } from '@/lib/localized-content'
 
 interface Props {
   params: Promise<{ workspaceId: string; instanceId: string }>
@@ -36,7 +37,7 @@ export default async function ScoringNewPage({ params }: Props) {
     )
   }
 
-  const schema = schemaResult.data
+  const schema = localizeToolSchema(schemaResult.data, locale)
   const scoringCap = schema.capabilities.find((c) => c.type === 'SCORING')
   if (!scoringCap) notFound()
   const scoringConfig = scoringCap.config as ScoringConfig

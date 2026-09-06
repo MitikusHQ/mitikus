@@ -5,6 +5,7 @@ import type { ChecklistConfig, DataSchema } from '@protools/schema'
 import { saveChecklistRecord } from '@/app/actions/record'
 import type { Locale } from '@/i18n/config'
 import { getDashboardTranslations } from '@/i18n/dashboard-translations'
+import { localizeText } from '@/lib/localized-content'
 
 interface Props {
   instanceId: string
@@ -86,7 +87,7 @@ export function ChecklistRenderer({
       if (field.required && field.type !== 'boolean') {
         const v = formValues[id]
         if (!v || v === '') {
-          setError(`${t.toolFieldRequiredErrorPrefix}${field.label}${t.toolFieldRequiredErrorSuffix}`)
+          setError(`${t.toolFieldRequiredErrorPrefix}${localizeText(field.label, locale) ?? field.label}${t.toolFieldRequiredErrorSuffix}`)
           return
         }
       }
@@ -95,7 +96,7 @@ export function ChecklistRenderer({
     // Validate required checklist items
     for (const item of checklistConfig.items) {
       if (item.required && !items[item.id]) {
-        setError(`${t.toolItemRequiredErrorPrefix}${item.label}${t.toolItemRequiredErrorSuffix}`)
+        setError(`${t.toolItemRequiredErrorPrefix}${localizeText(item.label, locale) ?? item.label}${t.toolItemRequiredErrorSuffix}`)
         return
       }
     }
@@ -132,7 +133,7 @@ export function ChecklistRenderer({
           {Object.entries(dataSchema.fields).map(([fieldId, field]) => (
             <div key={fieldId} className="space-y-1">
               <label htmlFor={fieldId} className="text-sm font-medium">
-                {field.label}
+                {localizeText(field.label, locale) ?? field.label}
                 {field.required && (
                   <span className="ml-1 text-destructive" aria-hidden>*</span>
                 )}
@@ -153,7 +154,7 @@ export function ChecklistRenderer({
                   id={fieldId}
                   rows={3}
                   required={field.required}
-                  placeholder={field.placeholder}
+                  placeholder={localizeText(field.placeholder, locale)}
                   value={String(formValues[fieldId] ?? '')}
                   onChange={(e) => setField(fieldId, e.target.value)}
                   className={`${INPUT_BASE} resize-none`}
@@ -168,7 +169,7 @@ export function ChecklistRenderer({
                 >
                   <option value="">{t.toolSelectPlaceholder}</option>
                   {field.options.map((opt) => (
-                    <option key={opt} value={opt}>{opt}</option>
+                    <option key={opt} value={opt}>{localizeText(opt, locale) ?? opt}</option>
                   ))}
                 </select>
               ) : (
@@ -176,7 +177,7 @@ export function ChecklistRenderer({
                   id={fieldId}
                   type={field.type === 'number' ? 'number' : field.type === 'date' ? 'date' : 'text'}
                   required={field.required}
-                  placeholder={field.placeholder}
+                  placeholder={localizeText(field.placeholder, locale)}
                   min={field.min}
                   max={field.max}
                   value={
@@ -189,7 +190,7 @@ export function ChecklistRenderer({
                 />
               )}
               {field.helpText && (
-                <p className="text-xs text-muted-foreground">{field.helpText}</p>
+                <p className="text-xs text-muted-foreground">{localizeText(field.helpText, locale)}</p>
               )}
             </div>
           ))}
@@ -227,7 +228,7 @@ export function ChecklistRenderer({
           <div key={group.name || '__all__'} className="space-y-2">
             {group.name && (
               <h3 className="text-sm font-semibold text-foreground border-b pb-1">
-                {group.name}
+                {localizeText(group.name, locale)}
               </h3>
             )}
             <div className="space-y-1.5">
@@ -252,7 +253,7 @@ export function ChecklistRenderer({
                         items[item.id] ? 'line-through text-muted-foreground' : ''
                       }`}
                     >
-                      {item.label}
+                      {localizeText(item.label, locale) ?? item.label}
                       {item.required && !items[item.id] && (
                         <span className="ml-1.5 text-xs text-destructive font-normal">
                           {t.toolChecklistRequired}
@@ -260,7 +261,7 @@ export function ChecklistRenderer({
                       )}
                     </span>
                     {item.helpText && (
-                      <p className="text-xs text-muted-foreground">{item.helpText}</p>
+                      <p className="text-xs text-muted-foreground">{localizeText(item.helpText, locale)}</p>
                     )}
                   </div>
                 </label>
