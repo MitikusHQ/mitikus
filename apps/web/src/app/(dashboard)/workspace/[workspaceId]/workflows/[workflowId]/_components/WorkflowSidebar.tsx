@@ -10,8 +10,8 @@ interface Props {
 }
 
 const CATEGORY_LABELS: Record<string, string> = {
-  AUDIT: 'Auditoría',
-  EVALUATION: 'Evaluación',
+  AUDIT: 'Audit',
+  EVALUATION: 'Evaluation',
   CHECKLIST: 'Checklists',
   CRM: 'CRM',
   REPORT: 'Informes',

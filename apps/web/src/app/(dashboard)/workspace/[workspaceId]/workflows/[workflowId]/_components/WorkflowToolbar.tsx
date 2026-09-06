@@ -25,16 +25,16 @@ interface Props {
 }
 
 const SAVE_LABEL: Record<SaveState, string> = {
-  idle: 'Guardar',
-  saving: 'Guardando…',
-  saved: '✓ Guardado',
-  error: 'Error al guardar',
+  idle: 'Save',
+  saving: 'Saving…',
+  saved: '✓ Saved',
+  error: 'Save error',
 }
 
 const RUN_LABEL: Record<RunState, string> = {
-  idle: '▶ Ejecutar',
-  running: '⏳ Ejecutando…',
-  done: '✓ Completado',
+  idle: '▶ Run',
+  running: '⏳ Running…',
+  done: '✓ Completed',
   error: '✗ Error',
 }
 

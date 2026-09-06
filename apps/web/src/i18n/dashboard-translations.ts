@@ -1021,6 +1021,19 @@ export interface DashboardTranslations {
   receiptsNotes: string
   receiptsStatus: string
   receiptsLines: string
+  // Workflows
+  wfNewTitle: string
+  wfNewDesc: string
+  wfNameLabel: string
+  wfNamePlaceholder: string
+  wfDescLabel: string
+  wfDescOptional: string
+  wfDescPlaceholder: string
+  wfCreate: string
+  wfCreating: string
+  wfGenerateTitle: string
+  wfGenerateDesc: string
+  wfGenerate: string
   // Usage page
   usageTitle: string
   usagePlanSection: string
@@ -2082,6 +2095,19 @@ const en: DashboardTranslations = {
   receiptsNotes: 'Notes',
   receiptsStatus: 'Status',
   receiptsLines: 'Lines',
+  // Workflows
+  wfNewTitle: 'New Workflow',
+  wfNewDesc: 'Define a name and description. You will add steps in the canvas editor.',
+  wfNameLabel: 'Workflow name *',
+  wfNamePlaceholder: 'e.g. Full strategic analysis',
+  wfDescLabel: 'Description',
+  wfDescOptional: '(optional)',
+  wfDescPlaceholder: 'e.g. SWOT → Competitive analysis → Action plan → Executive report',
+  wfCreate: 'Create and open editor →',
+  wfCreating: 'Creating…',
+  wfGenerateTitle: 'Generate',
+  wfGenerateDesc: 'Describe your process in natural language and AI creates the workflow automatically, choosing and connecting the tools for you.',
+  wfGenerate: '✨ Generate',
   // Usage page
   usageTitle: 'Plan usage',
   usagePlanSection: 'Account & plan',
@@ -3143,6 +3169,19 @@ const es: DashboardTranslations = {
   receiptsNotes: 'Notas',
   receiptsStatus: 'Estado',
   receiptsLines: 'Líneas',
+  // Workflows
+  wfNewTitle: 'Nuevo Workflow',
+  wfNewDesc: 'Define un nombre y descripción. Añadirás los pasos en el editor de canvas.',
+  wfNameLabel: 'Nombre del workflow *',
+  wfNamePlaceholder: 'ej. Análisis estratégico completo',
+  wfDescLabel: 'Descripción',
+  wfDescOptional: '(opcional)',
+  wfDescPlaceholder: 'ej. DAFO → Análisis competencia → Plan de acción → Informe ejecutivo',
+  wfCreate: 'Crear y abrir editor →',
+  wfCreating: 'Creando…',
+  wfGenerateTitle: 'Generar',
+  wfGenerateDesc: 'Describe tu proceso en lenguaje natural y la IA crea el workflow automáticamente, eligiendo y conectando las herramientas por ti.',
+  wfGenerate: '✨ Generar',
   // Usage page
   usageTitle: 'Uso del plan',
   usagePlanSection: 'Cuenta y plan',

@@ -119,7 +119,7 @@ export function WorkflowRunner({
             : 'bg-primary text-primary-foreground hover:bg-primary/90',
         )}
       >
-        {runState === 'running' ? '⏳ Ejecutando…' : '▶ Ejecutar flujo'}
+        {runState === 'running' ? '⏳ Running…' : '▶ Run workflow'}
       </button>
 
       {/* Result */}
@@ -140,7 +140,7 @@ export function WorkflowRunner({
                   : 'bg-destructive/20 text-destructive',
               )}
             >
-              {result.status === 'COMPLETED' ? '✓ Completado' : '✗ Error'}
+              {result.status === 'COMPLETED' ? '✓ Completed' : '✗ Error'}
             </span>
             <div className="flex gap-3 text-[10px] text-muted-foreground">
               <span>{(result.durationMs / 1000).toFixed(1)}s</span>
@@ -155,7 +155,7 @@ export function WorkflowRunner({
           {result.finalOutput && (
             <div>
               <p className="text-[10px] font-semibold text-muted-foreground uppercase tracking-wide mb-1">
-                Resultado final
+                Final result
               </p>
               <div className="max-h-48 overflow-y-auto rounded-lg bg-muted p-3 text-xs whitespace-pre-wrap font-mono">
                 {result.finalOutput}
@@ -168,7 +168,7 @@ export function WorkflowRunner({
               href={`/workspace/${workspaceId}/workflows/${workflowId}/history/${result.workflowExecutionId}`}
               className="text-[10px] text-primary hover:underline block"
             >
-              Ver detalles completos →
+              View full details →
             </a>
           )}
         </div>
