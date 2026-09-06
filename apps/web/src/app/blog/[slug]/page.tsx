@@ -1,4 +1,4 @@
-export const dynamic = 'force-dynamic'
+export const revalidate = 3600
 
 import type { Metadata } from 'next'
 import Image from 'next/image'
@@ -55,13 +55,34 @@ async function getPost(slug: string, lang = 'es'): Promise<PostData | null> {
   return null
 }
 
+const BASE = 'https://www.mitikus.com'
+
 export async function generateMetadata({ params }: Props): Promise<Metadata> {
   const { slug } = await params
   const post = await getPost(slug)
   if (!post) return { title: 'Artículo no encontrado — MITIKUS' }
+  const url = `${BASE}/blog/${slug}`
   return {
     title: `${post.title} — MITIKUS Blog`,
-    description: post.excerpt,
+    description: post.excerpt || undefined,
+    alternates: { canonical: url },
+    openGraph: {
+      title: `${post.title} — MITIKUS Blog`,
+      description: post.excerpt || undefined,
+      url,
+      siteName: 'MITIKUS',
+      type: 'article',
+      locale: 'es_ES',
+      alternateLocale: ['en_US'],
+      ...(post.image ? { images: [{ url: post.image, alt: post.imageAlt ?? post.title }] } : {}),
+      ...(post.publishedAt ? { publishedTime: post.publishedAt } : {}),
+    },
+    twitter: {
+      card: post.image ? 'summary_large_image' : 'summary',
+      title: `${post.title} — MITIKUS Blog`,
+      description: post.excerpt || undefined,
+      ...(post.image ? { images: [post.image] } : {}),
+    },
   }
 }
 
@@ -133,9 +154,35 @@ export default async function BlogPostPage({ params }: Props) {
   if (!post) notFound()
 
   const html = mdxToHtml(post.content)
+  const postUrl = `${BASE}/blog/${slug}`
+
+  const jsonLd = {
+    '@context': 'https://schema.org',
+    '@type': 'BlogPosting',
+    headline: post.title,
+    description: post.excerpt || undefined,
+    url: postUrl,
+    ...(post.publishedAt ? { datePublished: post.publishedAt } : {}),
+    ...(post.image ? { image: post.image } : {}),
+    author: {
+      '@type': 'Organization',
+      name: 'MITIKUS',
+      url: BASE,
+    },
+    publisher: {
+      '@type': 'Organization',
+      name: 'MITIKUS',
+      url: BASE,
+    },
+    mainEntityOfPage: {
+      '@type': 'WebPage',
+      '@id': postUrl,
+    },
+  }
 
   return (
     <main className="min-h-screen bg-background">
+      <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }} />
       <header className="border-b sticky top-0 z-50 bg-background/95 backdrop-blur-sm">
         <div className="max-w-3xl mx-auto px-6 py-4 flex items-center justify-between">
           <Link href="/" className="flex items-center gap-2 hover:opacity-80 transition-opacity">

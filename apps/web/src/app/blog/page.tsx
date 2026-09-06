@@ -4,9 +4,28 @@ import Link from 'next/link'
 import { headers } from 'next/headers'
 import { BlogLangToggle } from './_components/BlogLangToggle'
 
+const BASE = 'https://www.mitikus.com'
+
 export const metadata: Metadata = {
   title: 'Blog — MITIKUS',
   description: 'Recursos, guías y consejos para profesionales, pymes y equipos que quieren trabajar mejor.',
+  alternates: {
+    canonical: `${BASE}/blog`,
+  },
+  openGraph: {
+    title: 'Blog — MITIKUS',
+    description: 'Recursos, guías y consejos para profesionales, pymes y equipos que quieren trabajar mejor.',
+    url: `${BASE}/blog`,
+    siteName: 'MITIKUS',
+    type: 'website',
+    locale: 'es_ES',
+    alternateLocale: ['en_US'],
+  },
+  twitter: {
+    card: 'summary_large_image',
+    title: 'Blog — MITIKUS',
+    description: 'Recursos, guías y consejos para profesionales, pymes y equipos que quieren trabajar mejor.',
+  },
 }
 
 interface BlogPost {
@@ -87,8 +106,22 @@ export default async function BlogPage() {
   const tx = t[lang]
   const posts = await getPosts(lang)
 
+  const jsonLd = {
+    '@context': 'https://schema.org',
+    '@type': 'Blog',
+    name: 'Blog — MITIKUS',
+    description: tx.subtitle,
+    url: `${BASE}/blog`,
+    publisher: {
+      '@type': 'Organization',
+      name: 'MITIKUS',
+      url: BASE,
+    },
+  }
+
   return (
     <main className="min-h-screen bg-background">
+      <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }} />
       <header className="border-b sticky top-0 z-50 bg-background/95 backdrop-blur-sm">
         <div className="max-w-3xl mx-auto px-6 py-4 flex items-center justify-between">
           <Link href="/" className="flex items-center gap-2 hover:opacity-80 transition-opacity">
