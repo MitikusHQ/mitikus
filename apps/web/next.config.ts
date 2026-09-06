@@ -20,6 +20,9 @@ const nextConfig: NextConfig = {
   eslint: { ignoreDuringBuilds: true },
   poweredByHeader: false,
   transpilePackages: ['@protools/schema', '@protools/ui', '@protools/import-engine'],
+  experimental: {
+    optimizeCss: true,
+  },
 
   images: {
     remotePatterns: [
