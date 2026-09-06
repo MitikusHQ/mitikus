@@ -203,7 +203,7 @@ export function BrainPanel({ workspaceId, compact = false, onNavigateToFull, onO
                     <span className="text-[10px] text-muted-foreground/40 shrink-0">[{i + 1}]</span>
                   </div>
                   <p className="text-xs text-muted-foreground line-clamp-2">{source.excerpt}</p>
-                  {source.type === 'memory' && source.title.startsWith('Memoria') && onOpenMemorySource && (
+                  {source.type === 'memory' && onOpenMemorySource && (
                     <button
                       type="button"
                       onClick={() => onOpenMemorySource(source.id)}

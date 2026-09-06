@@ -66,11 +66,11 @@ export default async function MyOfficePage({ params }: Props) {
             <p className="text-[10px] font-semibold text-muted-foreground uppercase tracking-wide mb-2">{t.officeQuarterly}</p>
             <div className="space-y-1">
               {[
-                { href: `${base}/fiscal/303`, emoji: '🧮', title: 'Modelo 303', subtitle: 'IVA trimestral' },
-                { href: `${base}/fiscal/130`, emoji: '💰', title: 'Modelo 130', subtitle: 'IRPF fraccionado (autónomos)' },
-                { href: `${base}/fiscal/111`, emoji: '👥', title: 'Modelo 111', subtitle: 'Retenciones IRPF' },
-                { href: `${base}/fiscal/115`, emoji: '🏢', title: 'Modelo 115', subtitle: 'Retenciones alquileres' },
-                { href: `${base}/fiscal/resumen`, emoji: '📋', title: 'Resumen gestor', subtitle: 'Exporta para tu asesor' },
+                { href: `${base}/fiscal/303`, emoji: '🧮', title: 'Modelo 303', subtitle: t.officeTaxVatQuarterly },
+                { href: `${base}/fiscal/130`, emoji: '💰', title: 'Modelo 130', subtitle: t.officeTaxIrpfInstallments },
+                { href: `${base}/fiscal/111`, emoji: '👥', title: 'Modelo 111', subtitle: t.officeTaxIrpfWithholdings },
+                { href: `${base}/fiscal/115`, emoji: '🏢', title: 'Modelo 115', subtitle: t.officeTaxRentWithholdings },
+                { href: `${base}/fiscal/resumen`, emoji: '📋', title: t.officeTaxAdvisorSummaryTitle, subtitle: t.officeTaxAdvisorSummary },
               ].map((m) => (
                 <Link
                   key={m.href}
@@ -91,10 +91,10 @@ export default async function MyOfficePage({ params }: Props) {
             <p className="text-[10px] font-semibold text-muted-foreground uppercase tracking-wide mb-2">{t.officeAnnual}</p>
             <div className="space-y-1">
               {[
-                { href: `${base}/fiscal/390`, emoji: '📊', title: 'Modelo 390', subtitle: 'IVA resumen anual' },
-                { href: `${base}/fiscal/190`, emoji: '🗂️', title: 'Modelo 190', subtitle: 'Retenciones resumen anual' },
-                { href: `${base}/fiscal/100`, emoji: '🧾', title: 'Modelo 100', subtitle: 'Renta (IRPF autónomos)' },
-                { href: `${base}/fiscal/200`, emoji: '🏛️', title: 'Modelo 200', subtitle: 'Impuesto sobre Sociedades' },
+                { href: `${base}/fiscal/390`, emoji: '📊', title: 'Modelo 390', subtitle: t.officeTaxVatAnnualSummary },
+                { href: `${base}/fiscal/190`, emoji: '🗂️', title: 'Modelo 190', subtitle: t.officeTaxWithholdingsAnnualSummary },
+                { href: `${base}/fiscal/100`, emoji: '🧾', title: 'Modelo 100', subtitle: t.officeTaxIncomeReturn },
+                { href: `${base}/fiscal/200`, emoji: '🏛️', title: 'Modelo 200', subtitle: t.officeTaxCorporateTax },
               ].map((m) => (
                 <Link
                   key={m.href}

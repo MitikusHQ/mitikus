@@ -688,6 +688,17 @@ export interface DashboardTranslations {
   brainLocalQuickPendingDecisions: string
   brainLocalQuickPendingDecisionsQuery: string
   brainLocalSetupDescription: string
+  brainLocalReadProjectsError: string
+  brainLocalProjectObjective: string
+  brainLocalCreateProjectError: string
+  brainLocalChecking: string
+  brainLocalInactive: string
+  brainLocalAdvancedCommand: string
+  brainLocalActive: string
+  brainLocalProjectSelectorDebug: string
+  brainLocalHideSelector: string
+  brainLocalNoProjects: string
+  brainLocalSaved: string
   brainLocalRetry: string
   brainLocalAddBaseMemory: string
   brainLocalBaseMemoryDescription: string
@@ -856,6 +867,16 @@ export interface DashboardTranslations {
   officeQuarterly: string
   officeAnnual: string
   officeSeeCalendar: string
+  officeTaxVatQuarterly: string
+  officeTaxIrpfInstallments: string
+  officeTaxIrpfWithholdings: string
+  officeTaxRentWithholdings: string
+  officeTaxAdvisorSummaryTitle: string
+  officeTaxAdvisorSummary: string
+  officeTaxVatAnnualSummary: string
+  officeTaxWithholdingsAnnualSummary: string
+  officeTaxIncomeReturn: string
+  officeTaxCorporateTax: string
   officeToolDocs: string
   officeToolDocsSubtitle: string
   officeToolContracts: string
@@ -1938,6 +1959,17 @@ const en: DashboardTranslations = {
   brainLocalQuickPendingDecisions: 'What decisions are pending?',
   brainLocalQuickPendingDecisionsQuery: 'Pending decisions and unresolved questions',
   brainLocalSetupDescription: 'MITIKUS keeps working with Brain, cloud memory, history and workspace data. Enable Core only if you want to add a private layer on this computer.',
+  brainLocalReadProjectsError: 'Could not read projects from the local Core.',
+  brainLocalProjectObjective: 'Private MITIKUS workspace memory',
+  brainLocalCreateProjectError: 'Could not create the project in the local Core.',
+  brainLocalChecking: 'Checking local memory...',
+  brainLocalInactive: 'Local memory is not active',
+  brainLocalAdvancedCommand: 'Advanced command',
+  brainLocalActive: 'Local memory active',
+  brainLocalProjectSelectorDebug: 'Project selector (debug)',
+  brainLocalHideSelector: 'Hide selector',
+  brainLocalNoProjects: 'No projects in Core',
+  brainLocalSaved: 'Memory saved. Now you can ask using that context.',
   brainLocalRetry: 'Retry connection',
   brainLocalAddBaseMemory: 'Add base memory',
   brainLocalBaseMemoryDescription: 'Paste private context for this computer here. The product main memory is in the Memory tab.',
@@ -2104,6 +2136,16 @@ const en: DashboardTranslations = {
   officeQuarterly: 'Quarterly',
   officeAnnual: 'Annual',
   officeSeeCalendar: 'See calendar →',
+  officeTaxVatQuarterly: 'Quarterly VAT',
+  officeTaxIrpfInstallments: 'Personal income tax installments',
+  officeTaxIrpfWithholdings: 'Personal income tax withholdings',
+  officeTaxRentWithholdings: 'Rental withholdings',
+  officeTaxAdvisorSummaryTitle: 'Advisor summary',
+  officeTaxAdvisorSummary: 'Export for your advisor',
+  officeTaxVatAnnualSummary: 'Annual VAT summary',
+  officeTaxWithholdingsAnnualSummary: 'Annual withholdings summary',
+  officeTaxIncomeReturn: 'Income tax return',
+  officeTaxCorporateTax: 'Corporate tax',
   officeToolDocs: 'Documents',
   officeToolDocsSubtitle: 'Draft and edit with AI',
   officeToolContracts: 'Contracts',
@@ -3186,6 +3228,17 @@ const es: DashboardTranslations = {
   brainLocalQuickPendingDecisions: '¿Qué decisiones están pendientes?',
   brainLocalQuickPendingDecisionsQuery: 'Decisiones pendientes y dudas sin resolver',
   brainLocalSetupDescription: 'MITIKUS sigue funcionando con Brain, memoria cloud, historial y datos del workspace. Activa el Core solo si quieres añadir una capa privada en este ordenador.',
+  brainLocalReadProjectsError: 'No se pudo leer proyectos del Core local.',
+  brainLocalProjectObjective: 'Memoria privada del workspace MITIKUS',
+  brainLocalCreateProjectError: 'No se pudo crear el proyecto en el Core local.',
+  brainLocalChecking: 'Comprobando memoria local...',
+  brainLocalInactive: 'Memoria local no activa',
+  brainLocalAdvancedCommand: 'Comando avanzado',
+  brainLocalActive: 'Memoria local activa',
+  brainLocalProjectSelectorDebug: 'Selector de proyecto (debug)',
+  brainLocalHideSelector: 'Ocultar selector',
+  brainLocalNoProjects: 'Sin proyectos en el Core',
+  brainLocalSaved: 'Memoria guardada. Ahora puedes preguntar usando ese contexto.',
   brainLocalRetry: 'Reintentar conexión',
   brainLocalAddBaseMemory: 'Añadir memoria base',
   brainLocalBaseMemoryDescription: 'Pega aquí contexto privado para este ordenador. La memoria principal del producto está en la pestaña Memoria.',
@@ -3352,6 +3405,16 @@ const es: DashboardTranslations = {
   officeQuarterly: 'Trimestral',
   officeAnnual: 'Anual',
   officeSeeCalendar: 'Ver calendario →',
+  officeTaxVatQuarterly: 'IVA trimestral',
+  officeTaxIrpfInstallments: 'IRPF fraccionado (autónomos)',
+  officeTaxIrpfWithholdings: 'Retenciones IRPF',
+  officeTaxRentWithholdings: 'Retenciones alquileres',
+  officeTaxAdvisorSummaryTitle: 'Resumen gestor',
+  officeTaxAdvisorSummary: 'Exporta para tu asesor',
+  officeTaxVatAnnualSummary: 'IVA resumen anual',
+  officeTaxWithholdingsAnnualSummary: 'Retenciones resumen anual',
+  officeTaxIncomeReturn: 'Renta (IRPF autónomos)',
+  officeTaxCorporateTax: 'Impuesto sobre Sociedades',
   officeToolDocs: 'Documentos',
   officeToolDocsSubtitle: 'Redacta y edita con IA',
   officeToolContracts: 'Contratos',

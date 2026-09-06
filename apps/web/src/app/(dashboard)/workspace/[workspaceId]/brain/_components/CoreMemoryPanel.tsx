@@ -25,9 +25,18 @@ async function localCoreFetch<T>(path: string, init?: RequestInit): Promise<{ da
   return apiFetch<T>(`${LOCAL_CORE_URL}${path}`, init);
 }
 
-async function resolveLocalCoreProject(workspaceId: string): Promise<{ projectId?: number; projects: Project[]; error?: string }> {
+type LocalCoreLabels = {
+  readProjectsError: string;
+  projectObjective: string;
+  createProjectError: string;
+};
+
+async function resolveLocalCoreProject(
+  workspaceId: string,
+  labels: LocalCoreLabels,
+): Promise<{ projectId?: number; projects: Project[]; error?: string }> {
   const { data, error } = await localCoreFetch<{ projects: Project[] }>("/api/projects");
-  if (error || !data) return { projects: [], error: error ?? "No se pudo leer proyectos del Core local." };
+  if (error || !data) return { projects: [], error: error ?? labels.readProjectsError };
 
   const projectName = `${CORE_PROJECT_PREFIX}${workspaceId}`;
   const match = data.projects
@@ -39,11 +48,11 @@ async function resolveLocalCoreProject(workspaceId: string): Promise<{ projectId
   const created = await localCoreFetch<{ project: Project }>("/api/projects", {
     method: "POST",
     headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({ name: projectName, objective: "Memoria privada del workspace MITIKUS" }),
+    body: JSON.stringify({ name: projectName, objective: labels.projectObjective }),
   });
 
   if (created.error || !created.data?.project) {
-    return { projects: data.projects, error: created.error ?? "No se pudo crear el proyecto en el Core local." };
+    return { projects: data.projects, error: created.error ?? labels.createProjectError };
   }
 
   return { projectId: created.data.project.id, projects: [...data.projects, created.data.project] };
@@ -133,7 +142,11 @@ export function CoreMemoryPanel({ workspaceId, locale }: Props) {
 
     // Auto-resolve: find or create the Core project for this workspace
     if (access === "browser") {
-      const localProject = await resolveLocalCoreProject(workspaceId);
+      const localProject = await resolveLocalCoreProject(workspaceId, {
+        readProjectsError: t.brainLocalReadProjectsError,
+        projectObjective: t.brainLocalProjectObjective,
+        createProjectError: t.brainLocalCreateProjectError,
+      });
       setProjects(localProject.projects);
       if (localProject.projectId) setSelectedId(localProject.projectId);
     } else {
@@ -148,7 +161,7 @@ export function CoreMemoryPanel({ workspaceId, locale }: Props) {
     }
 
     setStatusLoading(false);
-  }, [workspaceId]);
+  }, [workspaceId, t.brainLocalCreateProjectError, t.brainLocalProjectObjective, t.brainLocalReadProjectsError]);
 
   useEffect(() => { init(); }, [init]);
 
@@ -216,7 +229,7 @@ export function CoreMemoryPanel({ workspaceId, locale }: Props) {
           <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"/>
           <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z"/>
         </svg>
-        Comprobando memoria local…
+        {t.brainLocalChecking}
       </div>
     );
   }
@@ -225,13 +238,13 @@ export function CoreMemoryPanel({ workspaceId, locale }: Props) {
     return (
       <div className="rounded-xl border border-border bg-muted/20 px-5 py-6 space-y-3">
         <div className="space-y-1">
-          <p className="text-sm font-medium">Memoria local no activa</p>
+          <p className="text-sm font-medium">{t.brainLocalInactive}</p>
           <p className="text-xs text-muted-foreground leading-relaxed">
             {t.brainLocalSetupDescription}
           </p>
         </div>
         <p className="text-xs font-medium text-muted-foreground">
-          Comando avanzado
+          {t.brainLocalAdvancedCommand}
         </p>
         <code className="block text-xs font-mono bg-background border border-border rounded px-3 py-2 mt-1">
           node dist/ui/sidecar.js
@@ -253,16 +266,16 @@ export function CoreMemoryPanel({ workspaceId, locale }: Props) {
       <div className="flex items-center gap-2">
         <span className="flex items-center gap-1 text-xs text-emerald-600 dark:text-emerald-400">
           <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 inline-block" />
-          Memoria local activa · Core {coreStatus.version}
+          {t.brainLocalActive} · Core {coreStatus.version}
           {coreAccess === "browser" ? " local" : ""}
         </span>
         <button
           type="button"
           onClick={() => setDebugSelector((v) => !v)}
           className="ml-auto text-[10px] text-muted-foreground/40 hover:text-muted-foreground transition-colors"
-          title="Selector de proyecto (debug)"
+          title={t.brainLocalProjectSelectorDebug}
         >
-          {debugSelector ? "Ocultar selector" : "···"}
+          {debugSelector ? t.brainLocalHideSelector : "···"}
         </button>
       </div>
 
@@ -281,7 +294,7 @@ export function CoreMemoryPanel({ workspaceId, locale }: Props) {
               ))}
             </select>
           ) : (
-            <span className="text-xs text-muted-foreground">Sin proyectos en el Core</span>
+            <span className="text-xs text-muted-foreground">{t.brainLocalNoProjects}</span>
           )}
         </div>
       )}
@@ -336,7 +349,7 @@ export function CoreMemoryPanel({ workspaceId, locale }: Props) {
             )}
             {memOk && (
               <p className="text-xs text-emerald-600 dark:text-emerald-400">
-                Memoria guardada. Ahora puedes preguntar usando ese contexto.
+                {t.brainLocalSaved}
               </p>
             )}
 
