@@ -6,13 +6,16 @@ import { validateToolSchema } from '@protools/schema'
 import type { ApprovalFlowConfig } from '@protools/schema'
 import { createApprovalRecord } from '@/app/actions/record'
 import { FormRenderer } from '../../_components/FormRenderer'
+import { getLocale } from '@/i18n/locale'
+import { getDashboardTranslations } from '@/i18n/dashboard-translations'
 
 interface Props {
   params: Promise<{ workspaceId: string; instanceId: string }>
 }
 
 export default async function NewApprovalPage({ params }: Props) {
-  const [{ workspaceId, instanceId }, user] = await Promise.all([params, requireUser()])
+  const [{ workspaceId, instanceId }, user, locale] = await Promise.all([params, requireUser(), getLocale()])
+  const t = getDashboardTranslations(locale)
 
   const [workspace, instance] = await Promise.all([
     db.workspace.findFirst({ where: { id: workspaceId, orgId: user.orgId } }),
@@ -28,7 +31,7 @@ export default async function NewApprovalPage({ params }: Props) {
   if (!schemaResult.success) {
     return (
       <div className="flex items-center justify-center py-16">
-        <p className="text-destructive text-sm">Schema de herramienta inválido.</p>
+        <p className="text-destructive text-sm">{t.toolInvalidSchema}</p>
       </div>
     )
   }
@@ -38,14 +41,14 @@ export default async function NewApprovalPage({ params }: Props) {
   if (!approvalCap) notFound()
 
   const approvalConfig = approvalCap.config as ApprovalFlowConfig
-  const pageTitle = approvalCap.label ?? 'Nueva solicitud'
+  const pageTitle = approvalCap.label ?? t.toolNewApprovalRequest
 
   // Verificar que el rol del usuario puede crear solicitudes
   const submitterRoles = approvalConfig.submitterRoles
   if (!submitterRoles.includes(user.role as typeof submitterRoles[number])) {
     return (
       <div className="max-w-3xl mx-auto px-6 py-8">
-        <p className="text-destructive text-sm">No tienes permisos para crear solicitudes en esta herramienta.</p>
+        <p className="text-destructive text-sm">{t.toolNoApprovalPermission}</p>
       </div>
     )
   }
@@ -69,14 +72,14 @@ export default async function NewApprovalPage({ params }: Props) {
 
       {autoApproveBelow !== undefined && autoApproveField && (
         <p className="text-sm text-muted-foreground mb-8">
-          Las solicitudes con importe inferior a{' '}
-          <span className="font-medium">{autoApproveBelow.toLocaleString('es-ES')} €</span>{' '}
-          se aprueban automáticamente.
+          {t.toolAutoApproveBelowPrefix}{' '}
+          <span className="font-medium">{autoApproveBelow.toLocaleString(locale)} €</span>{' '}
+          {t.toolAutoApproveBelowSuffix}
         </p>
       )}
       {!(autoApproveBelow !== undefined && autoApproveField) && (
         <p className="text-sm text-muted-foreground mb-8">
-          Tu solicitud quedará pendiente de aprobación por un responsable.
+          {t.toolApprovalWillRemainPending}
         </p>
       )}
 
@@ -84,7 +87,8 @@ export default async function NewApprovalPage({ params }: Props) {
         action={createApprovalRecord}
         instanceId={instanceId}
         dataSchema={schema.dataSchema}
-        formConfig={{ layout: 'single-column', submitLabel: 'Enviar solicitud' }}
+        formConfig={{ layout: 'single-column', submitLabel: t.toolSubmitApprovalRequest }}
+        locale={locale}
       />
     </div>
   )

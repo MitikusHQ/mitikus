@@ -2,14 +2,21 @@
 
 import { useActionState } from 'react'
 import { archiveClient, type ClientActionState } from '@/app/actions/client'
+import type { Locale } from '@/i18n/config'
+import { getDashboardTranslations } from '@/i18n/dashboard-translations'
 
 interface Props {
   workspaceId: string
   clientId: string
   clientName: string
+  locale: Locale
 }
 
-export function ArchiveButton({ workspaceId, clientId, clientName }: Props) {
+export function ArchiveButton({ workspaceId, clientId, clientName, locale }: Props) {
+  const t = getDashboardTranslations(locale)
+  const confirmMessage = locale === 'es'
+    ? `¿Archivar a "${clientName}"? Se ocultará de la lista.`
+    : `Archive "${clientName}"? It will be hidden from the list.`
   const [state, action, isPending] = useActionState<ClientActionState, FormData>(
     archiveClient,
     null,
@@ -23,13 +30,13 @@ export function ArchiveButton({ workspaceId, clientId, clientName }: Props) {
         type="submit"
         disabled={isPending}
         onClick={(e) => {
-          if (!confirm(`¿Archivar a "${clientName}"? Se ocultará de la lista.`)) {
+          if (!confirm(confirmMessage)) {
             e.preventDefault()
           }
         }}
         className="text-xs text-muted-foreground hover:text-destructive disabled:opacity-50 transition-colors"
       >
-        {isPending ? 'Archivando…' : 'Archivar'}
+        {isPending ? t.clientsArchiving : t.clientsArchive}
       </button>
       {state?.error && <p className="text-xs text-destructive mt-1">{state.error}</p>}
     </form>

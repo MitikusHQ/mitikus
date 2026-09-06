@@ -3,6 +3,8 @@
 import { useState, useTransition } from 'react'
 import type { ChecklistConfig, DataSchema } from '@protools/schema'
 import { saveChecklistRecord } from '@/app/actions/record'
+import type { Locale } from '@/i18n/config'
+import { getDashboardTranslations } from '@/i18n/dashboard-translations'
 
 interface Props {
   instanceId: string
@@ -12,6 +14,7 @@ interface Props {
   defaultValues?: Record<string, unknown>
   defaultItems?: Record<string, boolean>
   recordId?: string
+  locale: Locale
 }
 
 const INPUT_BASE =
@@ -25,7 +28,9 @@ export function ChecklistRenderer({
   defaultValues = {},
   defaultItems = {},
   recordId,
+  locale,
 }: Props) {
+  const t = getDashboardTranslations(locale)
   const [formValues, setFormValues] = useState<Record<string, string | boolean>>(
     () => {
       const init: Record<string, string | boolean> = {}
@@ -81,7 +86,7 @@ export function ChecklistRenderer({
       if (field.required && field.type !== 'boolean') {
         const v = formValues[id]
         if (!v || v === '') {
-          setError(`El campo "${field.label}" es obligatorio.`)
+          setError(`${t.toolFieldRequiredErrorPrefix}${field.label}${t.toolFieldRequiredErrorSuffix}`)
           return
         }
       }
@@ -90,7 +95,7 @@ export function ChecklistRenderer({
     // Validate required checklist items
     for (const item of checklistConfig.items) {
       if (item.required && !items[item.id]) {
-        setError(`El ítem "${item.label}" es obligatorio.`)
+        setError(`${t.toolItemRequiredErrorPrefix}${item.label}${t.toolItemRequiredErrorSuffix}`)
         return
       }
     }
@@ -141,7 +146,7 @@ export function ChecklistRenderer({
                     onChange={(e) => setField(fieldId, e.target.checked)}
                     className="h-4 w-4 rounded border-input accent-primary"
                   />
-                  <span className="text-sm text-muted-foreground">Sí</span>
+                  <span className="text-sm text-muted-foreground">{t.toolYes}</span>
                 </div>
               ) : field.type === 'textarea' ? (
                 <textarea
@@ -161,7 +166,7 @@ export function ChecklistRenderer({
                   onChange={(e) => setField(fieldId, e.target.value)}
                   className={INPUT_BASE}
                 >
-                  <option value="">Selecciona una opción</option>
+                  <option value="">{t.toolSelectPlaceholder}</option>
                   {field.options.map((opt) => (
                     <option key={opt} value={opt}>{opt}</option>
                   ))}
@@ -204,7 +209,7 @@ export function ChecklistRenderer({
           <div className="space-y-1.5">
             <div className="flex items-center justify-between text-sm">
               <span className="text-muted-foreground">
-                {checkedCount} de {totalItems} completados
+                {checkedCount} / {totalItems} {t.toolChecklistCompleted}
               </span>
               <span className="font-semibold">{percent}%</span>
             </div>
@@ -250,7 +255,7 @@ export function ChecklistRenderer({
                       {item.label}
                       {item.required && !items[item.id] && (
                         <span className="ml-1.5 text-xs text-destructive font-normal">
-                          Obligatorio
+                          {t.toolChecklistRequired}
                         </span>
                       )}
                     </span>
@@ -277,10 +282,10 @@ export function ChecklistRenderer({
         className="rounded-md bg-primary px-5 py-2 text-sm font-medium text-primary-foreground shadow hover:bg-primary/90 disabled:opacity-50 transition-colors"
       >
         {isPending
-          ? 'Guardando…'
+          ? `${t.toolApprovalSaving.replace('...', '')}…`
           : recordId
-          ? 'Actualizar checklist'
-          : 'Guardar checklist'}
+          ? t.toolChecklistUpdate
+          : t.toolChecklistSave}
       </button>
     </div>
   )

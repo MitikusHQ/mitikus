@@ -3,6 +3,8 @@
 import { useRef, useState } from 'react'
 import { cn } from '@/lib/utils'
 import { createFolder, type FolderData } from '@/app/actions/files'
+import type { Locale } from '@/i18n/config'
+import { getDashboardTranslations, type DashboardTranslations } from '@/i18n/dashboard-translations'
 
 type ClientFile = {
   id: string
@@ -21,14 +23,17 @@ interface Props {
   clientId: string
   initialFiles: ClientFile[]
   initialFolders: FolderData[]
+  locale: Locale
 }
 
-const TYPE_LABEL: Record<ClientFile['type'], string> = {
-  DOC: 'Documento',
-  SHEET: 'Hoja',
-  PDF: 'PDF',
-  IMAGE: 'Imagen',
-  OTHER: 'Archivo',
+function typeLabel(t: DashboardTranslations): Record<ClientFile['type'], string> {
+  return {
+    DOC: t.clientsFileTypeDoc,
+    SHEET: t.clientsFileTypeSheet,
+    PDF: t.clientsFileTypePdf,
+    IMAGE: t.clientsFileTypeImage,
+    OTHER: t.clientsFileTypeOther,
+  }
 }
 
 const TYPE_ICON: Record<ClientFile['type'], string> = {
@@ -47,8 +52,8 @@ function formatSize(bytes: number): string {
   return `${(bytes / (1024 * 1024)).toFixed(1)} MB`
 }
 
-function formatDate(value: string): string {
-  return new Intl.DateTimeFormat('es-ES', {
+function formatDate(value: string, locale: Locale): string {
+  return new Intl.DateTimeFormat(locale, {
     day: '2-digit',
     month: 'short',
     year: 'numeric',
@@ -62,7 +67,9 @@ function flattenFolders(folders: FolderData[], depth = 0): Array<{ id: string; n
   ])
 }
 
-export function ClientFilesSection({ workspaceId, clientId, initialFiles, initialFolders }: Props) {
+export function ClientFilesSection({ workspaceId, clientId, initialFiles, initialFolders, locale }: Props) {
+  const t = getDashboardTranslations(locale)
+  const fileTypeLabels = typeLabel(t)
   const inputRef = useRef<HTMLInputElement>(null)
   const [files, setFiles] = useState(initialFiles)
   const [folders, setFolders] = useState(initialFolders)
@@ -93,7 +100,7 @@ export function ClientFilesSection({ workspaceId, clientId, initialFiles, initia
         const data = await response.json()
 
         if (!response.ok) {
-          throw new Error(data.error ?? 'No se pudo subir el archivo')
+          throw new Error(data.error ?? t.clientsFileUploadGenericError)
         }
 
         uploaded.push({
@@ -111,7 +118,7 @@ export function ClientFilesSection({ workspaceId, clientId, initialFiles, initia
 
       setFiles((current) => [...uploaded, ...current])
     } catch (err) {
-      setError('No se pudo subir el archivo. Comprueba el tamaño y formato, e inténtalo de nuevo.')
+      setError(t.clientsFileUploadError)
     } finally {
       setUploading(false)
     }
@@ -130,7 +137,7 @@ export function ClientFilesSection({ workspaceId, clientId, initialFiles, initia
       setSelectedFolderId(folder.id)
       setNewFolderName('')
     } catch (err) {
-      setError('No se pudo crear la carpeta. Inténtalo de nuevo.')
+      setError(t.clientsFolderCreateError)
     } finally {
       setCreatingFolder(false)
     }
@@ -140,9 +147,9 @@ export function ClientFilesSection({ workspaceId, clientId, initialFiles, initia
     <section className="space-y-4">
       <div className="flex items-center justify-between gap-3">
         <div>
-          <h2 className="text-base font-semibold">Archivos</h2>
+          <h2 className="text-base font-semibold">{t.clientsFiles}</h2>
           <p className="text-xs text-muted-foreground">
-            Expediente documental vinculado a este cliente. También queda guardado en Mi Office.
+            {t.clientsFilesDescription}
           </p>
         </div>
         <button
@@ -151,19 +158,19 @@ export function ClientFilesSection({ workspaceId, clientId, initialFiles, initia
           disabled={uploading}
           className="shrink-0 rounded-md bg-primary px-3 py-1.5 text-xs font-medium text-primary-foreground shadow hover:bg-primary/90 transition-colors disabled:opacity-60"
         >
-          {uploading ? 'Subiendo...' : '+ Subir archivo'}
+          {uploading ? t.clientsUploading : `+ ${t.clientsUploadFile}`}
         </button>
       </div>
 
       <div className="grid gap-3 rounded-xl border bg-card/40 p-4 sm:grid-cols-[1fr_auto]">
         <label className="space-y-1 text-xs font-medium text-muted-foreground">
-          Carpeta para nuevas subidas
+          {t.clientsUploadFolderLabel}
           <select
             value={selectedFolderId}
             onChange={(event) => setSelectedFolderId(event.target.value)}
             className="w-full rounded-md border border-input bg-background px-3 py-2 text-sm text-foreground"
           >
-            <option value="">Sin carpeta</option>
+            <option value="">{t.clientsNoFolder}</option>
             {flatFolders.map((folder) => (
               <option key={folder.id} value={folder.id}>
                 {folder.label}
@@ -172,13 +179,13 @@ export function ClientFilesSection({ workspaceId, clientId, initialFiles, initia
           </select>
         </label>
         <div className="space-y-1 text-xs font-medium text-muted-foreground">
-          Nueva carpeta
+          {t.clientsNewFolder}
           <div className="flex gap-2">
             <input
               type="text"
               value={newFolderName}
               onChange={(event) => setNewFolderName(event.target.value)}
-              placeholder="Contratos, Informes..."
+              placeholder={t.clientsNewFolderPlaceholder}
               className="min-w-0 rounded-md border border-input bg-background px-3 py-2 text-sm text-foreground"
             />
             <button
@@ -187,7 +194,7 @@ export function ClientFilesSection({ workspaceId, clientId, initialFiles, initia
               disabled={creatingFolder || !newFolderName.trim()}
               className="shrink-0 rounded-md border border-input px-3 py-2 text-xs hover:bg-accent transition-colors disabled:opacity-60"
             >
-              {creatingFolder ? 'Creando...' : 'Crear'}
+              {creatingFolder ? t.clientsCreating : t.clientsCreate}
             </button>
           </div>
         </div>
@@ -220,9 +227,9 @@ export function ClientFilesSection({ workspaceId, clientId, initialFiles, initia
 
         {files.length === 0 ? (
           <div className="py-6 text-center">
-            <p className="text-sm text-muted-foreground">No hay archivos vinculados a este cliente.</p>
+            <p className="text-sm text-muted-foreground">{t.clientsNoFiles}</p>
             <p className="mt-1 text-xs text-muted-foreground/70">
-              Arrastra aquí contratos, PDFs, imágenes o cualquier documento relacionado.
+              {t.clientsDropFilesHelp}
             </p>
           </div>
         ) : (
@@ -233,10 +240,10 @@ export function ClientFilesSection({ workspaceId, clientId, initialFiles, initia
                 <div className="min-w-0 flex-1">
                   <p className="truncate text-sm font-medium">{file.name}</p>
                   <p className="text-xs text-muted-foreground">
-                    {TYPE_LABEL[file.type]} · {formatSize(file.size)} · {formatDate(file.createdAt)}
+                    {fileTypeLabels[file.type]} · {formatSize(file.size)} · {formatDate(file.createdAt, locale)}
                   </p>
                   <p className="mt-0.5 text-xs text-muted-foreground/70">
-                    Carpeta: {file.folder?.name ?? 'Sin carpeta'}
+                    {t.clientsFolderPrefix}: {file.folder?.name ?? t.clientsNoFolder}
                   </p>
                 </div>
                 <a
@@ -244,7 +251,7 @@ export function ClientFilesSection({ workspaceId, clientId, initialFiles, initia
                   download={file.name}
                   className="shrink-0 rounded-md border border-input px-3 py-1.5 text-xs hover:bg-accent transition-colors"
                 >
-                  Descargar
+                  {t.clientsDownload}
                 </a>
               </li>
             ))}

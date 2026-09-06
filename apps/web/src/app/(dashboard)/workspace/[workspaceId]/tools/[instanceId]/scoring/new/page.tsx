@@ -6,13 +6,14 @@ import type { ScoringConfig } from '@protools/schema'
 import { CapabilityNav } from '../../_components/CapabilityNav'
 import { ScoringRenderer } from '../../_components/ScoringRenderer'
 import { buildCapabilityTabs } from '@/lib/capability-tabs'
+import { getLocale } from '@/i18n/locale'
 
 interface Props {
   params: Promise<{ workspaceId: string; instanceId: string }>
 }
 
 export default async function ScoringNewPage({ params }: Props) {
-  const [{ workspaceId, instanceId }, user] = await Promise.all([params, requireUser()])
+  const [{ workspaceId, instanceId }, user, locale] = await Promise.all([params, requireUser(), getLocale()])
 
   const [workspace, instance] = await Promise.all([
     db.workspace.findFirst({ where: { id: workspaceId, orgId: user.orgId } }),
@@ -48,6 +49,7 @@ export default async function ScoringNewPage({ params }: Props) {
         instanceId={instanceId}
         workspaceId={workspaceId}
         config={scoringConfig}
+        locale={locale}
       />
     </div>
   )

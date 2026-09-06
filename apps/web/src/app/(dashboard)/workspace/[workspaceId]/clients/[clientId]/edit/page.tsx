@@ -3,6 +3,8 @@ import { db } from '@/lib/db'
 import { notFound } from 'next/navigation'
 import Link from 'next/link'
 import { ClientForm } from '../../_components/ClientForm'
+import { getLocale } from '@/i18n/locale'
+import { getDashboardTranslations } from '@/i18n/dashboard-translations'
 
 interface Props {
   params: Promise<{ workspaceId: string; clientId: string }>
@@ -10,7 +12,8 @@ interface Props {
 
 export default async function EditClientPage({ params }: Props) {
   const { workspaceId, clientId } = await params
-  const user = await requireUser()
+  const [user, locale] = await Promise.all([requireUser(), getLocale()])
+  const t = getDashboardTranslations(locale)
 
   const workspace = await db.workspace.findFirst({
     where: { id: workspaceId, orgId: user.orgId },
@@ -28,8 +31,8 @@ export default async function EditClientPage({ params }: Props) {
         <svg className="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M15 18l-6-6 6-6"/></svg>
         {client.name}
       </Link>
-      <h1 className="text-xl font-semibold mb-8">Editar cliente</h1>
-      <ClientForm workspaceId={workspaceId} client={client} />
+      <h1 className="text-xl font-semibold mb-8">{t.clientsEditTitle}</h1>
+      <ClientForm workspaceId={workspaceId} client={client} locale={locale} />
     </div>
   )
 }

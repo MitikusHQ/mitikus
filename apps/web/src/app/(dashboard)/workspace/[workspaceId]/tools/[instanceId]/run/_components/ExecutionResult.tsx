@@ -4,6 +4,8 @@ import { cn } from '@/lib/utils'
 import { formatCostEUR } from '@/lib/ai-cost'
 import { AIResponseRenderer } from '@/components/ai-response'
 import { ExportButtons } from './ExportButtons'
+import type { Locale } from '@/i18n/config'
+import { getDashboardTranslations } from '@/i18n/dashboard-translations'
 
 interface IdleState { type: 'idle' }
 interface LoadingState { type: 'loading' }
@@ -24,6 +26,7 @@ export type ExecutionState = IdleState | LoadingState | SuccessState | ErrorStat
 interface Props {
   state: ExecutionState
   toolName: string
+  locale: Locale
 }
 
 function MetaChip({ label, value }: { label: string; value: string }) {
@@ -35,14 +38,15 @@ function MetaChip({ label, value }: { label: string; value: string }) {
   )
 }
 
-export function ExecutionResult({ state, toolName }: Props) {
+export function ExecutionResult({ state, toolName, locale }: Props) {
+  const t = getDashboardTranslations(locale)
   if (state.type === 'idle') {
     return (
       <div className="flex flex-col items-center justify-center h-full min-h-[320px] rounded-xl border border-dashed bg-muted/20 text-center p-8">
         <div className="text-4xl mb-4">✨</div>
-        <p className="text-sm font-medium">Resultado de la ejecución</p>
+        <p className="text-sm font-medium">{t.toolResult}</p>
         <p className="text-xs text-muted-foreground mt-1">
-          Rellena las variables y pulsa &quot;Ejecutar&quot; para generar el output de{' '}
+          {t.toolResultDescription}{' '}
           <span className="font-medium">{toolName}</span>.
         </p>
       </div>
@@ -54,8 +58,8 @@ export function ExecutionResult({ state, toolName }: Props) {
       <div className="flex flex-col items-center justify-center h-full min-h-[320px] rounded-xl border bg-card text-center p-8 gap-4">
         <div className="w-10 h-10 rounded-full border-4 border-primary/20 border-t-primary animate-spin" />
         <div>
-          <p className="text-sm font-medium">Generando…</p>
-          <p className="text-xs text-muted-foreground mt-0.5">Esto puede tardar unos segundos</p>
+          <p className="text-sm font-medium">{t.toolGenerating}</p>
+          <p className="text-xs text-muted-foreground mt-0.5">{t.toolLoadingDescription}</p>
         </div>
       </div>
     )
@@ -70,7 +74,7 @@ export function ExecutionResult({ state, toolName }: Props) {
             <line x1="12" y1="8" x2="12" y2="12" />
             <line x1="12" y1="16" x2="12.01" y2="16" />
           </svg>
-          <span className="text-sm font-semibold">Error en la ejecución</span>
+          <span className="text-sm font-semibold">{t.toolExecutionErrorTitle}</span>
         </div>
         <p className="text-sm text-destructive/80">{state.message}</p>
       </div>
@@ -82,10 +86,10 @@ export function ExecutionResult({ state, toolName }: Props) {
     <div className="flex flex-col gap-4">
       <div className="flex items-center justify-between flex-wrap gap-2">
         <div className="flex items-center flex-wrap gap-1.5">
-          <MetaChip label="Modelo" value={state.model} />
-          <MetaChip label="Tokens" value={`${state.inputTokens + state.outputTokens}`} />
-          <MetaChip label="Coste" value={formatCostEUR(state.estimatedCostEUR)} />
-          <MetaChip label="Tiempo" value={`${(state.durationMs / 1000).toFixed(1)}s`} />
+          <MetaChip label={t.toolMetaModel} value={state.model} />
+          <MetaChip label={t.toolMetaTokens} value={`${state.inputTokens + state.outputTokens}`} />
+          <MetaChip label={t.toolMetaCost} value={formatCostEUR(state.estimatedCostEUR)} />
+          <MetaChip label={t.toolMetaTime} value={`${(state.durationMs / 1000).toFixed(1)}s`} />
         </div>
         <ExportButtons result={state.result} toolName={toolName} />
       </div>

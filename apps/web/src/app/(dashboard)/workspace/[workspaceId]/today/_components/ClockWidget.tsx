@@ -3,10 +3,13 @@
 import { useState, useEffect, useTransition } from 'react'
 import { clockIn, clockOut } from '@/app/actions/timelog'
 import type { TimeEntryData } from '@/app/actions/timelog'
+import type { Locale } from '@/i18n/config'
+import { getDashboardTranslations } from '@/i18n/dashboard-translations'
 
 interface Props {
   workspaceId: string
   initialEntry: TimeEntryData | null
+  locale: Locale
 }
 
 function formatDuration(ms: number): string {
@@ -16,11 +19,12 @@ function formatDuration(ms: number): string {
   return `${hours}h ${minutes.toString().padStart(2, '0')}m`
 }
 
-function formatTime(iso: string): string {
-  return new Date(iso).toLocaleTimeString('es-ES', { hour: '2-digit', minute: '2-digit' })
+function formatTime(iso: string, locale: Locale): string {
+  return new Date(iso).toLocaleTimeString(locale, { hour: '2-digit', minute: '2-digit' })
 }
 
-export function ClockWidget({ workspaceId, initialEntry }: Props) {
+export function ClockWidget({ workspaceId, initialEntry, locale }: Props) {
+  const t = getDashboardTranslations(locale)
   const [entry, setEntry] = useState<TimeEntryData | null>(initialEntry)
   const [elapsed, setElapsed] = useState('')
   const [error, setError] = useState<string | null>(null)
@@ -44,7 +48,7 @@ export function ClockWidget({ workspaceId, initialEntry }: Props) {
         const result = await clockIn(workspaceId)
         setEntry(result)
       } catch (e) {
-        setError('No se pudo registrar la entrada. Inténtalo de nuevo.')
+        setError(t.todayClockInError)
       }
     })
   }
@@ -56,7 +60,7 @@ export function ClockWidget({ workspaceId, initialEntry }: Props) {
         const result = await clockOut(workspaceId)
         setEntry(result)
       } catch (e) {
-        setError('No se pudo registrar la salida. Inténtalo de nuevo.')
+        setError(t.todayClockOutError)
       }
     })
   }
@@ -68,21 +72,21 @@ export function ClockWidget({ workspaceId, initialEntry }: Props) {
       <div className="flex items-center gap-3">
         <div className={`w-2.5 h-2.5 rounded-full shrink-0 ${isOpen ? 'bg-green-500 animate-pulse' : 'bg-muted-foreground/30'}`} />
         <div>
-          {!entry && <p className="text-sm font-medium">Sin fichar</p>}
+          {!entry && <p className="text-sm font-medium">{t.todayClockNotStarted}</p>}
           {isOpen && (
             <>
-              <p className="text-sm font-medium">Llevas <span className="text-muted-foreground">{elapsed}</span></p>
-              <p className="text-xs text-muted-foreground">Entrada: {formatTime(entry.clockIn)}</p>
+              <p className="text-sm font-medium">{t.todayClockElapsedPrefix} <span className="text-muted-foreground">{elapsed}</span></p>
+              <p className="text-xs text-muted-foreground">{t.todayClockInLabel}: {formatTime(entry.clockIn, locale)}</p>
             </>
           )}
           {entry && entry.clockOut && (
             <>
               <p className="text-sm font-medium">
-                {formatTime(entry.clockIn)} → {formatTime(entry.clockOut)}
+                {formatTime(entry.clockIn, locale)} → {formatTime(entry.clockOut, locale)}
                 {' · '}
                 {formatDuration(new Date(entry.clockOut).getTime() - new Date(entry.clockIn).getTime())}
               </p>
-              <p className="text-xs text-muted-foreground">Jornada completada</p>
+              <p className="text-xs text-muted-foreground">{t.todayClockCompleted}</p>
             </>
           )}
           {error && <p className="text-xs text-destructive mt-0.5">{error}</p>}
@@ -96,7 +100,7 @@ export function ClockWidget({ workspaceId, initialEntry }: Props) {
             disabled={isPending}
             className="rounded-lg bg-primary px-4 py-2 text-sm font-medium text-primary-foreground hover:bg-primary/90 disabled:opacity-60 transition-colors"
           >
-            {isPending ? 'Fichando...' : 'Fichar entrada'}
+            {isPending ? t.todayClockWorking : t.todayClockInAction}
           </button>
         )}
         {isOpen && (
@@ -105,12 +109,12 @@ export function ClockWidget({ workspaceId, initialEntry }: Props) {
             disabled={isPending}
             className="rounded-lg border px-4 py-2 text-sm font-medium hover:bg-muted/30 disabled:opacity-60 transition-colors"
           >
-            {isPending ? 'Fichando...' : 'Fichar salida'}
+            {isPending ? t.todayClockWorking : t.todayClockOutAction}
           </button>
         )}
         {entry && entry.clockOut && (
           <a href={`/workspace/${workspaceId}/timelog`} className="text-xs text-primary hover:underline">
-            Ver historial →
+            {t.todayViewHistory} →
           </a>
         )}
       </div>

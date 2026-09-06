@@ -2,6 +2,8 @@
 
 import { useActionState, useState } from 'react'
 import { createClient, updateClient, type ClientActionState } from '@/app/actions/client'
+import type { Locale } from '@/i18n/config'
+import { getDashboardTranslations, type DashboardTranslations } from '@/i18n/dashboard-translations'
 
 interface ClientData {
   id: string
@@ -23,24 +25,28 @@ interface ClientData {
 interface Props {
   workspaceId: string
   client?: ClientData
+  locale: Locale
 }
 
-const CLIENT_TYPES = [
-  { value: 'client', label: 'Cliente', nameLabel: 'Cliente', namePlaceholder: 'Empresa, autónomo o persona', contactLabel: 'Persona de contacto', contactPlaceholder: 'Solo si es distinta del cliente' },
-  { value: 'company', label: 'Empresa', nameLabel: 'Empresa', namePlaceholder: 'Nombre de la empresa', contactLabel: 'Persona de contacto', contactPlaceholder: 'Nombre de la persona con la que tratas' },
-  { value: 'freelancer', label: 'Autónomo', nameLabel: 'Nombre profesional', namePlaceholder: 'Nombre del profesional o marca', contactLabel: 'Persona de contacto', contactPlaceholder: 'Opcional, si no coincide' },
-  { value: 'individual', label: 'Particular', nameLabel: 'Nombre completo', namePlaceholder: 'Nombre de la persona', contactLabel: 'Contacto alternativo', contactPlaceholder: 'Opcional' },
-  { value: 'patient', label: 'Paciente', nameLabel: 'Paciente', namePlaceholder: 'Nombre del paciente', contactLabel: 'Contacto/tutor', contactPlaceholder: 'Opcional, útil si es menor o dependiente' },
-  { value: 'student', label: 'Alumno', nameLabel: 'Alumno', namePlaceholder: 'Nombre del alumno', contactLabel: 'Tutor/contacto', contactPlaceholder: 'Padre, madre o tutor si aplica' },
-  { value: 'athlete', label: 'Deportista', nameLabel: 'Deportista', namePlaceholder: 'Nombre del deportista', contactLabel: 'Contacto/entrenador', contactPlaceholder: 'Opcional' },
-  { value: 'event', label: 'Evento', nameLabel: 'Evento', namePlaceholder: 'Boda Laura y Andrés, sesión familiar...', contactLabel: 'Persona de contacto', contactPlaceholder: 'Quién coordina el evento' },
-]
-const DEFAULT_CLIENT_TYPE = CLIENT_TYPES[0]!
+function clientTypes(t: DashboardTranslations) {
+  return [
+    { value: 'client', label: t.clientsTypeClient, nameLabel: t.clientsTypeClientNameLabel, namePlaceholder: t.clientsTypeClientNamePlaceholder, contactLabel: t.clientsTypeClientContactLabel, contactPlaceholder: t.clientsTypeClientContactPlaceholder },
+    { value: 'company', label: t.clientsTypeCompany, nameLabel: t.clientsTypeCompanyNameLabel, namePlaceholder: t.clientsTypeCompanyNamePlaceholder, contactLabel: t.clientsTypeClientContactLabel, contactPlaceholder: t.clientsTypeCompanyContactPlaceholder },
+    { value: 'freelancer', label: t.clientsTypeFreelancer, nameLabel: t.clientsTypeFreelancerNameLabel, namePlaceholder: t.clientsTypeFreelancerNamePlaceholder, contactLabel: t.clientsTypeClientContactLabel, contactPlaceholder: t.clientsTypeFreelancerContactPlaceholder },
+    { value: 'individual', label: t.clientsTypeIndividual, nameLabel: t.clientsTypeIndividualNameLabel, namePlaceholder: t.clientsTypeIndividualNamePlaceholder, contactLabel: t.clientsTypeIndividualContactLabel, contactPlaceholder: t.clientsTypeIndividualContactPlaceholder },
+    { value: 'patient', label: t.clientsTypePatient, nameLabel: t.clientsTypePatientNameLabel, namePlaceholder: t.clientsTypePatientNamePlaceholder, contactLabel: t.clientsTypePatientContactLabel, contactPlaceholder: t.clientsTypePatientContactPlaceholder },
+    { value: 'student', label: t.clientsTypeStudent, nameLabel: t.clientsTypeStudentNameLabel, namePlaceholder: t.clientsTypeStudentNamePlaceholder, contactLabel: t.clientsTypeStudentContactLabel, contactPlaceholder: t.clientsTypeStudentContactPlaceholder },
+    { value: 'athlete', label: t.clientsTypeAthlete, nameLabel: t.clientsTypeAthleteNameLabel, namePlaceholder: t.clientsTypeAthleteNamePlaceholder, contactLabel: t.clientsTypeAthleteContactLabel, contactPlaceholder: t.clientsTypeAthleteContactPlaceholder },
+    { value: 'event', label: t.clientsTypeEvent, nameLabel: t.clientsTypeEventNameLabel, namePlaceholder: t.clientsTypeEventNamePlaceholder, contactLabel: t.clientsTypeClientContactLabel, contactPlaceholder: t.clientsTypeEventContactPlaceholder },
+  ]
+}
 
-export function ClientForm({ workspaceId, client }: Props) {
+export function ClientForm({ workspaceId, client, locale }: Props) {
+  const t = getDashboardTranslations(locale)
+  const clientTypeOptions = clientTypes(t)
   const action = client ? updateClient : createClient
   const [clientType, setClientType] = useState(client?.clientType ?? 'client')
-  const selectedType = CLIENT_TYPES.find((type) => type.value === clientType) ?? DEFAULT_CLIENT_TYPE
+  const selectedType = clientTypeOptions.find((type) => type.value === clientType) ?? clientTypeOptions[0]!
   const [state, formAction, isPending] = useActionState<ClientActionState, FormData>(
     action,
     null,
@@ -53,7 +59,7 @@ export function ClientForm({ workspaceId, client }: Props) {
 
       <div className="space-y-1">
         <label htmlFor="clientType" className="text-sm font-medium text-muted-foreground">
-          Tipo
+          {t.clientsTypeLabel}
         </label>
         <select
           id="clientType"
@@ -62,7 +68,7 @@ export function ClientForm({ workspaceId, client }: Props) {
           onChange={(e) => setClientType(e.target.value)}
           className="w-full rounded-md border border-input bg-background px-3 py-2 text-sm shadow-sm focus:outline-none focus:ring-2 focus:ring-ring"
         >
-          {CLIENT_TYPES.map((type) => (
+          {clientTypeOptions.map((type) => (
             <option key={type.value} value={type.value}>
               {type.label}
             </option>
@@ -99,7 +105,7 @@ export function ClientForm({ workspaceId, client }: Props) {
           className="w-full rounded-md border border-input bg-background px-3 py-2 text-sm shadow-sm placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-ring"
         />
         <p className="text-xs text-muted-foreground">
-          Para autónomos o particulares puedes dejarlo vacío.
+          {t.clientsContactHelp}
         </p>
       </div>
 
@@ -119,7 +125,7 @@ export function ClientForm({ workspaceId, client }: Props) {
 
       <div className="space-y-1">
         <label htmlFor="phone" className="text-sm font-medium text-muted-foreground">
-          Teléfono
+          {t.clientsPhone}
         </label>
         <input
           id="phone"
@@ -133,9 +139,9 @@ export function ClientForm({ workspaceId, client }: Props) {
 
       <div className="rounded-xl border border-border/70 bg-card/40 p-4 space-y-4">
         <div>
-          <h2 className="text-sm font-semibold">Datos fiscales para facturas</h2>
+          <h2 className="text-sm font-semibold">{t.clientsFiscalDataTitle}</h2>
           <p className="mt-0.5 text-xs text-muted-foreground">
-            Se mostrarán como datos del destinatario cuando emitas una factura a este cliente.
+            {t.clientsFiscalDataDescription}
           </p>
         </div>
         <div className="grid gap-4 sm:grid-cols-2">
@@ -154,33 +160,33 @@ export function ClientForm({ workspaceId, client }: Props) {
           </div>
           <div className="space-y-1">
             <label htmlFor="country" className="text-sm font-medium text-muted-foreground">
-              País
+              {t.clientsCountry}
             </label>
             <input
               id="country"
               name="country"
               type="text"
-              defaultValue={client?.country ?? 'España'}
-              placeholder="España"
+              defaultValue={client?.country ?? t.clientsDefaultCountry}
+              placeholder={t.clientsDefaultCountry}
               className="w-full rounded-md border border-input bg-background px-3 py-2 text-sm shadow-sm placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-ring"
             />
           </div>
           <div className="space-y-1 sm:col-span-2">
             <label htmlFor="fiscalAddress" className="text-sm font-medium text-muted-foreground">
-              Domicilio fiscal
+              {t.clientsFiscalAddress}
             </label>
             <input
               id="fiscalAddress"
               name="fiscalAddress"
               type="text"
               defaultValue={client?.fiscalAddress ?? ''}
-              placeholder="Calle, número, piso..."
+              placeholder={t.clientsFiscalAddressPlaceholder}
               className="w-full rounded-md border border-input bg-background px-3 py-2 text-sm shadow-sm placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-ring"
             />
           </div>
           <div className="space-y-1">
             <label htmlFor="postalCode" className="text-sm font-medium text-muted-foreground">
-              Código postal
+              {t.clientsPostalCode}
             </label>
             <input
               id="postalCode"
@@ -193,7 +199,7 @@ export function ClientForm({ workspaceId, client }: Props) {
           </div>
           <div className="space-y-1">
             <label htmlFor="city" className="text-sm font-medium text-muted-foreground">
-              Ciudad
+              {t.clientsCity}
             </label>
             <input
               id="city"
@@ -206,7 +212,7 @@ export function ClientForm({ workspaceId, client }: Props) {
           </div>
           <div className="space-y-1 sm:col-span-2">
             <label htmlFor="province" className="text-sm font-medium text-muted-foreground">
-              Provincia / región
+              {t.clientsProvince}
             </label>
             <input
               id="province"
@@ -222,28 +228,28 @@ export function ClientForm({ workspaceId, client }: Props) {
 
       <div className="space-y-1">
         <label htmlFor="sector" className="text-sm font-medium text-muted-foreground">
-          Sector
+          {t.clientsSector}
         </label>
         <input
           id="sector"
           name="sector"
           type="text"
           defaultValue={client?.sector ?? ''}
-          placeholder="Tecnología, Hostelería…"
+          placeholder={t.clientsSectorPlaceholder}
           className="w-full rounded-md border border-input bg-background px-3 py-2 text-sm shadow-sm placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-ring"
         />
       </div>
 
       <div className="space-y-1">
         <label htmlFor="notes" className="text-sm font-medium text-muted-foreground">
-          Notas
+          {t.clientsNotes}
         </label>
         <textarea
           id="notes"
           name="notes"
           rows={3}
           defaultValue={client?.notes ?? ''}
-          placeholder="Información adicional…"
+          placeholder={t.clientsNotesPlaceholder}
           className="w-full rounded-md border border-input bg-background px-3 py-2 text-sm shadow-sm placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-ring resize-none"
         />
       </div>
@@ -257,11 +263,11 @@ export function ClientForm({ workspaceId, client }: Props) {
       >
         {isPending
           ? client
-            ? 'Guardando…'
-            : 'Creando…'
+            ? t.clientsSaving
+            : t.clientsCreating
           : client
-            ? 'Guardar cambios'
-            : 'Crear cliente'}
+            ? t.clientsSaveChanges
+            : t.clientsAdd}
       </button>
     </form>
   )

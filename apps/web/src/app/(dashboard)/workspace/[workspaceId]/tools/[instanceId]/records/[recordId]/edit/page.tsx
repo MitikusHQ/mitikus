@@ -6,13 +6,16 @@ import { validateToolSchema } from '@protools/schema'
 import type { FormConfig } from '@protools/schema'
 import { updateRecord } from '@/app/actions/record'
 import { FormRenderer } from '../../../_components/FormRenderer'
+import { getLocale } from '@/i18n/locale'
+import { getDashboardTranslations } from '@/i18n/dashboard-translations'
 
 interface Props {
   params: Promise<{ workspaceId: string; instanceId: string; recordId: string }>
 }
 
 export default async function EditRecordPage({ params }: Props) {
-  const [{ workspaceId, instanceId, recordId }, user] = await Promise.all([params, requireUser()])
+  const [{ workspaceId, instanceId, recordId }, user, locale] = await Promise.all([params, requireUser(), getLocale()])
+  const t = getDashboardTranslations(locale)
 
   const [workspace, instance, record] = await Promise.all([
     db.workspace.findFirst({ where: { id: workspaceId, orgId: user.orgId } }),
@@ -31,7 +34,7 @@ export default async function EditRecordPage({ params }: Props) {
   if (!schemaResult.success) {
     return (
       <div className="flex items-center justify-center py-16">
-        <p className="text-destructive text-sm">Schema de herramienta inválido.</p>
+        <p className="text-destructive text-sm">{t.toolInvalidSchema}</p>
       </div>
     )
   }
@@ -40,7 +43,7 @@ export default async function EditRecordPage({ params }: Props) {
   const formCap = schema.capabilities.find((c) => c.type === 'FORM')
   const formConfig: FormConfig = (formCap?.config as FormConfig | undefined) ?? {
     layout: 'single-column',
-    submitLabel: 'Guardar cambios',
+    submitLabel: t.clientsSaveChanges,
   }
 
   const defaultValues = (record.data ?? {}) as Record<string, unknown>
@@ -51,7 +54,7 @@ export default async function EditRecordPage({ params }: Props) {
         <svg className="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M15 18l-6-6 6-6"/></svg>
         {instance.name}
       </Link>
-      <h1 className="text-xl font-semibold mb-8">Editar registro</h1>
+      <h1 className="text-xl font-semibold mb-8">{t.toolEditRecord}</h1>
       <FormRenderer
         action={updateRecord}
         instanceId={instanceId}
@@ -59,6 +62,7 @@ export default async function EditRecordPage({ params }: Props) {
         formConfig={formConfig}
         defaultValues={defaultValues}
         recordId={recordId}
+        locale={locale}
       />
     </div>
   )

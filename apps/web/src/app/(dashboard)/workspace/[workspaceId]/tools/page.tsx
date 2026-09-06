@@ -5,19 +5,22 @@ import Link from 'next/link'
 import { ToolCategory } from '@prisma/client'
 import { formatDate } from '@/lib/format-date'
 import { getLocale } from '@/i18n/locale'
+import { getDashboardTranslations, type DashboardTranslations } from '@/i18n/dashboard-translations'
 import { cn } from '@/lib/utils'
 import { ToolsEmptyState } from './_components/ToolsEmptyState'
 
-const CATEGORY_LABELS: Record<ToolCategory, string> = {
-  AUDIT:      'Auditoría',
-  EVALUATION: 'Evaluación',
-  CHECKLIST:  'Checklist',
-  CRM:        'CRM',
-  REPORT:     'Informes',
-  HR:         'RRHH',
-  OPERATIONS: 'Operaciones',
-  FINANCE:    'Finanzas',
-  CUSTOM:     'Personalizado',
+function categoryLabels(t: DashboardTranslations): Record<ToolCategory, string> {
+  return {
+    AUDIT:      t.toolsCategoryAudit,
+    EVALUATION: t.toolsCategoryEvaluation,
+    CHECKLIST:  t.toolsCategoryChecklist,
+    CRM:        t.toolsCategoryCrm,
+    REPORT:     t.toolsCategoryReport,
+    HR:         t.toolsCategoryHr,
+    OPERATIONS: t.toolsCategoryOperations,
+    FINANCE:    t.toolsCategoryFinance,
+    CUSTOM:     t.toolsCategoryCustom,
+  }
 }
 
 const CATEGORY_ICONS: Record<ToolCategory, string> = {
@@ -82,6 +85,8 @@ export default async function WorkspaceToolsPage({ params }: Props) {
   ])
 
   if (!workspace) notFound()
+  const t = getDashboardTranslations(locale)
+  const labels = categoryLabels(t)
 
   // Auditorías/Checklist/Informes/Procesos primero — sin ocultar el resto (PRODUCT-001)
   const sortedInstances = [...instances].sort((a, b) => {
@@ -93,27 +98,27 @@ export default async function WorkspaceToolsPage({ params }: Props) {
     <div className="max-w-5xl mx-auto px-6 py-8 space-y-6">
       <div className="flex items-center justify-between">
         <div>
-          <h1 className="text-xl font-semibold">Herramientas instaladas</h1>
-          <p className="text-xs text-muted-foreground mt-0.5">Pequeñas apps para tareas concretas de tu negocio — auditorías, checklists, informes...</p>
+          <h1 className="text-xl font-semibold">{t.toolsInstalledTitle}</h1>
+          <p className="text-xs text-muted-foreground mt-0.5">{t.toolsInstalledDescription}</p>
         </div>
         <div className="flex items-center gap-3">
           <Link
             href={`/workspace/${workspaceId}/generate`}
             className="rounded-md border border-input px-4 py-2 text-sm font-medium hover:border-primary hover:text-primary transition-colors"
           >
-            ✦ Generar
+            ✦ {t.toolsGenerate}
           </Link>
           <Link
             href={`/tools?workspaceId=${workspaceId}`}
             className="rounded-md bg-primary px-4 py-2 text-sm font-medium text-primary-foreground shadow hover:bg-primary/90 transition-colors"
           >
-            + Añadir
+            + {t.toolsAdd}
           </Link>
         </div>
       </div>
       <div>
         {instances.length === 0 ? (
-          <ToolsEmptyState workspaceId={workspaceId} />
+          <ToolsEmptyState workspaceId={workspaceId} locale={locale} />
         ) : (
           <div className="grid gap-4 sm:grid-cols-2">
             {sortedInstances.map((instance) => {
@@ -141,7 +146,7 @@ export default async function WorkspaceToolsPage({ params }: Props) {
                           'text-xs px-1.5 py-0.5 rounded font-medium',
                           CATEGORY_COLORS[cat],
                         )}>
-                          {CATEGORY_LABELS[cat]}
+                          {labels[cat]}
                         </span>
                         {instance.client && (
                           <span className="text-xs text-muted-foreground truncate">
@@ -151,7 +156,7 @@ export default async function WorkspaceToolsPage({ params }: Props) {
                       </div>
                     </div>
                     <span className="text-xs bg-green-100 text-green-800 dark:bg-green-900/30 dark:text-green-400 px-2 py-0.5 rounded-full font-medium shrink-0">
-                      Activa
+                      {t.toolsActive}
                     </span>
                   </div>
 
@@ -171,7 +176,7 @@ export default async function WorkspaceToolsPage({ params }: Props) {
                       href={`/workspace/${workspaceId}/tools/${instance.id}`}
                       className="rounded-md bg-primary px-3 py-1.5 text-xs font-medium text-primary-foreground shadow hover:bg-primary/90 transition-colors"
                     >
-                      Abrir →
+                      {t.toolsOpen} →
                     </Link>
                   </div>
                 </div>

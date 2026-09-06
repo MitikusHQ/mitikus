@@ -8,6 +8,8 @@ import { ExecutionStatusBadge } from '../_components/ExecutionStatusBadge'
 import { getExecutionHistory } from '@/app/actions/execution'
 import { formatCostEUR } from '@/lib/ai-cost'
 import { HistoryExportButton } from '@/components/HistoryExportButton'
+import { getLocale } from '@/i18n/locale'
+import { getDashboardTranslations } from '@/i18n/dashboard-translations'
 
 interface Props {
   params: Promise<{ workspaceId: string; instanceId: string }>
@@ -17,8 +19,8 @@ function formatMs(ms: number): string {
   return ms < 1000 ? `${ms}ms` : `${(ms / 1000).toFixed(1)}s`
 }
 
-function formatDate(iso: string): string {
-  return new Intl.DateTimeFormat('es-ES', {
+function formatDate(iso: string, locale: string): string {
+  return new Intl.DateTimeFormat(locale, {
     day: '2-digit',
     month: 'short',
     year: 'numeric',
@@ -28,7 +30,8 @@ function formatDate(iso: string): string {
 }
 
 export default async function ToolHistoryPage({ params }: Props) {
-  const [{ workspaceId, instanceId }, user] = await Promise.all([params, requireUser()])
+  const [{ workspaceId, instanceId }, user, locale] = await Promise.all([params, requireUser(), getLocale()])
+  const t = getDashboardTranslations(locale)
 
   const [workspace, instance, executions] = await Promise.all([
     db.workspace.findFirst({ where: { id: workspaceId, orgId: user.orgId } }),
@@ -42,7 +45,7 @@ export default async function ToolHistoryPage({ params }: Props) {
   if (!workspace) notFound()
   if (!instance) notFound()
 
-  const aiLabel = instance.toolDefinition.slug === 'social-media-manager' ? 'Ideas con IA' : undefined
+  const aiLabel = instance.toolDefinition.slug === 'social-media-manager' ? t.toolAiIdeas : undefined
 
   return (
     <div className="max-w-6xl mx-auto px-6 py-8">
@@ -51,15 +54,15 @@ export default async function ToolHistoryPage({ params }: Props) {
         <p className="text-xs text-muted-foreground truncate">{instance.toolDefinition.name}</p>
       </div>
 
-      <ToolSectionNav workspaceId={workspaceId} instanceId={instanceId} aiLabel={aiLabel} />
+      <ToolSectionNav workspaceId={workspaceId} instanceId={instanceId} aiLabel={aiLabel} locale={locale} />
 
       <div className="flex items-center justify-between mb-5 flex-wrap gap-3">
           <div>
-            <h2 className="text-lg font-semibold">Historial de ejecuciones IA</h2>
+            <h2 className="text-lg font-semibold">{t.toolHistoryTitle}</h2>
             <p className="text-sm text-muted-foreground mt-0.5">
               {executions.length === 0
-                ? 'Sin ejecuciones aún'
-                : `${executions.length} ejecución${executions.length !== 1 ? 'es' : ''}`}
+                ? t.toolNoExecutionsYet
+                : `${executions.length} ${executions.length === 1 ? t.toolExecutionSingular : t.toolExecutionPlural}`}
             </p>
           </div>
           <div className="flex items-center gap-2">
@@ -81,7 +84,7 @@ export default async function ToolHistoryPage({ params }: Props) {
               href={`/workspace/${workspaceId}/tools/${instanceId}/run`}
               className="rounded-md bg-primary px-4 py-2 text-sm font-medium text-primary-foreground shadow hover:bg-primary/90 transition-colors"
             >
-              ✨ Nueva ejecución
+              ✨ {t.toolNewExecution}
             </Link>
           </div>
         </div>
@@ -89,15 +92,15 @@ export default async function ToolHistoryPage({ params }: Props) {
         {executions.length === 0 ? (
           <div className="rounded-xl border border-dashed p-16 text-center bg-card">
             <div className="text-4xl mb-4">🕐</div>
-            <p className="font-medium">Sin historial</p>
+            <p className="font-medium">{t.toolHistoryEmptyTitle}</p>
             <p className="text-sm text-muted-foreground mt-1 mb-6">
-              Las ejecuciones IA aparecerán aquí una vez que ejecutes la herramienta.
+              {t.toolHistoryEmptyDescription}
             </p>
             <Link
               href={`/workspace/${workspaceId}/tools/${instanceId}/run`}
               className="inline-flex items-center rounded-md bg-primary px-4 py-2 text-sm font-medium text-primary-foreground shadow hover:bg-primary/90 transition-colors"
             >
-              ✨ Ejecutar ahora
+              ✨ {t.toolRunNow}
             </Link>
           </div>
         ) : (
@@ -106,14 +109,14 @@ export default async function ToolHistoryPage({ params }: Props) {
               <table className="w-full text-sm border-collapse">
                 <thead className="bg-muted/60 sticky top-0 z-10">
                   <tr>
-                    <th className="px-4 py-3 text-left font-medium text-muted-foreground border-b whitespace-nowrap w-36">Fecha</th>
-                    <th className="px-4 py-3 text-left font-medium text-muted-foreground border-b whitespace-nowrap">Estado</th>
-                    <th className="px-4 py-3 text-left font-medium text-muted-foreground border-b whitespace-nowrap">Modelo</th>
-                    <th className="px-4 py-3 text-left font-medium text-muted-foreground border-b whitespace-nowrap">Tokens</th>
-                    <th className="px-4 py-3 text-left font-medium text-muted-foreground border-b whitespace-nowrap">Coste</th>
-                    <th className="px-4 py-3 text-left font-medium text-muted-foreground border-b whitespace-nowrap">Duración</th>
-                    <th className="px-4 py-3 text-left font-medium text-muted-foreground border-b whitespace-nowrap">Usuario</th>
-                    <th className="px-4 py-3 text-right font-medium text-muted-foreground border-b whitespace-nowrap">Acciones</th>
+                    <th className="px-4 py-3 text-left font-medium text-muted-foreground border-b whitespace-nowrap w-36">{t.toolDate}</th>
+                    <th className="px-4 py-3 text-left font-medium text-muted-foreground border-b whitespace-nowrap">{t.clientsStatus}</th>
+                    <th className="px-4 py-3 text-left font-medium text-muted-foreground border-b whitespace-nowrap">{t.toolMetaModel}</th>
+                    <th className="px-4 py-3 text-left font-medium text-muted-foreground border-b whitespace-nowrap">{t.toolMetaTokens}</th>
+                    <th className="px-4 py-3 text-left font-medium text-muted-foreground border-b whitespace-nowrap">{t.toolMetaCost}</th>
+                    <th className="px-4 py-3 text-left font-medium text-muted-foreground border-b whitespace-nowrap">{t.toolDuration}</th>
+                    <th className="px-4 py-3 text-left font-medium text-muted-foreground border-b whitespace-nowrap">{t.clientsUser}</th>
+                    <th className="px-4 py-3 text-right font-medium text-muted-foreground border-b whitespace-nowrap">{t.toolActions}</th>
                   </tr>
                 </thead>
                 <tbody>
@@ -126,10 +129,10 @@ export default async function ToolHistoryPage({ params }: Props) {
                       )}
                     >
                       <td className="px-4 py-3 text-xs text-muted-foreground whitespace-nowrap">
-                        {formatDate(exec.createdAt)}
+                        {formatDate(exec.createdAt, locale)}
                       </td>
                       <td className="px-4 py-3">
-                        <ExecutionStatusBadge status={exec.status} />
+                        <ExecutionStatusBadge status={exec.status} locale={locale} />
                       </td>
                       <td className="px-4 py-3">
                         <span className="text-xs bg-muted text-muted-foreground px-2 py-0.5 rounded font-mono">
@@ -138,7 +141,7 @@ export default async function ToolHistoryPage({ params }: Props) {
                       </td>
                       <td className="px-4 py-3 text-xs text-muted-foreground font-mono">
                         {exec.inputTokens + exec.outputTokens > 0
-                          ? (exec.inputTokens + exec.outputTokens).toLocaleString('es-ES')
+                          ? (exec.inputTokens + exec.outputTokens).toLocaleString(locale)
                           : '—'}
                       </td>
                       <td className="px-4 py-3 text-xs text-muted-foreground font-mono">
@@ -157,15 +160,15 @@ export default async function ToolHistoryPage({ params }: Props) {
                               <Link
                                 href={`/workspace/${workspaceId}/tools/${instanceId}/run?from=${exec.id}`}
                                 className="text-xs text-muted-foreground hover:text-foreground whitespace-nowrap transition-colors"
-                                title="Reejecutar con las mismas variables"
+                                title={t.toolRerunTitle}
                               >
-                                ↻ Reejecutar
+                                ↻ {t.toolRerun}
                               </Link>
                               <Link
                                 href={`/workspace/${workspaceId}/tools/${instanceId}/history/${exec.id}`}
                                 className="text-xs text-primary hover:underline whitespace-nowrap"
                               >
-                                Ver
+                                {t.clientsView}
                               </Link>
                             </>
                           )}
@@ -174,16 +177,16 @@ export default async function ToolHistoryPage({ params }: Props) {
                               <Link
                                 href={`/workspace/${workspaceId}/tools/${instanceId}/run?from=${exec.id}`}
                                 className="text-xs text-muted-foreground hover:text-foreground whitespace-nowrap transition-colors"
-                                title="Reejecutar con las mismas variables"
+                                title={t.toolRerunTitle}
                               >
-                                ↻ Reejecutar
+                                ↻ {t.toolRerun}
                               </Link>
                               {exec.errorMessage && (
                                 <span
                                   className="text-xs text-destructive cursor-default"
                                   title={exec.errorMessage}
                                 >
-                                  ⚠ Error
+                                  ⚠ {t.toolExecutionErrorTitle}
                                 </span>
                               )}
                             </>
@@ -196,7 +199,7 @@ export default async function ToolHistoryPage({ params }: Props) {
               </table>
             </div>
             <div className="px-4 py-2 border-t bg-muted/30 text-xs text-muted-foreground">
-              {executions.length} {executions.length === 1 ? 'ejecución' : 'ejecuciones'}
+              {executions.length} {executions.length === 1 ? t.toolExecutionSingular : t.toolExecutionPlural}
             </div>
           </div>
         )}

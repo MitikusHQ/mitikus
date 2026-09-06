@@ -3,15 +3,19 @@
 import { useRouter } from 'next/navigation'
 import { useState } from 'react'
 import type { StepStatus } from '@/lib/missions/types'
+import type { Locale } from '@/i18n/config'
+import { getDashboardTranslations } from '@/i18n/dashboard-translations'
 
 interface Props {
   stepId:        string
   objectiveId:   string
   workspaceId:   string
   currentStatus: StepStatus
+  locale:        Locale
 }
 
-export function MissionStepActions({ stepId, objectiveId, currentStatus }: Props) {
+export function MissionStepActions({ stepId, objectiveId, currentStatus, locale }: Props) {
+  const t = getDashboardTranslations(locale)
   const router  = useRouter()
   const [busy, setBusy] = useState(false)
 
@@ -36,8 +40,8 @@ export function MissionStepActions({ stepId, objectiveId, currentStatus }: Props
         onClick={() => transition('pending')}
         disabled={busy}
         className="shrink-0 text-xs text-muted-foreground hover:text-foreground transition-colors disabled:opacity-40"
-        title="Marcar como pendiente"
-        aria-label="Deshacer completado"
+        title={t.missionMarkPendingTitle}
+        aria-label={t.missionUndoCompletedLabel}
       >
         ↩
       </button>
@@ -50,8 +54,8 @@ export function MissionStepActions({ stepId, objectiveId, currentStatus }: Props
         onClick={() => transition('pending')}
         disabled={busy}
         className="shrink-0 text-xs text-muted-foreground hover:text-foreground transition-colors disabled:opacity-40"
-        title="Recuperar paso"
-        aria-label="Recuperar paso omitido"
+        title={t.missionRecoverStepTitle}
+        aria-label={t.missionRecoverSkippedLabel}
       >
         ↩
       </button>
@@ -65,9 +69,9 @@ export function MissionStepActions({ stepId, objectiveId, currentStatus }: Props
           onClick={() => transition('in_progress')}
           disabled={busy}
           className="text-xs text-blue-600 dark:text-blue-400 hover:underline font-medium disabled:opacity-40"
-          aria-label="Iniciar paso"
+          aria-label={t.missionStartStep}
         >
-          Iniciar
+          {t.missionStartStep}
         </button>
       )}
       {currentStatus === 'in_progress' && (
@@ -75,9 +79,9 @@ export function MissionStepActions({ stepId, objectiveId, currentStatus }: Props
           onClick={() => transition('completed')}
           disabled={busy}
           className="text-xs text-green-600 dark:text-green-400 hover:underline font-medium disabled:opacity-40"
-          aria-label="Marcar como completado"
+          aria-label={t.missionCompleteStep}
         >
-          Completar
+          {t.missionCompleteStep}
         </button>
       )}
       {currentStatus === 'pending' && (
@@ -85,8 +89,8 @@ export function MissionStepActions({ stepId, objectiveId, currentStatus }: Props
           onClick={() => transition('skipped')}
           disabled={busy}
           className="text-xs text-muted-foreground hover:text-foreground transition-colors disabled:opacity-40 ml-1"
-          title="Omitir paso"
-          aria-label="Omitir paso"
+          title={t.missionSkipStepTitle}
+          aria-label={t.missionSkipStepLabel}
         >
           —
         </button>

@@ -2,17 +2,21 @@
 
 import { useActionState } from 'react'
 import { deleteRecord } from '@/app/actions/record'
+import type { Locale } from '@/i18n/config'
+import { getDashboardTranslations } from '@/i18n/dashboard-translations'
 
 interface Props {
   instanceId: string
   recordId: string
+  locale: Locale
 }
 
-export function DeleteButton({ instanceId, recordId }: Props) {
+export function DeleteButton({ instanceId, recordId, locale }: Props) {
+  const t = getDashboardTranslations(locale)
   const [state, formAction, isPending] = useActionState(deleteRecord, null)
 
   function handleSubmit(e: React.FormEvent<HTMLFormElement>) {
-    if (!confirm('¿Eliminar este registro? Esta acción no se puede deshacer.')) {
+    if (!confirm(t.toolDeleteConfirm)) {
       e.preventDefault()
     }
   }
@@ -29,7 +33,7 @@ export function DeleteButton({ instanceId, recordId }: Props) {
         disabled={isPending}
         className="text-xs text-destructive hover:underline disabled:opacity-50"
       >
-        {isPending ? 'Eliminando…' : 'Eliminar'}
+        {isPending ? t.toolDeleting : t.toolDelete}
       </button>
     </form>
   )

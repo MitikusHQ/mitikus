@@ -15,19 +15,17 @@ import Link from 'next/link'
 import { getSteps } from '@/lib/missions/mission-steps'
 import {
   nextStep,
-  STEP_STATUS_LABELS,
-  STEP_PRIORITY_LABELS,
-  RESPONSIBLE_ACTOR_LABELS,
-  MISSION_STATE_LABELS,
-  TIMELINE_EVENT_LABELS,
 } from '@/lib/missions/types'
-import type { MissionStepData } from '@/lib/missions/types'
+import type { MissionStepData, MissionState, ResponsibleActor, StepPriority, StepStatus, TimelineEventType } from '@/lib/missions/types'
 import { getOrCreateIntelligence } from '@/lib/missions/intelligence'
 import { computeMissionState, getNextAction } from '@/lib/missions/mission-state'
 import { getTimeline } from '@/lib/missions/timeline'
 import { MissionStepActions } from './_components/MissionStepActions'
 import { AISuggestionPanel } from './_components/AISuggestionPanel'
 import { StepAssignee } from './_components/StepAssignee'
+import { getLocale } from '@/i18n/locale'
+import { getDashboardTranslations, type DashboardTranslations } from '@/i18n/dashboard-translations'
+import type { Locale } from '@/i18n/config'
 
 interface Props {
   params: Promise<{ workspaceId: string; objectiveId: string }>
@@ -69,16 +67,16 @@ const STATE_STYLE: Record<string, string> = {
 
 const ACTOR_ICON: Record<string, string> = { user: '👤', ai: '✨', shared: '🤝' }
 
-function deriveWhy(objectiveLabel: string, priority: string): string {
+function deriveWhy(t: DashboardTranslations, objectiveLabel: string, priority: string): string {
   if (priority === 'critical' || priority === 'high')
-    return `"${objectiveLabel}" está marcada como prioridad ${priority === 'critical' ? 'crítica' : 'alta'} para el negocio — conviene resolverla cuanto antes.`
-  return `"${objectiveLabel}" forma parte de los objetivos activos de la empresa.`
+    return `"${objectiveLabel}": ${t.missionDefaultWhyHigh}`
+  return `"${objectiveLabel}": ${t.missionDefaultWhyNormal}`
 }
 
-function deriveBenefit(impactScore: number): string {
-  if (impactScore >= 4) return 'Alto impacto: desbloquea capacidades y mejora el conocimiento de la empresa.'
-  if (impactScore === 3) return 'Impacto moderado: avanza el conocimiento y la operativa de la empresa.'
-  return 'Impacto puntual: mejora un aspecto concreto de la operativa.'
+function deriveBenefit(t: DashboardTranslations, impactScore: number): string {
+  if (impactScore >= 4) return t.missionDefaultBenefitHigh
+  if (impactScore === 3) return t.missionDefaultBenefitMedium
+  return t.missionDefaultBenefitLow
 }
 
 const CATEGORY_ICONS: Record<string, string> = {
@@ -93,16 +91,18 @@ const CATEGORY_ICONS: Record<string, string> = {
   CUSTOM:     '⬡',
 }
 
-const CATEGORY_LABELS: Record<string, string> = {
-  AUDIT:      'Auditoría',
-  EVALUATION: 'Evaluación',
-  CHECKLIST:  'Checklist',
-  CRM:        'CRM',
-  REPORT:     'Informes',
-  HR:         'RRHH',
-  OPERATIONS: 'Operaciones',
-  FINANCE:    'Finanzas',
-  CUSTOM:     'Personalizado',
+function categoryLabels(t: DashboardTranslations): Record<string, string> {
+  return {
+    AUDIT:      t.toolsCategoryAudit,
+    EVALUATION: t.toolsCategoryEvaluation,
+    CHECKLIST:  t.toolsCategoryChecklist,
+    CRM:        t.toolsCategoryCrm,
+    REPORT:     t.toolsCategoryReport,
+    HR:         t.toolsCategoryHr,
+    OPERATIONS: t.toolsCategoryOperations,
+    FINANCE:    t.toolsCategoryFinance,
+    CUSTOM:     t.toolsCategoryCustom,
+  }
 }
 
 function formatMinutes(min: number): string {
@@ -112,8 +112,58 @@ function formatMinutes(min: number): string {
   return m > 0 ? `${h}h ${m}min` : `${h}h`
 }
 
+function getStepStatusLabels(t: DashboardTranslations): Record<StepStatus, string> {
+  return {
+    pending:     t.missionStepStatusPending,
+    in_progress: t.missionStepStatusInProgress,
+    completed:   t.missionStepStatusCompleted,
+    skipped:     t.missionStepStatusSkipped,
+    blocked:     t.missionStepStatusBlocked,
+  }
+}
+
+function getStepPriorityLabels(t: DashboardTranslations): Record<StepPriority, string> {
+  return {
+    low:      t.missionsPriorityLow,
+    medium:   t.missionsPriorityMedium,
+    high:     t.missionsPriorityHigh,
+    critical: t.missionsPriorityCritical,
+  }
+}
+
+function getResponsibleActorLabels(t: DashboardTranslations): Record<ResponsibleActor, string> {
+  return {
+    user:   t.missionActorUser,
+    ai:     t.missionActorAi,
+    shared: t.missionActorShared,
+  }
+}
+
+function getMissionStateLabels(t: DashboardTranslations): Record<MissionState, string> {
+  return {
+    new:          t.missionStateNew,
+    ready:        t.missionStateReady,
+    in_progress:  t.missionStateInProgress,
+    waiting_user: t.missionStateWaitingUser,
+    waiting_ai:   t.missionStateWaitingAi,
+    blocked:      t.missionStateBlocked,
+    completed:    t.missionStateCompleted,
+    archived:     t.missionStateArchived,
+  }
+}
+
+function getTimelineEventLabels(t: DashboardTranslations): Record<TimelineEventType, string> {
+  return {
+    created:   t.missionsStatusActive === 'Activa' ? 'Creada' : 'Created',
+    started:   t.missionsStatusActive === 'Activa' ? 'Iniciada' : 'Started',
+    paused:    t.missionsStatusPaused,
+    completed: t.missionsStatusCompleted,
+  }
+}
+
 export default async function MissionPage({ params }: Props) {
-  const [{ workspaceId, objectiveId }, user] = await Promise.all([params, requireUser()])
+  const [{ workspaceId, objectiveId }, user, locale] = await Promise.all([params, requireUser(), getLocale()])
+  const t = getDashboardTranslations(locale)
 
   const [objective, toolInstances] = await Promise.all([
     db.companyObjective.findFirst({
@@ -155,11 +205,17 @@ export default async function MissionPage({ params }: Props) {
   }
 
   const statusLabel: Record<string, string> = {
-    active:    'Activa',
-    completed: 'Completada',
-    paused:    'En pausa',
-    cancelled: 'Cancelada',
+    active:    t.missionsStatusActive,
+    completed: t.missionsStatusCompleted,
+    paused:    t.missionStatusPausedAlt,
+    cancelled: t.missionsStatusCancelled,
   }
+  const stepStatusLabels = getStepStatusLabels(t)
+  const stepPriorityLabels = getStepPriorityLabels(t)
+  const responsibleActorLabels = getResponsibleActorLabels(t)
+  const missionStateLabels = getMissionStateLabels(t)
+  const timelineEventLabels = getTimelineEventLabels(t)
+  const translatedCategoryLabels = categoryLabels(t)
   const statusStyle: Record<string, string> = {
     active:    'bg-blue-100 text-blue-800 dark:bg-blue-900/30 dark:text-blue-400',
     completed: 'bg-green-100 text-green-800 dark:bg-green-900/30 dark:text-green-400',
@@ -173,7 +229,7 @@ export default async function MissionPage({ params }: Props) {
       {/* Breadcrumb */}
       <nav className="flex items-center gap-1.5 text-sm text-muted-foreground">
         <Link href={`/workspace/${workspaceId}/missions`} className="hover:text-foreground transition-colors">
-          Misiones
+          {t.missionsTitle}
         </Link>
         <span className="text-muted-foreground/40">›</span>
         <span className="text-foreground font-medium truncate">{objective.label}</span>
@@ -187,10 +243,10 @@ export default async function MissionPage({ params }: Props) {
             {statusLabel[objective.status] ?? objective.status}
           </span>
           <span className={`shrink-0 text-xs font-medium px-2.5 py-1 rounded-full ${PRIORITY_STYLES[objective.priority] ?? 'bg-muted text-muted-foreground'}`}>
-            {STEP_PRIORITY_LABELS[objective.priority as keyof typeof STEP_PRIORITY_LABELS] ?? objective.priority}
+            {stepPriorityLabels[objective.priority as StepPriority] ?? objective.priority}
           </span>
           <span className={`shrink-0 text-xs font-medium px-2.5 py-1 rounded-full ${STATE_STYLE[state] ?? 'bg-muted text-muted-foreground'}`}>
-            {MISSION_STATE_LABELS[state]}
+            {missionStateLabels[state]}
           </span>
         </div>
 
@@ -200,9 +256,9 @@ export default async function MissionPage({ params }: Props) {
 
         {objective.dueDate && (
           <p className="text-xs text-muted-foreground">
-            Fecha límite:{' '}
+            {t.missionDueDate}:{' '}
             <span className="font-medium text-foreground">
-              {new Date(objective.dueDate).toLocaleDateString('es-ES', { day: 'numeric', month: 'long', year: 'numeric' })}
+              {new Date(objective.dueDate).toLocaleDateString(locale, { day: 'numeric', month: 'long', year: 'numeric' })}
             </span>
           </p>
         )}
@@ -211,7 +267,7 @@ export default async function MissionPage({ params }: Props) {
       {/* Barra de progreso */}
       <div className="rounded-lg border bg-card p-5 space-y-4">
         <div className="flex items-center justify-between">
-          <span className="text-sm font-medium">Progreso de la misión</span>
+          <span className="text-sm font-medium">{t.missionProgressTitle}</span>
           <span className="text-lg font-bold font-mono">{progress}%</span>
         </div>
 
@@ -227,7 +283,7 @@ export default async function MissionPage({ params }: Props) {
                   step.status === 'skipped'     ? 'bg-muted'     :
                   'bg-muted/50'
                 }`}
-                title={`${step.title}: ${STEP_STATUS_LABELS[step.status]}`}
+                title={`${step.title}: ${stepStatusLabels[step.status]}`}
               />
             ))}
           </div>
@@ -243,21 +299,21 @@ export default async function MissionPage({ params }: Props) {
         {/* Métricas de progreso */}
         <div className="grid grid-cols-2 sm:grid-cols-4 gap-4 pt-1">
           <ProgressMetric
-            label="Pasos completados"
+            label={t.missionCompletedSteps}
             value={totalSteps > 0 ? `${completedSteps}/${totalSteps}` : `${progress}%`}
           />
           <ProgressMetric
-            label="Pendientes"
+            label={t.missionPendingStepsMetric}
             value={String(pendingSteps)}
             highlight={pendingSteps > 0}
           />
           <ProgressMetric
-            label="Tiempo restante"
-            value={remainMinutes > 0 ? formatMinutes(remainMinutes) : totalMinutes > 0 ? '✓ Completado' : '—'}
+            label={t.missionRemainingTime}
+            value={remainMinutes > 0 ? formatMinutes(remainMinutes) : totalMinutes > 0 ? `✓ ${t.missionCompletedValue}` : '—'}
           />
           <ProgressMetric
-            label="Impacto esperado"
-            value={objective.priority === 'critical' ? 'Crítico' : objective.priority === 'high' ? 'Alto' : 'Medio'}
+            label={t.missionExpectedImpact}
+            value={objective.priority === 'critical' ? t.missionImpactCritical : objective.priority === 'high' ? t.missionImpactHigh : t.missionImpactMedium}
           />
         </div>
       </div>
@@ -266,9 +322,9 @@ export default async function MissionPage({ params }: Props) {
       <div className="rounded-lg border-2 border-primary/30 bg-primary/5 p-5 space-y-3">
         <div className="flex items-center gap-2">
           <span className="text-primary">→</span>
-          <span className="text-xs font-semibold text-primary uppercase tracking-wide">Próxima acción</span>
+          <span className="text-xs font-semibold text-primary uppercase tracking-wide">{t.missionNextAction}</span>
           <span className="text-xs text-muted-foreground ml-auto">
-            {ACTOR_ICON[action.actor]} {RESPONSIBLE_ACTOR_LABELS[action.actor]}
+            {ACTOR_ICON[action.actor]} {responsibleActorLabels[action.actor]}
           </span>
         </div>
         <p className="font-semibold text-base">{action.text}</p>
@@ -289,7 +345,7 @@ export default async function MissionPage({ params }: Props) {
                 className="inline-flex items-center gap-1.5 text-xs bg-primary text-primary-foreground px-3 py-1.5 rounded-md font-medium hover:bg-primary/90 transition-colors"
               >
                 {CATEGORY_ICONS[next.recommendedCategory] ?? '⬡'}
-                {' '}Abrir herramienta
+                {' '}{t.missionOpenTool}
               </Link>
             )}
           </div>
@@ -299,22 +355,22 @@ export default async function MissionPage({ params }: Props) {
 
       {/* Por qué importa esta misión (Mission Insights, MISSION-002) */}
       <section className="rounded-lg border bg-card p-5 space-y-3">
-        <h2 className="text-sm font-semibold">Por qué importa</h2>
+        <h2 className="text-sm font-semibold">{t.missionWhyTitle}</h2>
         <p className="text-sm text-muted-foreground leading-relaxed">
-          {intelligence.why ?? deriveWhy(objective.label, objective.priority)}
+          {intelligence.why ?? deriveWhy(t, objective.label, objective.priority)}
         </p>
         <p className="text-sm text-muted-foreground leading-relaxed">
-          {intelligence.expectedBenefit ?? deriveBenefit(intelligence.impactScore)}
+          {intelligence.expectedBenefit ?? deriveBenefit(t, intelligence.impactScore)}
         </p>
         {intelligence.whatItUnlocks && (
           <p className="text-sm">
-            <span className="font-medium">Desbloqueará: </span>
+            <span className="font-medium">{t.missionUnlocks}: </span>
             <span className="text-muted-foreground">{intelligence.whatItUnlocks}</span>
           </p>
         )}
         {intelligence.departmentsAffected && (
           <p className="text-sm">
-            <span className="font-medium">Departamentos afectados: </span>
+            <span className="font-medium">{t.missionDepartmentsAffected}: </span>
             <span className="text-muted-foreground">{intelligence.departmentsAffected}</span>
           </p>
         )}
@@ -322,14 +378,14 @@ export default async function MissionPage({ params }: Props) {
 
       {/* Impacto esperado (Business Impact, MISSION-002 Fase 4) */}
       <section className="rounded-lg border bg-card p-5">
-        <h2 className="text-sm font-semibold mb-3">Impacto esperado</h2>
+        <h2 className="text-sm font-semibold mb-3">{t.missionImpactTitle}</h2>
         <div className="grid grid-cols-3 gap-4">
-          <ImpactStat label="Impacto" score={intelligence.impactScore} />
-          <ImpactStat label="Urgencia" score={intelligence.urgencyScore} />
-          <ImpactStat label="Esfuerzo" score={intelligence.effortScore} />
+          <ImpactStat label={t.missionImpact} score={intelligence.impactScore} />
+          <ImpactStat label={t.missionUrgency} score={intelligence.urgencyScore} />
+          <ImpactStat label={t.missionEffort} score={intelligence.effortScore} />
         </div>
         {intelligence.riskLevel === 'high' && (
-          <p className="text-xs text-red-600 dark:text-red-400 mt-3">⚠ Riesgo alto si se pospone</p>
+          <p className="text-xs text-red-600 dark:text-red-400 mt-3">⚠ {t.missionHighRisk}</p>
         )}
       </section>
 
@@ -339,18 +395,19 @@ export default async function MissionPage({ params }: Props) {
         workspaceId={workspaceId}
         initialRecommendations={intelligence.aiRecommendations}
         missionCompleted={state === 'completed'}
+        locale={locale}
       />
 
       {/* Línea temporal (Mission Timeline, MISSION-002 Fase 7 simplificada) */}
       {timeline.length > 0 && (
         <section className="space-y-3">
-          <h2 className="text-sm font-semibold">Línea temporal</h2>
+          <h2 className="text-sm font-semibold">{t.missionTimeline}</h2>
           <div className="rounded-lg border bg-card p-4">
             <div className="flex items-center gap-2 flex-wrap">
               {timeline.map((ev, i) => (
                 <span key={ev.id} className="flex items-center gap-2">
                   <span className="text-xs bg-muted px-2 py-1 rounded-full font-medium">
-                    {TIMELINE_EVENT_LABELS[ev.event]}
+                    {timelineEventLabels[ev.event]}
                   </span>
                   {i < timeline.length - 1 && <span className="text-muted-foreground/40">→</span>}
                 </span>
@@ -363,16 +420,16 @@ export default async function MissionPage({ params }: Props) {
       {/* Lista de pasos */}
       <section className="space-y-3">
         <div className="flex items-center justify-between">
-          <h2 className="text-base font-semibold">Pasos de la misión</h2>
+          <h2 className="text-base font-semibold">{t.missionStepsTitle}</h2>
           {totalSteps > 0 && (
             <span className="text-xs text-muted-foreground">
-              {completedSteps} de {totalSteps} completados
+              {completedSteps} / {totalSteps} {t.todayCompletedProgress}
             </span>
           )}
         </div>
 
         {steps.length === 0 ? (
-          <EmptySteps workspaceId={workspaceId} />
+          <EmptySteps workspaceId={workspaceId} t={t} />
         ) : (
           <div className="space-y-2">
             {steps.map((step, idx) => (
@@ -383,6 +440,11 @@ export default async function MissionPage({ params }: Props) {
                 workspaceId={workspaceId}
                 objectiveId={objectiveId}
                 toolsByCategory={toolsByCategory}
+                t={t}
+                locale={locale}
+                categoryLabels={translatedCategoryLabels}
+                stepPriorityLabels={stepPriorityLabels}
+                responsibleActorLabels={responsibleActorLabels}
               />
             ))}
           </div>
@@ -392,17 +454,17 @@ export default async function MissionPage({ params }: Props) {
       {/* Historial / Workflow asociado */}
       {objective.linkedWorkflowId && (
         <section className="space-y-3">
-          <h2 className="text-base font-semibold">Flujo asociado</h2>
+          <h2 className="text-base font-semibold">{t.missionLinkedWorkflow}</h2>
           <div className="rounded-lg border bg-card p-4 flex items-center justify-between">
             <div>
-              <p className="text-sm font-medium">Flujo vinculado a esta misión</p>
-              <p className="text-xs text-muted-foreground mt-0.5">Ver el proceso automatizado asociado</p>
+              <p className="text-sm font-medium">{t.missionLinkedWorkflowTitle}</p>
+              <p className="text-xs text-muted-foreground mt-0.5">{t.missionLinkedWorkflowDescription}</p>
             </div>
             <Link
               href={`/workspace/${workspaceId}/workflows/${objective.linkedWorkflowId}`}
               className="text-sm text-primary hover:underline font-medium shrink-0"
             >
-              Abrir flujo →
+              {t.missionOpenWorkflow} →
             </Link>
           </div>
         </section>
@@ -411,14 +473,14 @@ export default async function MissionPage({ params }: Props) {
       {/* CTA — nunca dejar al usuario sin próxima acción */}
       <div className="rounded-lg border bg-card p-5 flex items-center justify-between gap-4">
         <div>
-          <p className="text-sm font-medium">¿Necesitas ayuda con esta misión?</p>
-          <p className="text-xs text-muted-foreground mt-0.5">Arkos puede guiarte, crear pasos y recomendar herramientas.</p>
+          <p className="text-sm font-medium">{t.missionNeedHelp}</p>
+          <p className="text-xs text-muted-foreground mt-0.5">{t.missionNeedHelpDescription}</p>
         </div>
         <Link
           href={`/workspace/${workspaceId}/copilot`}
           className="shrink-0 inline-flex items-center gap-1.5 text-sm bg-card border px-4 py-2 rounded-md font-medium hover:bg-muted transition-colors"
         >
-          Abrir Arkos
+          {t.missionOpenArkos}
         </Link>
       </div>
     </div>
@@ -461,12 +523,22 @@ function StepCard({
   workspaceId,
   objectiveId,
   toolsByCategory,
+  t,
+  locale,
+  categoryLabels,
+  stepPriorityLabels,
+  responsibleActorLabels,
 }: {
   step:            MissionStepData
   index:           number
   workspaceId:     string
   objectiveId:     string
   toolsByCategory: Record<string, { id: string; name: string }[]>
+  t:               DashboardTranslations
+  locale:          Locale
+  categoryLabels:  Record<string, string>
+  stepPriorityLabels: Record<StepPriority, string>
+  responsibleActorLabels: Record<ResponsibleActor, string>
 }) {
   const isCompleted = step.status === 'completed'
   const isSkipped   = step.status === 'skipped'
@@ -490,10 +562,10 @@ function StepCard({
               {step.title}
             </span>
             <span className={`text-xs px-1.5 py-0.5 rounded font-medium ${PRIORITY_STYLES[step.priority]}`}>
-              {STEP_PRIORITY_LABELS[step.priority]}
+              {stepPriorityLabels[step.priority]}
             </span>
-            <span className="text-xs text-muted-foreground" title="Responsable">
-              {ACTOR_ICON[step.responsibleActor]} {RESPONSIBLE_ACTOR_LABELS[step.responsibleActor]}
+            <span className="text-xs text-muted-foreground" title={t.missionResponsibleTitle}>
+              {ACTOR_ICON[step.responsibleActor]} {responsibleActorLabels[step.responsibleActor]}
             </span>
           </div>
 
@@ -509,7 +581,7 @@ function StepCard({
             )}
             {step.recommendedCategory && (
               <span className="text-xs text-muted-foreground">
-                {CATEGORY_ICONS[step.recommendedCategory] ?? '⬡'} {CATEGORY_LABELS[step.recommendedCategory] ?? step.recommendedCategory}
+                {CATEGORY_ICONS[step.recommendedCategory] ?? '⬡'} {categoryLabels[step.recommendedCategory] ?? step.recommendedCategory}
               </span>
             )}
             {toolHref && !isCompleted && (
@@ -517,7 +589,7 @@ function StepCard({
                 href={toolHref}
                 className="text-xs text-primary hover:underline font-medium"
               >
-                Abrir herramienta →
+                {t.missionOpenTool} →
               </Link>
             )}
             {!toolHref && !isCompleted && step.recommendedCategory && (
@@ -525,12 +597,12 @@ function StepCard({
                 href={`/workspace/${workspaceId}/tools`}
                 className="text-xs text-muted-foreground hover:text-primary transition-colors hover:underline"
               >
-                Instalar herramienta →
+                {t.missionInstallTool} →
               </Link>
             )}
             {step.completedAt && (
               <span className="text-xs text-muted-foreground">
-                ✓ {new Date(step.completedAt).toLocaleDateString('es-ES', { day: 'numeric', month: 'short' })}
+                ✓ {new Date(step.completedAt).toLocaleDateString(locale, { day: 'numeric', month: 'short' })}
               </span>
             )}
           </div>
@@ -550,6 +622,7 @@ function StepCard({
             objectiveId={objectiveId}
             workspaceId={workspaceId}
             currentStatus={step.status}
+            locale={locale}
           />
         </div>
       </div>
@@ -557,20 +630,20 @@ function StepCard({
   )
 }
 
-function EmptySteps({ workspaceId }: { workspaceId: string }) {
+function EmptySteps({ workspaceId, t }: { workspaceId: string; t: DashboardTranslations }) {
   return (
     <div className="rounded-lg border border-dashed bg-card p-10 text-center space-y-3">
       <p className="text-muted-foreground text-sm">
-        Esta misión no tiene pasos definidos todavía.
+        {t.missionNoStepsTitle}
       </p>
       <p className="text-xs text-muted-foreground">
-        Define los pasos para saber exactamente qué hacer, en qué orden y con qué herramienta.
+        {t.missionNoStepsDescription}
       </p>
       <Link
         href={`/workspace/${workspaceId}/copilot`}
         className="inline-block text-sm text-primary hover:underline font-medium"
       >
-        Definir pasos con Arkos →
+        {t.missionDefineStepsWithArkos} →
       </Link>
     </div>
   )

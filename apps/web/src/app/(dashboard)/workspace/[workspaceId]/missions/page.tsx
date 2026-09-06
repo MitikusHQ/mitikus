@@ -2,24 +2,30 @@ import { requireUser } from '@/lib/auth'
 import { db } from '@/lib/db'
 import { notFound } from 'next/navigation'
 import Link from 'next/link'
+import { getLocale } from '@/i18n/locale'
+import { getDashboardTranslations, type DashboardTranslations } from '@/i18n/dashboard-translations'
 
 interface Props {
   params: Promise<{ workspaceId: string }>
   searchParams: Promise<{ estado?: string }>
 }
 
-const STATUS_LABELS: Record<string, string> = {
-  active:    'Activa',
-  completed: 'Completada',
-  paused:    'Pausada',
-  cancelled: 'Cancelada',
+function statusLabels(t: DashboardTranslations): Record<string, string> {
+  return {
+    active:    t.missionsStatusActive,
+    completed: t.missionsStatusCompleted,
+    paused:    t.missionsStatusPaused,
+    cancelled: t.missionsStatusCancelled,
+  }
 }
 
-const PRIORITY_LABELS: Record<string, string> = {
-  critical: 'Crítica',
-  high:     'Alta',
-  medium:   'Media',
-  low:      'Baja',
+function priorityLabels(t: DashboardTranslations): Record<string, string> {
+  return {
+    critical: t.missionsPriorityCritical,
+    high:     t.missionsPriorityHigh,
+    medium:   t.missionsPriorityMedium,
+    low:      t.missionsPriorityLow,
+  }
 }
 
 const STATUS_STYLES: Record<string, string> = {
@@ -37,7 +43,10 @@ const PRIORITY_STYLES: Record<string, string> = {
 }
 
 export default async function MissionsPage({ params, searchParams }: Props) {
-  const [{ workspaceId }, { estado }, user] = await Promise.all([params, searchParams, requireUser()])
+  const [{ workspaceId }, { estado }, user, locale] = await Promise.all([params, searchParams, requireUser(), getLocale()])
+  const t = getDashboardTranslations(locale)
+  const statusText = statusLabels(t)
+  const priorityText = priorityLabels(t)
 
   const workspace = await db.workspace.findFirst({
     where: { id: workspaceId, orgId: user.orgId },
@@ -74,11 +83,11 @@ export default async function MissionsPage({ params, searchParams }: Props) {
   const total = Object.values(countByStatus).reduce((a, b) => a + b, 0)
 
   const filters = [
-    { key: undefined, label: 'Todas', count: total },
-    { key: 'active',    label: 'Activas',     count: countByStatus['active']    ?? 0 },
-    { key: 'completed', label: 'Completadas',  count: countByStatus['completed'] ?? 0 },
-    { key: 'paused',    label: 'Pausadas',     count: countByStatus['paused']    ?? 0 },
-    { key: 'cancelled', label: 'Canceladas',   count: countByStatus['cancelled'] ?? 0 },
+    { key: undefined, label: t.missionsFilterAll, count: total },
+    { key: 'active',    label: t.missionsFilterActive,    count: countByStatus['active']    ?? 0 },
+    { key: 'completed', label: t.missionsFilterCompleted, count: countByStatus['completed'] ?? 0 },
+    { key: 'paused',    label: t.missionsFilterPaused,    count: countByStatus['paused']    ?? 0 },
+    { key: 'cancelled', label: t.missionsFilterCancelled, count: countByStatus['cancelled'] ?? 0 },
   ]
 
   const base = `/workspace/${workspaceId}`
@@ -88,16 +97,16 @@ export default async function MissionsPage({ params, searchParams }: Props) {
       {/* Header */}
       <div className="flex items-center justify-between">
         <div>
-          <h1 className="text-2xl font-bold tracking-tight">Misiones</h1>
+          <h1 className="text-2xl font-bold tracking-tight">{t.missionsTitle}</h1>
           <p className="text-sm text-muted-foreground mt-1">
-            Objetivos estratégicos y su seguimiento de ejecución
+            {t.missionsDescription}
           </p>
         </div>
         <Link
           href={`${base}/copilot`}
           className="rounded-lg bg-primary px-4 py-2 text-sm font-medium text-primary-foreground hover:bg-primary/90 transition-colors"
         >
-          + Nueva misión con Arkos
+          + {t.missionsNewWithArkos}
         </Link>
       </div>
 
@@ -129,23 +138,23 @@ export default async function MissionsPage({ params, searchParams }: Props) {
       {objectives.length === 0 ? (
         <div className="rounded-xl border border-dashed p-12 text-center space-y-3">
           <p className="font-medium text-sm">
-            {statusFilter ? `No hay misiones ${STATUS_LABELS[statusFilter]?.toLowerCase() ?? ''}s` : 'Aún no hay misiones'}
+            {statusFilter ? t.missionsEmptyFilteredTitle : t.missionsEmptyAllTitle}
           </p>
           <p className="text-xs text-muted-foreground max-w-xs mx-auto">
-            Las misiones son objetivos estratégicos con pasos de ejecución. Créalas con Arkos o desde el panel principal.
+            {t.missionsEmptyDescription}
           </p>
           <Link
             href={`${base}/copilot`}
             className="inline-block mt-2 rounded-lg bg-primary px-4 py-2 text-xs font-medium text-primary-foreground hover:bg-primary/90 transition-colors"
           >
-            Crear primera misión con Arkos
+            {t.missionsCreateFirstWithArkos}
           </Link>
         </div>
       ) : (
         <div className="space-y-3">
           {objectives.map((obj) => {
             const stepsTotal = obj._count.steps
-            const stepsLabel = stepsTotal === 1 ? '1 paso' : `${stepsTotal} pasos`
+            const stepsLabel = `${stepsTotal} ${stepsTotal === 1 ? t.missionsStepSingular : t.missionsStepPlural}`
 
             return (
               <Link
@@ -160,11 +169,11 @@ export default async function MissionsPage({ params, searchParams }: Props) {
                       <span
                         className={`shrink-0 text-[10px] font-semibold px-2 py-0.5 rounded-full ${STATUS_STYLES[obj.status] ?? 'bg-muted text-muted-foreground'}`}
                       >
-                        {STATUS_LABELS[obj.status] ?? obj.status}
+                        {statusText[obj.status] ?? obj.status}
                       </span>
                       {obj.priority !== 'medium' && (
                         <span className={`text-[10px] font-medium ${PRIORITY_STYLES[obj.priority] ?? ''}`}>
-                          {PRIORITY_LABELS[obj.priority] ?? obj.priority}
+                          {priorityText[obj.priority] ?? obj.priority}
                         </span>
                       )}
                       {obj.client && (
@@ -188,16 +197,16 @@ export default async function MissionsPage({ params, searchParams }: Props) {
                     <div className="flex items-center gap-3 text-xs text-muted-foreground">
                       <span>{stepsLabel}</span>
                       {obj._count.tasks > 0 && (
-                        <span>{obj._count.tasks} tarea{obj._count.tasks !== 1 ? 's' : ''}</span>
+                        <span>{obj._count.tasks} {obj._count.tasks === 1 ? t.missionsTaskSingular : t.missionsTaskPlural}</span>
                       )}
                       {obj.dueDate && (
                         <span>
-                          Vence {new Date(obj.dueDate).toLocaleDateString('es-ES', { day: 'numeric', month: 'short', year: 'numeric' })}
+                          {t.missionsDuePrefix} {new Date(obj.dueDate).toLocaleDateString(locale, { day: 'numeric', month: 'short', year: 'numeric' })}
                         </span>
                       )}
                       {obj.completedAt && (
                         <span>
-                          Completada {new Date(obj.completedAt).toLocaleDateString('es-ES', { day: 'numeric', month: 'short', year: 'numeric' })}
+                          {t.missionsCompletedPrefix} {new Date(obj.completedAt).toLocaleDateString(locale, { day: 'numeric', month: 'short', year: 'numeric' })}
                         </span>
                       )}
                     </div>

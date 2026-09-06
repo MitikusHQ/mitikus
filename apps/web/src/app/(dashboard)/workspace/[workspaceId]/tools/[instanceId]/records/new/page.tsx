@@ -6,13 +6,16 @@ import { validateToolSchema } from '@protools/schema'
 import type { FormConfig } from '@protools/schema'
 import { createRecord } from '@/app/actions/record'
 import { FormRenderer } from '../../_components/FormRenderer'
+import { getLocale } from '@/i18n/locale'
+import { getDashboardTranslations } from '@/i18n/dashboard-translations'
 
 interface Props {
   params: Promise<{ workspaceId: string; instanceId: string }>
 }
 
 export default async function NewRecordPage({ params }: Props) {
-  const [{ workspaceId, instanceId }, user] = await Promise.all([params, requireUser()])
+  const [{ workspaceId, instanceId }, user, locale] = await Promise.all([params, requireUser(), getLocale()])
+  const t = getDashboardTranslations(locale)
 
   const [workspace, instance] = await Promise.all([
     db.workspace.findFirst({ where: { id: workspaceId, orgId: user.orgId } }),
@@ -28,7 +31,7 @@ export default async function NewRecordPage({ params }: Props) {
   if (!schemaResult.success) {
     return (
       <div className="flex items-center justify-center py-16">
-        <p className="text-destructive text-sm">Schema de herramienta inválido.</p>
+        <p className="text-destructive text-sm">{t.toolInvalidSchema}</p>
       </div>
     )
   }
@@ -37,9 +40,9 @@ export default async function NewRecordPage({ params }: Props) {
   const formCap = schema.capabilities.find((c) => c.type === 'FORM')
   const formConfig: FormConfig = (formCap?.config as FormConfig | undefined) ?? {
     layout: 'single-column',
-    submitLabel: 'Guardar',
+    submitLabel: t.toolSettingsSave,
   }
-  const pageTitle = formCap?.label ?? 'Nueva entrada'
+  const pageTitle = formCap?.label ?? t.toolNewEntry
 
   return (
     <div className="max-w-3xl mx-auto px-6 py-8">
@@ -53,6 +56,7 @@ export default async function NewRecordPage({ params }: Props) {
         instanceId={instanceId}
         dataSchema={schema.dataSchema}
         formConfig={formConfig}
+        locale={locale}
       />
     </div>
   )

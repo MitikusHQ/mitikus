@@ -1,4 +1,6 @@
 import Link from 'next/link'
+import type { Locale } from '@/i18n/config'
+import { getDashboardTranslations } from '@/i18n/dashboard-translations'
 
 interface Step {
   id: string
@@ -11,10 +13,12 @@ interface Step {
 interface Props {
   workspaceId: string
   steps: Step[]
+  locale: Locale
 }
 
-export function OnboardingChecklist({ workspaceId, steps }: Props) {
+export function OnboardingChecklist({ workspaceId, steps, locale }: Props) {
   void workspaceId
+  const t = getDashboardTranslations(locale)
   const done = steps.filter((s) => s.done).length
   const total = steps.length
 
@@ -26,9 +30,9 @@ export function OnboardingChecklist({ workspaceId, steps }: Props) {
     <section className="rounded-xl border bg-card p-5 space-y-4">
       <div className="flex items-start justify-between gap-4">
         <div>
-          <h2 className="text-sm font-semibold">Primeros pasos</h2>
+          <h2 className="text-sm font-semibold">{t.todayFirstSteps}</h2>
           <p className="text-xs text-muted-foreground mt-0.5">
-            {done} de {total} completados
+            {done} / {total} {t.todayCompletedProgress}
           </p>
         </div>
         <span className="shrink-0 text-xs font-bold tabular-nums text-primary">{pct}%</span>

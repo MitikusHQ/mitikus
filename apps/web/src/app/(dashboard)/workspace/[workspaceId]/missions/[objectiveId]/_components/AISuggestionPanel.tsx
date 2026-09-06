@@ -2,15 +2,19 @@
 
 import { useState } from 'react'
 import type { AIRecommendation } from '@/lib/missions/types'
+import type { Locale } from '@/i18n/config'
+import { getDashboardTranslations } from '@/i18n/dashboard-translations'
 
 interface Props {
   objectiveId:    string
   workspaceId:    string
   initialRecommendations: AIRecommendation[] | null
   missionCompleted: boolean
+  locale: Locale
 }
 
-export function AISuggestionPanel({ objectiveId, initialRecommendations, missionCompleted }: Props) {
+export function AISuggestionPanel({ objectiveId, initialRecommendations, missionCompleted, locale }: Props) {
+  const t = getDashboardTranslations(locale)
   const [recommendations, setRecommendations] = useState(initialRecommendations ?? [])
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState<string | null>(null)
@@ -24,7 +28,7 @@ export function AISuggestionPanel({ objectiveId, initialRecommendations, mission
       const data = await res.json() as { recommendations: AIRecommendation[] }
       setRecommendations(data.recommendations)
     } catch {
-      setError('No se pudo generar la sugerencia. Inténtalo de nuevo.')
+      setError(t.missionAiError)
     } finally {
       setLoading(false)
     }
@@ -34,14 +38,14 @@ export function AISuggestionPanel({ objectiveId, initialRecommendations, mission
     <section className="rounded-lg border bg-card p-5 space-y-3">
       <div className="flex items-center justify-between">
         <h2 className="text-sm font-semibold">
-          {missionCompleted ? 'Recomendamos a continuación' : 'Sugerencia de IA'}
+          {missionCompleted ? t.missionAiNextRecommendations : t.missionAiSuggestion}
         </h2>
         <button
           onClick={requestSuggestion}
           disabled={loading}
           className="text-xs text-primary hover:underline font-medium disabled:opacity-40"
         >
-          {loading ? 'Pensando…' : recommendations.length > 0 ? '💡 Regenerar' : '💡 Pedir sugerencia IA'}
+          {loading ? t.missionAiThinking : recommendations.length > 0 ? `💡 ${t.missionAiRegenerate}` : `💡 ${t.missionAiRequest}`}
         </button>
       </div>
 
@@ -50,8 +54,8 @@ export function AISuggestionPanel({ objectiveId, initialRecommendations, mission
       {recommendations.length === 0 ? (
         <p className="text-xs text-muted-foreground">
           {missionCompleted
-            ? 'Generando recomendaciones de próximas misiones…'
-            : 'Pide una sugerencia si dudas sobre cómo continuar.'}
+            ? t.missionAiGeneratingNext
+            : t.missionAiAskHelp}
         </p>
       ) : (
         <ol className="space-y-2">

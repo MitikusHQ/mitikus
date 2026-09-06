@@ -8,6 +8,8 @@ import { listAuditLogs, getAuditFilterOptions } from '@/app/actions/audit'
 import type { AuditAction, AuditEntityType, AuditResult } from '@/lib/audit'
 import { AuditTimeline } from './_components/AuditTimeline'
 import { AuditFilters } from './_components/AuditFilters'
+import { getLocale } from '@/i18n/locale'
+import { getDashboardTranslations } from '@/i18n/dashboard-translations'
 
 interface Props {
   params: Promise<{ workspaceId: string }>
@@ -19,17 +21,19 @@ function sp(v: string | string[] | undefined): string | undefined {
 }
 
 export default async function AuditPage({ params, searchParams }: Props) {
-  const [{ workspaceId }, rawFilters, user] = await Promise.all([
+  const [{ workspaceId }, rawFilters, user, locale] = await Promise.all([
     params,
     searchParams,
     requireUser(),
+    getLocale(),
   ])
+  const t = getDashboardTranslations(locale)
 
   if (!can(user, 'view_usage')) {
     return (
       <div className="max-w-2xl mx-auto px-6 py-16 text-center space-y-3">
-        <p className="text-lg font-semibold">Acceso restringido</p>
-        <p className="text-sm text-muted-foreground">Solo los administradores del workspace pueden ver el registro de auditoría.</p>
+        <p className="text-lg font-semibold">{t.auditAccessRestricted}</p>
+        <p className="text-sm text-muted-foreground">{t.auditAdminOnly}</p>
       </div>
     )
   }
@@ -69,9 +73,9 @@ export default async function AuditPage({ params, searchParams }: Props) {
     <div className="max-w-5xl mx-auto px-6 py-8 space-y-8">
       <div className="flex items-start justify-between gap-4">
         <div>
-          <h1 className="text-xl font-semibold">Auditoría</h1>
+          <h1 className="text-xl font-semibold">{t.auditTitle}</h1>
           <p className="text-xs text-muted-foreground mt-0.5">
-            Rastro de auditoría · {total.toLocaleString('es-ES')} eventos
+            {t.auditSubtitlePrefix}{total.toLocaleString()}{t.auditSubtitleSuffix}
           </p>
         </div>
         <a
@@ -82,13 +86,13 @@ export default async function AuditPage({ params, searchParams }: Props) {
           <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden>
             <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/>
           </svg>
-          Exportar CSV
+          {t.auditExportCsv}
         </a>
       </div>
 
         {/* Filtros */}
         <section className="rounded-lg border bg-card p-5">
-          <h2 className="text-sm font-semibold text-muted-foreground uppercase tracking-wide mb-4">Filtros</h2>
+          <h2 className="text-sm font-semibold text-muted-foreground uppercase tracking-wide mb-4">{t.auditFiltersLabel}</h2>
           <Suspense fallback={<div className="h-9 bg-muted rounded animate-pulse w-full" />}>
             <AuditFilters options={actorOptions} />
           </Suspense>
@@ -96,15 +100,15 @@ export default async function AuditPage({ params, searchParams }: Props) {
 
         {/* Stats rápidas */}
         <div className="grid gap-3 sm:grid-cols-3">
-          <StatCard label="Total eventos" value={total.toLocaleString('es-ES')} />
+          <StatCard label={t.auditTotalEvents} value={total.toLocaleString()} />
           <StatCard
-            label="Errores"
-            value={totalFailures.toLocaleString('es-ES')}
+            label={t.auditErrors}
+            value={totalFailures.toLocaleString()}
             danger
           />
           <StatCard
-            label="Denegados"
-            value={totalDenied.toLocaleString('es-ES')}
+            label={t.auditDenied}
+            value={totalDenied.toLocaleString()}
             warning
           />
         </div>
@@ -112,10 +116,10 @@ export default async function AuditPage({ params, searchParams }: Props) {
         {/* Timeline */}
         <section className="rounded-lg border bg-card p-6">
           <div className="flex items-center justify-between mb-6">
-            <h2 className="text-base font-semibold">Eventos</h2>
+            <h2 className="text-base font-semibold">{t.auditEventsLabel}</h2>
             {total > limit && (
               <span className="text-xs text-muted-foreground">
-                Página {currentPage} de {totalPages}
+                {t.auditPageLabel}{currentPage}{t.auditPageOf}{totalPages}
               </span>
             )}
           </div>
@@ -127,11 +131,11 @@ export default async function AuditPage({ params, searchParams }: Props) {
             <div className="flex justify-between pt-4 border-t border-border mt-4">
               <PaginationLink
                 href={offset > 0 ? `?offset=${Math.max(0, offset - limit)}` : undefined}
-                label="← Anterior"
+                label={t.auditPrev}
               />
               <PaginationLink
                 href={offset + limit < total ? `?offset=${offset + limit}` : undefined}
-                label="Siguiente →"
+                label={t.auditNext}
               />
             </div>
           )}

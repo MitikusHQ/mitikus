@@ -1,37 +1,40 @@
 import { requireUser } from '@/lib/auth'
 import Link from 'next/link'
+import { getLocale } from '@/i18n/locale'
+import { getDashboardTranslations } from '@/i18n/dashboard-translations'
 
 interface Props {
   params: Promise<{ workspaceId: string }>
 }
 
 export default async function MyOfficePage({ params }: Props) {
-  const [{ workspaceId }] = await Promise.all([params, requireUser()])
+  const [{ workspaceId }, , locale] = await Promise.all([params, requireUser(), getLocale()])
+  const t = getDashboardTranslations(locale)
   const base = `/workspace/${workspaceId}`
 
   return (
     <div className="max-w-3xl mx-auto px-6 py-8 space-y-8">
       <div>
-        <h1 className="text-xl font-semibold">Mi Office</h1>
+        <h1 className="text-xl font-semibold">{t.officeTitle}</h1>
         <p className="text-xs text-muted-foreground mt-0.5">
-          Tus herramientas de documento y gestión
+          {t.officeSubtitle}
         </p>
       </div>
 
       {/* ── Documentos — uso frecuente, tarjetas grandes ── */}
       <section className="space-y-3">
-        <h2 className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">Documentos</h2>
+        <h2 className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">{t.officeDocumentsSection}</h2>
         <div className="grid grid-cols-2 sm:grid-cols-3 gap-3">
           {[
-            { href: `${base}/docs`,          emoji: '📄', title: 'Documentos',       subtitle: 'Redacta y edita con IA' },
-            { href: `${base}/contracts`,     emoji: '✍️', title: 'Contratos',        subtitle: 'Firma electrónica' },
-            { href: `${base}/invoices`,      emoji: '🧾', title: 'Facturas',         subtitle: 'PDF descargable' },
-            { href: `${base}/sheets`,        emoji: '📊', title: 'Hojas de cálculo', subtitle: 'Datos y presupuestos' },
-            { href: `${base}/pdfs`,          emoji: '📑', title: 'PDFs',             subtitle: 'Visor y búsqueda' },
-            { href: `${base}/presentations`, emoji: '🖥️', title: 'Presentaciones',   subtitle: 'Crea y comparte' },
-            { href: `${base}/notebooks`,     emoji: '🧠', title: 'Notebooks',        subtitle: 'Sintetiza con IA' },
-            { href: `${base}/receipts`,      emoji: '📷', title: 'Gastos',           subtitle: 'OCR por cámara' },
-            { href: `${base}/office/files`, emoji: '🗂️', title: 'Archivos',          subtitle: 'Carpetas y ficheros' },
+            { href: `${base}/docs`,          emoji: '📄', title: t.officeToolDocs,          subtitle: t.officeToolDocsSubtitle },
+            { href: `${base}/contracts`,     emoji: '✍️', title: t.officeToolContracts,     subtitle: t.officeToolContractsSubtitle },
+            { href: `${base}/invoices`,      emoji: '🧾', title: t.officeToolInvoices,      subtitle: t.officeToolInvoicesSubtitle },
+            { href: `${base}/sheets`,        emoji: '📊', title: t.officeToolSheets,        subtitle: t.officeToolSheetsSubtitle },
+            { href: `${base}/pdfs`,          emoji: '📑', title: t.officeToolPdfs,          subtitle: t.officeToolPdfsSubtitle },
+            { href: `${base}/presentations`, emoji: '🖥️', title: t.officeToolPresentations, subtitle: t.officeToolPresentationsSubtitle },
+            { href: `${base}/notebooks`,     emoji: '🧠', title: t.officeToolNotebooks,     subtitle: t.officeToolNotebooksSubtitle },
+            { href: `${base}/receipts`,      emoji: '📷', title: t.officeToolReceipts,      subtitle: t.officeToolReceiptsSubtitle },
+            { href: `${base}/office/files`,  emoji: '🗂️', title: t.officeToolFiles,         subtitle: t.officeToolFilesSubtitle },
           ].map((tool) => (
             <Link
               key={tool.title}
@@ -51,16 +54,16 @@ export default async function MyOfficePage({ params }: Props) {
       {/* ── Fiscal — lista compacta agrupada ── */}
       <section className="space-y-3">
         <div className="flex items-center justify-between">
-          <h2 className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">Fiscal (España)</h2>
+          <h2 className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">{t.officeFiscalSection}</h2>
           <Link href={`${base}/fiscal`} className="text-xs text-primary hover:underline">
-            Ver calendario →
+            {t.officeSeeCalendar}
           </Link>
         </div>
 
         <div className="rounded-xl border bg-card divide-y">
           {/* Trimestral */}
           <div className="px-4 py-2">
-            <p className="text-[10px] font-semibold text-muted-foreground uppercase tracking-wide mb-2">Trimestral</p>
+            <p className="text-[10px] font-semibold text-muted-foreground uppercase tracking-wide mb-2">{t.officeQuarterly}</p>
             <div className="space-y-1">
               {[
                 { href: `${base}/fiscal/303`, emoji: '🧮', title: 'Modelo 303', subtitle: 'IVA trimestral' },
@@ -85,7 +88,7 @@ export default async function MyOfficePage({ params }: Props) {
 
           {/* Anual */}
           <div className="px-4 py-2">
-            <p className="text-[10px] font-semibold text-muted-foreground uppercase tracking-wide mb-2">Anual</p>
+            <p className="text-[10px] font-semibold text-muted-foreground uppercase tracking-wide mb-2">{t.officeAnnual}</p>
             <div className="space-y-1">
               {[
                 { href: `${base}/fiscal/390`, emoji: '📊', title: 'Modelo 390', subtitle: 'IVA resumen anual' },

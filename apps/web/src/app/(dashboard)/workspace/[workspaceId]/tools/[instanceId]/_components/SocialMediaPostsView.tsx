@@ -4,6 +4,7 @@ import { useState, useMemo } from 'react'
 import Link from 'next/link'
 import { cn } from '@/lib/utils'
 import { DeleteButton } from './DeleteButton'
+import type { Locale } from '@/i18n/config'
 
 interface SocialPost {
   id: string
@@ -22,7 +23,7 @@ interface Props {
   records: SocialPost[]
   workspaceId: string
   instanceId: string
-  locale: string
+  locale: Locale
 }
 
 const STATUS_COLORS: Record<string, string> = {
@@ -205,7 +206,7 @@ export function SocialMediaPostsView({ records, workspaceId, instanceId, locale 
                     >
                       Ver
                     </Link>
-                    <DeleteButton instanceId={instanceId} recordId={post.id} />
+                    <DeleteButton instanceId={instanceId} recordId={post.id} locale={locale} />
                   </div>
                 </div>
               </div>

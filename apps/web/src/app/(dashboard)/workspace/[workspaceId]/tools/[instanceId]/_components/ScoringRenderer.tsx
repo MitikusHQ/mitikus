@@ -3,6 +3,8 @@
 import { useState, useTransition } from 'react'
 import type { ScoringConfig } from '@protools/schema'
 import { saveScoringRecord } from '@/app/actions/record'
+import type { Locale } from '@/i18n/config'
+import { getDashboardTranslations } from '@/i18n/dashboard-translations'
 
 interface Props {
   instanceId: string
@@ -10,6 +12,7 @@ interface Props {
   config: ScoringConfig
   defaultScores?: Record<string, number>
   recordId?: string
+  locale: Locale
 }
 
 function computeTotal(config: ScoringConfig, scores: Record<string, number>): number {
@@ -44,7 +47,9 @@ export function ScoringRenderer({
   config,
   defaultScores = {},
   recordId,
+  locale,
 }: Props) {
+  const t = getDashboardTranslations(locale)
   const [scores, setScores] = useState<Record<string, number>>(() => {
     const init: Record<string, number> = {}
     for (const c of config.criteria) {
@@ -96,14 +101,14 @@ export function ScoringRenderer({
               : 'border-border'
           }`}
         >
-          <p className="text-sm text-muted-foreground mb-1">Puntuación total</p>
+          <p className="text-sm text-muted-foreground mb-1">{t.toolScoringTotal}</p>
           <p className="text-5xl font-bold tabular-nums">{total.toFixed(2)}</p>
           {threshold && (
             <p className="text-sm font-semibold mt-2">{threshold.label}</p>
           )}
           {config.passingScore !== undefined && (
             <p className="text-xs text-muted-foreground mt-1">
-              Mínimo para pasar: {config.passingScore}
+              {t.toolScoringPassingMinimum}: {config.passingScore}
             </p>
           )}
         </div>
@@ -186,10 +191,10 @@ export function ScoringRenderer({
         className="rounded-md bg-primary px-5 py-2 text-sm font-medium text-primary-foreground shadow hover:bg-primary/90 disabled:opacity-50 transition-colors"
       >
         {isPending
-          ? 'Guardando…'
+          ? `${t.toolApprovalSaving.replace('...', '')}…`
           : recordId
-          ? 'Actualizar evaluación'
-          : 'Guardar evaluación'}
+          ? t.toolScoringUpdate
+          : t.toolScoringSave}
       </button>
     </div>
   )

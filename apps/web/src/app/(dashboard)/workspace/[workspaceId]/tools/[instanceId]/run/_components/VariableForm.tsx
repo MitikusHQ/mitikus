@@ -2,6 +2,8 @@
 
 import type { DataSchema, FormConfig } from '@protools/schema'
 import { ImportButton } from './ImportButton'
+import type { Locale } from '@/i18n/config'
+import { getDashboardTranslations } from '@/i18n/dashboard-translations'
 
 interface Props {
   fields: DataSchema['fields']
@@ -11,6 +13,7 @@ interface Props {
   isLoading: boolean
   contextFields?: Set<string>
   formSections?: FormConfig['sections']
+  locale: Locale
 }
 
 function VariableFieldInput({
@@ -18,12 +21,15 @@ function VariableFieldInput({
   field,
   value,
   onChange,
+  locale,
 }: {
   fieldId: string
   field: DataSchema['fields'][string]
   value: string
   onChange: (v: string) => void
+  locale: Locale
 }) {
+  const t = getDashboardTranslations(locale)
   const base =
     'w-full rounded-md border border-input bg-background px-3 py-2 text-sm shadow-sm placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-ring'
 
@@ -50,7 +56,7 @@ function VariableFieldInput({
         onChange={(e) => onChange(e.target.value)}
         className={base}
       >
-        <option value="">Selecciona una opción</option>
+        <option value="">{t.toolSelectOption}</option>
         {field.options.map((opt) => (
           <option key={opt} value={opt}>
             {opt}
@@ -95,7 +101,7 @@ function VariableFieldInput({
           onChange={(e) => onChange(e.target.checked ? 'true' : 'false')}
           className="h-4 w-4 rounded border-input accent-primary"
         />
-        <span className="text-sm text-muted-foreground">Sí</span>
+        <span className="text-sm text-muted-foreground">{t.toolYes}</span>
       </div>
     )
   }
@@ -124,13 +130,16 @@ function FieldBlock({
   value,
   contextFields,
   onChange,
+  locale,
 }: {
   fieldId: string
   field: DataSchema['fields'][string]
   value: string
   contextFields?: Set<string>
   onChange: (fieldId: string, value: string) => void
+  locale: Locale
 }) {
+  const t = getDashboardTranslations(locale)
   return (
     <div key={fieldId} className="space-y-1.5">
       <label
@@ -145,7 +154,7 @@ function FieldBlock({
         )}
         {contextFields?.has(fieldId) && (
           <span className="text-[10px] font-normal text-primary/60 bg-primary/8 border border-primary/20 rounded px-1.5 py-0.5 leading-none">
-            📎 contexto
+            📎 {locale === 'es' ? 'contexto' : 'context'}
           </span>
         )}
         {field.type === 'textarea' && (
@@ -157,6 +166,7 @@ function FieldBlock({
         field={field}
         value={value}
         onChange={(v) => onChange(fieldId, v)}
+        locale={locale}
       />
       {field.helpText && (
         <p className="text-xs text-muted-foreground">{field.helpText}</p>
@@ -165,7 +175,8 @@ function FieldBlock({
   )
 }
 
-export function VariableForm({ fields, values, onChange, onSubmit, isLoading, contextFields, formSections }: Props) {
+export function VariableForm({ fields, values, onChange, onSubmit, isLoading, contextFields, formSections, locale }: Props) {
+  const t = getDashboardTranslations(locale)
   function handleFieldChange(fieldId: string, value: string) {
     onChange({ ...values, [fieldId]: value })
   }
@@ -180,7 +191,7 @@ export function VariableForm({ fields, values, onChange, onSubmit, isLoading, co
     <form onSubmit={onSubmit} className="space-y-6">
       {Object.keys(fields).length === 0 ? (
         <p className="text-sm text-muted-foreground">
-          Esta herramienta no requiere variables. Ejecuta directamente.
+          {t.toolNoVariables}
         </p>
       ) : hasSections ? (
         <>
@@ -200,6 +211,7 @@ export function VariableForm({ fields, values, onChange, onSubmit, isLoading, co
                     value={values[fieldId] ?? ''}
                     contextFields={contextFields}
                     onChange={handleFieldChange}
+                    locale={locale}
                   />
                 )
               })}
@@ -213,6 +225,7 @@ export function VariableForm({ fields, values, onChange, onSubmit, isLoading, co
               value={values[fieldId] ?? ''}
               contextFields={contextFields}
               onChange={handleFieldChange}
+              locale={locale}
             />
           ))}
         </>
@@ -225,6 +238,7 @@ export function VariableForm({ fields, values, onChange, onSubmit, isLoading, co
             value={values[fieldId] ?? ''}
             contextFields={contextFields}
             onChange={handleFieldChange}
+            locale={locale}
           />
         ))
       )}
@@ -237,10 +251,10 @@ export function VariableForm({ fields, values, onChange, onSubmit, isLoading, co
         {isLoading ? (
           <>
             <span className="inline-block h-4 w-4 rounded-full border-2 border-primary-foreground/30 border-t-primary-foreground animate-spin" />
-            Generando…
+            {t.toolGenerating}
           </>
         ) : (
-          '✨ Ejecutar'
+          `✨ ${t.toolRun}`
         )}
       </button>
     </form>

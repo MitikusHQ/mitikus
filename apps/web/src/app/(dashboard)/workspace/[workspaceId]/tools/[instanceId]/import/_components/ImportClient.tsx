@@ -3,6 +3,8 @@
 import { useCallback, useState, useRef } from 'react'
 import { importRecords } from '@/app/actions/record'
 import type { ImportResult } from '@/app/actions/record'
+import type { Locale } from '@/i18n/config'
+import { getDashboardTranslations } from '@/i18n/dashboard-translations'
 
 interface Field {
   id: string
@@ -15,6 +17,7 @@ interface ImportClientProps {
   instanceId: string
   workspaceId: string
   fields: Field[]
+  locale: Locale
 }
 
 type Step = 'upload' | 'preview' | 'importing' | 'done'
@@ -93,7 +96,8 @@ function rowToRecord(
   return record
 }
 
-export function ImportClient({ instanceId, workspaceId, fields }: ImportClientProps) {
+export function ImportClient({ instanceId, workspaceId, fields, locale }: ImportClientProps) {
+  const t = getDashboardTranslations(locale)
   const [step, setStep]     = useState<Step>('upload')
   const [parsed, setParsed] = useState<ParsedCSV | null>(null)
   const [mapping, setMapping] = useState<Record<string, number>>({})
@@ -107,7 +111,7 @@ export function ImportClient({ instanceId, workspaceId, fields }: ImportClientPr
       const text = e.target?.result as string
       const csv  = parseCSV(text)
       if (csv.headers.length === 0) {
-        setError('El fichero está vacío o no tiene cabeceras.')
+        setError(t.toolCsvEmptyError)
         return
       }
       setParsed(csv)
@@ -116,10 +120,10 @@ export function ImportClient({ instanceId, workspaceId, fields }: ImportClientPr
       setError(null)
     }
     reader.readAsText(file, 'UTF-8')
-  }, [fields])
+  }, [fields, t.toolCsvEmptyError])
 
   const handleFile = (file: File) => {
-    if (!file.name.endsWith('.csv')) { setError('Solo se admiten ficheros .csv'); return }
+    if (!file.name.endsWith('.csv')) { setError(t.toolCsvOnlyError); return }
     processFile(file)
   }
 
@@ -128,7 +132,7 @@ export function ImportClient({ instanceId, workspaceId, fields }: ImportClientPr
     const blob   = new Blob([header + '\n'], { type: 'text/csv;charset=utf-8' })
     const url    = URL.createObjectURL(blob)
     const a      = document.createElement('a')
-    a.href = url; a.download = 'plantilla.csv'; a.click()
+    a.href = url; a.download = t.toolCsvTemplateFilename; a.click()
     URL.revokeObjectURL(url)
   }
 
@@ -144,7 +148,7 @@ export function ImportClient({ instanceId, workspaceId, fields }: ImportClientPr
       if (res.error) { setError(res.error); setStep('preview') }
       else { setResult(res); setStep('done') }
     } catch {
-      setError('Error inesperado al importar.'); setStep('preview')
+      setError(t.toolImportUnexpectedError); setStep('preview')
     }
   }
 
@@ -164,8 +168,8 @@ export function ImportClient({ instanceId, workspaceId, fields }: ImportClientPr
           className="border-2 border-dashed rounded-xl p-16 text-center cursor-pointer hover:border-primary/50 hover:bg-primary/5 transition-colors"
         >
           <p className="text-3xl mb-3">📂</p>
-          <p className="text-sm font-medium">Arrastra un CSV aquí o haz clic para seleccionar</p>
-          <p className="text-xs text-muted-foreground mt-1">Solo ficheros .csv · UTF-8</p>
+          <p className="text-sm font-medium">{t.toolCsvDrop}</p>
+          <p className="text-xs text-muted-foreground mt-1">{t.toolCsvOnlyUtf8}</p>
           <input
             ref={fileRef}
             type="file"
@@ -182,7 +186,7 @@ export function ImportClient({ instanceId, workspaceId, fields }: ImportClientPr
             onClick={downloadTemplate}
             className="text-xs text-muted-foreground hover:text-primary transition-colors underline-offset-4 hover:underline"
           >
-            Descargar plantilla CSV →
+            {t.toolDownloadCsvTemplate} →
           </button>
         </div>
       </div>
@@ -197,7 +201,7 @@ export function ImportClient({ instanceId, workspaceId, fields }: ImportClientPr
       <div className="space-y-6">
         {/* Mapping */}
         <div className="rounded-lg border bg-card p-4 space-y-3">
-          <p className="text-sm font-medium">Mapeo de columnas</p>
+          <p className="text-sm font-medium">{t.toolColumnMapping}</p>
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-x-8 gap-y-1.5">
             {fields.map((f) => {
               const idx       = mapping[f.id]
@@ -209,7 +213,7 @@ export function ImportClient({ instanceId, workspaceId, fields }: ImportClientPr
                   </span>
                   <span className="text-foreground">{f.label}</span>
                   {f.required && idx === undefined && (
-                    <span className="text-destructive font-medium ml-1">obligatorio</span>
+                    <span className="text-destructive font-medium ml-1">{t.toolRequired}</span>
                   )}
                   {csvHeader && norm(csvHeader) !== norm(f.label) && (
                     <span className="text-muted-foreground/50 truncate">← "{csvHeader}"</span>
@@ -222,7 +226,7 @@ export function ImportClient({ instanceId, workspaceId, fields }: ImportClientPr
 
         {requiredUnmapped.length > 0 && (
           <div className="rounded-md border border-destructive/30 bg-destructive/10 p-3 text-sm text-destructive">
-            Faltan columnas obligatorias: <strong>{requiredUnmapped.map((f) => f.label).join(', ')}</strong>. No se podrán importar registros válidos.
+            {t.toolMissingRequiredColumns}: <strong>{requiredUnmapped.map((f) => f.label).join(', ')}</strong>. {t.toolMissingRequiredColumnsSuffix}
           </div>
         )}
 
@@ -230,7 +234,9 @@ export function ImportClient({ instanceId, workspaceId, fields }: ImportClientPr
         {mappedFields.length > 0 && previewRows.length > 0 && (
           <div className="space-y-2">
             <p className="text-sm font-medium text-muted-foreground">
-              Vista previa — {previewRows.length < rowCount ? `primeras ${previewRows.length} de ${rowCount} filas` : `${rowCount} fila${rowCount !== 1 ? 's' : ''}`}
+              {t.toolPreview} — {previewRows.length < rowCount
+                ? `${t.toolPreviewFirstRows} ${previewRows.length} / ${rowCount} ${t.toolPreviewRows}`
+                : `${rowCount} ${t.toolPreviewRows}`}
             </p>
             <div className="rounded-lg border overflow-hidden">
               <div className="overflow-x-auto">
@@ -272,13 +278,13 @@ export function ImportClient({ instanceId, workspaceId, fields }: ImportClientPr
             disabled={step === 'importing' || requiredUnmapped.length > 0 || rowCount === 0}
             className="rounded-md bg-primary px-5 py-2 text-sm font-medium text-primary-foreground shadow hover:bg-primary/90 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
           >
-            {step === 'importing' ? 'Importando…' : `Importar ${rowCount} registro${rowCount !== 1 ? 's' : ''}`}
+            {step === 'importing' ? `${t.toolImporting}…` : `${t.toolImportRecords} (${rowCount})`}
           </button>
           <button
             onClick={() => { setStep('upload'); setParsed(null); setError(null) }}
             className="text-sm text-muted-foreground hover:text-foreground transition-colors"
           >
-            Cambiar fichero
+            {t.toolChangeFile}
           </button>
         </div>
       </div>
@@ -292,11 +298,11 @@ export function ImportClient({ instanceId, workspaceId, fields }: ImportClientPr
         <p className="text-5xl">✓</p>
         <div>
           <p className="text-lg font-semibold">
-            {result.imported} registro{result.imported !== 1 ? 's' : ''} importado{result.imported !== 1 ? 's' : ''}
+            {result.imported} {result.imported === 1 ? t.toolImportedSingular : t.toolImportedPlural}
           </p>
           {result.skipped > 0 && (
             <p className="text-sm text-muted-foreground mt-1">
-              {result.skipped} fila{result.skipped !== 1 ? 's' : ''} omitida{result.skipped !== 1 ? 's' : ''} (campos obligatorios vacíos o límite de plan)
+              {result.skipped} {result.skipped === 1 ? t.toolSkippedSingular : t.toolSkippedPlural} ({t.toolSkippedReason})
             </p>
           )}
         </div>
@@ -304,7 +310,7 @@ export function ImportClient({ instanceId, workspaceId, fields }: ImportClientPr
           href={`/workspace/${workspaceId}/tools/${instanceId}`}
           className="inline-flex items-center rounded-md bg-primary px-5 py-2 text-sm font-medium text-primary-foreground shadow hover:bg-primary/90 transition-colors"
         >
-          Ver registros →
+          {t.toolViewRecords} →
         </a>
       </div>
     )

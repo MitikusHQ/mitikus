@@ -2,6 +2,8 @@
 
 import { useActionState } from 'react'
 import type { DataSchema, FormConfig } from '@protools/schema'
+import type { Locale } from '@/i18n/config'
+import { getDashboardTranslations } from '@/i18n/dashboard-translations'
 
 type FormState = { error: string } | null
 type FormAction = (prev: FormState, formData: FormData) => Promise<FormState>
@@ -13,17 +15,21 @@ interface Props {
   formConfig: FormConfig
   defaultValues?: Record<string, unknown>
   recordId?: string
+  locale: Locale
 }
 
 function FieldInput({
   fieldId,
   field,
   defaultValue,
+  locale,
 }: {
   fieldId: string
   field: DataSchema['fields'][string]
   defaultValue?: unknown
+  locale: Locale
 }) {
+  const t = getDashboardTranslations(locale)
   const base =
     'w-full rounded-md border border-input bg-background px-3 py-2 text-sm shadow-sm placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-ring'
 
@@ -71,7 +77,7 @@ function FieldInput({
         defaultValue={defaultValue != null ? String(defaultValue) : ''}
         className={base}
       >
-        <option value="">Selecciona una opción</option>
+        <option value="">{t.toolSelectPlaceholder}</option>
         {field.options.map((opt) => (
           <option key={opt} value={opt}>
             {opt}
@@ -91,7 +97,7 @@ function FieldInput({
           defaultChecked={Boolean(defaultValue)}
           className="h-4 w-4 rounded border-input accent-primary"
         />
-        <span className="text-sm text-muted-foreground">Sí</span>
+        <span className="text-sm text-muted-foreground">{t.toolYes}</span>
       </div>
     )
   }
@@ -131,10 +137,12 @@ export function FormRenderer({
   formConfig,
   defaultValues = {},
   recordId,
+  locale,
 }: Props) {
+  const t = getDashboardTranslations(locale)
   const [state, formAction, isPending] = useActionState<FormState, FormData>(action, null)
 
-  const submitLabel = formConfig.submitLabel ?? 'Guardar'
+  const submitLabel = formConfig.submitLabel ?? t.toolSettingsSave
 
   // Obtener la lista de secciones o crear una sección virtual con todos los campos
   const sections =
@@ -181,6 +189,7 @@ export function FormRenderer({
                   fieldId={fieldId}
                   field={field}
                   defaultValue={defaultValues[fieldId]}
+                  locale={locale}
                 />
                 {field.helpText && (
                   <p className="text-xs text-muted-foreground">{field.helpText}</p>
@@ -202,7 +211,7 @@ export function FormRenderer({
         disabled={isPending}
         className="rounded-md bg-primary px-5 py-2 text-sm font-medium text-primary-foreground shadow hover:bg-primary/90 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
       >
-        {isPending ? 'Guardando…' : submitLabel}
+        {isPending ? `${t.toolApprovalSaving.replace('...', '')}…` : submitLabel}
       </button>
     </form>
   )

@@ -2,12 +2,16 @@
 
 import { useState, useTransition } from 'react'
 import { getOrCreatePortalToken } from '@/app/actions/client-portal'
+import type { Locale } from '@/i18n/config'
+import { getDashboardTranslations } from '@/i18n/dashboard-translations'
 
 interface Props {
   clientId: string
+  locale: Locale
 }
 
-export function PortalLinkButton({ clientId }: Props) {
+export function PortalLinkButton({ clientId, locale }: Props) {
+  const t = getDashboardTranslations(locale)
   const [copied, setCopied]     = useState(false)
   const [, startTransition]     = useTransition()
 
@@ -27,7 +31,7 @@ export function PortalLinkButton({ clientId }: Props) {
       onClick={handleCopy}
       className="inline-flex items-center gap-1.5 rounded-md border border-input bg-card px-3 py-1.5 text-xs font-medium hover:bg-accent transition-colors"
     >
-      {copied ? '✓ Enlace copiado' : '🔗 Portal del cliente'}
+      {copied ? `✓ ${t.clientsPortalCopied}` : `🔗 ${t.clientsPortal}`}
     </button>
   )
 }

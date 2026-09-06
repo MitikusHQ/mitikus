@@ -4,6 +4,8 @@ import { useState } from 'react'
 import { useRouter } from 'next/navigation'
 import { transitionApprovalRecord } from '@/app/actions/record'
 import type { ApprovalRecordStatus } from '@/app/actions/record'
+import type { Locale } from '@/i18n/config'
+import { getDashboardTranslations } from '@/i18n/dashboard-translations'
 
 interface Props {
   instanceId: string
@@ -11,6 +13,7 @@ interface Props {
   workspaceId: string
   requireCommentOnRejection: boolean
   statusLabels?: Partial<Record<string, string>>
+  locale: Locale
 }
 
 export function ApprovalActions({
@@ -19,7 +22,9 @@ export function ApprovalActions({
   workspaceId,
   requireCommentOnRejection,
   statusLabels,
+  locale,
 }: Props) {
+  const t = getDashboardTranslations(locale)
   const router = useRouter()
   const [comment, setComment]   = useState('')
   const [loading, setLoading]   = useState(false)
@@ -28,7 +33,11 @@ export function ApprovalActions({
   const [pendingStatus, setPendingStatus] = useState<ApprovalRecordStatus | null>(null)
 
   function labelFor(s: string) {
-    return statusLabels?.[s] ?? { approved: 'Aprobar', rejected: 'Rechazar', on_hold: 'Poner en espera' }[s] ?? s
+    return statusLabels?.[s] ?? {
+      approved: t.toolApprovalApproveAction,
+      rejected: t.toolApprovalRejectAction,
+      on_hold: t.toolApprovalHoldAction,
+    }[s] ?? s
   }
 
   async function handleTransition(status: ApprovalRecordStatus) {
@@ -38,7 +47,7 @@ export function ApprovalActions({
       return
     }
     if (status === 'rejected' && showComment && requireCommentOnRejection && !comment.trim()) {
-      setError('Indica el motivo del rechazo.')
+      setError(t.toolApprovalMissingReason)
       return
     }
     setLoading(true)
@@ -63,18 +72,18 @@ export function ApprovalActions({
 
   return (
     <div className="rounded-xl border border-border bg-card p-6 space-y-4">
-      <h2 className="text-sm font-semibold text-foreground">Decisión</h2>
+      <h2 className="text-sm font-semibold text-foreground">{t.toolApprovalDecision}</h2>
 
       {showComment && (
         <div>
           <label className="text-xs font-medium text-muted-foreground block mb-1">
-            Motivo{requireCommentOnRejection ? ' (obligatorio)' : ''}
+            {t.toolApprovalReason}{requireCommentOnRejection ? ` (${t.toolApprovalReasonRequired})` : ''}
           </label>
           <textarea
             value={comment}
             onChange={(e) => setComment(e.target.value)}
             rows={3}
-            placeholder="Indica el motivo de tu decisión..."
+            placeholder={t.toolApprovalReasonPlaceholder}
             className="w-full px-3 py-2 text-sm border border-border rounded-lg bg-background text-foreground focus:outline-none focus:ring-1 focus:ring-primary resize-none"
           />
         </div>
@@ -83,13 +92,13 @@ export function ApprovalActions({
       {!showComment && (
         <div>
           <label className="text-xs font-medium text-muted-foreground block mb-1">
-            Comentario (opcional)
+            {t.toolApprovalCommentOptional}
           </label>
           <textarea
             value={comment}
             onChange={(e) => setComment(e.target.value)}
             rows={2}
-            placeholder="Añade un comentario a tu decisión..."
+            placeholder={t.toolApprovalCommentPlaceholder}
             className="w-full px-3 py-2 text-sm border border-border rounded-lg bg-background text-foreground focus:outline-none focus:ring-1 focus:ring-primary resize-none"
           />
         </div>
@@ -103,7 +112,7 @@ export function ApprovalActions({
           disabled={loading}
           className="px-4 py-2 text-sm font-medium bg-green-600 text-white rounded-lg hover:bg-green-700 disabled:opacity-50 transition-colors"
         >
-          {loading ? 'Guardando...' : labelFor('approved')}
+          {loading ? t.toolApprovalSaving : labelFor('approved')}
         </button>
 
         <button
@@ -111,7 +120,7 @@ export function ApprovalActions({
           disabled={loading}
           className="px-4 py-2 text-sm font-medium border border-red-200 dark:border-red-800 text-red-700 dark:text-red-400 rounded-lg hover:bg-red-50 dark:hover:bg-red-900/20 disabled:opacity-50 transition-colors"
         >
-          {showComment && pendingStatus === 'rejected' ? 'Confirmar rechazo' : labelFor('rejected')}
+          {showComment && pendingStatus === 'rejected' ? t.toolApprovalConfirmReject : labelFor('rejected')}
         </button>
 
         <button

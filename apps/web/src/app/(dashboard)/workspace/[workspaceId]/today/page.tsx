@@ -16,20 +16,23 @@ import { OnboardingChecklist } from './_components/OnboardingChecklist'
 import { db } from '@/lib/db'
 import { getFiscalEvents, type LegalForm } from '@/lib/fiscal-calendar'
 import { getInvoices } from '@/app/actions/invoices'
+import { getLocale } from '@/i18n/locale'
+import { getDashboardTranslations, type DashboardTranslations } from '@/i18n/dashboard-translations'
+import type { Locale } from '@/i18n/config'
 
 interface Props {
   params: Promise<{ workspaceId: string }>
 }
 
-function greeting(): string {
+function greeting(t: DashboardTranslations): string {
   const h = new Date().getHours()
-  if (h < 12) return 'Buenos días'
-  if (h < 19) return 'Buenas tardes'
-  return 'Buenas noches'
+  if (h < 12) return t.todayGreetingMorning
+  if (h < 19) return t.todayGreetingAfternoon
+  return t.todayGreetingEvening
 }
 
-function todayLabel(): string {
-  return new Date().toLocaleDateString('es-ES', {
+function todayLabel(locale: Locale): string {
+  return new Date().toLocaleDateString(locale, {
     weekday: 'long',
     day: 'numeric',
     month: 'long',
@@ -37,16 +40,19 @@ function todayLabel(): string {
   })
 }
 
-const statusLabels: Record<string, { label: string; className: string }> = {
-  PENDING:   { label: 'En cola',    className: 'bg-muted text-muted-foreground' },
-  RUNNING:   { label: 'Ejecutando', className: 'bg-blue-500/10 text-blue-600 dark:text-blue-400' },
-  COMPLETED: { label: 'Completado', className: 'bg-green-500/10 text-green-600 dark:text-green-400' },
-  FAILED:    { label: 'Fallido',    className: 'bg-red-500/10 text-red-600 dark:text-red-400' },
-  CANCELLED: { label: 'Cancelado',  className: 'bg-muted text-muted-foreground' },
+function statusLabels(t: DashboardTranslations): Record<string, { label: string; className: string }> {
+  return {
+    PENDING:   { label: t.todayStatusQueued,    className: 'bg-muted text-muted-foreground' },
+    RUNNING:   { label: t.todayStatusRunning,   className: 'bg-blue-500/10 text-blue-600 dark:text-blue-400' },
+    COMPLETED: { label: t.todayStatusCompleted, className: 'bg-green-500/10 text-green-600 dark:text-green-400' },
+    FAILED:    { label: t.todayStatusFailed,    className: 'bg-red-500/10 text-red-600 dark:text-red-400' },
+    CANCELLED: { label: t.todayStatusCancelled, className: 'bg-muted text-muted-foreground' },
+  }
 }
 
 export default async function TodayPage({ params }: Props) {
-  const [{ workspaceId }, user] = await Promise.all([params, requireUser()])
+  const [{ workspaceId }, user, locale] = await Promise.all([params, requireUser(), getLocale()])
+  const t = getDashboardTranslations(locale)
   const [data, todayEntry, myTasks, contracts, notebooks, fiscalProfile, invoices, onboardingCounts] = await Promise.all([
     getTodayData(workspaceId, user.id),
     getTodayEntry(workspaceId, user.id),
@@ -74,36 +80,36 @@ export default async function TodayPage({ params }: Props) {
   const onboardingSteps = [
     {
       id: 'arkos',
-      label: 'Describe tu negocio a Arkos',
-      description: 'Cuéntale qué hace tu empresa para que pueda ayudarte a planificar.',
+      label: t.todayArkosStepTitle,
+      description: t.todayArkosStepDescription,
       href: `${base}/copilot`,
       done: missionCount > 0,
     },
     {
       id: 'client',
-      label: 'Añade tu primer cliente',
-      description: 'Registra la empresa o persona a quien prestas servicio.',
+      label: t.todayClientStepTitle,
+      description: t.todayClientStepDescription,
       href: `${base}/clients`,
       done: clientCount > 0,
     },
     {
       id: 'task',
-      label: 'Crea tu primera tarea',
-      description: 'Organiza el trabajo pendiente con etiquetas y prioridades.',
+      label: t.todayTaskStepTitle,
+      description: t.todayTaskStepDescription,
       href: `${base}/tasks`,
       done: taskCount > 0,
     },
     {
       id: 'invoice',
-      label: 'Emite tu primera factura',
-      description: 'Genera un PDF listo para enviar a tu cliente.',
+      label: t.todayInvoiceStepTitle,
+      description: t.todayInvoiceStepDescription,
       href: `${base}/invoices`,
       done: invoiceCount > 0,
     },
     {
       id: 'fiscal',
-      label: 'Activa el calendario fiscal',
-      description: 'Configura tu forma jurídica para ver tus obligaciones tributarias.',
+      label: t.todayFiscalStepTitle,
+      description: t.todayFiscalStepDescription,
       href: `${base}/fiscal`,
       done: !!fiscalProfile?.legalForm,
     },
@@ -113,28 +119,28 @@ export default async function TodayPage({ params }: Props) {
     <div className="max-w-3xl mx-auto px-6 py-8 space-y-8">
 
       <div>
-        <h1 className="text-2xl font-semibold">{greeting()}, {user.name?.split(' ')[0] ?? 'equipo'}</h1>
-        <p className="text-sm text-muted-foreground mt-0.5 capitalize">{todayLabel()}</p>
+        <h1 className="text-2xl font-semibold">{greeting(t)}, {user.name?.split(' ')[0] ?? t.todayFallbackName}</h1>
+        <p className="text-sm text-muted-foreground mt-0.5 capitalize">{todayLabel(locale)}</p>
       </div>
 
-      <OnboardingChecklist workspaceId={workspaceId} steps={onboardingSteps} />
+      <OnboardingChecklist workspaceId={workspaceId} steps={onboardingSteps} locale={locale} />
 
       <div>
         <div className="flex items-center justify-between mb-2">
-          <h2 className="text-sm font-semibold text-muted-foreground uppercase tracking-wide">Control horario</h2>
+          <h2 className="text-sm font-semibold text-muted-foreground uppercase tracking-wide">{t.todayTimeTracking}</h2>
           <Link href={`/workspace/${workspaceId}/timelog`} className="text-xs text-primary hover:underline">
-            Ver historial →
+            {t.todayViewHistory} →
           </Link>
         </div>
-        <ClockWidget workspaceId={workspaceId} initialEntry={todayEntry} />
+        <ClockWidget workspaceId={workspaceId} initialEntry={todayEntry} locale={locale} />
       </div>
 
       {myTasks.length > 0 && (
         <section>
           <div className="flex items-center justify-between mb-3">
-            <h2 className="text-sm font-semibold text-muted-foreground uppercase tracking-wide">Mis tareas</h2>
+            <h2 className="text-sm font-semibold text-muted-foreground uppercase tracking-wide">{t.todayMyTasks}</h2>
             <Link href={`/workspace/${workspaceId}/tasks?mine=true`} className="text-xs text-primary hover:underline">
-              Ver todas →
+              {t.todayViewAll} →
             </Link>
           </div>
           <div className="rounded-xl border border-border overflow-hidden">
@@ -146,7 +152,7 @@ export default async function TodayPage({ params }: Props) {
                   <span className="flex-1 text-sm truncate">{task.title}</span>
                   {task.dueDate && (
                     <span className={`text-xs ${isDue ? 'text-red-500' : 'text-muted-foreground'}`}>
-                      {new Date(task.dueDate).toLocaleDateString('es-ES', { day: 'numeric', month: 'short' })}
+                      {new Date(task.dueDate).toLocaleDateString(locale, { day: 'numeric', month: 'short' })}
                     </span>
                   )}
                   <Link
@@ -165,43 +171,43 @@ export default async function TodayPage({ params }: Props) {
       {isEmpty && (
         <div className="rounded-2xl border border-dashed p-10 flex flex-col items-center text-center gap-3">
           <span className="text-3xl">✅</span>
-          <p className="font-medium">Todo al día. Buen trabajo.</p>
-          <p className="text-sm text-muted-foreground">No tienes pasos ni workflows pendientes.</p>
+          <p className="font-medium">{t.todayAllCaughtUpTitle}</p>
+          <p className="text-sm text-muted-foreground">{t.todayAllCaughtUpDescription}</p>
           <Link
             href={`/workspace/${workspaceId}/copilot`}
             className="mt-1 inline-flex items-center gap-1.5 rounded-lg bg-primary/10 text-primary px-4 py-2 text-xs font-medium hover:bg-primary/20 transition-colors"
           >
-            Pedir a Arkos una nueva misión →
+            {t.todayAskArkosMission} →
           </Link>
         </div>
       )}
 
       {data.pendingSteps.length > 0 && (
-        <PendingStepsBlock steps={data.pendingSteps} workspaceId={workspaceId} />
+        <PendingStepsBlock steps={data.pendingSteps} workspaceId={workspaceId} t={t} />
       )}
 
       {data.pendingWorkflows.length > 0 && (
-        <WorkflowsBlock workflows={data.pendingWorkflows} workspaceId={workspaceId} />
+        <WorkflowsBlock workflows={data.pendingWorkflows} workspaceId={workspaceId} t={t} />
       )}
 
-      <FiscalWidget workspaceId={workspaceId} events={fiscalEvents} hasProfile={!!fiscalProfile} />
-      <InvoicesWidget workspaceId={workspaceId} invoices={invoices} />
-      <ContractsWidget workspaceId={workspaceId} contracts={contracts} />
-      <NotebooksWidget workspaceId={workspaceId} notebooks={notebooks} />
+      <FiscalWidget workspaceId={workspaceId} events={fiscalEvents} hasProfile={!!fiscalProfile} locale={locale} />
+      <InvoicesWidget workspaceId={workspaceId} invoices={invoices} locale={locale} />
+      <ContractsWidget workspaceId={workspaceId} contracts={contracts} locale={locale} />
+      <NotebooksWidget workspaceId={workspaceId} notebooks={notebooks} locale={locale} />
 
       {data.teamActivity.length > 0 && (
-        <TeamActivityBlock events={data.teamActivity} />
+        <TeamActivityBlock events={data.teamActivity} t={t} />
       )}
 
     </div>
   )
 }
 
-function PendingStepsBlock({ steps, workspaceId }: { steps: PendingStep[]; workspaceId: string }) {
+function PendingStepsBlock({ steps, workspaceId, t }: { steps: PendingStep[]; workspaceId: string; t: DashboardTranslations }) {
   return (
     <section className="space-y-3">
       <h2 className="text-xs font-semibold uppercase tracking-widest text-muted-foreground">
-        Mis pasos pendientes ({steps.length})
+        {t.todayPendingSteps} ({steps.length})
       </h2>
       <div className="rounded-xl border bg-card divide-y overflow-hidden">
         {steps.slice(0, 10).map((step) => (
@@ -221,9 +227,9 @@ function PendingStepsBlock({ steps, workspaceId }: { steps: PendingStep[]; works
             <Link
               href={`/workspace/${workspaceId}/missions/${step.objectiveId}`}
               className="shrink-0 text-xs font-medium text-primary hover:underline"
-              aria-label={`Ir al paso: ${step.stepTitle}`}
+              aria-label={`${t.todayGoToStep}: ${step.stepTitle}`}
             >
-              Ir al paso →
+              {t.todayGoToStep} →
             </Link>
           </div>
         ))}
@@ -233,7 +239,7 @@ function PendingStepsBlock({ steps, workspaceId }: { steps: PendingStep[]; works
               href={`/workspace/${workspaceId}/missions`}
               className="text-xs text-primary hover:underline"
             >
-              Ver todos ({steps.length}) →
+              {t.todayViewAll} ({steps.length}) →
             </Link>
           </div>
         )}
@@ -242,15 +248,16 @@ function PendingStepsBlock({ steps, workspaceId }: { steps: PendingStep[]; works
   )
 }
 
-function WorkflowsBlock({ workflows, workspaceId }: { workflows: PendingWorkflow[]; workspaceId: string }) {
+function WorkflowsBlock({ workflows, workspaceId, t }: { workflows: PendingWorkflow[]; workspaceId: string; t: DashboardTranslations }) {
+  const labels = statusLabels(t)
   return (
     <section className="space-y-3">
       <h2 className="text-xs font-semibold uppercase tracking-widest text-muted-foreground">
-        Flujos ({workflows.length})
+        {t.todayWorkflows} ({workflows.length})
       </h2>
       <div className="rounded-xl border bg-card divide-y overflow-hidden">
         {workflows.slice(0, 10).map((wf) => {
-          const badge = wf.lastExecutionStatus ? statusLabels[wf.lastExecutionStatus] : null
+          const badge = wf.lastExecutionStatus ? labels[wf.lastExecutionStatus] : null
           return (
             <div key={wf.workflowId} className="flex items-center gap-4 px-4 py-3">
               <div className="flex-1 min-w-0 flex items-center gap-2">
@@ -261,15 +268,15 @@ function WorkflowsBlock({ workflows, workspaceId }: { workflows: PendingWorkflow
                   </span>
                 )}
                 {!badge && (
-                  <span className="shrink-0 text-[10px] text-muted-foreground">Pendiente</span>
+                  <span className="shrink-0 text-[10px] text-muted-foreground">{t.todayPending}</span>
                 )}
               </div>
               <Link
                 href={`/workspace/${workspaceId}/workflows/${wf.workflowId}`}
                 className="shrink-0 text-xs font-medium text-primary hover:underline"
-                aria-label={`Abrir flujo: ${wf.workflowName}`}
+                aria-label={`${t.todayOpenWorkflow}: ${wf.workflowName}`}
               >
-                Abrir flujo →
+                {t.todayOpenWorkflow} →
               </Link>
             </div>
           )
@@ -280,7 +287,7 @@ function WorkflowsBlock({ workflows, workspaceId }: { workflows: PendingWorkflow
               href={`/workspace/${workspaceId}/workflows`}
               className="text-xs text-primary hover:underline"
             >
-              Ver todos ({workflows.length}) →
+              {t.todayViewAll} ({workflows.length}) →
             </Link>
           </div>
         )}
@@ -289,11 +296,11 @@ function WorkflowsBlock({ workflows, workspaceId }: { workflows: PendingWorkflow
   )
 }
 
-function TeamActivityBlock({ events }: { events: TeamActivityEvent[] }) {
+function TeamActivityBlock({ events, t }: { events: TeamActivityEvent[]; t: DashboardTranslations }) {
   return (
     <section className="space-y-3">
       <h2 className="text-xs font-semibold uppercase tracking-widest text-muted-foreground">
-        Actividad del equipo hoy
+        {t.todayTeamActivity}
       </h2>
       <div className="rounded-xl border bg-card divide-y overflow-hidden">
         {events.slice(0, 20).map((event) => (

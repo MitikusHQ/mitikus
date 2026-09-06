@@ -5,6 +5,8 @@ import { useRouter } from 'next/navigation'
 import Link from 'next/link'
 import { quickInstallTool } from '@/app/actions/tool'
 import { UpgradeModal } from '@/app/(dashboard)/_components/UpgradeModal'
+import type { Locale } from '@/i18n/config'
+import { getDashboardTranslations, type DashboardTranslations } from '@/i18n/dashboard-translations'
 
 const LIMIT_ERRORS = ['Límite de herramientas alcanzado', 'límite de herramientas']
 const BLOCKED_ERRORS = ['no está permitido para la beta', 'lista de espera']
@@ -15,31 +17,35 @@ function upgradeReason(msg: string): 'limit' | 'blocked' | null {
   return null
 }
 
-const SHORTCUTS = [
+function shortcuts(t: DashboardTranslations) {
+  return [
   {
     slug:  'it-audit',
     icon:  '🔐',
-    label: 'Auditoría de seguridad IT',
-    desc:  'Controles, accesos, infraestructura y vulnerabilidades.',
-    tag:   'La más popular',
+    label: t.toolsShortcutItAudit,
+    desc:  t.toolsShortcutItAuditDescription,
+    tag:   t.toolsShortcutPopular,
   },
   {
     slug:  'gdpr-audit',
     icon:  '📋',
-    label: 'Cumplimiento RGPD',
-    desc:  'Tratamiento de datos, base legal y medidas de seguridad.',
+    label: t.toolsShortcutGdprAudit,
+    desc:  t.toolsShortcutGdprAuditDescription,
     tag:   null,
   },
   {
     slug:  'digital-maturity',
     icon:  '📊',
-    label: 'Madurez digital',
-    desc:  'Nivel de digitalización y prioridades de transformación.',
+    label: t.toolsShortcutDigitalMaturity,
+    desc:  t.toolsShortcutDigitalMaturityDescription,
     tag:   null,
   },
-]
+  ]
+}
 
-export function ToolsEmptyState({ workspaceId }: { workspaceId: string }) {
+export function ToolsEmptyState({ workspaceId, locale }: { workspaceId: string; locale: Locale }) {
+  const t = getDashboardTranslations(locale)
+  const shortcutItems = shortcuts(t)
   const [installing, setInstalling]   = useState<string | null>(null)
   const [error, setError]             = useState<string | null>(null)
   const [upgradeOpen, setUpgradeOpen] = useState<'limit' | 'blocked' | null>(null)
@@ -73,16 +79,16 @@ export function ToolsEmptyState({ workspaceId }: { workspaceId: string }) {
       )}
     <div className="rounded-xl border border-dashed bg-card p-10 text-center space-y-8">
       <div className="space-y-1.5">
-        <p className="font-semibold text-base">Instala tu primera herramienta</p>
+        <p className="font-semibold text-base">{t.toolsEmptyTitle}</p>
         <p className="text-sm text-muted-foreground max-w-sm mx-auto">
-          En menos de un minuto tendrás una auditoría lista para ejecutar con tu primer cliente.
+          {t.toolsEmptyDescription}
         </p>
       </div>
 
       {error && <p className="text-sm text-destructive">{error}</p>}
 
       <div className="grid sm:grid-cols-3 gap-3 max-w-2xl mx-auto text-left">
-        {SHORTCUTS.map((s) => (
+        {shortcutItems.map((s) => (
           <button
             key={s.slug}
             type="button"
@@ -102,7 +108,7 @@ export function ToolsEmptyState({ workspaceId }: { workspaceId: string }) {
             )}
             <div className="text-xl">{s.icon}</div>
             <p className="text-sm font-medium leading-snug pr-14 group-hover:text-primary transition-colors">
-              {installing === s.slug ? 'Instalando…' : s.label}
+              {installing === s.slug ? t.toolsInstalling : s.label}
             </p>
             <p className="text-xs text-muted-foreground leading-relaxed">{s.desc}</p>
           </button>
@@ -113,7 +119,7 @@ export function ToolsEmptyState({ workspaceId }: { workspaceId: string }) {
         href={`/tools?workspaceId=${workspaceId}`}
         className="inline-block text-xs text-muted-foreground hover:text-foreground underline-offset-4 hover:underline transition-colors"
       >
-        Ver catálogo completo →
+        {t.toolsViewCatalog} →
       </Link>
     </div>
     </>

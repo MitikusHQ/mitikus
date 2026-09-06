@@ -4,28 +4,40 @@ import { useState } from 'react'
 import type { WorkspaceLead, LeadStatus } from '@prisma/client'
 import { cn } from '@/lib/utils'
 import { updateLeadStatus, convertLeadToClient, deleteLead, updateLeadNotes } from '@/lib/leads'
+import { getDashboardTranslations } from '@/i18n/dashboard-translations'
+import type { Locale } from '@/i18n/config'
 
-const STATUSES: { value: LeadStatus; label: string; color: string }[] = [
-  { value: 'NUEVO',       label: 'Nuevo',       color: 'bg-blue-100 text-blue-700 dark:bg-blue-900/40 dark:text-blue-300' },
-  { value: 'CONTACTADO',  label: 'Contactado',  color: 'bg-yellow-100 text-yellow-700 dark:bg-yellow-900/40 dark:text-yellow-300' },
-  { value: 'CUALIFICADO', label: 'Cualificado', color: 'bg-emerald-100 text-emerald-700 dark:bg-emerald-900/40 dark:text-emerald-300' },
-  { value: 'PERDIDO',     label: 'Perdido',     color: 'bg-red-100 text-red-700 dark:bg-red-900/40 dark:text-red-300' },
-]
+const STATUS_COLORS: Record<LeadStatus, string> = {
+  NUEVO:       'bg-blue-100 text-blue-700 dark:bg-blue-900/40 dark:text-blue-300',
+  CONTACTADO:  'bg-yellow-100 text-yellow-700 dark:bg-yellow-900/40 dark:text-yellow-300',
+  CUALIFICADO: 'bg-emerald-100 text-emerald-700 dark:bg-emerald-900/40 dark:text-emerald-300',
+  PERDIDO:     'bg-red-100 text-red-700 dark:bg-red-900/40 dark:text-red-300',
+}
 
 function statusStyle(s: LeadStatus) {
-  return STATUSES.find(x => x.value === s)?.color ?? ''
-}
-function statusLabel(s: LeadStatus) {
-  return STATUSES.find(x => x.value === s)?.label ?? s
+  return STATUS_COLORS[s] ?? ''
 }
 
 interface Props {
   leads: WorkspaceLead[]
   byStatus: Record<LeadStatus, WorkspaceLead[]>
   workspaceId: string
+  locale: Locale
 }
 
-export function LeadList({ leads, workspaceId }: Props) {
+export function LeadList({ leads, workspaceId, locale }: Props) {
+  const t = getDashboardTranslations(locale)
+
+  const STATUSES: { value: LeadStatus; label: string; color: string }[] = [
+    { value: 'NUEVO',       label: t.leadsStatusNew,       color: STATUS_COLORS.NUEVO },
+    { value: 'CONTACTADO',  label: t.leadsStatusContacted,  color: STATUS_COLORS.CONTACTADO },
+    { value: 'CUALIFICADO', label: t.leadsStatusQualified, color: STATUS_COLORS.CUALIFICADO },
+    { value: 'PERDIDO',     label: t.leadsStatusLost,     color: STATUS_COLORS.PERDIDO },
+  ]
+
+  function statusLabel(s: LeadStatus) {
+    return STATUSES.find(x => x.value === s)?.label ?? s
+  }
   const [selected, setSelected] = useState<WorkspaceLead | null>(null)
   const [notes, setNotes]       = useState('')
   const [saving, setSaving]     = useState(false)
@@ -48,13 +60,13 @@ export function LeadList({ leads, workspaceId }: Props) {
   }
 
   async function handleConvert(lead: WorkspaceLead) {
-    if (!confirm(`¿Convertir a ${lead.name} en cliente?`)) return
+    if (!confirm(`${t.leadsConvertConfirmPrefix}${lead.name}${t.leadsConvertConfirmSuffix}`)) return
     await convertLeadToClient(lead.id)
     setSelected(null)
   }
 
   async function handleDelete(lead: WorkspaceLead) {
-    if (!confirm(`¿Eliminar el lead de ${lead.name}?`)) return
+    if (!confirm(`${t.leadsDeleteConfirmPrefix}${lead.name}${t.leadsDeleteConfirmSuffix}`)) return
     await deleteLead(lead.id)
     if (selected?.id === lead.id) setSelected(null)
   }
@@ -64,9 +76,9 @@ export function LeadList({ leads, workspaceId }: Props) {
       <div className="rounded-xl border border-dashed bg-card p-12 text-center space-y-4">
         <div className="w-12 h-12 rounded-xl bg-primary/10 flex items-center justify-center text-2xl mx-auto">🎯</div>
         <div className="space-y-1">
-          <p className="font-semibold text-base">Aún no tienes leads</p>
+          <p className="font-semibold text-base">{t.leadsNoLeads}</p>
           <p className="text-sm text-muted-foreground max-w-xs mx-auto">
-            Comparte el enlace del formulario y empieza a captar potenciales clientes.
+            {t.leadsNoLeadsHelp}
           </p>
         </div>
       </div>
@@ -79,10 +91,10 @@ export function LeadList({ leads, workspaceId }: Props) {
       <div className="flex-1 min-w-0">
         {/* Cabecera de columnas */}
         <div className="grid grid-cols-[1fr_120px_100px_80px] gap-3 px-4 py-2 text-[10px] font-semibold uppercase tracking-widest text-muted-foreground/60 border-b">
-          <span>Nombre</span>
-          <span>Estado</span>
-          <span>Empresa</span>
-          <span>Fecha</span>
+          <span>{t.leadsName}</span>
+          <span>{t.leadsStatus}</span>
+          <span>{t.leadsCompany}</span>
+          <span>{t.leadsDate}</span>
         </div>
         <div className="divide-y">
           {leads.map(lead => (
@@ -126,21 +138,21 @@ export function LeadList({ leads, workspaceId }: Props) {
 
           {(selected.company || selected.phone) && (
             <dl className="text-xs space-y-1">
-              {selected.company && <div className="flex gap-2"><dt className="text-muted-foreground w-16 shrink-0">Empresa</dt><dd>{selected.company}</dd></div>}
-              {selected.phone   && <div className="flex gap-2"><dt className="text-muted-foreground w-16 shrink-0">Teléfono</dt><dd>{selected.phone}</dd></div>}
+              {selected.company && <div className="flex gap-2"><dt className="text-muted-foreground w-16 shrink-0">{t.leadsCompany}</dt><dd>{selected.company}</dd></div>}
+              {selected.phone   && <div className="flex gap-2"><dt className="text-muted-foreground w-16 shrink-0">{t.leadsPhone}</dt><dd>{selected.phone}</dd></div>}
             </dl>
           )}
 
           {selected.message && (
             <div>
-              <p className="text-[10px] font-semibold uppercase tracking-widest text-muted-foreground/60 mb-1">Mensaje</p>
+              <p className="text-[10px] font-semibold uppercase tracking-widest text-muted-foreground/60 mb-1">{t.leadsMessage}</p>
               <p className="text-xs text-muted-foreground">{selected.message}</p>
             </div>
           )}
 
           {/* Estado */}
           <div>
-            <p className="text-[10px] font-semibold uppercase tracking-widest text-muted-foreground/60 mb-2">Estado</p>
+            <p className="text-[10px] font-semibold uppercase tracking-widest text-muted-foreground/60 mb-2">{t.leadsStatus}</p>
             <div className="flex flex-wrap gap-1.5">
               {STATUSES.map(s => (
                 <button
@@ -160,13 +172,13 @@ export function LeadList({ leads, workspaceId }: Props) {
 
           {/* Notas */}
           <div>
-            <p className="text-[10px] font-semibold uppercase tracking-widest text-muted-foreground/60 mb-1">Notas internas</p>
+            <p className="text-[10px] font-semibold uppercase tracking-widest text-muted-foreground/60 mb-1">{t.leadsInternalNotes}</p>
             <textarea
               value={notes}
               onChange={e => setNotes(e.target.value)}
               rows={3}
               className="w-full rounded-md border border-border bg-background px-2.5 py-2 text-xs resize-none focus:outline-none focus:ring-2 focus:ring-primary/40"
-              placeholder="Añade notas sobre este lead..."
+              placeholder={t.leadsNotesPlaceholder}
             />
             <button
               type="button"
@@ -174,7 +186,7 @@ export function LeadList({ leads, workspaceId }: Props) {
               disabled={saving}
               className="mt-1.5 text-xs text-primary hover:underline disabled:opacity-50"
             >
-              {saving ? 'Guardando...' : 'Guardar notas'}
+              {saving ? t.leadsSaving : t.leadsSaveNotes}
             </button>
           </div>
 
@@ -186,18 +198,18 @@ export function LeadList({ leads, workspaceId }: Props) {
                 onClick={() => handleConvert(selected)}
                 className="rounded-md bg-primary px-3 py-2 text-xs font-medium text-primary-foreground hover:bg-primary/90 transition-colors"
               >
-                Convertir a cliente
+                {t.leadsConvert}
               </button>
             )}
             {selected.convertedToClientId && (
-              <p className="text-xs text-emerald-600 dark:text-emerald-400 text-center">✓ Convertido en cliente</p>
+              <p className="text-xs text-emerald-600 dark:text-emerald-400 text-center">{t.leadsConverted}</p>
             )}
             <button
               type="button"
               onClick={() => handleDelete(selected)}
               className="rounded-md border border-red-300 text-red-600 dark:text-red-400 px-3 py-2 text-xs font-medium hover:bg-red-50 dark:hover:bg-red-950/20 transition-colors"
             >
-              Eliminar lead
+              {t.leadsDelete}
             </button>
           </div>
         </div>

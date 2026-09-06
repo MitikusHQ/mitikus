@@ -4,13 +4,16 @@ import { notFound } from 'next/navigation'
 import { validateToolSchema } from '@protools/schema'
 import Link from 'next/link'
 import { ImportClient } from './_components/ImportClient'
+import { getLocale } from '@/i18n/locale'
+import { getDashboardTranslations } from '@/i18n/dashboard-translations'
 
 interface Props {
   params: Promise<{ workspaceId: string; instanceId: string }>
 }
 
 export default async function ImportPage({ params }: Props) {
-  const [{ workspaceId, instanceId }, user] = await Promise.all([params, requireUser()])
+  const [{ workspaceId, instanceId }, user, locale] = await Promise.all([params, requireUser(), getLocale()])
+  const t = getDashboardTranslations(locale)
 
   const instance = await db.toolInstance.findFirst({
     where: { id: instanceId, workspaceId, status: 'ACTIVE', workspace: { orgId: user.orgId } },
@@ -43,12 +46,11 @@ export default async function ImportPage({ params }: Props) {
             {instance.name}
           </Link>
           <span>›</span>
-          <span>Importar CSV</span>
+          <span>{t.toolImportCsv}</span>
         </div>
-        <h1 className="text-xl font-semibold">Importar registros desde CSV</h1>
+        <h1 className="text-xl font-semibold">{t.toolImportRecordsTitle}</h1>
         <p className="text-sm text-muted-foreground mt-1">
-          Sube un fichero CSV. Las cabeceras deben coincidir con los nombres de campo de la herramienta.
-          Descarga la plantilla si no tienes el formato.
+          {t.toolImportRecordsDescription}
         </p>
       </div>
 
@@ -56,6 +58,7 @@ export default async function ImportPage({ params }: Props) {
         instanceId={instanceId}
         workspaceId={workspaceId}
         fields={fields}
+        locale={locale}
       />
     </div>
   )

@@ -12,6 +12,9 @@ import { HorizontalBarList } from './_components/HorizontalBarList'
 import { DonutChart } from './_components/DonutChart'
 import { RangeSelector } from './_components/RangeSelector'
 import { AnalyticsInsights } from './_components/AnalyticsInsights'
+import { getLocale } from '@/i18n/locale'
+import { getDashboardTranslations } from '@/i18n/dashboard-translations'
+import type { DashboardTranslations } from '@/i18n/dashboard-translations'
 
 interface Props {
   params: Promise<{ workspaceId: string }>
@@ -19,13 +22,14 @@ interface Props {
 }
 
 export default async function AnalyticsPage({ params, searchParams }: Props) {
-  const [{ workspaceId }, sp, user] = await Promise.all([params, searchParams, requireUser()])
+  const [{ workspaceId }, sp, user, locale] = await Promise.all([params, searchParams, requireUser(), getLocale()])
+  const t = getDashboardTranslations(locale)
 
   if (!can(user, 'view_usage')) {
     return (
       <div className="max-w-2xl mx-auto px-6 py-16 text-center space-y-3">
-        <p className="text-lg font-semibold">Acceso restringido</p>
-        <p className="text-sm text-muted-foreground">Solo los administradores del workspace pueden ver la analítica.</p>
+        <p className="text-lg font-semibold">{t.analyticsAccessRestricted}</p>
+        <p className="text-sm text-muted-foreground">{t.analyticsAdminOnly}</p>
       </div>
     )
   }
@@ -47,12 +51,12 @@ export default async function AnalyticsPage({ params, searchParams }: Props) {
     )
   }
 
-  return <AnalyticsDashboard data={result} workspaceId={workspaceId} />
+  return <AnalyticsDashboard data={result} workspaceId={workspaceId} t={t} />
 }
 
 // ── Dashboard (keeps page RSC clean) ────────────────────────────
 
-function AnalyticsDashboard({ data, workspaceId }: { data: WorkspaceAnalytics; workspaceId: string }) {
+function AnalyticsDashboard({ data, workspaceId, t }: { data: WorkspaceAnalytics; workspaceId: string; t: DashboardTranslations }) {
   const { summary, timeseries, providerBreakdown, modelBreakdown, topTools, topWorkflows, executionHealth, userActivity, insights } = data
 
   const hasAnyData = summary.totalToolExecutions > 0 || summary.totalWorkflowExecutions > 0
@@ -66,9 +70,9 @@ function AnalyticsDashboard({ data, workspaceId }: { data: WorkspaceAnalytics; w
       {/* Header */}
       <div className="flex items-start justify-between gap-4 flex-wrap">
         <div>
-          <h1 className="text-xl font-semibold">Analytics</h1>
+          <h1 className="text-xl font-semibold">{t.analyticsTitle}</h1>
           <p className="text-xs text-muted-foreground mt-0.5">
-            Uso de IA, ejecuciones y costes del workspace
+            {t.analyticsSubtitle}
           </p>
         </div>
         <RangeSelector current={data.range} />
@@ -77,40 +81,40 @@ function AnalyticsDashboard({ data, workspaceId }: { data: WorkspaceAnalytics; w
       {/* Metric cards */}
       <div className="grid gap-3 grid-cols-2 sm:grid-cols-3">
         <MetricCard
-          title="Coste IA"
+          title={t.analyticsAiCost}
           value={formatCostEUR(summary.totalCostEUR)}
           icon="€"
-          microcopy={`${summary.totalToolExecutions + summary.totalWorkflowExecutions} ejecuciones totales`}
+          microcopy={`${summary.totalToolExecutions + summary.totalWorkflowExecutions} ${t.analyticsTotalExecsMicro}`}
         />
         <MetricCard
-          title="Tokens usados"
+          title={t.analyticsTokens}
           value={formatTokens(summary.totalTokens)}
           icon="⟨⟩"
-          microcopy="Suma de input + output tokens"
+          microcopy={t.analyticsTokensSumMicro}
         />
         <MetricCard
-          title="Ejecuciones"
+          title={t.analyticsExecutions}
           value={String(summary.totalToolExecutions)}
           icon="▶"
-          microcopy={`+ ${summary.totalWorkflowExecutions} workflows completos`}
+          microcopy={`${t.analyticsWorkflowsMicroPrefix}${summary.totalWorkflowExecutions}${t.analyticsWorkflowsMicroSuffix}`}
         />
         <MetricCard
-          title="Tasa de éxito"
+          title={t.analyticsSuccessRate}
           value={`${successPct}%`}
           icon={successPct >= 90 ? '✓' : '⚠'}
-          microcopy="Completadas / finalizadas"
+          microcopy={t.analyticsSuccessRateMicro}
         />
         <MetricCard
-          title="Tiempo medio"
+          title={t.analyticsAvgTime}
           value={avgDurSec}
           icon="⏱"
-          microcopy="Por ejecución de herramienta"
+          microcopy={t.analyticsAvgTimeMicro}
         />
         <MetricCard
-          title="Coste medio"
+          title={t.analyticsAvgCost}
           value={formatCostEUR(summary.avgCostPerExecution)}
           icon="≈"
-          microcopy="Por ejecución"
+          microcopy={t.analyticsAvgCostMicro}
         />
       </div>
 
@@ -120,36 +124,36 @@ function AnalyticsDashboard({ data, workspaceId }: { data: WorkspaceAnalytics; w
         <>
           {/* Row: Cost timeseries + Health */}
           <div className="grid gap-4 lg:grid-cols-2">
-            <Section title={`Coste IA por ${data.range === 'all' ? 'mes' : 'día'}`}>
+            <Section title={data.range === 'all' ? t.analyticsCostByMonthTitle : t.analyticsCostByDayTitle}>
               <BarChart
                 data={timeseries.map((d) => ({ label: d.day, value: d.cost }))}
                 height={90}
               />
               <p className="text-xs text-muted-foreground mt-2">
-                Total: {formatCostEUR(timeseries.reduce((s, d) => s + d.cost, 0))}
+                {t.analyticsTotalLabel} {formatCostEUR(timeseries.reduce((s, d) => s + d.cost, 0))}
               </p>
             </Section>
 
-            <Section title="Estado de ejecuciones">
+            <Section title={t.analyticsExecutionStatus}>
               <ExecutionHealthView points={executionHealth} />
             </Section>
           </div>
 
           {/* Row: Top tools + Provider breakdown */}
           <div className="grid gap-4 lg:grid-cols-2">
-            <Section title="Herramientas más usadas">
+            <Section title={t.analyticsTopTools}>
               <HorizontalBarList
-                items={topTools.map((t) => ({
-                  label: t.name,
-                  value: t.count,
-                  sublabel: formatCostEUR(t.costEUR),
+                items={topTools.map((tool) => ({
+                  label: tool.name,
+                  value: tool.count,
+                  sublabel: formatCostEUR(tool.costEUR),
                 }))}
-                formatter={(v) => `${v} ejec.`}
-                emptyText="Sin herramientas ejecutadas"
+                formatter={(v) => `${v} ${t.analyticsExecUnitShort}`}
+                emptyText={t.analyticsEmptyTools}
               />
             </Section>
 
-            <Section title="Distribución por proveedor">
+            <Section title={t.analyticsProviderBreakdown}>
               <DonutChart
                 data={providerBreakdown.map((p) => ({
                   label: p.provider,
@@ -161,56 +165,56 @@ function AnalyticsDashboard({ data, workspaceId }: { data: WorkspaceAnalytics; w
 
           {/* Row: Model breakdown + Top workflows */}
           <div className="grid gap-4 lg:grid-cols-2">
-            <Section title="Modelos IA">
+            <Section title={t.analyticsAiModels}>
               <HorizontalBarList
                 items={modelBreakdown.map((m) => ({
                   label: shortModelName(m.model),
                   value: m.costEUR,
-                  sublabel: `${formatTokens(m.tokens)} tokens · ${m.count} ejec.`,
+                  sublabel: `${formatTokens(m.tokens)} tokens · ${m.count} ${t.analyticsExecUnitShort}`,
                 }))}
                 formatter={formatCostEUR}
                 barColorClass="bg-violet-500"
-                emptyText="Sin datos de modelo"
+                emptyText={t.analyticsEmptyModels}
               />
             </Section>
 
-            <Section title="Flujos ejecutados">
+            <Section title={t.analyticsWorkflowsExecuted}>
               <HorizontalBarList
                 items={topWorkflows.map((w) => ({
                   label: w.name,
                   value: w.count,
-                  sublabel: `${formatCostEUR(w.costEUR)} · fallo ${Math.round(w.failRate * 100)}%`,
+                  sublabel: `${formatCostEUR(w.costEUR)} · ${t.analyticsFailRateLabel}${Math.round(w.failRate * 100)}%`,
                 }))}
-                formatter={(v) => `${v} ejec.`}
+                formatter={(v) => `${v} ${t.analyticsExecUnitShort}`}
                 barColorClass="bg-emerald-500"
-                emptyText="Sin workflows ejecutados"
+                emptyText={t.analyticsEmptyWorkflows}
               />
             </Section>
           </div>
 
           {/* Row: Executions timeseries + User activity */}
           <div className="grid gap-4 lg:grid-cols-2">
-            <Section title={`Ejecuciones por ${data.range === 'all' ? 'mes' : 'día'}`}>
+            <Section title={data.range === 'all' ? t.analyticsExecutionsByMonthTitle : t.analyticsExecutionsByDayTitle}>
               <BarChart
                 data={timeseries.map((d) => ({ label: d.day, value: d.executions }))}
                 height={90}
                 colorClass="fill-emerald-500"
               />
               <p className="text-xs text-muted-foreground mt-2">
-                Total: {timeseries.reduce((s, d) => s + d.executions, 0)} ejecuciones
+                {t.analyticsTotalLabel} {timeseries.reduce((s, d) => s + d.executions, 0)} {t.analyticsExecsSuffix}
               </p>
             </Section>
 
-            <Section title="Actividad por usuario">
+            <Section title={t.analyticsUserActivity}>
               <HorizontalBarList
                 items={userActivity.map((u) => ({
                   label: u.name,
                   value: u.count,
                   sublabel: formatCostEUR(u.costEUR),
                 }))}
-                formatter={(v) => `${v} ejec.`}
+                formatter={(v) => `${v} ${t.analyticsExecUnitShort}`}
                 barColorClass="bg-blue-500"
-                emptyText="Sin actividad de usuario"
+                emptyText={t.analyticsEmptyUsers}
               />
             </Section>
           </div>

@@ -4,6 +4,7 @@ import { db } from '@/lib/db'
 import { getTodayEntry, getWeekEntries } from '@/app/actions/timelog'
 import { ClockWidget } from '../today/_components/ClockWidget'
 import { WeekTable } from './_components/WeekTable'
+import { getLocale } from '@/i18n/locale'
 
 interface Props {
   params: Promise<{ workspaceId: string }>
@@ -19,7 +20,7 @@ function getMonday(date: Date): Date {
 }
 
 export default async function TimelogPage({ params }: Props) {
-  const [{ workspaceId }, user] = await Promise.all([params, requireUser()])
+  const [{ workspaceId }, user, locale] = await Promise.all([params, requireUser(), getLocale()])
 
   const workspace = await db.workspace.findFirst({ where: { id: workspaceId, orgId: user.orgId } })
   if (!workspace) notFound()
@@ -38,7 +39,7 @@ export default async function TimelogPage({ params }: Props) {
         <p className="text-sm text-muted-foreground mt-0.5">Registro de jornada e imputación de horas</p>
       </div>
 
-      <ClockWidget workspaceId={workspaceId} initialEntry={todayEntry} />
+      <ClockWidget workspaceId={workspaceId} initialEntry={todayEntry} locale={locale} />
 
       <WeekTable
         workspaceId={workspaceId}

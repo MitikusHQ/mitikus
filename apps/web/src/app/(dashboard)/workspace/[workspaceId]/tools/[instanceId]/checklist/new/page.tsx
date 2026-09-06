@@ -6,13 +6,16 @@ import type { ChecklistConfig } from '@protools/schema'
 import { CapabilityNav } from '../../_components/CapabilityNav'
 import { ChecklistRenderer } from '../../_components/ChecklistRenderer'
 import { buildCapabilityTabs } from '@/lib/capability-tabs'
+import { getLocale } from '@/i18n/locale'
+import { getDashboardTranslations } from '@/i18n/dashboard-translations'
 
 interface Props {
   params: Promise<{ workspaceId: string; instanceId: string }>
 }
 
 export default async function ChecklistNewPage({ params }: Props) {
-  const [{ workspaceId, instanceId }, user] = await Promise.all([params, requireUser()])
+  const [{ workspaceId, instanceId }, user, locale] = await Promise.all([params, requireUser(), getLocale()])
+  const t = getDashboardTranslations(locale)
 
   const [workspace, instance] = await Promise.all([
     db.workspace.findFirst({ where: { id: workspaceId, orgId: user.orgId } }),
@@ -28,7 +31,7 @@ export default async function ChecklistNewPage({ params }: Props) {
   if (!schemaResult.success) {
     return (
       <div className="flex items-center justify-center py-16">
-        <p className="text-destructive text-sm">Schema de herramienta inválido.</p>
+        <p className="text-destructive text-sm">{t.toolInvalidSchema}</p>
       </div>
     )
   }
@@ -42,13 +45,14 @@ export default async function ChecklistNewPage({ params }: Props) {
 
   return (
     <div className="max-w-3xl mx-auto px-6 py-8">
-      <h1 className="text-xl font-semibold mb-6">Nuevo checklist</h1>
+      <h1 className="text-xl font-semibold mb-6">{t.toolNewChecklist}</h1>
       <CapabilityNav tabs={tabs} active="CHECKLIST" />
       <ChecklistRenderer
         instanceId={instanceId}
         workspaceId={workspaceId}
         dataSchema={schema.dataSchema}
         checklistConfig={checklistConfig}
+        locale={locale}
       />
     </div>
   )

@@ -7,13 +7,16 @@ import { ConfigClient } from './_components/ConfigClient'
 import { getOrCreateConfig } from '@/app/actions/config'
 import { getAvailableProviderIds } from '@/lib/providers'
 import { assignClientToInstance } from '@/app/actions/tool'
+import { getLocale } from '@/i18n/locale'
+import { getDashboardTranslations } from '@/i18n/dashboard-translations'
 
 interface Props {
   params: Promise<{ workspaceId: string; instanceId: string }>
 }
 
 export default async function ToolSettingsPage({ params }: Props) {
-  const [{ workspaceId, instanceId }, user] = await Promise.all([params, requireUser()])
+  const [{ workspaceId, instanceId }, user, locale] = await Promise.all([params, requireUser(), getLocale()])
+  const t = getDashboardTranslations(locale)
 
   const [workspace, instance, clients] = await Promise.all([
     db.workspace.findFirst({ where: { id: workspaceId, orgId: user.orgId } }),
@@ -31,7 +34,7 @@ export default async function ToolSettingsPage({ params }: Props) {
   if (!workspace) notFound()
   if (!instance) notFound()
 
-  const aiLabel = instance.toolDefinition.slug === 'social-media-manager' ? 'Ideas con IA' : undefined
+  const aiLabel = instance.toolDefinition.slug === 'social-media-manager' ? t.toolAiIdeas : undefined
 
   const [config, availableProviderIds] = await Promise.all([
     getOrCreateConfig(instanceId, workspaceId),
@@ -49,21 +52,20 @@ export default async function ToolSettingsPage({ params }: Props) {
         <p className="text-xs text-muted-foreground truncate">{instance.toolDefinition.name}</p>
       </div>
 
-      <ToolSectionNav workspaceId={workspaceId} instanceId={instanceId} aiLabel={aiLabel} />
+      <ToolSectionNav workspaceId={workspaceId} instanceId={instanceId} aiLabel={aiLabel} locale={locale} />
 
       <div className="mb-6">
-        <h2 className="text-lg font-semibold">Configuración de la instalación</h2>
+        <h2 className="text-lg font-semibold">{t.toolSettingsTitle}</h2>
         <p className="text-sm text-muted-foreground mt-0.5">
-          Ajusta el proveedor IA, modelo, creatividad y formato de salida para esta herramienta.
+          {t.toolSettingsDescription}
         </p>
       </div>
 
-      {/* Cliente vinculado */}
       <div className="mb-8 rounded-xl border bg-card p-5 space-y-4">
         <div>
-          <h3 className="text-sm font-semibold">Cliente vinculado</h3>
+          <h3 className="text-sm font-semibold">{t.toolSettingsLinkedClient}</h3>
           <p className="text-xs text-muted-foreground mt-0.5">
-            Asocia esta herramienta a un cliente para que aparezca en su expediente.
+            {t.toolSettingsLinkedClientDescription}
           </p>
         </div>
         <form action={assignClientToInstance} className="flex items-end gap-3">
@@ -75,7 +77,7 @@ export default async function ToolSettingsPage({ params }: Props) {
               defaultValue={instance.clientId ?? ''}
               className="w-full rounded-md border border-input bg-background px-3 py-2 text-sm shadow-sm focus:outline-none focus:ring-2 focus:ring-ring"
             >
-              <option value="">Sin cliente</option>
+              <option value="">{t.toolSettingsNoClient}</option>
               {clients.map((c) => (
                 <option key={c.id} value={c.id}>{c.name}</option>
               ))}
@@ -85,14 +87,14 @@ export default async function ToolSettingsPage({ params }: Props) {
             type="submit"
             className="rounded-md bg-primary px-4 py-2 text-sm font-medium text-primary-foreground shadow hover:bg-primary/90 transition-colors whitespace-nowrap"
           >
-            Guardar
+            {t.toolSettingsSave}
           </button>
         </form>
         {clients.length === 0 && (
           <p className="text-xs text-muted-foreground">
-            Aún no tienes clientes en este workspace.{' '}
+            {t.toolSettingsNoClientsYet}{' '}
             <a href={`/workspace/${workspaceId}/clients/new`} className="text-primary hover:underline">
-              Crear cliente
+              {t.toolSettingsCreateClient}
             </a>
           </p>
         )}
@@ -103,6 +105,7 @@ export default async function ToolSettingsPage({ params }: Props) {
         workspaceId={workspaceId}
         initialConfig={config}
         availableProviderIds={availableProviderIds}
+        locale={locale}
       />
     </div>
   )

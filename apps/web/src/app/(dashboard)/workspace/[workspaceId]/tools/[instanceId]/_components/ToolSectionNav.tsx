@@ -2,26 +2,30 @@
 
 import Link from 'next/link'
 import { usePathname } from 'next/navigation'
+import type { Locale } from '@/i18n/config'
+import { getDashboardTranslations } from '@/i18n/dashboard-translations'
 
 interface Props {
   workspaceId: string
   instanceId: string
   aiLabel?: string
+  locale: Locale
 }
 
-export function ToolSectionNav({ workspaceId, instanceId, aiLabel = '✨ Ejecutar IA' }: Props) {
+export function ToolSectionNav({ workspaceId, instanceId, aiLabel, locale }: Props) {
+  const t = getDashboardTranslations(locale)
   const pathname = usePathname()
   const base = `/workspace/${workspaceId}/tools/${instanceId}`
 
   const tabs = [
-    { href: base, label: 'Registros', exact: true },
-    { href: `${base}/run`, label: aiLabel, exact: false },
-    { href: `${base}/history`, label: 'Historial IA', exact: false },
-    { href: `${base}/settings`, label: '⚙ Ajustes', exact: false },
+    { href: base, label: t.toolNavRecords, exact: true },
+    { href: `${base}/run`, label: aiLabel ?? `✨ ${t.toolNavRunAi}`, exact: false },
+    { href: `${base}/history`, label: t.toolNavAiHistory, exact: false },
+    { href: `${base}/settings`, label: `⚙ ${t.toolNavSettings}`, exact: false },
   ]
 
   return (
-    <nav className="flex items-center gap-0 border-b mb-6" aria-label="Secciones de herramienta">
+    <nav className="flex items-center gap-0 border-b mb-6" aria-label={t.toolNavAria}>
       {tabs.map((tab) => {
         const isActive = tab.exact ? pathname === tab.href : pathname.startsWith(tab.href)
         return (

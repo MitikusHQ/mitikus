@@ -1,13 +1,17 @@
 import Link from 'next/link'
 import type { FiscalEventWithStatus } from '@/lib/fiscal-calendar'
+import type { Locale } from '@/i18n/config'
+import { getDashboardTranslations } from '@/i18n/dashboard-translations'
 
 interface Props {
   workspaceId: string
   events: FiscalEventWithStatus[]
   hasProfile: boolean
+  locale: Locale
 }
 
-export function FiscalWidget({ workspaceId, events, hasProfile }: Props) {
+export function FiscalWidget({ workspaceId, events, hasProfile, locale }: Props) {
+  const t = getDashboardTranslations(locale)
   const next = events.filter((e) => e.status === 'proximo' || e.status === 'pendiente')
     .sort((a, b) => a.deadline.getTime() - b.deadline.getTime())
     .slice(0, 3)
@@ -16,20 +20,20 @@ export function FiscalWidget({ workspaceId, events, hasProfile }: Props) {
     return (
       <section>
         <h2 className="text-sm font-semibold text-muted-foreground uppercase tracking-wide mb-3">
-          Fiscal
+          {t.todayFiscal}
         </h2>
         <div className="rounded-xl border border-dashed p-5 flex items-center justify-between gap-4">
           <div>
-            <p className="text-sm font-medium">Configura tu perfil fiscal</p>
+            <p className="text-sm font-medium">{t.todayFiscalSetupTitle}</p>
             <p className="text-xs text-muted-foreground mt-0.5">
-              Activa el calendario de obligaciones tributarias para tu forma jurídica.
+              {t.todayFiscalSetupDescription}
             </p>
           </div>
           <Link
             href={`/workspace/${workspaceId}/fiscal`}
             className="shrink-0 rounded-lg bg-primary px-3 py-1.5 text-xs font-medium text-primary-foreground hover:bg-primary/90 transition-colors"
           >
-            Configurar →
+            {t.todayConfigure} →
           </Link>
         </div>
       </section>
@@ -44,17 +48,17 @@ export function FiscalWidget({ workspaceId, events, hasProfile }: Props) {
     <section>
       <div className="flex items-center justify-between mb-3">
         <h2 className="text-sm font-semibold text-muted-foreground uppercase tracking-wide">
-          Próximas obligaciones fiscales
+          {t.todayUpcomingFiscal}
         </h2>
         <Link href={`/workspace/${workspaceId}/fiscal`} className="text-xs text-primary hover:underline">
-          Ver calendario →
+          {t.todayViewCalendar} →
         </Link>
       </div>
       <div className="rounded-xl border bg-card divide-y overflow-hidden">
         {next.map((e) => {
           const isUrgent = e.status === 'proximo'
           const daysLabel = e.daysLeft !== null
-            ? e.daysLeft === 0 ? 'Hoy' : `${e.daysLeft}d`
+            ? e.daysLeft === 0 ? t.todayToday : `${e.daysLeft}d`
             : null
 
           return (
@@ -65,7 +69,7 @@ export function FiscalWidget({ workspaceId, events, hasProfile }: Props) {
               <div className="flex-1 min-w-0">
                 <p className="text-sm font-medium truncate">{e.titulo}</p>
                 <p className="text-xs text-muted-foreground">
-                  {e.deadline.toLocaleDateString('es-ES', { day: 'numeric', month: 'short' })} · {e.periodo}
+                  {e.deadline.toLocaleDateString(locale, { day: 'numeric', month: 'short' })} · {e.periodo}
                 </p>
               </div>
               {daysLabel && (
@@ -82,7 +86,7 @@ export function FiscalWidget({ workspaceId, events, hasProfile }: Props) {
                   href={`/workspace/${workspaceId}/fiscal/${e.modelo}`}
                   className="shrink-0 text-xs text-primary hover:underline font-medium"
                 >
-                  Calcular →
+                  {t.todayCalculate} →
                 </Link>
               )}
             </div>

@@ -6,6 +6,8 @@ import { cn } from '@/lib/utils'
 import { formatCostEUR } from '@/lib/ai-cost'
 import { ExecutionStatusBadge } from '../tools/[instanceId]/_components/ExecutionStatusBadge'
 import { HistoryExportButton } from '@/components/HistoryExportButton'
+import { getLocale } from '@/i18n/locale'
+import { getDashboardTranslations } from '@/i18n/dashboard-translations'
 
 interface Props {
   params: Promise<{ workspaceId: string }>
@@ -26,7 +28,8 @@ function formatMs(ms: number): string {
 }
 
 export default async function WorkspaceHistoryPage({ params }: Props) {
-  const [{ workspaceId }, user] = await Promise.all([params, requireUser()])
+  const [{ workspaceId }, user, locale] = await Promise.all([params, requireUser(), getLocale()])
+  const t = getDashboardTranslations(locale)
 
   const workspace = await db.workspace.findFirst({
     where: { id: workspaceId, orgId: user.orgId },
@@ -58,9 +61,9 @@ export default async function WorkspaceHistoryPage({ params }: Props) {
       {/* Header */}
       <div className="mb-8 flex items-start justify-between gap-4 flex-wrap">
         <div>
-          <h1 className="text-2xl font-semibold">Historial de trabajo</h1>
+          <h1 className="text-2xl font-semibold">{t.historyTitle}</h1>
           <p className="text-sm text-muted-foreground mt-1">
-            Todo el historial de trabajo en este workspace
+            {t.historySubtitle}
           </p>
         </div>
         {executions.length > 0 && (
@@ -83,15 +86,15 @@ export default async function WorkspaceHistoryPage({ params }: Props) {
       {executions.length > 0 && (
         <div className="grid grid-cols-3 gap-4 mb-8">
           <div className="rounded-xl border bg-card p-5">
-            <p className="text-xs text-muted-foreground mb-1">Ejecuciones</p>
+            <p className="text-xs text-muted-foreground mb-1">{t.historyExecutions}</p>
             <p className="text-2xl font-bold">{executions.length}</p>
           </div>
           <div className="rounded-xl border bg-card p-5">
-            <p className="text-xs text-muted-foreground mb-1">Completadas</p>
+            <p className="text-xs text-muted-foreground mb-1">{t.historyCompleted}</p>
             <p className="text-2xl font-bold text-green-600 dark:text-green-400">{completed}</p>
           </div>
           <div className="rounded-xl border bg-card p-5">
-            <p className="text-xs text-muted-foreground mb-1">Coste total IA</p>
+            <p className="text-xs text-muted-foreground mb-1">{t.historyAiCost}</p>
             <p className="text-2xl font-bold">{formatCostEUR(totalCost)}</p>
           </div>
         </div>
@@ -101,15 +104,15 @@ export default async function WorkspaceHistoryPage({ params }: Props) {
       {executions.length === 0 ? (
         <div className="rounded-xl border border-dashed p-16 text-center bg-card">
           <div className="text-4xl mb-4">🕐</div>
-          <p className="font-medium">Sin historial todavía</p>
+          <p className="font-medium">{t.historyEmpty}</p>
           <p className="text-sm text-muted-foreground mt-1 mb-6">
-            Las ejecuciones IA de tus herramientas aparecerán aquí.
+            {t.historyEmptyDescription}
           </p>
           <Link
             href={`/workspace/${workspaceId}/tools`}
             className="inline-flex items-center rounded-md bg-primary px-4 py-2 text-sm font-medium text-primary-foreground shadow hover:bg-primary/90 transition-colors"
           >
-            Ir a Herramientas
+            {t.historyGoToTools}
           </Link>
         </div>
       ) : (
@@ -118,14 +121,14 @@ export default async function WorkspaceHistoryPage({ params }: Props) {
             <table className="w-full text-sm border-collapse">
               <thead className="bg-muted/60 sticky top-0 z-10">
                 <tr>
-                  <th className="px-4 py-3 text-left font-medium text-muted-foreground border-b whitespace-nowrap">Fecha</th>
-                  <th className="px-4 py-3 text-left font-medium text-muted-foreground border-b whitespace-nowrap">Herramienta</th>
-                  <th className="px-4 py-3 text-left font-medium text-muted-foreground border-b whitespace-nowrap">Estado</th>
-                  <th className="px-4 py-3 text-left font-medium text-muted-foreground border-b whitespace-nowrap">Tokens</th>
-                  <th className="px-4 py-3 text-left font-medium text-muted-foreground border-b whitespace-nowrap">Coste</th>
-                  <th className="px-4 py-3 text-left font-medium text-muted-foreground border-b whitespace-nowrap">Duración</th>
-                  <th className="px-4 py-3 text-left font-medium text-muted-foreground border-b whitespace-nowrap">Usuario</th>
-                  <th className="px-4 py-3 text-right font-medium text-muted-foreground border-b whitespace-nowrap">Acciones</th>
+                  <th className="px-4 py-3 text-left font-medium text-muted-foreground border-b whitespace-nowrap">{t.historyDate}</th>
+                  <th className="px-4 py-3 text-left font-medium text-muted-foreground border-b whitespace-nowrap">{t.historyTool}</th>
+                  <th className="px-4 py-3 text-left font-medium text-muted-foreground border-b whitespace-nowrap">{t.historyStatus}</th>
+                  <th className="px-4 py-3 text-left font-medium text-muted-foreground border-b whitespace-nowrap">{t.historyTokens}</th>
+                  <th className="px-4 py-3 text-left font-medium text-muted-foreground border-b whitespace-nowrap">{t.historyCost}</th>
+                  <th className="px-4 py-3 text-left font-medium text-muted-foreground border-b whitespace-nowrap">{t.historyDuration}</th>
+                  <th className="px-4 py-3 text-left font-medium text-muted-foreground border-b whitespace-nowrap">{t.historyUser}</th>
+                  <th className="px-4 py-3 text-right font-medium text-muted-foreground border-b whitespace-nowrap">{t.historyActions}</th>
                 </tr>
               </thead>
               <tbody>
@@ -150,7 +153,7 @@ export default async function WorkspaceHistoryPage({ params }: Props) {
                       <p className="text-xs text-muted-foreground">{exec.toolInstance.toolDefinition.name}</p>
                     </td>
                     <td className="px-4 py-3">
-                      <ExecutionStatusBadge status={exec.status} />
+                      <ExecutionStatusBadge status={exec.status} locale={locale} />
                     </td>
                     <td className="px-4 py-3 text-xs text-muted-foreground font-mono">
                       {exec.inputTokens + exec.outputTokens > 0
@@ -173,15 +176,15 @@ export default async function WorkspaceHistoryPage({ params }: Props) {
                             <Link
                               href={`/workspace/${workspaceId}/tools/${exec.toolInstance.id}/run?from=${exec.id}`}
                               className="text-xs text-muted-foreground hover:text-foreground whitespace-nowrap transition-colors"
-                              title="Reejecutar con las mismas variables"
+                              title={t.historyRerunTitle}
                             >
-                              ↻ Reejecutar
+                              {t.historyRerun}
                             </Link>
                             <Link
                               href={`/workspace/${workspaceId}/tools/${exec.toolInstance.id}/history/${exec.id}`}
                               className="text-xs text-primary hover:underline whitespace-nowrap"
                             >
-                              Ver
+                              {t.historyView}
                             </Link>
                           </>
                         )}
@@ -190,7 +193,7 @@ export default async function WorkspaceHistoryPage({ params }: Props) {
                             href={`/workspace/${workspaceId}/tools/${exec.toolInstance.id}/run?from=${exec.id}`}
                             className="text-xs text-muted-foreground hover:text-foreground whitespace-nowrap transition-colors"
                           >
-                            ↻ Reintentar
+                            {t.historyRetry}
                           </Link>
                         )}
                       </div>
@@ -201,7 +204,7 @@ export default async function WorkspaceHistoryPage({ params }: Props) {
             </table>
           </div>
           <div className="px-4 py-2 border-t bg-muted/30 text-xs text-muted-foreground">
-            {executions.length} {executions.length === 1 ? 'ejecución' : 'ejecuciones'} · Coste total: {formatCostEUR(totalCost)}
+            {executions.length} {executions.length === 1 ? t.historyFooterSingular : t.historyFooterPlural} · {t.historyFooterCostLabel} {formatCostEUR(totalCost)}
           </div>
         </div>
       )}

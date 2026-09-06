@@ -7,6 +7,8 @@ import { ProviderCard } from './ProviderCard'
 import { ModelCard } from './ModelCard'
 import { TemperatureSlider } from './TemperatureSlider'
 import { PROVIDERS, LANGUAGE_LABELS, OUTPUT_FORMAT_LABELS, getDefaultModel } from '@/lib/providers'
+import type { Locale } from '@/i18n/config'
+import { getDashboardTranslations } from '@/i18n/dashboard-translations'
 
 type SaveState = 'idle' | 'saving' | 'saved' | 'error'
 
@@ -15,9 +17,11 @@ interface Props {
   workspaceId: string
   initialConfig: InstallationConfig
   availableProviderIds: string[]
+  locale: Locale
 }
 
-export function ConfigClient({ toolInstanceId, workspaceId, initialConfig, availableProviderIds }: Props) {
+export function ConfigClient({ toolInstanceId, workspaceId, initialConfig, availableProviderIds, locale }: Props) {
+  const t = getDashboardTranslations(locale)
   const [config, setConfig] = useState<InstallationConfig>(initialConfig)
   const [saveState, setSaveState] = useState<SaveState>('idle')
   const [errorMessage, setErrorMessage] = useState('')
@@ -54,14 +58,12 @@ export function ConfigClient({ toolInstanceId, workspaceId, initialConfig, avail
   return (
     <div className="space-y-5">
 
-      {/* ── Modelo IA ── */}
       <ConfigSection
         icon="🤖"
-        title="Modelo IA"
-        description="Elige el proveedor y modelo que usará esta herramienta al ejecutarse"
+        title={t.toolSettingsAiModel}
+        description={t.toolSettingsAiModelDescription}
       >
-        {/* Providers */}
-        <ConfigField label="Proveedor">
+        <ConfigField label={t.toolSettingsProvider}>
           <div className="grid gap-3 sm:grid-cols-3">
             {PROVIDERS.map((provider) => (
               <ProviderCard
@@ -75,9 +77,8 @@ export function ConfigClient({ toolInstanceId, workspaceId, initialConfig, avail
           </div>
         </ConfigField>
 
-        {/* Models within selected provider */}
         {currentModels.length > 0 && (
-          <ConfigField label="Modelo">
+          <ConfigField label={t.toolSettingsModel}>
             <div className="grid gap-2 sm:grid-cols-2 lg:grid-cols-3">
               {currentModels.map((model) => (
                 <ModelCard
@@ -92,21 +93,20 @@ export function ConfigClient({ toolInstanceId, workspaceId, initialConfig, avail
         )}
       </ConfigSection>
 
-      {/* ── Creatividad ── */}
       <ConfigSection
         icon="🎨"
-        title="Creatividad"
-        description="Controla la aleatoriedad y creatividad de las respuestas"
+        title={t.toolSettingsCreativity}
+        description={t.toolSettingsCreativityDescription}
       >
         <TemperatureSlider
-          label="Temperatura"
+          label={t.toolSettingsTemperature}
           value={config.temperature}
           onChange={(v) => set('temperature', v)}
           min={0}
           max={1}
           step={0.05}
-          hint="0 = determinista y preciso · 1 = más creativo y variado"
-          nullLabel="Por defecto del modelo"
+          hint={t.toolSettingsTemperatureHint}
+          nullLabel={t.toolSettingsModelDefault}
         />
         <TemperatureSlider
           label="Top-P (nucleus sampling)"
@@ -115,19 +115,18 @@ export function ConfigClient({ toolInstanceId, workspaceId, initialConfig, avail
           min={0}
           max={1}
           step={0.05}
-          hint="Controla la diversidad de tokens candidatos. Solo modifica si sabes lo que haces."
-          nullLabel="Por defecto del modelo"
+          hint={t.toolSettingsTopPHint}
+          nullLabel={t.toolSettingsModelDefault}
         />
       </ConfigSection>
 
-      {/* ── Salida ── */}
       <ConfigSection
         icon="📤"
-        title="Salida"
-        description="Idioma, formato y longitud máxima de las respuestas"
+        title={t.toolSettingsOutput}
+        description={t.toolSettingsOutputDescription}
       >
         <div className="grid gap-5 sm:grid-cols-2">
-          <ConfigField label="Idioma de respuesta">
+          <ConfigField label={t.toolSettingsResponseLanguage}>
             <select
               value={config.language}
               onChange={(e) => set('language', e.target.value)}
@@ -139,7 +138,7 @@ export function ConfigClient({ toolInstanceId, workspaceId, initialConfig, avail
             </select>
           </ConfigField>
 
-          <ConfigField label="Formato de respuesta">
+          <ConfigField label={t.toolSettingsResponseFormat}>
             <select
               value={config.outputFormat}
               onChange={(e) => set('outputFormat', e.target.value)}
@@ -153,8 +152,8 @@ export function ConfigClient({ toolInstanceId, workspaceId, initialConfig, avail
         </div>
 
         <ConfigField
-          label="Tokens máximos de salida"
-          hint="Vacío = máximo del modelo. Reducir limita la longitud de respuesta."
+          label={t.toolSettingsMaxOutputTokens}
+          hint={t.toolSettingsMaxOutputTokensHint}
         >
           <input
             type="number"
@@ -165,56 +164,54 @@ export function ConfigClient({ toolInstanceId, workspaceId, initialConfig, avail
             onChange={(e) =>
               set('maxTokens', e.target.value === '' ? null : parseInt(e.target.value, 10))
             }
-            placeholder="Máximo del modelo"
+            placeholder={t.toolSettingsMaxModel}
             className="w-full rounded-lg border border-input bg-background px-3 py-2 text-sm font-mono focus:outline-none focus-visible:ring-2 focus-visible:ring-ring"
           />
         </ConfigField>
       </ConfigSection>
 
-      {/* ── Instrucciones ── */}
       <ConfigSection
         icon="📝"
-        title="Instrucciones personalizadas"
-        description="Ajusta o sustituye el comportamiento de la IA para esta instalación"
+        title={t.toolSettingsCustomInstructions}
+        description={t.toolSettingsCustomInstructionsDescription}
       >
         <ConfigField
-          label="Instrucciones adicionales"
-          hint="Se añaden al final del prompt del sistema. Usa esto para añadir contexto de tu empresa, formato de salida específico, etc."
+          label={t.toolSettingsAdditionalInstructions}
+          hint={t.toolSettingsAdditionalInstructionsHint}
         >
           <textarea
             rows={4}
             value={config.customInstructions ?? ''}
             onChange={(e) => set('customInstructions', e.target.value || null)}
-            placeholder="Ejemplo: Nuestro estilo de informes es conciso y ejecutivo. Siempre incluye una sección de próximos pasos."
+            placeholder={t.toolSettingsAdditionalInstructionsPlaceholder}
             className="w-full rounded-lg border border-input bg-background px-3 py-2 text-sm font-mono resize-none focus:outline-none focus-visible:ring-2 focus-visible:ring-ring"
           />
         </ConfigField>
 
         <ConfigField
-          label="Sustituir prompt del sistema completo"
-          hint="⚠ Avanzado — reemplaza por completo el prompt de sistema generado. Deja vacío para usar el prompt automático de la herramienta."
+          label={t.toolSettingsSystemPromptOverride}
+          hint={t.toolSettingsSystemPromptOverrideHint}
         >
           <textarea
             rows={6}
             value={config.systemPromptOverride ?? ''}
             onChange={(e) => set('systemPromptOverride', e.target.value || null)}
-            placeholder="Escribe aquí el prompt de sistema personalizado (opcional)..."
+            placeholder={t.toolSettingsSystemPromptOverridePlaceholder}
             className="w-full rounded-lg border border-input bg-background px-3 py-2 text-sm font-mono resize-none focus:outline-none focus-visible:ring-2 focus-visible:ring-ring"
           />
         </ConfigField>
       </ConfigSection>
 
-      {/* ── Guardar ── */}
       <div className="flex items-center justify-between rounded-xl border bg-card px-6 py-4 sticky bottom-4 shadow-lg">
         <div className="text-xs text-muted-foreground">
-          Los cambios se aplican en la próxima ejecución
+          {t.toolSettingsChangesNextRun}
         </div>
         <div className="flex items-center gap-3">
           {saveState === 'error' && (
             <p className="text-xs text-destructive">{errorMessage}</p>
           )}
           {saveState === 'saved' && (
-            <p className="text-xs text-green-600 dark:text-green-400 font-medium">✓ Guardado</p>
+            <p className="text-xs text-green-600 dark:text-green-400 font-medium">✓ {t.toolSettingsSaved}</p>
           )}
           <button
             type="button"
@@ -222,7 +219,7 @@ export function ConfigClient({ toolInstanceId, workspaceId, initialConfig, avail
             disabled={saveState === 'saving'}
             className="rounded-lg bg-primary px-5 py-2 text-sm font-semibold text-primary-foreground shadow hover:bg-primary/90 disabled:opacity-50 transition-all"
           >
-            {saveState === 'saving' ? 'Guardando…' : 'Guardar configuración'}
+            {saveState === 'saving' ? `${t.toolApprovalSaving.replace('...', '')}…` : t.toolSettingsSaveConfig}
           </button>
         </div>
       </div>

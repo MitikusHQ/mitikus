@@ -10,6 +10,7 @@ import { ToolSectionNav } from './_components/ToolSectionNav'
 import { SocialMediaPostsView } from './_components/SocialMediaPostsView'
 import { buildCapabilityTabs } from '@/lib/capability-tabs'
 import { getLocale } from '@/i18n/locale'
+import { getDashboardTranslations } from '@/i18n/dashboard-translations'
 import { formatDate, formatRelativeDate } from '@/lib/format-date'
 import { detectStatusVariant, scoreVariant } from '@/app/(dashboard)/_components/StatusBadge'
 import { cn } from '@/lib/utils'
@@ -103,12 +104,13 @@ export default async function ToolRunnerPage({ params }: Props) {
 
   if (!workspace) notFound()
   if (!instance) notFound()
+  const t = getDashboardTranslations(locale)
 
   const schemaResult = validateToolSchema(instance.toolDefinition.schema)
   if (!schemaResult.success) {
     return (
       <div className="flex items-center justify-center py-16">
-        <p className="text-destructive text-sm">Schema de herramienta inválido.</p>
+        <p className="text-destructive text-sm">{t.toolInvalidSchema}</p>
       </div>
     )
   }
@@ -136,16 +138,16 @@ export default async function ToolRunnerPage({ params }: Props) {
   const tabs = buildCapabilityTabs(schema, workspaceId, instanceId)
   const formCap = schema.capabilities.find((c) => c.type === 'FORM')
   const hasFormCap = Boolean(formCap)
-  const createLabel = formCap?.label ?? 'Nueva entrada'
+  const createLabel = formCap?.label ?? t.toolNewEntry
   const isSocialMedia = instance.toolDefinition.slug === 'social-media-manager'
-  const aiLabel = isSocialMedia ? 'Ideas con IA' : undefined
+  const aiLabel = isSocialMedia ? t.toolAiIdeas : undefined
   const firstNonTableTab = tabs.find((t) => t.type !== 'TABLE')
 
   return (
     <div className="max-w-6xl mx-auto px-6 py-8">
       <Link href={`/workspace/${workspaceId}/tools`} className="inline-flex items-center gap-1.5 text-sm text-muted-foreground hover:text-foreground transition-colors mb-6 block">
         <svg className="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M15 18l-6-6 6-6"/></svg>
-        Herramientas
+        {t.toolsInstalledTitle}
       </Link>
       <div className="flex items-center justify-between mb-6">
         <div className="min-w-0">
@@ -158,7 +160,7 @@ export default async function ToolRunnerPage({ params }: Props) {
               href={`/workspace/${workspaceId}/tools/${instanceId}/import`}
               className="rounded-md border px-4 py-2 text-sm font-medium hover:bg-muted transition-colors"
             >
-              Importar CSV
+              {t.toolImportCsv}
             </Link>
             <Link
               href={`/workspace/${workspaceId}/tools/${instanceId}/records/new`}
@@ -170,12 +172,12 @@ export default async function ToolRunnerPage({ params }: Props) {
         )}
       </div>
 
-      <ToolSectionNav workspaceId={workspaceId} instanceId={instanceId} aiLabel={aiLabel} />
+      <ToolSectionNav workspaceId={workspaceId} instanceId={instanceId} aiLabel={aiLabel} locale={locale} />
       <CapabilityNav tabs={tabs} active="TABLE" />
 
         {records.length === 0 ? (
           <div className="rounded-lg border border-dashed p-16 text-center bg-card">
-            <p className="text-muted-foreground text-sm mb-4">Aún no hay registros en esta herramienta.</p>
+            <p className="text-muted-foreground text-sm mb-4">{t.toolNoRecords}</p>
             {hasFormCap ? (
               <Link
                 href={`/workspace/${workspaceId}/tools/${instanceId}/records/new`}
@@ -228,9 +230,9 @@ export default async function ToolRunnerPage({ params }: Props) {
                         {col.label}
                       </th>
                     ))}
-                    <th className="px-4 py-3 text-left font-medium text-muted-foreground whitespace-nowrap border-b min-w-[90px]">Tipo</th>
-                    <th className="px-4 py-3 text-left font-medium text-muted-foreground whitespace-nowrap border-b min-w-[130px]">Fecha</th>
-                    <th className="px-4 py-3 text-right font-medium text-muted-foreground whitespace-nowrap border-b min-w-[100px]">Acciones</th>
+                    <th className="px-4 py-3 text-left font-medium text-muted-foreground whitespace-nowrap border-b min-w-[90px]">{t.toolType}</th>
+                    <th className="px-4 py-3 text-left font-medium text-muted-foreground whitespace-nowrap border-b min-w-[130px]">{t.toolDate}</th>
+                    <th className="px-4 py-3 text-right font-medium text-muted-foreground whitespace-nowrap border-b min-w-[100px]">{t.toolActions}</th>
                   </tr>
                 </thead>
                 <tbody>
@@ -243,7 +245,7 @@ export default async function ToolRunnerPage({ params }: Props) {
                     const isApproval = data._type === 'approval_flow'
 
                     let typeBadge: React.ReactNode = (
-                      <span className="text-xs text-muted-foreground">Formulario</span>
+                      <span className="text-xs text-muted-foreground">{t.toolForm}</span>
                     )
                     if (isApproval) {
                       const approvalStatus = (data._status as string) ?? 'pending'
@@ -254,7 +256,7 @@ export default async function ToolRunnerPage({ params }: Props) {
                         on_hold:  'bg-gray-100 text-gray-600 dark:bg-gray-800 dark:text-gray-400',
                       }
                       const approvalLabel: Record<string, string> = {
-                        pending: 'Pendiente', approved: 'Aprobada', rejected: 'Rechazada', on_hold: 'En espera',
+                        pending: t.toolApprovalPending, approved: t.toolApprovalApproved, rejected: t.toolApprovalRejected, on_hold: t.toolApprovalOnHold,
                       }
                       typeBadge = (
                         <span className={cn('inline-flex items-center rounded-full px-2 py-0.5 text-xs font-medium', approvalCls[approvalStatus] ?? approvalCls.pending)}>
@@ -333,9 +335,9 @@ export default async function ToolRunnerPage({ params }: Props) {
                               }
                               className="text-xs text-primary hover:underline whitespace-nowrap"
                             >
-                              Ver
+                              {t.clientsView}
                             </Link>
-                            <DeleteButton instanceId={instanceId} recordId={record.id} />
+                            <DeleteButton instanceId={instanceId} recordId={record.id} locale={locale} />
                           </div>
                         </td>
                       </tr>
@@ -345,13 +347,12 @@ export default async function ToolRunnerPage({ params }: Props) {
               </table>
             </div>
             <div className="px-4 py-2 border-t bg-muted/30 text-xs text-muted-foreground">
-              {records.length} {records.length === 1 ? 'registro' : 'registros'}
+              {records.length} {records.length === 1 ? t.toolRecordSingular : t.toolRecordPlural}
             </div>
           </div>
         )}
     </div>
   )
 }
-
 
 

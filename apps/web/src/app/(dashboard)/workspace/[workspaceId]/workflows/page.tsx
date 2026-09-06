@@ -7,6 +7,9 @@ import { formatCostEUR } from '@/lib/ai-cost'
 import { STATUS_LABELS, STATUS_BADGE_CLASSES, type ResourceStatusString } from '@/lib/marketplace-config'
 import { WORKFLOW_TEMPLATES } from '@/lib/workflow-templates'
 import { TemplateCard } from './_components/TemplateCard'
+import { getLocale } from '@/i18n/locale'
+import { getDashboardTranslations } from '@/i18n/dashboard-translations'
+import type { DashboardTranslations } from '@/i18n/dashboard-translations'
 
 interface Props {
   params: Promise<{ workspaceId: string }>
@@ -27,16 +30,16 @@ function ResourceStatusBadge({ status, version }: { status: string; version: num
   )
 }
 
-function StatusDot({ isActive }: { isActive: boolean }) {
+function StatusDot({ isActive, t }: { isActive: boolean; t: DashboardTranslations }) {
   return (
     <span
       className={`inline-block w-2 h-2 rounded-full ${isActive ? 'bg-green-500' : 'bg-muted-foreground/30'}`}
-      title={isActive ? 'Activo' : 'Inactivo'}
+      title={isActive ? t.workflowsActiveTitle : t.workflowsInactiveTitle}
     />
   )
 }
 
-function WorkflowCard({ workflow, workspaceId }: { workflow: WorkflowSummary; workspaceId: string }) {
+function WorkflowCard({ workflow, workspaceId, t, locale }: { workflow: WorkflowSummary; workspaceId: string; t: DashboardTranslations; locale: string }) {
   return (
     <Link
       href={`/workspace/${workspaceId}/workflows/${workflow.id}`}
@@ -48,7 +51,7 @@ function WorkflowCard({ workflow, workspaceId }: { workflow: WorkflowSummary; wo
         </div>
         <div className="min-w-0 flex-1">
           <div className="flex items-center gap-2 flex-wrap">
-            <StatusDot isActive={workflow.isActive} />
+            <StatusDot isActive={workflow.isActive} t={t} />
             <h3 className="font-semibold text-sm truncate group-hover:text-primary transition-colors">
               {workflow.name}
             </h3>
@@ -63,19 +66,19 @@ function WorkflowCard({ workflow, workspaceId }: { workflow: WorkflowSummary; wo
       <div className="grid grid-cols-3 gap-2 text-xs">
         <div className="rounded-lg bg-muted/50 px-2.5 py-2 text-center">
           <div className="font-semibold text-foreground">{workflow.nodeCount}</div>
-          <div className="text-muted-foreground mt-0.5">Pasos</div>
+          <div className="text-muted-foreground mt-0.5">{t.workflowsSteps}</div>
         </div>
         <div className="rounded-lg bg-muted/50 px-2.5 py-2 text-center">
           <div className="font-semibold text-foreground">{workflow.executionCount}</div>
-          <div className="text-muted-foreground mt-0.5">Ejecuciones</div>
+          <div className="text-muted-foreground mt-0.5">{t.workflowsExecutions}</div>
         </div>
         <div className="rounded-lg bg-muted/50 px-2.5 py-2 text-center">
           <div className="font-semibold text-foreground text-[11px]">
             {workflow.lastExecutionAt
-              ? new Intl.DateTimeFormat('es-ES', { day: '2-digit', month: 'short' }).format(new Date(workflow.lastExecutionAt))
+              ? new Intl.DateTimeFormat(locale, { day: '2-digit', month: 'short' }).format(new Date(workflow.lastExecutionAt))
               : '—'}
           </div>
-          <div className="text-muted-foreground mt-0.5">Última ejecución</div>
+          <div className="text-muted-foreground mt-0.5">{t.workflowsLastRun}</div>
         </div>
       </div>
     </Link>
@@ -83,7 +86,8 @@ function WorkflowCard({ workflow, workspaceId }: { workflow: WorkflowSummary; wo
 }
 
 export default async function WorkflowsPage({ params }: Props) {
-  const [{ workspaceId }, user] = await Promise.all([params, requireUser()])
+  const [{ workspaceId }, user, locale] = await Promise.all([params, requireUser(), getLocale()])
+  const t = getDashboardTranslations(locale)
 
   const workspace = await db.workspace.findFirst({ where: { id: workspaceId, orgId: user.orgId } })
   if (!workspace) notFound()
@@ -94,45 +98,39 @@ export default async function WorkflowsPage({ params }: Props) {
     <div className="max-w-6xl mx-auto px-6 py-8 space-y-6">
       <div className="flex items-center justify-between">
         <div>
-          <h1 className="text-xl font-semibold">Flujos</h1>
-          <p className="text-xs text-muted-foreground mt-0.5">Cadenas de herramientas inteligentes</p>
+          <h1 className="text-xl font-semibold">{t.workflowsTitle}</h1>
+          <p className="text-xs text-muted-foreground mt-0.5">{t.workflowsSubtitle}</p>
         </div>
         <Link
           href={`/workspace/${workspaceId}/workflows/new`}
           className="rounded-md bg-primary px-4 py-2 text-sm font-medium text-primary-foreground shadow hover:bg-primary/90 transition-colors"
         >
-          + Nuevo flujo
+          {t.workflowsNew}
         </Link>
       </div>
       {/* Cómo funciona */}
       <div className="rounded-xl border bg-muted/30 px-6 py-5">
-        <p className="text-xs font-semibold uppercase tracking-widest text-muted-foreground/60 mb-4">¿Cómo funciona un flujo?</p>
+        <p className="text-xs font-semibold uppercase tracking-widest text-muted-foreground/60 mb-4">{t.workflowsHowItWorksTitle}</p>
         <div className="grid gap-4 sm:grid-cols-3">
           <div className="flex gap-3">
             <div className="w-8 h-8 rounded-lg bg-primary/10 flex items-center justify-center text-base shrink-0">1</div>
             <div>
-              <p className="text-sm font-medium">Elige las herramientas</p>
-              <p className="text-xs text-muted-foreground mt-0.5 leading-relaxed">
-                Combina cualquier herramienta instalada en tu workspace: analizadores, generadores, extractores de datos…
-              </p>
+              <p className="text-sm font-medium">{t.workflowsStep1Title}</p>
+              <p className="text-xs text-muted-foreground mt-0.5 leading-relaxed">{t.workflowsStep1Description}</p>
             </div>
           </div>
           <div className="flex gap-3">
             <div className="w-8 h-8 rounded-lg bg-primary/10 flex items-center justify-center text-base shrink-0">2</div>
             <div>
-              <p className="text-sm font-medium">Conecta los pasos</p>
-              <p className="text-xs text-muted-foreground mt-0.5 leading-relaxed">
-                El resultado de cada herramienta pasa automáticamente como entrada a la siguiente. Sin copiar ni pegar.
-              </p>
+              <p className="text-sm font-medium">{t.workflowsStep2Title}</p>
+              <p className="text-xs text-muted-foreground mt-0.5 leading-relaxed">{t.workflowsStep2Description}</p>
             </div>
           </div>
           <div className="flex gap-3">
             <div className="w-8 h-8 rounded-lg bg-primary/10 flex items-center justify-center text-base shrink-0">3</div>
             <div>
-              <p className="text-sm font-medium">Ejecútalo en un clic</p>
-              <p className="text-xs text-muted-foreground mt-0.5 leading-relaxed">
-                Introduce el dato inicial y el flujo hace el resto. Revisa el historial de cada ejecución cuando quieras.
-              </p>
+              <p className="text-sm font-medium">{t.workflowsStep3Title}</p>
+              <p className="text-xs text-muted-foreground mt-0.5 leading-relaxed">{t.workflowsStep3Description}</p>
             </div>
           </div>
         </div>
@@ -142,8 +140,8 @@ export default async function WorkflowsPage({ params }: Props) {
       <div>
         <div className="flex items-center justify-between mb-4">
           <div>
-            <h2 className="text-base font-semibold">Plantillas</h2>
-            <p className="text-xs text-muted-foreground mt-0.5">Flujos preconstruidos listos en un clic</p>
+            <h2 className="text-base font-semibold">{t.workflowsTemplatesTitle}</h2>
+            <p className="text-xs text-muted-foreground mt-0.5">{t.workflowsTemplatesSubtitle}</p>
           </div>
         </div>
         <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
@@ -157,7 +155,7 @@ export default async function WorkflowsPage({ params }: Props) {
       <div>
         <div className="flex items-center justify-between mb-4">
           <h2 className="text-base font-semibold">
-            Mis flujos
+            {t.workflowsMyWorkflows}
             {workflows.length > 0 && (
               <span className="ml-2 text-xs font-normal text-muted-foreground">
                 {workflows.length}
@@ -168,17 +166,17 @@ export default async function WorkflowsPage({ params }: Props) {
         {workflows.length === 0 ? (
           <div className="rounded-xl border border-dashed p-10 text-center bg-card">
             <p className="text-sm text-muted-foreground">
-              Usa un template o{' '}
+              {t.workflowsEmptyPrefix}
               <Link href={`/workspace/${workspaceId}/workflows/new`} className="text-primary hover:underline">
-                crea un flujo desde cero
+                {t.workflowsCreateFromScratch}
               </Link>
-              .
+              {t.workflowsEmptySuffix}
             </p>
           </div>
         ) : (
           <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
             {workflows.map((w) => (
-              <WorkflowCard key={w.id} workflow={w} workspaceId={workspaceId} />
+              <WorkflowCard key={w.id} workflow={w} workspaceId={workspaceId} t={t} locale={locale} />
             ))}
           </div>
         )}

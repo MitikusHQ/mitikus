@@ -8,6 +8,8 @@ import { ExecutionClient } from './_components/ExecutionClient'
 import { suggestNextTools } from '@/lib/tool-intelligence'
 import { getBusinessContext } from '@/lib/business-memory'
 import { computeContextDefaults } from '@/lib/context-autofill'
+import { getLocale } from '@/i18n/locale'
+import { getDashboardTranslations } from '@/i18n/dashboard-translations'
 
 interface Props {
   params: Promise<{ workspaceId: string; instanceId: string }>
@@ -15,11 +17,13 @@ interface Props {
 }
 
 export default async function ToolRunPage({ params, searchParams }: Props) {
-  const [{ workspaceId, instanceId }, { from, fromMission, fromStep }, user] = await Promise.all([
+  const [{ workspaceId, instanceId }, { from, fromMission, fromStep }, user, locale] = await Promise.all([
     params,
     searchParams,
     requireUser(),
+    getLocale(),
   ])
+  const t = getDashboardTranslations(locale)
 
   const [workspace, instance] = await Promise.all([
     db.workspace.findFirst({ where: { id: workspaceId, orgId: user.orgId } }),
@@ -40,7 +44,7 @@ export default async function ToolRunPage({ params, searchParams }: Props) {
   if (!schemaResult.success) {
     return (
       <div className="flex items-center justify-center py-16">
-        <p className="text-destructive text-sm">Schema de herramienta inválido.</p>
+        <p className="text-destructive text-sm">{t.toolInvalidSchema}</p>
       </div>
     )
   }
@@ -74,7 +78,7 @@ export default async function ToolRunPage({ params, searchParams }: Props) {
   }
 
   const isReplay = !!initialValues
-  const aiLabel = instance.toolDefinition.slug === 'social-media-manager' ? 'Ideas con IA' : undefined
+  const aiLabel = instance.toolDefinition.slug === 'social-media-manager' ? t.toolAiIdeas : undefined
 
   // Contexto de empresa para auto-relleno (solo si no es replay)
   const contextDefaults = isReplay
@@ -95,13 +99,13 @@ export default async function ToolRunPage({ params, searchParams }: Props) {
           {instance.toolDefinition.name}
           {isReplay && (
             <span className="ml-2 bg-amber-100 text-amber-700 dark:bg-amber-900/30 dark:text-amber-400 px-1.5 py-0.5 rounded text-[10px] font-medium">
-              Reejecución
+              {t.toolReplay}
             </span>
           )}
         </p>
       </div>
 
-      <ToolSectionNav workspaceId={workspaceId} instanceId={instanceId} aiLabel={aiLabel} />
+      <ToolSectionNav workspaceId={workspaceId} instanceId={instanceId} aiLabel={aiLabel} locale={locale} />
       <ExecutionClient
         toolInstanceId={instanceId}
         workspaceId={workspaceId}
@@ -114,6 +118,7 @@ export default async function ToolRunPage({ params, searchParams }: Props) {
         fromStepId={fromStep}
         nextTools={nextTools.map((t) => ({ slug: t.slug, name: t.name, reason: t.reason }))}
         formSections={formSections}
+        locale={locale}
       />
     </div>
   )

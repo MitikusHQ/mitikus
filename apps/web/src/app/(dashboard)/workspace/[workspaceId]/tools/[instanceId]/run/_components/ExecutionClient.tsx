@@ -6,6 +6,8 @@ import type { DataSchema, FormConfig } from '@protools/schema'
 import { VariableForm } from './VariableForm'
 import { ExecutionResult, type ExecutionState } from './ExecutionResult'
 import { createSocialPostDraftFromAI } from '@/app/actions/record'
+import type { Locale } from '@/i18n/config'
+import { getDashboardTranslations } from '@/i18n/dashboard-translations'
 
 interface ExecutionApiResponse {
   executionId: string
@@ -36,11 +38,13 @@ interface Props {
   fromStepId?: string
   nextTools?: NextTool[]
   formSections?: FormConfig['sections']
+  locale: Locale
 }
 
 export function ExecutionClient({
-  toolInstanceId, workspaceId, toolName, toolSlug, fields, initialValues, contextDefaults, fromMissionId, fromStepId, nextTools = [], formSections,
+  toolInstanceId, workspaceId, toolName, toolSlug, fields, initialValues, contextDefaults, fromMissionId, fromStepId, nextTools = [], formSections, locale,
 }: Props) {
+  const t = getDashboardTranslations(locale)
   const router = useRouter()
   const [values, setValues] = useState<Record<string, string>>(
     { ...contextDefaults, ...initialValues },
@@ -73,7 +77,7 @@ export function ExecutionClient({
       if (!res.ok) throw new Error()
       router.push(`/workspace/${workspaceId}/missions/${fromMissionId}`)
     } catch {
-      setCompleteError('No se pudo actualizar la misión. Inténtalo de nuevo.')
+      setCompleteError(t.toolMissionUpdateError)
       setCompleting(false)
     }
   }, [fromMissionId, fromStepId, workspaceId, router])
@@ -93,7 +97,7 @@ export function ExecutionClient({
         const data = (await res.json()) as ExecutionApiResponse
 
         if (!res.ok || data.error) {
-          setExecState({ type: 'error', message: data.error ?? 'Error desconocido' })
+          setExecState({ type: 'error', message: data.error ?? t.toolUnknownError })
           return
         }
 
@@ -108,7 +112,7 @@ export function ExecutionClient({
           durationMs: data.durationMs,
         })
       } catch {
-        setExecState({ type: 'error', message: 'Error de conexión. Inténtalo de nuevo.' })
+        setExecState({ type: 'error', message: t.toolConnectionError })
       }
     },
     [toolInstanceId, workspaceId, values],
@@ -139,14 +143,14 @@ export function ExecutionClient({
       <div>
         <div className="rounded-xl border bg-card p-5 sticky top-6">
           <div className="mb-5">
-            <h2 className="font-semibold text-[15px]">Variables de entrada</h2>
+            <h2 className="font-semibold text-[15px]">{t.toolInputVariables}</h2>
             <p className="text-xs text-muted-foreground mt-0.5">
-              Rellena los campos para personalizar el output de la IA
+              {t.toolInputDescription}
             </p>
             {contextDefaults && Object.keys(contextDefaults).length > 0 && (
               <p className="text-[11px] text-primary/70 mt-1.5 flex items-center gap-1">
                 <span>📎</span>
-                <span>Algunos campos se han rellenado desde el contexto de tu empresa</span>
+                <span>{t.toolContextFilled}</span>
               </p>
             )}
           </div>
@@ -158,6 +162,7 @@ export function ExecutionClient({
             isLoading={isLoading}
             contextFields={new Set(Object.keys(contextDefaults ?? {}))}
             formSections={formSections}
+            locale={locale}
           />
         </div>
       </div>
@@ -165,23 +170,23 @@ export function ExecutionClient({
       {/* Panel derecho: resultado */}
       <div>
         <div className="mb-4">
-          <h2 className="font-semibold text-[15px]">Resultado</h2>
+          <h2 className="font-semibold text-[15px]">{t.toolResult}</h2>
           <p className="text-xs text-muted-foreground mt-0.5">
-            Output generado por IA para <span className="font-medium">{toolName}</span>
+            {t.toolResultDescription} <span className="font-medium">{toolName}</span>
           </p>
         </div>
-        <ExecutionResult state={execState} toolName={toolName} />
+        <ExecutionResult state={execState} toolName={toolName} locale={locale} />
 
         {canSaveSocialDraft && (
           <div className="mt-3 rounded-xl border bg-card p-4 space-y-3">
             <div>
-              <p className="text-sm font-semibold">Guardar esta idea como publicación</p>
+              <p className="text-sm font-semibold">{t.toolSaveSocialTitle}</p>
               <p className="text-xs text-muted-foreground mt-0.5">
-                Crea un borrador en MITIKUS con el resultado generado. No publica en redes externas.
+                {t.toolSaveSocialDescription}
               </p>
             </div>
             {draftSaveState.type === 'success' && (
-              <p className="text-xs text-green-600 dark:text-green-400">Borrador guardado correctamente.</p>
+              <p className="text-xs text-green-600 dark:text-green-400">{t.toolDraftSaved}</p>
             )}
             {draftSaveState.type === 'error' && (
               <p className="text-xs text-destructive">{draftSaveState.message}</p>
@@ -193,14 +198,14 @@ export function ExecutionClient({
                 disabled={isSavingDraft || draftSaveState.type === 'success'}
                 className="inline-flex items-center rounded-md bg-primary px-4 py-2 text-sm font-medium text-primary-foreground shadow hover:bg-primary/90 transition-colors disabled:opacity-60"
               >
-                {isSavingDraft ? 'Guardando…' : draftSaveState.type === 'success' ? 'Guardado' : 'Guardar como borrador'}
+                {isSavingDraft ? t.toolSaving : draftSaveState.type === 'success' ? t.toolSaved : t.toolSaveDraft}
               </button>
               {draftSaveState.type === 'success' && (
                 <a
                   href={`/workspace/${workspaceId}/tools/${toolInstanceId}`}
                   className="text-sm text-primary hover:underline"
                 >
-                  Ver publicaciones →
+                  {t.toolViewPosts} →
                 </a>
               )}
             </div>
@@ -210,10 +215,10 @@ export function ExecutionClient({
         {execState.type === 'success' && fromMissionId && fromStepId && (
           <div className="mt-3 rounded-lg border-2 border-primary/30 bg-primary/5 p-4 space-y-2">
             <p className="text-sm font-medium">
-              ✓ Resultado generado — esto completa el paso de tu misión.
+              ✓ {t.toolMissionStepGenerated}
             </p>
             <p className="text-xs text-muted-foreground">
-              Vuelve a la misión para marcarlo como hecho. El progreso y la siguiente acción se actualizan solos.
+              {t.toolMissionStepGeneratedDescription}
             </p>
             {completeError && (
               <p className="text-xs text-destructive">{completeError}</p>
@@ -224,7 +229,7 @@ export function ExecutionClient({
               disabled={completing}
               className="inline-flex items-center gap-1.5 text-sm font-medium bg-primary text-primary-foreground px-4 py-2 rounded-lg hover:opacity-90 transition-opacity disabled:opacity-50"
             >
-              {completing ? 'Actualizando misión…' : 'Volver a la misión y marcar como hecho →'}
+              {completing ? t.toolUpdatingMission : `${t.toolBackToMissionDone} →`}
             </button>
           </div>
         )}
@@ -232,22 +237,22 @@ export function ExecutionClient({
         {execState.type === 'success' && nextTools.length > 0 && (
           <div className="mt-4 rounded-xl border bg-card p-4 space-y-3">
             <p className="text-xs font-semibold text-muted-foreground uppercase tracking-wide">
-              ¿Continuar con…?
+              {t.toolContinueWith}
             </p>
             <div className="flex flex-col gap-2">
-              {nextTools.map((t) => (
+              {nextTools.map((nextTool) => (
                 <a
-                  key={t.slug}
-                  href={`/tools/${t.slug}?workspaceId=${workspaceId}`}
+                  key={nextTool.slug}
+                  href={`/tools/${nextTool.slug}?workspaceId=${workspaceId}`}
                   className="flex items-center justify-between gap-3 rounded-lg border px-4 py-3 hover:border-primary/50 hover:bg-primary/5 transition-colors group"
                 >
                   <div className="min-w-0">
                     <p className="text-sm font-medium group-hover:text-primary transition-colors truncate">
-                      {t.name}
+                      {nextTool.name}
                     </p>
-                    <p className="text-xs text-muted-foreground truncate">{t.reason}</p>
+                    <p className="text-xs text-muted-foreground truncate">{nextTool.reason}</p>
                   </div>
-                  <span className="text-xs text-primary shrink-0">Usar →</span>
+                  <span className="text-xs text-primary shrink-0">{t.toolUse} →</span>
                 </a>
               ))}
             </div>
@@ -261,14 +266,14 @@ export function ExecutionClient({
               onClick={() => setExecState({ type: 'idle' })}
               className="text-xs text-muted-foreground hover:text-foreground transition-colors"
             >
-              ← Nueva ejecución
+              ← {t.toolNewExecution}
             </button>
             <span className="text-muted-foreground/30">·</span>
             <a
               href={`/workspace/${workspaceId}/tools/${toolInstanceId}/history`}
               className="text-xs text-primary hover:underline"
             >
-              Ver historial →
+              {t.todayViewHistory} →
             </a>
             {fromMissionId && (
               <>
@@ -277,7 +282,7 @@ export function ExecutionClient({
                   href={`/workspace/${workspaceId}/missions/${fromMissionId}`}
                   className="text-xs text-muted-foreground hover:text-foreground transition-colors"
                 >
-                  Volver sin marcar como hecho
+                  {t.toolBackWithoutDone}
                 </a>
               </>
             )}
