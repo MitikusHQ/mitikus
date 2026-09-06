@@ -14,9 +14,7 @@ interface Props {
 
 export function ArchiveButton({ workspaceId, clientId, clientName, locale }: Props) {
   const t = getDashboardTranslations(locale)
-  const confirmMessage = locale === 'es'
-    ? `¿Archivar a "${clientName}"? Se ocultará de la lista.`
-    : `Archive "${clientName}"? It will be hidden from the list.`
+  const confirmMessage = `${t.clientsArchiveConfirmPrefix}${clientName}${t.clientsArchiveConfirmSuffix}`
   const [state, action, isPending] = useActionState<ClientActionState, FormData>(
     archiveClient,
     null,

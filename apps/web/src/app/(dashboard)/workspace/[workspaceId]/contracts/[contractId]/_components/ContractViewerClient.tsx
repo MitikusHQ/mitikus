@@ -10,18 +10,15 @@ import { SignatureCanvas } from '@/components/signature-canvas'
 import { SendToClientModal } from './SendToClientModal'
 import { signInternalContract, sendContractToClient } from '@/app/actions/contracts'
 import type { ContractDetail } from '@/app/actions/contracts'
+import type { Locale } from '@/i18n/config'
+import { getDashboardTranslations } from '@/i18n/dashboard-translations'
 
 pdfjs.GlobalWorkerOptions.workerSrc = '/pdf.worker.min.js'
 
 interface Props {
   contract:    ContractDetail
   workspaceId: string
-}
-
-const STATUS_LABEL: Record<string, string> = {
-  DRAFT:  'BORRADOR',
-  SENT:   'ENVIADO',
-  SIGNED: 'FIRMADO',
+  locale:      Locale
 }
 
 const STATUS_CLASS: Record<string, string> = {
@@ -30,7 +27,13 @@ const STATUS_CLASS: Record<string, string> = {
   SIGNED: 'bg-green-100 text-green-800 dark:bg-green-900/30 dark:text-green-300',
 }
 
-export function ContractViewerClient({ contract, workspaceId }: Props) {
+export function ContractViewerClient({ contract, workspaceId, locale }: Props) {
+  const t = getDashboardTranslations(locale)
+  const statusLabel: Record<string, string> = {
+    DRAFT: t.contractsStatusDraft,
+    SENT: t.contractsStatusSent,
+    SIGNED: t.contractsStatusSigned,
+  }
   const router = useRouter()
   const [numPages,       setNumPages]       = useState<number>(0)
   const [isSavingSig,    setIsSavingSig]    = useState(false)
@@ -60,7 +63,7 @@ export function ContractViewerClient({ contract, workspaceId }: Props) {
       await signInternalContract(contract.id, workspaceId, dataUrl, true)
       router.refresh()
     } catch {
-      setSigError('Error al guardar la firma. Inténtalo de nuevo.')
+      setSigError(t.contractsSaveSignatureError)
     } finally {
       setIsSavingSig(false)
     }
@@ -74,7 +77,7 @@ export function ContractViewerClient({ contract, workspaceId }: Props) {
       setShowSendModal(false)
       router.refresh()
     } catch {
-      setSendError('Error al enviar al cliente. Inténtalo de nuevo.')
+      setSendError(t.contractsSendError)
     } finally {
       setIsSending(false)
     }
@@ -91,7 +94,7 @@ export function ContractViewerClient({ contract, workspaceId }: Props) {
         <div className="flex items-center gap-3 min-w-0">
           <h1 className="text-base font-semibold truncate">{contract.title}</h1>
           <span className={`text-xs px-2 py-0.5 rounded-full font-medium shrink-0 ${STATUS_CLASS[contract.status] ?? ''}`}>
-            {STATUS_LABEL[contract.status] ?? contract.status}
+            {statusLabel[contract.status] ?? contract.status}
           </span>
         </div>
         <div className="flex items-center gap-2 shrink-0 ml-4">
@@ -102,7 +105,7 @@ export function ContractViewerClient({ contract, workspaceId }: Props) {
               rel="noopener noreferrer"
               className="rounded-md border border-input px-3 py-1.5 text-sm hover:bg-muted"
             >
-              ↓ PDF firmado
+              ↓ {t.contractsSignedPdf}
             </a>
           )}
           <button
@@ -110,7 +113,7 @@ export function ContractViewerClient({ contract, workspaceId }: Props) {
             disabled={!canSend}
             className="rounded-md bg-primary text-primary-foreground px-3 py-1.5 text-sm font-medium hover:bg-primary/90 disabled:opacity-40 disabled:cursor-not-allowed"
           >
-            Enviar al cliente →
+            {t.contractsSendToClient} →
           </button>
         </div>
       </div>
@@ -142,34 +145,34 @@ export function ContractViewerClient({ contract, workspaceId }: Props) {
         <div className="w-64 shrink-0 border-l overflow-y-auto p-4 space-y-4">
           {/* Internal signature */}
           <div className="rounded-lg border p-3 space-y-2">
-            <p className="text-xs font-semibold text-muted-foreground uppercase tracking-wide">Tu firma</p>
+            <p className="text-xs font-semibold text-muted-foreground uppercase tracking-wide">{t.contractsYourSignature}</p>
             {sigError && <p className="text-xs text-destructive">{sigError}</p>}
             {isSavingSig ? (
-              <p className="text-xs text-muted-foreground">Guardando firma...</p>
+              <p className="text-xs text-muted-foreground">{t.contractsSavingSignature}</p>
             ) : (
               <SignatureCanvas
                 onSave={handleSaveSignature}
                 existingSignature={internalSigDataUrl}
-                label="Acepto los términos"
+                label={t.contractsAcceptTerms}
                 disabled={contract.status !== 'DRAFT'}
               />
             )}
             {contract.internalSignedAt && (
               <p className="text-xs text-muted-foreground">
-                ✓ Firmado el {new Date(contract.internalSignedAt).toLocaleDateString('es-ES')}
+                ✓ {t.contractsSignedOn} {new Date(contract.internalSignedAt).toLocaleDateString(locale)}
               </p>
             )}
           </div>
 
           {/* Client signature */}
           <div className={`rounded-lg border p-3 space-y-2 ${contract.status === 'DRAFT' ? 'opacity-50' : ''}`}>
-            <p className="text-xs font-semibold text-muted-foreground uppercase tracking-wide">Firma cliente</p>
+            <p className="text-xs font-semibold text-muted-foreground uppercase tracking-wide">{t.contractsClientSignature}</p>
             {contract.status === 'DRAFT' && (
-              <p className="text-xs text-muted-foreground">Pendiente de envío</p>
+              <p className="text-xs text-muted-foreground">{t.contractsPendingSend}</p>
             )}
             {contract.status === 'SENT' && (
               <p className="text-xs text-muted-foreground">
-                Enviado a {contract.clientEmail ?? '—'}, pendiente de firma
+                {t.contractsSentToPrefix} {contract.clientEmail ?? '—'}, {t.contractsPendingSignature}
               </p>
             )}
             {contract.status === 'SIGNED' && clientSigDataUrl && (
@@ -181,7 +184,7 @@ export function ContractViewerClient({ contract, workspaceId }: Props) {
                 />
                 {contract.clientSignedAt && (
                   <p className="text-xs text-muted-foreground">
-                    ✓ Firmado el {new Date(contract.clientSignedAt).toLocaleDateString('es-ES')}
+                    ✓ {t.contractsSignedOn} {new Date(contract.clientSignedAt).toLocaleDateString(locale)}
                   </p>
                 )}
               </>
@@ -195,6 +198,7 @@ export function ContractViewerClient({ contract, workspaceId }: Props) {
         isSending={isSending}
         onClose={() => setShowSendModal(false)}
         onSend={handleSend}
+        locale={locale}
       />
     </div>
   )

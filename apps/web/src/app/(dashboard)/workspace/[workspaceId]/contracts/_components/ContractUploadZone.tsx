@@ -2,12 +2,16 @@
 
 import { useRef, useState } from 'react'
 import { useRouter } from 'next/navigation'
+import type { Locale } from '@/i18n/config'
+import { getDashboardTranslations } from '@/i18n/dashboard-translations'
 
 interface Props {
   workspaceId: string
+  locale: Locale
 }
 
-export function ContractUploadZone({ workspaceId }: Props) {
+export function ContractUploadZone({ workspaceId, locale }: Props) {
+  const t = getDashboardTranslations(locale)
   const [isDragging, setIsDragging]   = useState(false)
   const [isUploading, setIsUploading] = useState(false)
   const [error, setError]             = useState<string | null>(null)
@@ -16,7 +20,7 @@ export function ContractUploadZone({ workspaceId }: Props) {
 
   async function uploadFile(file: File) {
     if (!file.name.toLowerCase().endsWith('.pdf')) {
-      setError('Solo se admiten archivos PDF (.pdf)')
+      setError(t.contractsPdfOnlyError)
       return
     }
     setIsUploading(true)
@@ -30,16 +34,16 @@ export function ContractUploadZone({ workspaceId }: Props) {
       const res  = await fetch('/api/contracts/upload', { method: 'POST', body: formData })
       const data = await res.json() as { id?: string; error?: string }
       if (!res.ok) {
-        setError(data.error ?? 'Error al subir el contrato')
+        setError(data.error ?? t.contractsUploadError)
         return
       }
       if (!data.id) {
-        setError('Respuesta inesperada del servidor')
+        setError(t.contractsUnexpectedResponse)
         return
       }
       router.push(`/workspace/${workspaceId}/contracts/${data.id}`)
     } catch {
-      setError('Error de conexión. Inténtalo de nuevo.')
+      setError(t.contractsConnectionError)
     } finally {
       setIsUploading(false)
     }
@@ -75,14 +79,14 @@ export function ContractUploadZone({ workspaceId }: Props) {
           accept=".pdf"
           onChange={handleChange}
           className="hidden"
-          aria-label="Seleccionar PDF de contrato"
+          aria-label={t.contractsSelectPdf}
         />
         {isUploading ? (
-          <p className="text-sm text-muted-foreground">Subiendo contrato...</p>
+          <p className="text-sm text-muted-foreground">{t.contractsUploading}</p>
         ) : (
           <p className="text-sm text-muted-foreground">
-            Arrastra un <span className="font-medium">.pdf</span> aquí o{' '}
-            <span className="text-primary hover:underline">elige archivo</span>
+            {t.contractsUploadPromptPrefix} <span className="font-medium">.pdf</span> {' '}
+            <span className="text-primary hover:underline">{t.contractsChooseFile}</span>
           </p>
         )}
       </div>
