@@ -1,17 +1,21 @@
 'use client'
 
 import { useState, useEffect } from 'react'
+import dynamic from 'next/dynamic'
 import { usePathname, useRouter } from 'next/navigation'
 import { cn } from '@/lib/utils'
 import { WorkspaceSidebar } from './WorkspaceSidebar'
 import { WorkspaceTopbar } from './WorkspaceTopbar'
-import { TeamPanel } from './TeamPanel'
-import { OnboardingModal, ONBOARDING_STORAGE_KEY } from './OnboardingModal'
 import { Icons } from './WorkspaceIcons'
-import { BrainOverlay } from '@/components/BrainOverlay'
 import type { NavItem } from './WorkspaceSidebarItem'
 import type { Locale } from '@/i18n/config'
 import { getDashboardTranslations } from '@/i18n/dashboard-translations'
+
+const TeamPanel = dynamic(() => import('./TeamPanel').then((m) => ({ default: m.TeamPanel })), { ssr: false })
+const OnboardingModal = dynamic(() => import('./OnboardingModal').then((m) => ({ default: m.OnboardingModal })), { ssr: false })
+const BrainOverlay = dynamic(() => import('@/components/BrainOverlay').then((m) => ({ default: m.BrainOverlay })), { ssr: false })
+
+const ONBOARDING_STORAGE_KEY = 'mitikus-onboarding-seen-v1'
 
 interface NavGroup {
   label?: string
