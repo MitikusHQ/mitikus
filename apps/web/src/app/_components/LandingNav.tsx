@@ -27,6 +27,9 @@ export function LandingNav({ locale }: LandingNavProps) {
         <a href="/blog" className="text-sm text-muted-foreground hover:text-foreground transition-colors">
           Blog
         </a>
+        <a href="/download" className="text-sm text-muted-foreground hover:text-foreground transition-colors">
+          Descargar app
+        </a>
         <a
           href="/sign-in"
           className="text-sm font-medium border border-input px-3 py-1.5 rounded-md hover:bg-accent transition-colors"
@@ -69,6 +72,9 @@ export function LandingNav({ locale }: LandingNavProps) {
           </div>
           <a href="/blog" className="text-sm text-muted-foreground hover:text-foreground transition-colors py-1" onClick={() => setOpen(false)}>
             Blog
+          </a>
+          <a href="/download" className="text-sm text-muted-foreground hover:text-foreground transition-colors py-1" onClick={() => setOpen(false)}>
+            Descargar app
           </a>
           <a
             href="/sign-in"

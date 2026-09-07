@@ -1,5 +1,3 @@
-import { redirect } from 'next/navigation'
-import { auth } from '@clerk/nextjs/server'
 import { Archive, Download, ExternalLink, MonitorDown, ShieldCheck } from 'lucide-react'
 
 const GITHUB_RELEASES_API =
@@ -50,9 +48,6 @@ async function getLatestDownloadInfo(): Promise<DownloadInfo> {
 }
 
 export default async function DownloadPage() {
-  const { userId } = await auth()
-  if (!userId) redirect('/sign-in')
-
   const downloadInfo = await getLatestDownloadInfo()
 
   return (
