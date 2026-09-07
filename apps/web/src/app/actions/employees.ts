@@ -1,7 +1,8 @@
 'use server'
 
-import { auth } from '@clerk/nextjs/server'
 import { db } from '@/lib/db'
+import { requireUser } from '@/lib/auth'
+import { can } from '@/lib/permissions'
 import { revalidatePath } from 'next/cache'
 import { z } from 'zod'
 
@@ -15,12 +16,11 @@ const EmployeeSchema = z.object({
   position: z.string().min(1),
   department: z.string().optional(),
   startDate: z.string(),
-  contractType: z.enum(['INDEFINIDO', 'TEMPORAL', 'PRACTICAS', 'FORMACION', 'PARCIAL', 'OBRA_SERVICIO']),
+  contractType: z.enum(['INDEFINIDO', 'TEMPORAL', 'PRACTICAS', 'FORMACION', 'TIEMPO_PARCIAL', 'OBRA_SERVICIO']),
   workingHours: z.number().min(1).max(40).default(40),
   annualGrossSalary: z.number().min(0),
   extraPayments: z.number().min(0).max(2).default(2),
   extraPaymentsProrrated: z.boolean().default(false),
-  // Situación familiar IRPF
   maritalStatus: z.enum(['SOLTERO', 'CASADO', 'DIVORCIADO', 'VIUDO', 'SEPARADO', 'PAREJA_HECHO']).default('SOLTERO'),
   spouseEarnsOver1500: z.boolean().default(false),
   childrenCount: z.number().min(0).default(0),
@@ -35,21 +35,9 @@ const EmployeeSchema = z.object({
   irpfManual: z.boolean().default(false),
 })
 
-async function getWorkspaceMember(workspaceId: string, userId: string) {
-  return db.workspaceMember.findFirst({
-    where: { workspaceId, userId },
-    select: { role: true },
-  })
-}
-
 export async function createEmployee(data: z.infer<typeof EmployeeSchema>) {
-  const { userId } = await auth()
-  if (!userId) throw new Error('No autenticado')
-
-  const member = await getWorkspaceMember(data.workspaceId, userId)
-  if (!member || !['OWNER', 'ADMIN'].includes(member.role)) {
-    throw new Error('Sin permisos')
-  }
+  const user = await requireUser()
+  if (!can(user, 'manage_members')) throw new Error('Sin permisos')
 
   const parsed = EmployeeSchema.parse(data)
 
@@ -84,7 +72,7 @@ export async function createEmployee(data: z.infer<typeof EmployeeSchema>) {
     },
   })
 
-  revalidatePath(`/workspace/${data.workspaceId}/employees`)
+  revalidatePath(`/workspace/${parsed.workspaceId}/employees`)
   return employee
 }
 
@@ -93,19 +81,17 @@ export async function updateEmployee(
   workspaceId: string,
   data: Partial<z.infer<typeof EmployeeSchema>>,
 ) {
-  const { userId } = await auth()
-  if (!userId) throw new Error('No autenticado')
+  const user = await requireUser()
+  if (!can(user, 'manage_members')) throw new Error('Sin permisos')
 
-  const member = await getWorkspaceMember(workspaceId, userId)
-  if (!member || !['OWNER', 'ADMIN'].includes(member.role)) {
-    throw new Error('Sin permisos')
-  }
+  const { workspaceId: _ws, position, startDate, ...rest } = data
 
   const employee = await db.employee.update({
     where: { id: employeeId, workspaceId },
     data: {
-      ...data,
-      startDate: data.startDate ? new Date(data.startDate) : undefined,
+      ...rest,
+      ...(position !== undefined ? { jobTitle: position } : {}),
+      ...(startDate !== undefined ? { startDate: new Date(startDate) } : {}),
     },
   })
 
@@ -114,13 +100,8 @@ export async function updateEmployee(
 }
 
 export async function deactivateEmployee(employeeId: string, workspaceId: string) {
-  const { userId } = await auth()
-  if (!userId) throw new Error('No autenticado')
-
-  const member = await getWorkspaceMember(workspaceId, userId)
-  if (!member || !['OWNER', 'ADMIN'].includes(member.role)) {
-    throw new Error('Sin permisos')
-  }
+  const user = await requireUser()
+  if (!can(user, 'manage_members')) throw new Error('Sin permisos')
 
   await db.employee.update({
     where: { id: employeeId, workspaceId },
@@ -131,11 +112,7 @@ export async function deactivateEmployee(employeeId: string, workspaceId: string
 }
 
 export async function getEmployees(workspaceId: string) {
-  const { userId } = await auth()
-  if (!userId) throw new Error('No autenticado')
-
-  const member = await getWorkspaceMember(workspaceId, userId)
-  if (!member) throw new Error('Sin permisos')
+  await requireUser()
 
   return db.employee.findMany({
     where: { workspaceId, active: true },
@@ -144,11 +121,7 @@ export async function getEmployees(workspaceId: string) {
 }
 
 export async function getEmployee(employeeId: string, workspaceId: string) {
-  const { userId } = await auth()
-  if (!userId) throw new Error('No autenticado')
-
-  const member = await getWorkspaceMember(workspaceId, userId)
-  if (!member) throw new Error('Sin permisos')
+  await requireUser()
 
   return db.employee.findFirst({
     where: { id: employeeId, workspaceId },

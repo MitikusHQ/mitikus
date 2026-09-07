@@ -1,17 +1,11 @@
 'use server'
 
-import { auth } from '@clerk/nextjs/server'
 import { db } from '@/lib/db'
+import { requireUser } from '@/lib/auth'
+import { can } from '@/lib/permissions'
 import { revalidatePath } from 'next/cache'
 import { calculatePayroll } from '@/lib/payroll-calculator'
 import type { EmployeeFiscalData } from '@/lib/payroll-calculator'
-
-async function getWorkspaceMember(workspaceId: string, userId: string) {
-  return db.workspaceMember.findFirst({
-    where: { workspaceId, userId },
-    select: { role: true },
-  })
-}
 
 export async function generatePayroll(
   employeeId: string,
@@ -19,20 +13,14 @@ export async function generatePayroll(
   year: number,
   month: number,
 ) {
-  const { userId } = await auth()
-  if (!userId) throw new Error('No autenticado')
-
-  const member = await getWorkspaceMember(workspaceId, userId)
-  if (!member || !['OWNER', 'ADMIN'].includes(member.role)) {
-    throw new Error('Sin permisos')
-  }
+  const user = await requireUser()
+  if (!can(user, 'manage_members')) throw new Error('Sin permisos')
 
   const employee = await db.employee.findFirst({
     where: { id: employeeId, workspaceId, active: true },
   })
   if (!employee) throw new Error('Empleado no encontrado')
 
-  // Comprobar que no existe ya una nómina para ese mes
   const existing = await db.payroll.findFirst({
     where: { employeeId, year, month },
   })
@@ -89,15 +77,9 @@ export async function generatePayroll(
 }
 
 export async function approvePayroll(payrollId: string, workspaceId: string) {
-  const { userId } = await auth()
-  if (!userId) throw new Error('No autenticado')
+  const user = await requireUser()
+  if (!can(user, 'manage_members')) throw new Error('Sin permisos')
 
-  const member = await getWorkspaceMember(workspaceId, userId)
-  if (!member || !['OWNER', 'ADMIN'].includes(member.role)) {
-    throw new Error('Sin permisos')
-  }
-
-  // GENERADA equivale a aprobada en el schema actual
   const payroll = await db.payroll.update({
     where: { id: payrollId, workspaceId },
     data: { status: 'GENERADA' },
@@ -108,13 +90,8 @@ export async function approvePayroll(payrollId: string, workspaceId: string) {
 }
 
 export async function payPayroll(payrollId: string, workspaceId: string) {
-  const { userId } = await auth()
-  if (!userId) throw new Error('No autenticado')
-
-  const member = await getWorkspaceMember(workspaceId, userId)
-  if (!member || !['OWNER', 'ADMIN'].includes(member.role)) {
-    throw new Error('Sin permisos')
-  }
+  const user = await requireUser()
+  if (!can(user, 'manage_members')) throw new Error('Sin permisos')
 
   const payroll = await db.payroll.update({
     where: { id: payrollId, workspaceId },
@@ -126,11 +103,7 @@ export async function payPayroll(payrollId: string, workspaceId: string) {
 }
 
 export async function getPayrolls(workspaceId: string, year?: number) {
-  const { userId } = await auth()
-  if (!userId) throw new Error('No autenticado')
-
-  const member = await getWorkspaceMember(workspaceId, userId)
-  if (!member) throw new Error('Sin permisos')
+  await requireUser()
 
   return db.payroll.findMany({
     where: { workspaceId, ...(year ? { year } : {}) },

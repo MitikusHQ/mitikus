@@ -7,7 +7,7 @@ interface Employee {
   id: string
   firstName: string
   lastName: string
-  position: string
+  jobTitle: string | null
 }
 
 interface PayrollRow {
@@ -64,11 +64,11 @@ export function PayrollTable({ workspaceId, payrolls, employees, year }: Props) 
   }
 
   function handleApprove(payrollId: string) {
-    startTransition(() => approvePayroll(payrollId, workspaceId))
+    startTransition(async () => { await approvePayroll(payrollId, workspaceId) })
   }
 
   function handlePay(payrollId: string) {
-    startTransition(() => payPayroll(payrollId, workspaceId))
+    startTransition(async () => { await payPayroll(payrollId, workspaceId) })
   }
 
   const fmt = (n: number) => n.toLocaleString('es-ES', { style: 'currency', currency: 'EUR' })

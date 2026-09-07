@@ -49,7 +49,7 @@ const leaveTypeLabels: Record<string, string> = {
 const statusColors: Record<string, string> = {
   PENDIENTE: 'bg-yellow-100 text-yellow-800 dark:bg-yellow-900/30 dark:text-yellow-300',
   APROBADA: 'bg-green-100 text-green-800 dark:bg-green-900/30 dark:text-green-300',
-  RECHAZADA: 'bg-red-100 text-red-800 dark:bg-red-900/30 dark:text-red-300',
+  DENEGADA: 'bg-red-100 text-red-800 dark:bg-red-900/30 dark:text-red-300',
   CANCELADA: 'bg-muted text-muted-foreground',
 }
 
@@ -76,7 +76,14 @@ export function LeavesPanel({ workspaceId, leaves, employees }: Props) {
     setError(null)
     startTransition(async () => {
       try {
-        await createLeaveRequest({ workspaceId, ...form })
+        await createLeaveRequest({
+          workspaceId,
+          employeeId: form.employeeId,
+          leaveType: form.leaveType as 'VACACIONES' | 'ASUNTOS_PROPIOS' | 'BAJA_MEDICA' | 'CITA_MEDICA' | 'MATERNIDAD' | 'PATERNIDAD' | 'NACIMIENTO_HIJO' | 'MATRIMONIO' | 'FALLECIMIENTO_FAMILIAR_1' | 'FALLECIMIENTO_FAMILIAR_2' | 'HOSPITALIZACION_FAMILIAR' | 'MUDANZA' | 'DEBER_INEXCUSABLE' | 'FORMACION' | 'EXCEDENCIA' | 'REDUCCION_JORNADA' | 'OTROS',
+          startDate: form.startDate,
+          endDate: form.endDate,
+          reason: form.reason || undefined,
+        })
         setShowForm(false)
         setForm({ employeeId: '', leaveType: 'VACACIONES', startDate: '', endDate: '', reason: '' })
       } catch (e) {
@@ -86,7 +93,7 @@ export function LeavesPanel({ workspaceId, leaves, employees }: Props) {
   }
 
   function handleApprove(id: string) {
-    startTransition(() => approveLeave(id, workspaceId))
+    startTransition(async () => { await approveLeave(id, workspaceId) })
   }
 
   function handleReject() {
@@ -264,7 +271,7 @@ export function LeavesPanel({ workspaceId, leaves, employees }: Props) {
                     <span className={`inline-block px-2 py-0.5 rounded-full text-xs font-medium ${statusColors[leave.status] ?? ''}`}>
                       {leave.status === 'PENDIENTE' ? 'Pendiente' :
                        leave.status === 'APROBADA' ? 'Aprobada' :
-                       leave.status === 'RECHAZADA' ? 'Rechazada' : leave.status}
+                       leave.status === 'DENEGADA' ? 'Denegada' : leave.status}
                     </span>
                   </td>
                   <td className="px-4 py-3">

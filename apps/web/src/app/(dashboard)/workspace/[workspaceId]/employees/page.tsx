@@ -10,7 +10,7 @@ const contractLabels: Record<string, string> = {
   TEMPORAL: 'Temporal',
   PRACTICAS: 'Prácticas',
   FORMACION: 'Formación',
-  PARCIAL: 'Parcial',
+  TIEMPO_PARCIAL: 'Parcial',
   OBRA_SERVICIO: 'Obra y servicio',
 }
 
