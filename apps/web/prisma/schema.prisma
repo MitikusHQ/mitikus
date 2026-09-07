@@ -401,6 +401,11 @@ model Workspace {
   brainQueries         BrainQuery[]
   memoryItems          MemoryItem[]
   mailMessages         MailMessage[]
+  employees            Employee[]
+  payrolls             Payroll[]
+  publicHolidays       PublicHoliday[]
+  leaveRequests        LeaveRequest[]
+  leaveBalances        LeaveBalance[]
 
   @@unique([orgId, slug])
   @@index([orgId])
@@ -2263,6 +2268,241 @@ model MemoryItem {
   @@index([orgId, createdAt])
   @@index([status])
   @@map("memory_items")
+}
+
+// ============================================================
+// RRHH — Empleados, Nóminas y Gestión de Ausencias
+// ============================================================
+
+enum MaritalStatus {
+  SOLTERO
+  CASADO
+  DIVORCIADO
+  VIUDO
+  SEPARADO
+  PAREJA_HECHO
+}
+
+enum ContractType {
+  INDEFINIDO
+  TEMPORAL
+  PRACTICAS
+  FORMACION
+  OBRA_SERVICIO
+  TIEMPO_PARCIAL
+}
+
+enum PayrollStatus {
+  BORRADOR
+  GENERADA
+  PAGADA
+}
+
+enum LeaveType {
+  VACACIONES
+  ASUNTOS_PROPIOS
+  BAJA_MEDICA
+  CITA_MEDICA
+  MATERNIDAD
+  PATERNIDAD
+  NACIMIENTO_HIJO
+  MATRIMONIO
+  FALLECIMIENTO_FAMILIAR_1
+  FALLECIMIENTO_FAMILIAR_2
+  HOSPITALIZACION_FAMILIAR
+  MUDANZA
+  DEBER_INEXCUSABLE
+  FORMACION
+  EXCEDENCIA
+  REDUCCION_JORNADA
+  OTROS
+}
+
+enum LeaveStatus {
+  PENDIENTE
+  APROBADA
+  DENEGADA
+  CANCELADA
+}
+
+enum HolidayScope {
+  NACIONAL
+  AUTONOMICO
+  LOCAL
+}
+
+model Employee {
+  id          String   @id @default(cuid())
+  workspaceId String
+  workspace   Workspace @relation(fields: [workspaceId], references: [id], onDelete: Cascade)
+
+  // Datos personales
+  firstName   String
+  lastName    String
+  email       String?
+  phone       String?
+  nif         String?           // DNI/NIE
+  nss         String?           // Número seguridad social
+  address     String?
+  birthDate   DateTime?
+
+  // Contrato
+  contractType    ContractType  @default(INDEFINIDO)
+  startDate       DateTime
+  endDate         DateTime?
+  jobTitle        String?
+  department      String?
+  workingHours    Float         @default(40)  // horas semanales
+  annualGrossSalary Float                     // salario bruto anual (sin pagas extras)
+  extraPayments   Int           @default(2)  // número de pagas extras (0, 1, 2)
+  extraPaymentsProrrated Boolean @default(false) // true = prorrateadas en 12 meses
+
+  // IRPF — situación familiar
+  maritalStatus       MaritalStatus @default(SOLTERO)
+  spouseEarnsOver1500 Boolean       @default(false)  // cónyuge renta > 1.500€
+  childrenCount       Int           @default(0)
+  childrenUnder3      Int           @default(0)       // nº hijos < 3 años
+  ascendantsOver65    Int           @default(0)
+  ascendantsOver75    Int           @default(0)
+  workerDisabilityPct Int           @default(0)       // 0, 33, 65, 75
+  workerNeedsAssistance Boolean     @default(false)   // discapacidad + movilidad reducida
+  dependantsDisabled  Int           @default(0)       // ascendientes/descendientes discapacitados
+  compensatoryPension Float         @default(0)       // pensión compensatoria al ex-cónyuge
+
+  // Retención aplicada
+  irpfPct     Float?  // retención IRPF calculada o fijada manualmente
+  irpfManual  Boolean @default(false)  // true = se usa irpfPct fijo sin recalcular
+
+  // Estado
+  active      Boolean  @default(true)
+  notes       String?  @db.Text
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  payrolls    Payroll[]
+  leaveRequests LeaveRequest[]
+  leaveBalances LeaveBalance[]
+
+  @@index([workspaceId, active])
+  @@index([workspaceId, lastName])
+  @@map("employees")
+}
+
+model Payroll {
+  id          String   @id @default(cuid())
+  workspaceId String
+  workspace   Workspace @relation(fields: [workspaceId], references: [id], onDelete: Cascade)
+  employeeId  String
+  employee    Employee  @relation(fields: [employeeId], references: [id], onDelete: Cascade)
+
+  year        Int
+  month       Int   // 1-12
+
+  // Devengos (ingresos brutos)
+  baseSalary        Float   // salario base mensual
+  extraPayment      Float   @default(0)  // paga extra si no está prorrateada
+  seniority         Float   @default(0)  // plus antigüedad
+  productivityBonus Float   @default(0)  // plus productividad
+  overtimePay       Float   @default(0)  // horas extra
+  inKindBenefits    Float   @default(0)  // retribución en especie
+  otherAllowances   Float   @default(0)  // otros complementos
+  grossTotal        Float   // total devengos
+
+  // Deducciones trabajador
+  ssContingencias   Float   // SS contingencias comunes 4.70%
+  ssDesempleo       Float   // SS desempleo 1.55%
+  ssFormacion       Float   // SS formación 0.10%
+  ssFogasa          Float   // FOGASA 0.02%
+  ssMei             Float   // MEI 0.10%
+  ssTotal           Float   // total SS trabajador
+  irpfAmount        Float   // retención IRPF
+  otherDeductions   Float   @default(0)
+  totalDeductions   Float
+
+  // Cuota empresa (informativo)
+  ssCompanyTotal    Float   @default(0)
+
+  // Resultado
+  netSalary         Float   // neto a cobrar
+
+  // Metadatos
+  status      PayrollStatus @default(BORRADOR)
+  paidAt      DateTime?
+  notes       String?       @db.Text
+  createdAt   DateTime      @default(now())
+  updatedAt   DateTime      @updatedAt
+
+  @@unique([employeeId, year, month])
+  @@index([workspaceId, year, month])
+  @@map("payrolls")
+}
+
+model PublicHoliday {
+  id          String       @id @default(cuid())
+  workspaceId String
+  workspace   Workspace    @relation(fields: [workspaceId], references: [id], onDelete: Cascade)
+  date        DateTime
+  name        String
+  scope       HolidayScope
+  region      String?   // código CCAA p.ej. "ES-MD" (Madrid)
+  locality    String?   // municipio
+
+  @@unique([workspaceId, date, scope, region])
+  @@index([workspaceId, date])
+  @@map("public_holidays")
+}
+
+model LeaveRequest {
+  id          String      @id @default(cuid())
+  workspaceId String
+  workspace   Workspace   @relation(fields: [workspaceId], references: [id], onDelete: Cascade)
+  employeeId  String
+  employee    Employee    @relation(fields: [employeeId], references: [id], onDelete: Cascade)
+
+  type        LeaveType
+  status      LeaveStatus @default(PENDIENTE)
+
+  startDate   DateTime
+  endDate     DateTime
+  workingDays Int         // días hábiles descontados (calculado)
+  halfDay     Boolean     @default(false)
+  morning     Boolean     @default(true)  // si halfDay: true=mañana, false=tarde
+
+  reason      String?     @db.Text
+  attachmentUrl String?   // justificante médico, certificado, etc.
+
+  // Aprobación
+  approvedById String?    // userId del supervisor
+  approvedAt   DateTime?
+  denialReason String?
+
+  createdAt   DateTime    @default(now())
+  updatedAt   DateTime    @updatedAt
+
+  @@index([workspaceId, status])
+  @@index([employeeId, startDate])
+  @@map("leave_requests")
+}
+
+model LeaveBalance {
+  id          String   @id @default(cuid())
+  workspaceId String
+  workspace   Workspace @relation(fields: [workspaceId], references: [id], onDelete: Cascade)
+  employeeId  String
+  employee    Employee  @relation(fields: [employeeId], references: [id], onDelete: Cascade)
+
+  year        Int
+  leaveType   LeaveType
+  entitled    Float    // días con derecho (p.ej. 22 días de vacaciones)
+  used        Float    @default(0)
+  pending     Float    @default(0)   // solicitados pero pendientes de aprobar
+  remaining   Float                  // entitled - used - pending
+
+  updatedAt   DateTime @updatedAt
+
+  @@unique([employeeId, year, leaveType])
+  @@index([workspaceId, year])
+  @@map("leave_balances")
 }
 
 
