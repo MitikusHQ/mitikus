@@ -141,6 +141,27 @@ export default async function WorkspaceLayout({ children, params }: Props) {
     },
   ].filter(() => canView)
 
+  const hrItems: NavItem[] = [
+    {
+      label: t.navEmployees,
+      href: `${base}/employees`,
+      icon: Icons.employees,
+      description: t.descEmployees,
+    },
+    {
+      label: t.navPayroll,
+      href: `${base}/payroll`,
+      icon: Icons.payroll,
+      description: t.descPayroll,
+    },
+    {
+      label: t.navLeaves,
+      href: `${base}/leaves`,
+      icon: Icons.leaves,
+      description: t.descLeaves,
+    },
+  ].filter(() => can(user, 'manage_members'))
+
   const dataItems: NavItem[] = [
     {
       label: t.navFiscal,
@@ -221,6 +242,7 @@ export default async function WorkspaceLayout({ children, params }: Props) {
     { items: coreItems },
     { label: t.groupWork, items: workItems },
     { label: t.groupContent, items: contentItems },
+    { label: t.groupHR, items: hrItems },
     { label: t.groupSystem, items: [...dataItems, ...adminItems] },
     { items: profileItems },
   ].filter((g) => g.items.length > 0)

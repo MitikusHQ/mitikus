@@ -28,6 +28,13 @@ export interface DashboardTranslations {
   groupWork: string
   groupContent: string
   groupSystem: string
+  groupHR: string
+  navEmployees: string
+  navPayroll: string
+  navLeaves: string
+  descEmployees: string
+  descPayroll: string
+  descLeaves: string
   // Nav descriptions
   descToday: string
   descCopilot: string
@@ -1320,6 +1327,13 @@ const en: DashboardTranslations = {
   groupWork: 'Work',
   groupContent: 'Content',
   groupSystem: 'System',
+  groupHR: 'HR',
+  navEmployees: 'Employees',
+  navPayroll: 'Payroll',
+  navLeaves: 'Time Off',
+  descEmployees: 'Manage your team, contracts and payroll settings',
+  descPayroll: 'Generate and approve monthly payrolls',
+  descLeaves: 'Manage vacation, sick leave and absences',
   descToday: 'Your pending tasks and team activity today',
   descCopilot: 'Your strategic advisor — share your goals and it helps you plan them',
   descBrain: 'Query the workspace memory — documents, goals and decisions',
@@ -2600,6 +2614,13 @@ const es: DashboardTranslations = {
   groupWork: 'Trabajo',
   groupContent: 'Contenido',
   groupSystem: 'Sistema',
+  groupHR: 'RRHH',
+  navEmployees: 'Empleados',
+  navPayroll: 'Nóminas',
+  navLeaves: 'Ausencias',
+  descEmployees: 'Gestiona tu equipo, contratos y configuración de nóminas',
+  descPayroll: 'Genera y aprueba nóminas mensuales',
+  descLeaves: 'Gestiona vacaciones, bajas y ausencias',
   descToday: 'Tus tareas pendientes y actividad del equipo de hoy',
   descCopilot: 'Tu asesor estratégico — cuéntale tus objetivos y te ayuda a planificarlos',
   descBrain: 'Consulta la memoria del workspace — documentos, objetivos y decisiones',
@@ -5326,9 +5347,20 @@ const translations: Record<Locale, DashboardTranslations> = {
   en, es, fr, de, pt, it, nl, pl, ro, sv, da, no, hu, cs, sk, el, fi, hr, bg, sl, ja, zh,
 }
 
+const hrFallback: Pick<DashboardTranslations, 'groupHR' | 'navEmployees' | 'navPayroll' | 'navLeaves' | 'descEmployees' | 'descPayroll' | 'descLeaves'> = {
+  groupHR: 'HR',
+  navEmployees: 'Employees',
+  navPayroll: 'Payroll',
+  navLeaves: 'Time Off',
+  descEmployees: 'Manage your team, contracts and payroll settings',
+  descPayroll: 'Generate and approve monthly payrolls',
+  descLeaves: 'Manage vacation, sick leave and absences',
+}
+
 export function getDashboardTranslations(locale: Locale): DashboardTranslations {
   const base = translations[locale] ?? en
   return {
+    ...hrFallback,
     ...base,
     ...(todayLocaleOverrides[locale] ?? {}),
     ...(toolsLocaleOverrides[locale] ?? {}),
