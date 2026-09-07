@@ -22,6 +22,7 @@ export interface DashboardTranslations {
   navAudit: string
   navAdminOrg: string
   navProfile: string
+  navDownload: string
   navSupport: string
   navSettings: string
   // Nav groups
@@ -56,6 +57,7 @@ export interface DashboardTranslations {
   descAudit: string
   descAdminOrg: string
   descProfile: string
+  descDownload: string
   descSupport: string
   descSettings: string
   // Topbar
@@ -1322,6 +1324,7 @@ const en: DashboardTranslations = {
   navAudit: 'Audit',
   navAdminOrg: 'Admin Org',
   navProfile: 'My Profile',
+  navDownload: 'Desktop App',
   navSupport: 'Support',
   navSettings: 'Settings',
   groupWork: 'Work',
@@ -1354,6 +1357,7 @@ const en: DashboardTranslations = {
   descAudit: 'Record of who did what and when in this workspace',
   descAdminOrg: 'Members, plans and configuration of your organisation',
   descProfile: 'Your profile photo and personal preferences',
+  descDownload: 'Download the MITIKUS desktop app for Windows',
   descSupport: 'Help assistant and contact with the MITIKUS team',
   descSettings: 'Logo, brand colour and workspace name',
   newMission: 'New mission',
@@ -2609,6 +2613,7 @@ const es: DashboardTranslations = {
   navAudit: 'Auditoría',
   navAdminOrg: 'Admin Org',
   navProfile: 'Mi perfil',
+  navDownload: 'App de escritorio',
   navSupport: 'Soporte',
   navSettings: 'Ajustes',
   groupWork: 'Trabajo',
@@ -2641,6 +2646,7 @@ const es: DashboardTranslations = {
   descAudit: 'Registro de quién hizo qué y cuándo en este workspace',
   descAdminOrg: 'Miembros, planes y configuración de tu organización',
   descProfile: 'Tu foto de perfil y preferencias personales',
+  descDownload: 'Descarga la app de escritorio de MITIKUS para Windows',
   descSupport: 'Asistente de ayuda y contacto con el equipo MITIKUS',
   descSettings: 'Logo, color de marca y nombre del workspace',
   newMission: 'Nueva misión',
@@ -5347,6 +5353,11 @@ const translations: Record<Locale, DashboardTranslations> = {
   en, es, fr, de, pt, it, nl, pl, ro, sv, da, no, hu, cs, sk, el, fi, hr, bg, sl, ja, zh,
 }
 
+const downloadFallback: Pick<DashboardTranslations, 'navDownload' | 'descDownload'> = {
+  navDownload: 'Desktop App',
+  descDownload: 'Download the MITIKUS desktop app for Windows',
+}
+
 const hrFallback: Pick<DashboardTranslations, 'groupHR' | 'navEmployees' | 'navPayroll' | 'navLeaves' | 'descEmployees' | 'descPayroll' | 'descLeaves'> = {
   groupHR: 'HR',
   navEmployees: 'Employees',
@@ -5360,6 +5371,7 @@ const hrFallback: Pick<DashboardTranslations, 'groupHR' | 'navEmployees' | 'navP
 export function getDashboardTranslations(locale: Locale): DashboardTranslations {
   const base = translations[locale] ?? en
   return {
+    ...downloadFallback,
     ...hrFallback,
     ...base,
     ...(todayLocaleOverrides[locale] ?? {}),

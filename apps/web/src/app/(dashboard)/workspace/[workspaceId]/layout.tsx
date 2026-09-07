@@ -225,6 +225,12 @@ export default async function WorkspaceLayout({ children, params }: Props) {
       description: t.descProfile,
     },
     {
+      label: t.navDownload,
+      href: '/download',
+      icon: Icons.download,
+      description: t.descDownload,
+    },
+    {
       label: t.navSupport,
       href: `${base}/support`,
       icon: Icons.support,
