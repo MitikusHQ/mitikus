@@ -1451,6 +1451,7 @@ export interface DashboardTranslations {
   invoicesEmailSent: string
   invoicesRectTitle: string
   invoicesRectDesc: string
+  invoicesRectAmountsCopied: string
   invoicesRectReason: string
   invoicesRectPlaceholder: string
   invoicesRectCancel: string
@@ -1470,6 +1471,7 @@ export interface DashboardTranslations {
   invoicesSentOk: string
   invoicesSendError: string
   invoicesSendErrorSettings: string
+  invoicesSendCheckSettings: string
   invoicesNoReplies: string
   invoicesRepliesError: string
   invoicesDeleteConfirm: string
@@ -1724,6 +1726,23 @@ export interface DashboardTranslations {
   receiptsScanStatusPending: string
   receiptsScanStatusReviewed: string
   receiptsScanStatusAccounted: string
+  // Profile page
+  profileTitle: string
+  profileSubtitle: string
+  profileAvatarSection: string
+  profileAvatarHint: string
+  profileAvatarSaved: string
+  profileInfoSection: string
+  profileName: string
+  profileEmail: string
+  profileJobTitle: string
+  profileJobTitlePlaceholder: string
+  profileSave: string
+  profileSaving: string
+  profileSaved: string
+  profileRole: string
+  profileRoleMember: string
+  profileRoleViewer: string
   // Workflows
   wfNewTitle: string
   wfNewDesc: string
@@ -3224,6 +3243,7 @@ const en: DashboardTranslations = {
   invoicesEmailSent: 'Sent',
   invoicesRectTitle: 'Create credit note',
   invoicesRectDesc: 'A credit note (type R1) will be created as a draft referencing invoice',
+  invoicesRectAmountsCopied: 'Amounts will be copied as negatives for your review.',
   invoicesRectReason: 'Reason for the credit note',
   invoicesRectPlaceholder: 'E.g. Amount error, partial refund…',
   invoicesRectCancel: 'Cancel',
@@ -3243,6 +3263,7 @@ const en: DashboardTranslations = {
   invoicesSentOk: '✓ Invoice sent successfully.',
   invoicesSendError: 'Could not send the invoice. Check that you have email configured in Settings → Email.',
   invoicesSendErrorSettings: 'Settings → Email',
+  invoicesSendCheckSettings: 'Check your mail configuration in',
   invoicesNoReplies: 'No new replies right now.',
   invoicesRepliesError: 'Could not check mailbox replies.',
   invoicesDeleteConfirm: 'Delete invoice {number}?',
@@ -3497,6 +3518,23 @@ const en: DashboardTranslations = {
   receiptsScanStatusPending: 'Pending',
   receiptsScanStatusReviewed: 'Reviewed',
   receiptsScanStatusAccounted: 'Accounted',
+  // Profile page
+  profileTitle: 'My profile',
+  profileSubtitle: 'Your profile photo and personal details in MITIKUS.',
+  profileAvatarSection: 'Profile photo',
+  profileAvatarHint: 'Appears in the navigation bar and next to your activity.',
+  profileAvatarSaved: '✓ Photo updated',
+  profileInfoSection: 'Information',
+  profileName: 'Name',
+  profileEmail: 'Email',
+  profileJobTitle: 'Job title',
+  profileJobTitlePlaceholder: 'E.g. CEO, Designer, Freelancer…',
+  profileSave: 'Save',
+  profileSaving: 'Saving…',
+  profileSaved: '✓ Saved',
+  profileRole: 'Role in workspace',
+  profileRoleMember: 'Member',
+  profileRoleViewer: 'Viewer',
   // Workflows
   wfNewTitle: 'New Workflow',
   wfNewDesc: 'Define a name and description. You will add steps in the canvas editor.',
@@ -4997,6 +5035,7 @@ const es: DashboardTranslations = {
   invoicesEmailSent: 'Enviado',
   invoicesRectTitle: 'Crear factura rectificativa',
   invoicesRectDesc: 'Se creará una factura rectificativa (tipo R1) en borrador referenciando la factura',
+  invoicesRectAmountsCopied: 'Los importes se copiarán en negativo para que los revises.',
   invoicesRectReason: 'Motivo de la rectificación',
   invoicesRectPlaceholder: 'Ej: Error en importe, devolución parcial de servicio…',
   invoicesRectCancel: 'Cancelar',
@@ -5016,6 +5055,7 @@ const es: DashboardTranslations = {
   invoicesSentOk: '✓ Factura enviada correctamente.',
   invoicesSendError: 'No se pudo enviar la factura. Comprueba que tienes correo configurado en Ajustes → Correo y envíos.',
   invoicesSendErrorSettings: 'Ajustes → Correo y envíos',
+  invoicesSendCheckSettings: 'Revisa la configuración de correo en',
   invoicesNoReplies: 'Sin respuestas nuevas por ahora.',
   invoicesRepliesError: 'No se han podido revisar las respuestas del buzón.',
   invoicesDeleteConfirm: '¿Eliminar factura {number}?',
@@ -5270,6 +5310,23 @@ const es: DashboardTranslations = {
   receiptsScanStatusPending: 'Pendiente',
   receiptsScanStatusReviewed: 'Revisado',
   receiptsScanStatusAccounted: 'Contabilizado',
+  // Profile page
+  profileTitle: 'Mi perfil',
+  profileSubtitle: 'Tu foto de perfil y datos personales dentro de MITIKUS.',
+  profileAvatarSection: 'Foto de perfil',
+  profileAvatarHint: 'Aparece en la barra de navegación y junto a tus actividades.',
+  profileAvatarSaved: '✓ Foto actualizada',
+  profileInfoSection: 'Información',
+  profileName: 'Nombre',
+  profileEmail: 'Email',
+  profileJobTitle: 'Cargo',
+  profileJobTitlePlaceholder: 'Ej. CEO, Diseñadora, Freelance…',
+  profileSave: 'Guardar',
+  profileSaving: 'Guardando…',
+  profileSaved: '✓ Guardado',
+  profileRole: 'Rol en el workspace',
+  profileRoleMember: 'Miembro',
+  profileRoleViewer: 'Visualizador',
   // Workflows
   wfNewTitle: 'Nuevo Workflow',
   wfNewDesc: 'Define un nombre y descripción. Añadirás los pasos en el editor de canvas.',

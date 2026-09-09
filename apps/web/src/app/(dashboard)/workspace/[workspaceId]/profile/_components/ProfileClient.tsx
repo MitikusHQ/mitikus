@@ -4,13 +4,8 @@ import { useState } from 'react'
 import { useRouter } from 'next/navigation'
 import { ImageUploader } from '@/app/_components/ImageUploader'
 import { updateUserAvatar, updateUserJobTitle } from '@/app/actions/branding'
-
-const ROLE_LABELS: Record<string, string> = {
-  OWNER: 'Owner',
-  ADMIN: 'Admin',
-  MEMBER: 'Miembro',
-  VIEWER: 'Visualizador',
-}
+import { getDashboardTranslations } from '@/i18n/dashboard-translations'
+import type { Locale } from '@/i18n/config'
 
 interface Props {
   userId: string
@@ -19,9 +14,18 @@ interface Props {
   avatarUrl: string | null
   jobTitle: string | null
   role: string
+  locale: Locale
 }
 
-export function ProfileClient({ name, email, avatarUrl, jobTitle, role }: Props) {
+export function ProfileClient({ name, email, avatarUrl, jobTitle, role, locale }: Props) {
+  const t = getDashboardTranslations(locale)
+  const ROLE_LABELS: Record<string, string> = {
+    OWNER: 'Owner',
+    ADMIN: 'Admin',
+    MEMBER: t.profileRoleMember,
+    VIEWER: t.profileRoleViewer,
+  }
+
   const router = useRouter()
   const [savedAvatar, setSavedAvatar] = useState(false)
   const [title, setTitle] = useState(jobTitle ?? '')
@@ -46,12 +50,10 @@ export function ProfileClient({ name, email, avatarUrl, jobTitle, role }: Props)
 
   return (
     <div className="space-y-6">
-      {/* Foto de perfil */}
-      <section id="foto-de-perfil" className="scroll-mt-20 rounded-xl border bg-card p-6">
-        <h2 className="font-semibold text-sm mb-1">Foto de perfil</h2>
-        <p className="text-xs text-muted-foreground mb-5">
-          Aparece en la barra de navegación y junto a tus actividades.
-        </p>
+      {/* Profile photo */}
+      <section className="scroll-mt-20 rounded-xl border bg-card p-6">
+        <h2 className="font-semibold text-sm mb-1">{t.profileAvatarSection}</h2>
+        <p className="text-xs text-muted-foreground mb-5">{t.profileAvatarHint}</p>
         <div className="flex items-center gap-6">
           <ImageUploader
             currentUrl={avatarUrl}
@@ -64,33 +66,30 @@ export function ProfileClient({ name, email, avatarUrl, jobTitle, role }: Props)
           <div>
             <p className="font-medium text-sm">{name}</p>
             <p className="text-xs text-muted-foreground">{email}</p>
-            {savedAvatar && <p className="text-xs text-green-600 mt-1">✓ Foto actualizada</p>}
+            {savedAvatar && <p className="text-xs text-green-600 mt-1">{t.profileAvatarSaved}</p>}
           </div>
         </div>
       </section>
 
-      {/* Información */}
-      <section id="datos-personales" className="scroll-mt-20 rounded-xl border bg-card p-6 space-y-4">
-        <h2 className="font-semibold text-sm">Información</h2>
+      {/* Information */}
+      <section className="scroll-mt-20 rounded-xl border bg-card p-6 space-y-4">
+        <h2 className="font-semibold text-sm">{t.profileInfoSection}</h2>
 
         <div className="grid gap-0 text-sm divide-y divide-border">
-          {/* Nombre */}
           <div className="flex justify-between py-3">
-            <span className="text-muted-foreground">Nombre</span>
+            <span className="text-muted-foreground">{t.profileName}</span>
             <span>{name}</span>
           </div>
 
-          {/* Email */}
           <div className="flex justify-between py-3">
-            <span className="text-muted-foreground">Email</span>
+            <span className="text-muted-foreground">{t.profileEmail}</span>
             <span>{email}</span>
           </div>
 
-          {/* Cargo editable */}
           <div className="py-3">
             <div className="flex items-center justify-between mb-2">
-              <span className="text-muted-foreground">Cargo</span>
-              {savedTitle && <span className="text-xs text-green-600">✓ Guardado</span>}
+              <span className="text-muted-foreground">{t.profileJobTitle}</span>
+              {savedTitle && <span className="text-xs text-green-600">{t.profileSaved}</span>}
             </div>
             <div className="flex gap-2">
               <input
@@ -98,7 +97,7 @@ export function ProfileClient({ name, email, avatarUrl, jobTitle, role }: Props)
                 value={title}
                 onChange={e => setTitle(e.target.value)}
                 onKeyDown={e => e.key === 'Enter' && handleSaveTitle()}
-                placeholder="Ej. CEO, Diseñadora, Freelance..."
+                placeholder={t.profileJobTitlePlaceholder}
                 maxLength={60}
                 className="flex-1 rounded-md border border-border bg-background px-3 py-1.5 text-sm placeholder:text-muted-foreground/50 focus:outline-none focus:ring-2 focus:ring-ring"
               />
@@ -108,14 +107,13 @@ export function ProfileClient({ name, email, avatarUrl, jobTitle, role }: Props)
                 disabled={savingTitle}
                 className="rounded-md bg-primary px-3 py-1.5 text-xs font-medium text-primary-foreground hover:bg-primary/90 transition-colors disabled:opacity-50"
               >
-                {savingTitle ? 'Guardando...' : 'Guardar'}
+                {savingTitle ? t.profileSaving : t.profileSave}
               </button>
             </div>
           </div>
 
-          {/* Rol del sistema */}
           <div className="flex justify-between py-3">
-            <span className="text-muted-foreground">Rol en el workspace</span>
+            <span className="text-muted-foreground">{t.profileRole}</span>
             <span className="inline-flex items-center rounded-full bg-muted px-2.5 py-0.5 text-xs font-medium text-muted-foreground">
               {ROLE_LABELS[role] ?? role}
             </span>
