@@ -13,7 +13,7 @@ const EmployeeSchema = z.object({
   email: z.string().email().optional().or(z.literal('')).transform(v => v === '' ? undefined : v),
   nif: z.string().optional(),
   phone: z.string().optional(),
-  position: z.string().min(1),
+  position: z.string().optional(),
   department: z.string().optional(),
   startDate: z.string(),
   contractType: z.enum(['INDEFINIDO', 'TEMPORAL', 'PRACTICAS', 'FORMACION', 'TIEMPO_PARCIAL', 'OBRA_SERVICIO']),
@@ -35,45 +35,51 @@ const EmployeeSchema = z.object({
   irpfManual: z.boolean().default(false),
 })
 
-export async function createEmployee(data: z.infer<typeof EmployeeSchema>) {
-  const user = await requireUser()
-  if (!can(user, 'manage_members')) throw new Error('Sin permisos')
+export async function createEmployee(data: z.infer<typeof EmployeeSchema>): Promise<{ ok: true; employee: { id: string } } | { ok: false; error: string }> {
+  try {
+    const user = await requireUser()
+    if (!can(user, 'manage_members')) return { ok: false, error: 'Sin permisos (se requiere rol Admin o superior)' }
 
-  const parsed = EmployeeSchema.parse(data)
+    const parsed = EmployeeSchema.safeParse(data)
+    if (!parsed.success) return { ok: false, error: parsed.error.errors.map(e => e.message).join(', ') }
 
-  const employee = await db.employee.create({
-    data: {
-      workspaceId: parsed.workspaceId,
-      firstName: parsed.firstName,
-      lastName: parsed.lastName,
-      email: parsed.email ?? null,
-      nif: parsed.nif ?? null,
-      phone: parsed.phone ?? null,
-      jobTitle: parsed.position,
-      department: parsed.department ?? null,
-      startDate: new Date(parsed.startDate),
-      contractType: parsed.contractType,
-      workingHours: parsed.workingHours,
-      annualGrossSalary: parsed.annualGrossSalary,
-      extraPayments: parsed.extraPayments,
-      extraPaymentsProrrated: parsed.extraPaymentsProrrated,
-      maritalStatus: parsed.maritalStatus,
-      spouseEarnsOver1500: parsed.spouseEarnsOver1500,
-      childrenCount: parsed.childrenCount,
-      childrenUnder3: parsed.childrenUnder3,
-      ascendantsOver65: parsed.ascendantsOver65,
-      ascendantsOver75: parsed.ascendantsOver75,
-      workerDisabilityPct: parsed.workerDisabilityPct,
-      workerNeedsAssistance: parsed.workerNeedsAssistance,
-      dependantsDisabled: parsed.dependantsDisabled,
-      compensatoryPension: parsed.compensatoryPension,
-      irpfPct: parsed.irpfPct,
-      irpfManual: parsed.irpfManual,
-    },
-  })
+    const employee = await db.employee.create({
+      data: {
+        workspaceId: parsed.data.workspaceId,
+        firstName: parsed.data.firstName,
+        lastName: parsed.data.lastName,
+        email: parsed.data.email ?? null,
+        nif: parsed.data.nif ?? null,
+        phone: parsed.data.phone ?? null,
+        jobTitle: parsed.data.position ?? null,
+        department: parsed.data.department ?? null,
+        startDate: new Date(parsed.data.startDate),
+        contractType: parsed.data.contractType,
+        workingHours: parsed.data.workingHours,
+        annualGrossSalary: parsed.data.annualGrossSalary,
+        extraPayments: parsed.data.extraPayments,
+        extraPaymentsProrrated: parsed.data.extraPaymentsProrrated,
+        maritalStatus: parsed.data.maritalStatus,
+        spouseEarnsOver1500: parsed.data.spouseEarnsOver1500,
+        childrenCount: parsed.data.childrenCount,
+        childrenUnder3: parsed.data.childrenUnder3,
+        ascendantsOver65: parsed.data.ascendantsOver65,
+        ascendantsOver75: parsed.data.ascendantsOver75,
+        workerDisabilityPct: parsed.data.workerDisabilityPct,
+        workerNeedsAssistance: parsed.data.workerNeedsAssistance,
+        dependantsDisabled: parsed.data.dependantsDisabled,
+        compensatoryPension: parsed.data.compensatoryPension,
+        irpfPct: parsed.data.irpfPct,
+        irpfManual: parsed.data.irpfManual,
+      },
+    })
 
-  revalidatePath(`/workspace/${parsed.workspaceId}/employees`)
-  return employee
+    revalidatePath(`/workspace/${parsed.data.workspaceId}/employees`)
+    return { ok: true, employee: { id: employee.id } }
+  } catch (e) {
+    const msg = e instanceof Error ? e.message : 'Error inesperado al crear el empleado'
+    return { ok: false, error: msg }
+  }
 }
 
 export async function updateEmployee(

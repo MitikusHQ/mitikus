@@ -64,38 +64,38 @@ export default function NewEmployeePage() {
     e.preventDefault()
     setError(null)
     startTransition(async () => {
-      try {
-        await createEmployee({
-          workspaceId,
-          firstName: form.firstName,
-          lastName: form.lastName,
-          email: form.email,
-          nif: form.nif || undefined,
-          phone: form.phone || undefined,
-          position: form.position,
-          department: form.department || undefined,
-          startDate: form.startDate,
-          contractType: form.contractType as 'INDEFINIDO' | 'TEMPORAL' | 'PRACTICAS' | 'FORMACION' | 'TIEMPO_PARCIAL' | 'OBRA_SERVICIO',
-          workingHours: Number(form.workingHours),
-          annualGrossSalary: Number(form.annualGrossSalary),
-          extraPayments: Number(form.extraPayments),
-          extraPaymentsProrrated: form.extraPaymentsProrrated,
-          maritalStatus: form.maritalStatus as 'SOLTERO' | 'CASADO' | 'DIVORCIADO' | 'VIUDO' | 'SEPARADO' | 'PAREJA_HECHO',
-          spouseEarnsOver1500: form.spouseEarnsOver1500,
-          childrenCount: Number(form.childrenCount),
-          childrenUnder3: Number(form.childrenUnder3),
-          ascendantsOver65: Number(form.ascendantsOver65),
-          ascendantsOver75: Number(form.ascendantsOver75),
-          workerDisabilityPct: Number(form.workerDisabilityPct),
-          workerNeedsAssistance: form.workerNeedsAssistance,
-          dependantsDisabled: Number(form.dependantsDisabled),
-          compensatoryPension: Number(form.compensatoryPension),
-          irpfManual: form.irpfManual,
-          irpfPct: form.irpfManual ? Number(form.irpfPct) : null,
-        })
+      const result = await createEmployee({
+        workspaceId,
+        firstName: form.firstName,
+        lastName: form.lastName,
+        email: form.email,
+        nif: form.nif || undefined,
+        phone: form.phone || undefined,
+        position: form.position,
+        department: form.department || undefined,
+        startDate: form.startDate,
+        contractType: form.contractType as 'INDEFINIDO' | 'TEMPORAL' | 'PRACTICAS' | 'FORMACION' | 'TIEMPO_PARCIAL' | 'OBRA_SERVICIO',
+        workingHours: Number(form.workingHours),
+        annualGrossSalary: Number(form.annualGrossSalary),
+        extraPayments: Number(form.extraPayments),
+        extraPaymentsProrrated: form.extraPaymentsProrrated,
+        maritalStatus: form.maritalStatus as 'SOLTERO' | 'CASADO' | 'DIVORCIADO' | 'VIUDO' | 'SEPARADO' | 'PAREJA_HECHO',
+        spouseEarnsOver1500: form.spouseEarnsOver1500,
+        childrenCount: Number(form.childrenCount),
+        childrenUnder3: Number(form.childrenUnder3),
+        ascendantsOver65: Number(form.ascendantsOver65),
+        ascendantsOver75: Number(form.ascendantsOver75),
+        workerDisabilityPct: Number(form.workerDisabilityPct),
+        workerNeedsAssistance: form.workerNeedsAssistance,
+        dependantsDisabled: Number(form.dependantsDisabled),
+        compensatoryPension: Number(form.compensatoryPension),
+        irpfManual: form.irpfManual,
+        irpfPct: form.irpfManual ? Number(form.irpfPct) : null,
+      })
+      if (result.ok) {
         router.push(`/workspace/${workspaceId}/employees`)
-      } catch (err) {
-        setError(err instanceof Error ? err.message : 'Error al crear el empleado')
+      } else {
+        setError(result.error)
       }
     })
   }
@@ -130,8 +130,8 @@ export default function NewEmployeePage() {
             <Field label="Apellidos *">
               <input required value={form.lastName} onChange={e => set('lastName', e.target.value)} placeholder="García López" />
             </Field>
-            <Field label="Email *">
-              <input required type="email" value={form.email} onChange={e => set('email', e.target.value)} placeholder="ana@empresa.com" />
+            <Field label="Email">
+              <input type="email" value={form.email} onChange={e => set('email', e.target.value)} placeholder="ana@empresa.com" />
             </Field>
             <Field label="NIF">
               <input value={form.nif} onChange={e => set('nif', e.target.value)} placeholder="12345678A" />
@@ -146,8 +146,8 @@ export default function NewEmployeePage() {
         <section className="border rounded-xl p-5 space-y-4">
           <h2 className="font-semibold text-sm uppercase tracking-wide text-muted-foreground">Datos laborales</h2>
           <div className="grid grid-cols-2 gap-4">
-            <Field label="Cargo / Puesto *">
-              <input required value={form.position} onChange={e => set('position', e.target.value)} placeholder="Desarrolladora" />
+            <Field label="Cargo / Puesto">
+              <input value={form.position} onChange={e => set('position', e.target.value)} placeholder="Desarrolladora" />
             </Field>
             <Field label="Departamento">
               <input value={form.department} onChange={e => set('department', e.target.value)} placeholder="Tecnología" />
