@@ -1248,6 +1248,8 @@ export interface DashboardTranslations {
   auditNext: string
   auditAccessRestricted: string
   auditAdminOnly: string
+  // Dashboard home
+  dashboardSinceLastVisit: string
   // Workflows page
   workflowsTitle: string
   workflowsSubtitle: string
@@ -3040,6 +3042,8 @@ const en: DashboardTranslations = {
   auditNext: 'Next →',
   auditAccessRestricted: 'Restricted access',
   auditAdminOnly: 'Only workspace administrators can view the audit log.',
+  // Dashboard home
+  dashboardSinceLastVisit: 'Since your last visit, {name}:',
   // Workflows
   workflowsTitle: 'Workflows',
   workflowsSubtitle: 'Smart tool chains',
@@ -4832,6 +4836,8 @@ const es: DashboardTranslations = {
   auditNext: 'Siguiente →',
   auditAccessRestricted: 'Acceso restringido',
   auditAdminOnly: 'Solo los administradores del workspace pueden ver el registro de auditoría.',
+  // Dashboard home
+  dashboardSinceLastVisit: 'Desde tu última visita, {name}:',
   // Workflows
   workflowsTitle: 'Flujos',
   workflowsSubtitle: 'Cadenas de herramientas inteligentes',
