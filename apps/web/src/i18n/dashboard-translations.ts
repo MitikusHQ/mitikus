@@ -25,6 +25,7 @@ export interface DashboardTranslations {
   navDownload: string
   navSupport: string
   navSettings: string
+  navIntegrations: string
   // Nav groups
   groupWork: string
   groupContent: string
@@ -60,6 +61,7 @@ export interface DashboardTranslations {
   descDownload: string
   descSupport: string
   descSettings: string
+  descIntegrations: string
   // Topbar
   newMission: string
   expandSidebar: string
@@ -82,6 +84,7 @@ export interface DashboardTranslations {
   sectionUsage: string
   sectionTeam: string
   sectionSettings: string
+  sectionIntegrations: string
   sectionGenerate: string
   sectionImport: string
   sectionCopilot: string
@@ -1069,6 +1072,20 @@ export interface DashboardTranslations {
   tasksPendingSingular: string
   tasksPendingPlural: string
   tasksTotal: string
+  tasksDueToday: string
+  tasksDueTomorrow: string
+  tasksPriorityCritical: string
+  tasksPriorityHigh: string
+  tasksPriorityMedium: string
+  tasksPriorityLow: string
+  tasksDeleteConfirm: string
+  tasksMarkPending: string
+  tasksMarkDone: string
+  tasksEdit: string
+  tasksDelete: string
+  tasksAddToCalendar: string
+  tasksCalendarSaved: string
+  tasksOpenCalendarEvent: string
   // Analytics
   analyticsEmpty: string
   analyticsEmptyHint: string
@@ -1141,6 +1158,110 @@ export interface DashboardTranslations {
   // Workspace settings page
   wsSettingsTitle: string
   wsSettingsSubtitle: string
+  integrationsTitle: string
+  integrationsSubtitle: string
+  integrationsEmailTitle: string
+  integrationsEmailDescription: string
+  integrationsCalendarTitle: string
+  integrationsCalendarDescription: string
+  integrationsGoogleCalendar: string
+  integrationsOutlookCalendar: string
+  integrationsConnectProvider: string
+  integrationsConnecting: string
+  integrationsDisconnect: string
+  integrationsDisconnecting: string
+  integrationsCalendarConnectedAccount: string
+  integrationsCalendarConnectError: string
+  integrationsCalendarDisconnectError: string
+  integrationsStorageTitle: string
+  integrationsStorageDescription: string
+  integrationsGoogleDrive: string
+  integrationsOneDrive: string
+  integrationsDropbox: string
+  integrationsStorageConnectedAccount: string
+  integrationsStorageConnectError: string
+  integrationsStorageDisconnectError: string
+  integrationsStorageExportFiles: string
+  integrationsStorageExporting: string
+  integrationsStorageExported: string
+  integrationsStorageOpenExport: string
+  integrationsStorageExportError: string
+  integrationsAiTitle: string
+  integrationsAiDescription: string
+  integrationsMitikusAi: string
+  integrationsOpenAi: string
+  integrationsAnthropic: string
+  integrationsGemini: string
+  integrationsManagedByMitikus: string
+  integrationsAiOwnKeyConfigured: string
+  integrationsAiKeyLabel: string
+  integrationsAiKeyPlaceholder: string
+  integrationsAiLabelLabel: string
+  integrationsAiLabelPlaceholder: string
+  integrationsAiSecurityNote: string
+  integrationsAiSave: string
+  integrationsAiSaving: string
+  integrationsAiSaved: string
+  integrationsAiSaveError: string
+  integrationsAiDisconnectError: string
+  integrationsSignatureTitle: string
+  integrationsSignatureDescription: string
+  integrationsMitikusSignature: string
+  integrationsSignaturit: string
+  integrationsDocuSign: string
+  integrationsCommunicationTitle: string
+  integrationsCommunicationDescription: string
+  integrationsWhatsAppBusiness: string
+  integrationsTwilio: string
+  integrationsFormsTitle: string
+  integrationsFormsDescription: string
+  integrationsTypeform: string
+  integrationsGoogleForms: string
+  integrationsTally: string
+  integrationsJotform: string
+  integrationsFormsWebhookHelp: string
+  integrationsFormsEnableWebhook: string
+  integrationsFormsRotateToken: string
+  integrationsFormsDisableWebhook: string
+  integrationsFormsWebhookReady: string
+  integrationsFormsWebhookUrl: string
+  integrationsFormsCopyUrl: string
+  integrationsFormsCopied: string
+  integrationsFormsTokenPreview: string
+  integrationsFormsTokenOnlyShownOnce: string
+  integrationsFormsActionError: string
+  integrationsFormsWebhookActive: string
+  integrationsVideoCallsTitle: string
+  integrationsVideoCallsDescription: string
+  integrationsGoogleMeet: string
+  integrationsMicrosoftTeams: string
+  integrationsZoom: string
+  integrationsAutomationTitle: string
+  integrationsAutomationDescription: string
+  integrationsMake: string
+  integrationsZapier: string
+  integrationsN8n: string
+  integrationsAccountingTitle: string
+  integrationsAccountingDescription: string
+  integrationsHolded: string
+  integrationsSage: string
+  integrationsQuipu: string
+  integrationsAnfix: string
+  integrationsContasimple: string
+  integrationsEcommerceTitle: string
+  integrationsEcommerceDescription: string
+  integrationsShopify: string
+  integrationsWooCommerce: string
+  integrationsPrestashop: string
+  integrationsPaymentsTitle: string
+  integrationsPaymentsDescription: string
+  integrationsStripeConnect: string
+  integrationsPaypal: string
+  integrationsRedsys: string
+  integrationsComingSoon: string
+  integrationsRequiresSetup: string
+  integrationsConfigured: string
+  integrationsNotConfigured: string
   // Workspace settings client
   wsLogoSection: string
   wsLogoDesc: string
@@ -1327,6 +1448,7 @@ const en: DashboardTranslations = {
   navDownload: 'Desktop App',
   navSupport: 'Support',
   navSettings: 'Settings',
+  navIntegrations: 'Integrations',
   groupWork: 'Work',
   groupContent: 'Content',
   groupSystem: 'System',
@@ -1360,6 +1482,7 @@ const en: DashboardTranslations = {
   descDownload: 'Download the MITIKUS desktop app for Windows',
   descSupport: 'Help assistant and contact with the MITIKUS team',
   descSettings: 'Logo, brand colour and workspace name',
+  descIntegrations: 'Connect external apps and services to this workspace',
   newMission: 'New mission',
   expandSidebar: 'Expand sidebar',
   collapseSidebar: 'Collapse sidebar',
@@ -1380,6 +1503,7 @@ const en: DashboardTranslations = {
   sectionUsage: 'Usage',
   sectionTeam: 'Team',
   sectionSettings: 'Settings',
+  sectionIntegrations: 'Integrations',
   sectionGenerate: 'Create tool',
   sectionImport: 'Import',
   sectionCopilot: 'Arkos',
@@ -2358,6 +2482,20 @@ const en: DashboardTranslations = {
   tasksPendingSingular: 'pending',
   tasksPendingPlural: 'pending',
   tasksTotal: 'total',
+  tasksDueToday: 'Today',
+  tasksDueTomorrow: 'Tomorrow',
+  tasksPriorityCritical: 'Critical',
+  tasksPriorityHigh: 'High',
+  tasksPriorityMedium: 'Medium',
+  tasksPriorityLow: 'Low',
+  tasksDeleteConfirm: 'Delete this task?',
+  tasksMarkPending: 'Mark as pending',
+  tasksMarkDone: 'Mark as done',
+  tasksEdit: 'Edit task',
+  tasksDelete: 'Delete task',
+  tasksAddToCalendar: 'Add to calendar',
+  tasksCalendarSaved: 'Event created',
+  tasksOpenCalendarEvent: 'Open calendar event',
   // Analytics
   analyticsEmpty: 'No activity in this period',
   analyticsEmptyHint: 'Run tools or workflows to see metrics here.',
@@ -2430,6 +2568,110 @@ const en: DashboardTranslations = {
   // Workspace settings page
   wsSettingsTitle: 'Workspace settings',
   wsSettingsSubtitle: 'Customise branding, visible data and sending settings for your workspace.',
+  integrationsTitle: 'Integrations',
+  integrationsSubtitle: 'Connect the apps and accounts this workspace uses to work with clients, documents and automations.',
+  integrationsEmailTitle: 'Email',
+  integrationsEmailDescription: 'Send and receive client emails with MITIKUS, Gmail, Outlook or your own SMTP/IMAP account.',
+  integrationsCalendarTitle: 'Calendar',
+  integrationsCalendarDescription: 'Prepare Google Calendar or Outlook Calendar for calls, deadlines, reminders and mission planning.',
+  integrationsGoogleCalendar: 'Google Calendar',
+  integrationsOutlookCalendar: 'Outlook Calendar',
+  integrationsConnectProvider: 'Connect account',
+  integrationsConnecting: 'Connecting...',
+  integrationsDisconnect: 'Disconnect',
+  integrationsDisconnecting: 'Disconnecting...',
+  integrationsCalendarConnectedAccount: 'Calendar account connected',
+  integrationsCalendarConnectError: 'Could not start the calendar connection.',
+  integrationsCalendarDisconnectError: 'Could not disconnect the calendar.',
+  integrationsStorageTitle: 'Storage',
+  integrationsStorageDescription: 'Prepare external storage for documents, contracts, PDFs and workspace backups.',
+  integrationsGoogleDrive: 'Google Drive',
+  integrationsOneDrive: 'OneDrive',
+  integrationsDropbox: 'Dropbox',
+  integrationsStorageConnectedAccount: 'Storage account connected',
+  integrationsStorageConnectError: 'Could not start the storage connection.',
+  integrationsStorageDisconnectError: 'Could not disconnect the storage account.',
+  integrationsStorageExportFiles: 'Save files ZIP',
+  integrationsStorageExporting: 'Saving...',
+  integrationsStorageExported: 'Files ZIP saved in the connected storage.',
+  integrationsStorageOpenExport: 'Open',
+  integrationsStorageExportError: 'Could not save the files ZIP in the connected storage.',
+  integrationsAiTitle: 'AI providers',
+  integrationsAiDescription: 'Use MITIKUS managed AI by default and prepare bring-your-own-key options for advanced plans.',
+  integrationsMitikusAi: 'MITIKUS AI',
+  integrationsOpenAi: 'OpenAI',
+  integrationsAnthropic: 'Anthropic',
+  integrationsGemini: 'Google Gemini',
+  integrationsManagedByMitikus: 'Managed by MITIKUS',
+  integrationsAiOwnKeyConfigured: 'Own API key configured',
+  integrationsAiKeyLabel: 'API key',
+  integrationsAiKeyPlaceholder: 'Paste the provider API key',
+  integrationsAiLabelLabel: 'Internal label',
+  integrationsAiLabelPlaceholder: 'Example: agency OpenAI key',
+  integrationsAiSecurityNote: 'The key is encrypted before it is stored.',
+  integrationsAiSave: 'Save provider',
+  integrationsAiSaving: 'Saving...',
+  integrationsAiSaved: 'AI provider saved.',
+  integrationsAiSaveError: 'Could not save the AI provider.',
+  integrationsAiDisconnectError: 'Could not disconnect the AI provider.',
+  integrationsSignatureTitle: 'Digital signature',
+  integrationsSignatureDescription: 'Use MITIKUS OTP signature by default and prepare external providers for advanced contract workflows.',
+  integrationsMitikusSignature: 'MITIKUS signature',
+  integrationsSignaturit: 'Signaturit',
+  integrationsDocuSign: 'DocuSign',
+  integrationsCommunicationTitle: 'Communication',
+  integrationsCommunicationDescription: 'Prepare customer messaging for lead follow-up, invoice reminders and workflow notifications.',
+  integrationsWhatsAppBusiness: 'WhatsApp Business',
+  integrationsTwilio: 'Twilio',
+  integrationsFormsTitle: 'Forms and lead capture',
+  integrationsFormsDescription: 'Prepare external forms so responses can create leads, clients, tasks, contracts or missions in MITIKUS.',
+  integrationsTypeform: 'Typeform',
+  integrationsGoogleForms: 'Google Forms',
+  integrationsTally: 'Tally',
+  integrationsJotform: 'Jotform',
+  integrationsFormsWebhookHelp: 'Use this private webhook URL in external forms. Each valid submission creates a lead in MITIKUS.',
+  integrationsFormsEnableWebhook: 'Enable webhook',
+  integrationsFormsRotateToken: 'Rotate token',
+  integrationsFormsDisableWebhook: 'Disable',
+  integrationsFormsWebhookReady: 'Webhook URL generated. Copy it now.',
+  integrationsFormsWebhookUrl: 'Webhook URL',
+  integrationsFormsCopyUrl: 'Copy URL',
+  integrationsFormsCopied: 'Copied.',
+  integrationsFormsTokenPreview: 'Token',
+  integrationsFormsTokenOnlyShownOnce: 'For security, the full URL is only shown when you enable or rotate the token.',
+  integrationsFormsActionError: 'Could not update the forms integration.',
+  integrationsFormsWebhookActive: 'Webhook active',
+  integrationsVideoCallsTitle: 'Video calls',
+  integrationsVideoCallsDescription: 'Prepare online meeting links for clients, missions, contracts and scheduled follow-ups.',
+  integrationsGoogleMeet: 'Google Meet',
+  integrationsMicrosoftTeams: 'Microsoft Teams',
+  integrationsZoom: 'Zoom',
+  integrationsAutomationTitle: 'External automations',
+  integrationsAutomationDescription: 'Prepare Make, Zapier and n8n connections so MITIKUS workflows can trigger external processes later.',
+  integrationsMake: 'Make',
+  integrationsZapier: 'Zapier',
+  integrationsN8n: 'n8n',
+  integrationsAccountingTitle: 'Accounting',
+  integrationsAccountingDescription: 'Prepare exports and future sync with accounting tools used by freelancers, agencies and SMEs.',
+  integrationsHolded: 'Holded',
+  integrationsSage: 'Sage',
+  integrationsQuipu: 'Quipu',
+  integrationsAnfix: 'Anfix',
+  integrationsContasimple: 'Contasimple',
+  integrationsEcommerceTitle: 'E-commerce',
+  integrationsEcommerceDescription: 'Prepare online store connections to import customers, orders, products and invoice-ready sales.',
+  integrationsShopify: 'Shopify',
+  integrationsWooCommerce: 'WooCommerce',
+  integrationsPrestashop: 'Prestashop',
+  integrationsPaymentsTitle: 'Invoice payments',
+  integrationsPaymentsDescription: 'Prepare future payment links so clients can pay invoices issued by this workspace.',
+  integrationsStripeConnect: 'Stripe Connect',
+  integrationsPaypal: 'PayPal',
+  integrationsRedsys: 'Redsys',
+  integrationsComingSoon: 'Coming soon',
+  integrationsRequiresSetup: 'Requires OAuth setup before users can connect their account.',
+  integrationsConfigured: 'Configured',
+  integrationsNotConfigured: 'Not configured',
   // Workspace settings client
   wsLogoSection: 'Company logo',
   wsLogoDesc: 'Shown in the workspace sidebar.',
@@ -2616,6 +2858,7 @@ const es: DashboardTranslations = {
   navDownload: 'App de escritorio',
   navSupport: 'Soporte',
   navSettings: 'Ajustes',
+  navIntegrations: 'Integraciones',
   groupWork: 'Trabajo',
   groupContent: 'Contenido',
   groupSystem: 'Sistema',
@@ -2649,6 +2892,7 @@ const es: DashboardTranslations = {
   descDownload: 'Descarga la app de escritorio de MITIKUS para Windows',
   descSupport: 'Asistente de ayuda y contacto con el equipo MITIKUS',
   descSettings: 'Logo, color de marca y nombre del workspace',
+  descIntegrations: 'Conecta apps y servicios externos a este workspace',
   newMission: 'Nueva misión',
   expandSidebar: 'Expandir sidebar',
   collapseSidebar: 'Colapsar sidebar',
@@ -2669,6 +2913,7 @@ const es: DashboardTranslations = {
   sectionUsage: 'Uso',
   sectionTeam: 'Equipo',
   sectionSettings: 'Ajustes',
+  sectionIntegrations: 'Integraciones',
   sectionGenerate: 'Generar herramienta',
   sectionImport: 'Importar',
   sectionCopilot: 'Arkos',
@@ -3647,6 +3892,20 @@ const es: DashboardTranslations = {
   tasksPendingSingular: 'pendiente',
   tasksPendingPlural: 'pendientes',
   tasksTotal: 'total',
+  tasksDueToday: 'Hoy',
+  tasksDueTomorrow: 'Mañana',
+  tasksPriorityCritical: 'Crítica',
+  tasksPriorityHigh: 'Alta',
+  tasksPriorityMedium: 'Media',
+  tasksPriorityLow: 'Baja',
+  tasksDeleteConfirm: '¿Eliminar esta tarea?',
+  tasksMarkPending: 'Marcar como pendiente',
+  tasksMarkDone: 'Marcar como hecha',
+  tasksEdit: 'Editar tarea',
+  tasksDelete: 'Eliminar tarea',
+  tasksAddToCalendar: 'Añadir al calendario',
+  tasksCalendarSaved: 'Evento creado',
+  tasksOpenCalendarEvent: 'Abrir evento de calendario',
   // Analytics
   analyticsEmpty: 'Sin actividad en este periodo',
   analyticsEmptyHint: 'Ejecuta herramientas o workflows para ver métricas aquí.',
@@ -3719,6 +3978,110 @@ const es: DashboardTranslations = {
   // Workspace settings page
   wsSettingsTitle: 'Ajustes del workspace',
   wsSettingsSubtitle: 'Personaliza marca, datos visibles y envíos de tu espacio de trabajo.',
+  integrationsTitle: 'Integraciones',
+  integrationsSubtitle: 'Conecta las apps y cuentas que usa este workspace para trabajar con clientes, documentos y automatizaciones.',
+  integrationsEmailTitle: 'Correo',
+  integrationsEmailDescription: 'Envía y recibe correos de clientes con MITIKUS, Gmail, Outlook o tu propia cuenta SMTP/IMAP.',
+  integrationsCalendarTitle: 'Calendario',
+  integrationsCalendarDescription: 'Prepara Google Calendar u Outlook Calendar para llamadas, vencimientos, recordatorios y planificación de misiones.',
+  integrationsGoogleCalendar: 'Google Calendar',
+  integrationsOutlookCalendar: 'Outlook Calendar',
+  integrationsConnectProvider: 'Conectar cuenta',
+  integrationsConnecting: 'Conectando...',
+  integrationsDisconnect: 'Desconectar',
+  integrationsDisconnecting: 'Desconectando...',
+  integrationsCalendarConnectedAccount: 'Cuenta de calendario conectada',
+  integrationsCalendarConnectError: 'No se pudo iniciar la conexión del calendario.',
+  integrationsCalendarDisconnectError: 'No se pudo desconectar el calendario.',
+  integrationsStorageTitle: 'Almacenamiento',
+  integrationsStorageDescription: 'Prepara almacenamiento externo para documentos, contratos, PDFs y copias del workspace.',
+  integrationsGoogleDrive: 'Google Drive',
+  integrationsOneDrive: 'OneDrive',
+  integrationsDropbox: 'Dropbox',
+  integrationsStorageConnectedAccount: 'Cuenta de almacenamiento conectada',
+  integrationsStorageConnectError: 'No se pudo iniciar la conexión de almacenamiento.',
+  integrationsStorageDisconnectError: 'No se pudo desconectar el almacenamiento.',
+  integrationsStorageExportFiles: 'Guardar ZIP de archivos',
+  integrationsStorageExporting: 'Guardando...',
+  integrationsStorageExported: 'ZIP de archivos guardado en el almacenamiento conectado.',
+  integrationsStorageOpenExport: 'Abrir',
+  integrationsStorageExportError: 'No se pudo guardar el ZIP de archivos en el almacenamiento conectado.',
+  integrationsAiTitle: 'Proveedores IA',
+  integrationsAiDescription: 'Usa la IA gestionada por MITIKUS por defecto y prepara claves propias para planes avanzados.',
+  integrationsMitikusAi: 'MITIKUS IA',
+  integrationsOpenAi: 'OpenAI',
+  integrationsAnthropic: 'Anthropic',
+  integrationsGemini: 'Google Gemini',
+  integrationsManagedByMitikus: 'Gestionado por MITIKUS',
+  integrationsAiOwnKeyConfigured: 'API key propia configurada',
+  integrationsAiKeyLabel: 'API key',
+  integrationsAiKeyPlaceholder: 'Pega la API key del proveedor',
+  integrationsAiLabelLabel: 'Etiqueta interna',
+  integrationsAiLabelPlaceholder: 'Ejemplo: clave OpenAI agencia',
+  integrationsAiSecurityNote: 'La clave se cifra antes de guardarse.',
+  integrationsAiSave: 'Guardar proveedor',
+  integrationsAiSaving: 'Guardando...',
+  integrationsAiSaved: 'Proveedor IA guardado.',
+  integrationsAiSaveError: 'No se pudo guardar el proveedor IA.',
+  integrationsAiDisconnectError: 'No se pudo desconectar el proveedor IA.',
+  integrationsSignatureTitle: 'Firma digital',
+  integrationsSignatureDescription: 'Usa la firma OTP de MITIKUS por defecto y prepara proveedores externos para contratos avanzados.',
+  integrationsMitikusSignature: 'Firma MITIKUS',
+  integrationsSignaturit: 'Signaturit',
+  integrationsDocuSign: 'DocuSign',
+  integrationsCommunicationTitle: 'Comunicación',
+  integrationsCommunicationDescription: 'Prepara mensajería con clientes para seguimiento de leads, recordatorios de facturas y avisos de flujos.',
+  integrationsWhatsAppBusiness: 'WhatsApp Business',
+  integrationsTwilio: 'Twilio',
+  integrationsFormsTitle: 'Formularios y captación',
+  integrationsFormsDescription: 'Prepara formularios externos para que las respuestas puedan crear leads, clientes, tareas, contratos o misiones en MITIKUS.',
+  integrationsTypeform: 'Typeform',
+  integrationsGoogleForms: 'Google Forms',
+  integrationsTally: 'Tally',
+  integrationsJotform: 'Jotform',
+  integrationsFormsWebhookHelp: 'Use this private webhook URL in external forms. Each valid submission creates a lead in MITIKUS.',
+  integrationsFormsEnableWebhook: 'Enable webhook',
+  integrationsFormsRotateToken: 'Rotate token',
+  integrationsFormsDisableWebhook: 'Disable',
+  integrationsFormsWebhookReady: 'Webhook URL generated. Copy it now.',
+  integrationsFormsWebhookUrl: 'Webhook URL',
+  integrationsFormsCopyUrl: 'Copy URL',
+  integrationsFormsCopied: 'Copied.',
+  integrationsFormsTokenPreview: 'Token',
+  integrationsFormsTokenOnlyShownOnce: 'For security, the full URL is only shown when you enable or rotate the token.',
+  integrationsFormsActionError: 'Could not update the forms integration.',
+  integrationsFormsWebhookActive: 'Webhook active',
+  integrationsVideoCallsTitle: 'Videollamadas',
+  integrationsVideoCallsDescription: 'Prepara enlaces de reunión online para clientes, misiones, contratos y seguimientos programados.',
+  integrationsGoogleMeet: 'Google Meet',
+  integrationsMicrosoftTeams: 'Microsoft Teams',
+  integrationsZoom: 'Zoom',
+  integrationsAutomationTitle: 'Automatizaciones externas',
+  integrationsAutomationDescription: 'Prepara conexiones con Make, Zapier y n8n para que los flujos de MITIKUS puedan disparar procesos externos más adelante.',
+  integrationsMake: 'Make',
+  integrationsZapier: 'Zapier',
+  integrationsN8n: 'n8n',
+  integrationsAccountingTitle: 'Contabilidad',
+  integrationsAccountingDescription: 'Prepara exportaciones y futura sincronización con herramientas contables usadas por autónomos, agencias y pymes.',
+  integrationsHolded: 'Holded',
+  integrationsSage: 'Sage',
+  integrationsQuipu: 'Quipu',
+  integrationsAnfix: 'Anfix',
+  integrationsContasimple: 'Contasimple',
+  integrationsEcommerceTitle: 'E-commerce',
+  integrationsEcommerceDescription: 'Prepara conexiones con tiendas online para importar clientes, pedidos, productos y ventas listas para facturar.',
+  integrationsShopify: 'Shopify',
+  integrationsWooCommerce: 'WooCommerce',
+  integrationsPrestashop: 'Prestashop',
+  integrationsPaymentsTitle: 'Pagos de facturas',
+  integrationsPaymentsDescription: 'Prepara enlaces de pago futuros para que los clientes puedan pagar facturas emitidas por este workspace.',
+  integrationsStripeConnect: 'Stripe Connect',
+  integrationsPaypal: 'PayPal',
+  integrationsRedsys: 'Redsys',
+  integrationsComingSoon: 'Próximamente',
+  integrationsRequiresSetup: 'Requiere configurar OAuth antes de que los usuarios puedan conectar su cuenta.',
+  integrationsConfigured: 'Configurado',
+  integrationsNotConfigured: 'Sin configurar',
   // Workspace settings client
   wsLogoSection: 'Logo de la empresa',
   wsLogoDesc: 'Aparece en la barra lateral del workspace.',
@@ -3905,6 +4268,7 @@ const fr: DashboardTranslations = {
   navProfile: 'Mon profil',
   navSupport: 'Support',
   navSettings: 'Paramètres',
+  navIntegrations: 'Intégrations',
   groupWork: 'Travail',
   groupContent: 'Contenu',
   groupSystem: 'Système',
@@ -3930,6 +4294,7 @@ const fr: DashboardTranslations = {
   descProfile: 'Votre photo de profil et préférences personnelles',
   descSupport: 'Assistant d\'aide et contact avec l\'équipe MITIKUS',
   descSettings: 'Logo, couleur de marque et nom du workspace',
+  descIntegrations: 'Connectez des apps et services externes à ce workspace',
   newMission: 'Nouvelle mission',
   expandSidebar: 'Agrandir la barre latérale',
   collapseSidebar: 'Réduire la barre latérale',
@@ -3945,6 +4310,7 @@ const fr: DashboardTranslations = {
   sectionUsage: 'Utilisation',
   sectionTeam: 'Équipe',
   sectionSettings: 'Paramètres',
+  sectionIntegrations: 'Intégrations',
   sectionGenerate: 'Créer un outil',
   sectionImport: 'Importer',
   sectionCopilot: 'Arkos',
@@ -3974,6 +4340,110 @@ const fr: DashboardTranslations = {
   subNew: 'Nouveau',
   bannerEarlyAccess: 'Accès anticipé',
   bannerCta: 'Places limitées · Rejoignez maintenant et bloquez votre prix de lancement',
+  integrationsTitle: 'Intégrations',
+  integrationsSubtitle: 'Connectez les apps et comptes que ce workspace utilise pour travailler avec clients, documents et automatisations.',
+  integrationsEmailTitle: 'E-mail',
+  integrationsEmailDescription: 'Envoyez et recevez des e-mails clients avec MITIKUS, Gmail, Outlook ou votre propre compte SMTP/IMAP.',
+  integrationsCalendarTitle: 'Calendrier',
+  integrationsCalendarDescription: 'Préparez Google Calendar ou Outlook Calendar pour les appels, échéances, rappels et la planification des missions.',
+  integrationsGoogleCalendar: 'Google Calendar',
+  integrationsOutlookCalendar: 'Outlook Calendar',
+  integrationsConnectProvider: 'Connecter le compte',
+  integrationsConnecting: 'Connexion...',
+  integrationsDisconnect: 'Déconnecter',
+  integrationsDisconnecting: 'Déconnexion...',
+  integrationsCalendarConnectedAccount: 'Compte de calendrier connecté',
+  integrationsCalendarConnectError: 'Impossible de démarrer la connexion au calendrier.',
+  integrationsCalendarDisconnectError: 'Impossible de déconnecter le calendrier.',
+  integrationsStorageTitle: 'Stockage',
+  integrationsStorageDescription: 'Préparez le stockage externe pour documents, contrats, PDFs et sauvegardes du workspace.',
+  integrationsGoogleDrive: 'Google Drive',
+  integrationsOneDrive: 'OneDrive',
+  integrationsDropbox: 'Dropbox',
+  integrationsStorageConnectedAccount: 'Compte de stockage connecté',
+  integrationsStorageConnectError: 'Impossible de démarrer la connexion au stockage.',
+  integrationsStorageDisconnectError: 'Impossible de déconnecter le compte de stockage.',
+  integrationsStorageExportFiles: 'Enregistrer le ZIP des fichiers',
+  integrationsStorageExporting: 'Enregistrement...',
+  integrationsStorageExported: 'ZIP des fichiers enregistré dans le stockage connecté.',
+  integrationsStorageOpenExport: 'Ouvrir',
+  integrationsStorageExportError: 'Impossible d’enregistrer le ZIP des fichiers dans le stockage connecté.',
+  integrationsAiTitle: 'Fournisseurs IA',
+  integrationsAiDescription: 'Utilisez l’IA gérée par MITIKUS par défaut et préparez les clés propres pour les plans avancés.',
+  integrationsMitikusAi: 'MITIKUS IA',
+  integrationsOpenAi: 'OpenAI',
+  integrationsAnthropic: 'Anthropic',
+  integrationsGemini: 'Google Gemini',
+  integrationsManagedByMitikus: 'Géré par MITIKUS',
+  integrationsAiOwnKeyConfigured: 'Clé API propre configurée',
+  integrationsAiKeyLabel: 'Clé API',
+  integrationsAiKeyPlaceholder: 'Collez la clé API du fournisseur',
+  integrationsAiLabelLabel: 'Libellé interne',
+  integrationsAiLabelPlaceholder: 'Exemple : clé OpenAI agence',
+  integrationsAiSecurityNote: 'La clé est chiffrée avant d’être enregistrée.',
+  integrationsAiSave: 'Enregistrer le fournisseur',
+  integrationsAiSaving: 'Enregistrement...',
+  integrationsAiSaved: 'Fournisseur IA enregistré.',
+  integrationsAiSaveError: 'Impossible d’enregistrer le fournisseur IA.',
+  integrationsAiDisconnectError: 'Impossible de déconnecter le fournisseur IA.',
+  integrationsSignatureTitle: 'Signature numérique',
+  integrationsSignatureDescription: 'Utilisez la signature OTP MITIKUS par défaut et préparez des fournisseurs externes pour les contrats avancés.',
+  integrationsMitikusSignature: 'Signature MITIKUS',
+  integrationsSignaturit: 'Signaturit',
+  integrationsDocuSign: 'DocuSign',
+  integrationsCommunicationTitle: 'Communication',
+  integrationsCommunicationDescription: 'Préparez la messagerie client pour le suivi des leads, les rappels de factures et les notifications de flux.',
+  integrationsWhatsAppBusiness: 'WhatsApp Business',
+  integrationsTwilio: 'Twilio',
+  integrationsFormsTitle: 'Formulaires et acquisition',
+  integrationsFormsDescription: 'Préparez des formulaires externes pour que les réponses puissent créer des leads, clients, tâches, contrats ou missions dans MITIKUS.',
+  integrationsTypeform: 'Typeform',
+  integrationsGoogleForms: 'Google Forms',
+  integrationsTally: 'Tally',
+  integrationsJotform: 'Jotform',
+  integrationsFormsWebhookHelp: 'Use this private webhook URL in external forms. Each valid submission creates a lead in MITIKUS.',
+  integrationsFormsEnableWebhook: 'Enable webhook',
+  integrationsFormsRotateToken: 'Rotate token',
+  integrationsFormsDisableWebhook: 'Disable',
+  integrationsFormsWebhookReady: 'Webhook URL generated. Copy it now.',
+  integrationsFormsWebhookUrl: 'Webhook URL',
+  integrationsFormsCopyUrl: 'Copy URL',
+  integrationsFormsCopied: 'Copied.',
+  integrationsFormsTokenPreview: 'Token',
+  integrationsFormsTokenOnlyShownOnce: 'For security, the full URL is only shown when you enable or rotate the token.',
+  integrationsFormsActionError: 'Could not update the forms integration.',
+  integrationsFormsWebhookActive: 'Webhook active',
+  integrationsVideoCallsTitle: 'Appels vidéo',
+  integrationsVideoCallsDescription: 'Préparez des liens de réunion en ligne pour clients, missions, contrats et suivis planifiés.',
+  integrationsGoogleMeet: 'Google Meet',
+  integrationsMicrosoftTeams: 'Microsoft Teams',
+  integrationsZoom: 'Zoom',
+  integrationsAutomationTitle: 'Automatisations externes',
+  integrationsAutomationDescription: 'Préparez les connexions Make, Zapier et n8n pour que les flux MITIKUS puissent déclencher des processus externes plus tard.',
+  integrationsMake: 'Make',
+  integrationsZapier: 'Zapier',
+  integrationsN8n: 'n8n',
+  integrationsAccountingTitle: 'Comptabilité',
+  integrationsAccountingDescription: 'Préparez les exports et la future synchronisation avec les outils comptables utilisés par indépendants, agences et PME.',
+  integrationsHolded: 'Holded',
+  integrationsSage: 'Sage',
+  integrationsQuipu: 'Quipu',
+  integrationsAnfix: 'Anfix',
+  integrationsContasimple: 'Contasimple',
+  integrationsEcommerceTitle: 'E-commerce',
+  integrationsEcommerceDescription: 'Préparez des connexions avec les boutiques en ligne pour importer clients, commandes, produits et ventes prêtes à facturer.',
+  integrationsShopify: 'Shopify',
+  integrationsWooCommerce: 'WooCommerce',
+  integrationsPrestashop: 'Prestashop',
+  integrationsPaymentsTitle: 'Paiement des factures',
+  integrationsPaymentsDescription: 'Préparez de futurs liens de paiement pour que les clients puissent payer les factures émises par ce workspace.',
+  integrationsStripeConnect: 'Stripe Connect',
+  integrationsPaypal: 'PayPal',
+  integrationsRedsys: 'Redsys',
+  integrationsComingSoon: 'Bientôt',
+  integrationsRequiresSetup: 'Nécessite la configuration OAuth avant que les utilisateurs puissent connecter leur compte.',
+  integrationsConfigured: 'Configuré',
+  integrationsNotConfigured: 'Non configuré',
 }
 
 const de: DashboardTranslations = {
@@ -4000,6 +4470,7 @@ const de: DashboardTranslations = {
   navProfile: 'Mein Profil',
   navSupport: 'Support',
   navSettings: 'Einstellungen',
+  navIntegrations: 'Integrationen',
   groupWork: 'Arbeit',
   groupContent: 'Inhalt',
   groupSystem: 'System',
@@ -4025,6 +4496,7 @@ const de: DashboardTranslations = {
   descProfile: 'Ihr Profilfoto und persönliche Einstellungen',
   descSupport: 'Hilfe-Assistent und Kontakt mit dem MITIKUS-Team',
   descSettings: 'Logo, Markenfarbe und Workspace-Name',
+  descIntegrations: 'Externe Apps und Dienste mit diesem Workspace verbinden',
   newMission: 'Neue Mission',
   expandSidebar: 'Seitenleiste erweitern',
   collapseSidebar: 'Seitenleiste einklappen',
@@ -4040,6 +4512,7 @@ const de: DashboardTranslations = {
   sectionUsage: 'Nutzung',
   sectionTeam: 'Team',
   sectionSettings: 'Einstellungen',
+  sectionIntegrations: 'Integrationen',
   sectionGenerate: 'Tool erstellen',
   sectionImport: 'Importieren',
   sectionCopilot: 'Arkos',
@@ -4069,6 +4542,110 @@ const de: DashboardTranslations = {
   subNew: 'Neu',
   bannerEarlyAccess: 'Früher Zugang',
   bannerCta: 'Begrenzte Plätze · Jetzt beitreten und Einführungspreis sichern',
+  integrationsTitle: 'Integrationen',
+  integrationsSubtitle: 'Verbinden Sie die Apps und Konten, die dieser Workspace für Kunden, Dokumente und Automatisierungen nutzt.',
+  integrationsEmailTitle: 'E-Mail',
+  integrationsEmailDescription: 'Senden und empfangen Sie Kunden-E-Mails mit MITIKUS, Gmail, Outlook oder Ihrem eigenen SMTP/IMAP-Konto.',
+  integrationsCalendarTitle: 'Kalender',
+  integrationsCalendarDescription: 'Bereiten Sie Google Calendar oder Outlook Calendar für Anrufe, Fristen, Erinnerungen und Missionsplanung vor.',
+  integrationsGoogleCalendar: 'Google Calendar',
+  integrationsOutlookCalendar: 'Outlook Calendar',
+  integrationsConnectProvider: 'Konto verbinden',
+  integrationsConnecting: 'Verbinden...',
+  integrationsDisconnect: 'Trennen',
+  integrationsDisconnecting: 'Wird getrennt...',
+  integrationsCalendarConnectedAccount: 'Kalenderkonto verbunden',
+  integrationsCalendarConnectError: 'Die Kalenderverbindung konnte nicht gestartet werden.',
+  integrationsCalendarDisconnectError: 'Der Kalender konnte nicht getrennt werden.',
+  integrationsStorageTitle: 'Speicher',
+  integrationsStorageDescription: 'Externen Speicher für Dokumente, Verträge, PDFs und Workspace-Backups vorbereiten.',
+  integrationsGoogleDrive: 'Google Drive',
+  integrationsOneDrive: 'OneDrive',
+  integrationsDropbox: 'Dropbox',
+  integrationsStorageConnectedAccount: 'Speicherkonto verbunden',
+  integrationsStorageConnectError: 'Die Speicherverbindung konnte nicht gestartet werden.',
+  integrationsStorageDisconnectError: 'Das Speicherkonto konnte nicht getrennt werden.',
+  integrationsStorageExportFiles: 'Dateien-ZIP speichern',
+  integrationsStorageExporting: 'Speichern...',
+  integrationsStorageExported: 'Dateien-ZIP im verbundenen Speicher gespeichert.',
+  integrationsStorageOpenExport: 'Öffnen',
+  integrationsStorageExportError: 'Das Dateien-ZIP konnte nicht im verbundenen Speicher gespeichert werden.',
+  integrationsAiTitle: 'KI-Anbieter',
+  integrationsAiDescription: 'MITIKUS verwaltete KI standardmäßig nutzen und eigene API-Schlüssel für erweiterte Pläne vorbereiten.',
+  integrationsMitikusAi: 'MITIKUS KI',
+  integrationsOpenAi: 'OpenAI',
+  integrationsAnthropic: 'Anthropic',
+  integrationsGemini: 'Google Gemini',
+  integrationsManagedByMitikus: 'Von MITIKUS verwaltet',
+  integrationsAiOwnKeyConfigured: 'Eigener API-Schlüssel konfiguriert',
+  integrationsAiKeyLabel: 'API-Schlüssel',
+  integrationsAiKeyPlaceholder: 'API-Schlüssel des Anbieters einfügen',
+  integrationsAiLabelLabel: 'Interne Bezeichnung',
+  integrationsAiLabelPlaceholder: 'Beispiel: Agentur OpenAI-Schlüssel',
+  integrationsAiSecurityNote: 'Der Schlüssel wird vor dem Speichern verschlüsselt.',
+  integrationsAiSave: 'Anbieter speichern',
+  integrationsAiSaving: 'Speichern...',
+  integrationsAiSaved: 'KI-Anbieter gespeichert.',
+  integrationsAiSaveError: 'Der KI-Anbieter konnte nicht gespeichert werden.',
+  integrationsAiDisconnectError: 'Der KI-Anbieter konnte nicht getrennt werden.',
+  integrationsSignatureTitle: 'Digitale Signatur',
+  integrationsSignatureDescription: 'MITIKUS OTP-Signatur standardmäßig nutzen und externe Anbieter für erweiterte Vertragsabläufe vorbereiten.',
+  integrationsMitikusSignature: 'MITIKUS Signatur',
+  integrationsSignaturit: 'Signaturit',
+  integrationsDocuSign: 'DocuSign',
+  integrationsCommunicationTitle: 'Kommunikation',
+  integrationsCommunicationDescription: 'Kunden-Nachrichten für Lead-Nachverfolgung, Rechnungserinnerungen und Workflow-Benachrichtigungen vorbereiten.',
+  integrationsWhatsAppBusiness: 'WhatsApp Business',
+  integrationsTwilio: 'Twilio',
+  integrationsFormsTitle: 'Formulare und Lead-Erfassung',
+  integrationsFormsDescription: 'Externe Formulare vorbereiten, damit Antworten Leads, Kunden, Aufgaben, Verträge oder Missionen in MITIKUS erstellen können.',
+  integrationsTypeform: 'Typeform',
+  integrationsGoogleForms: 'Google Forms',
+  integrationsTally: 'Tally',
+  integrationsJotform: 'Jotform',
+  integrationsFormsWebhookHelp: 'Use this private webhook URL in external forms. Each valid submission creates a lead in MITIKUS.',
+  integrationsFormsEnableWebhook: 'Enable webhook',
+  integrationsFormsRotateToken: 'Rotate token',
+  integrationsFormsDisableWebhook: 'Disable',
+  integrationsFormsWebhookReady: 'Webhook URL generated. Copy it now.',
+  integrationsFormsWebhookUrl: 'Webhook URL',
+  integrationsFormsCopyUrl: 'Copy URL',
+  integrationsFormsCopied: 'Copied.',
+  integrationsFormsTokenPreview: 'Token',
+  integrationsFormsTokenOnlyShownOnce: 'For security, the full URL is only shown when you enable or rotate the token.',
+  integrationsFormsActionError: 'Could not update the forms integration.',
+  integrationsFormsWebhookActive: 'Webhook active',
+  integrationsVideoCallsTitle: 'Videoanrufe',
+  integrationsVideoCallsDescription: 'Online-Meeting-Links für Kunden, Missionen, Verträge und geplante Nachverfolgungen vorbereiten.',
+  integrationsGoogleMeet: 'Google Meet',
+  integrationsMicrosoftTeams: 'Microsoft Teams',
+  integrationsZoom: 'Zoom',
+  integrationsAutomationTitle: 'Externe Automatisierungen',
+  integrationsAutomationDescription: 'Make-, Zapier- und n8n-Verbindungen vorbereiten, damit MITIKUS-Workflows später externe Prozesse auslösen können.',
+  integrationsMake: 'Make',
+  integrationsZapier: 'Zapier',
+  integrationsN8n: 'n8n',
+  integrationsAccountingTitle: 'Buchhaltung',
+  integrationsAccountingDescription: 'Exporte und spätere Synchronisierung mit Buchhaltungstools für Selbständige, Agenturen und KMU vorbereiten.',
+  integrationsHolded: 'Holded',
+  integrationsSage: 'Sage',
+  integrationsQuipu: 'Quipu',
+  integrationsAnfix: 'Anfix',
+  integrationsContasimple: 'Contasimple',
+  integrationsEcommerceTitle: 'E-Commerce',
+  integrationsEcommerceDescription: 'Online-Shop-Verbindungen vorbereiten, um Kunden, Bestellungen, Produkte und abrechnungsbereite Verkäufe zu importieren.',
+  integrationsShopify: 'Shopify',
+  integrationsWooCommerce: 'WooCommerce',
+  integrationsPrestashop: 'Prestashop',
+  integrationsPaymentsTitle: 'Rechnungszahlungen',
+  integrationsPaymentsDescription: 'Zukünftige Zahlungslinks vorbereiten, damit Kunden Rechnungen dieses Workspaces bezahlen können.',
+  integrationsStripeConnect: 'Stripe Connect',
+  integrationsPaypal: 'PayPal',
+  integrationsRedsys: 'Redsys',
+  integrationsComingSoon: 'Demnächst',
+  integrationsRequiresSetup: 'OAuth muss eingerichtet werden, bevor Nutzer ihr Konto verbinden können.',
+  integrationsConfigured: 'Konfiguriert',
+  integrationsNotConfigured: 'Nicht konfiguriert',
 }
 
 const pt: DashboardTranslations = {
@@ -4095,6 +4672,7 @@ const pt: DashboardTranslations = {
   navProfile: 'O meu perfil',
   navSupport: 'Suporte',
   navSettings: 'Definições',
+  navIntegrations: 'Integrações',
   groupWork: 'Trabalho',
   groupContent: 'Conteúdo',
   groupSystem: 'Sistema',
@@ -4120,6 +4698,7 @@ const pt: DashboardTranslations = {
   descProfile: 'A sua foto de perfil e preferências pessoais',
   descSupport: 'Assistente de ajuda e contacto com a equipa MITIKUS',
   descSettings: 'Logótipo, cor de marca e nome do workspace',
+  descIntegrations: 'Ligue apps e serviços externos a este workspace',
   newMission: 'Nova missão',
   expandSidebar: 'Expandir barra lateral',
   collapseSidebar: 'Recolher barra lateral',
@@ -4133,6 +4712,7 @@ const pt: DashboardTranslations = {
   sectionAnalytics: 'Analítica',
   sectionAudit: 'Auditoria',
   sectionUsage: 'Utilização',
+  sectionIntegrations: 'Integrações',
   sectionTeam: 'Equipa',
   sectionSettings: 'Definições',
   sectionGenerate: 'Criar ferramenta',
@@ -4164,6 +4744,110 @@ const pt: DashboardTranslations = {
   subNew: 'Novo',
   bannerEarlyAccess: 'Acesso antecipado',
   bannerCta: 'Vagas limitadas · Junte-se agora e bloqueie o seu preço de lançamento',
+  integrationsTitle: 'Integrações',
+  integrationsSubtitle: 'Ligue as apps e contas que este workspace usa para trabalhar com clientes, documentos e automatizações.',
+  integrationsEmailTitle: 'Correio',
+  integrationsEmailDescription: 'Envie e receba emails de clientes com MITIKUS, Gmail, Outlook ou a sua própria conta SMTP/IMAP.',
+  integrationsCalendarTitle: 'Calendário',
+  integrationsCalendarDescription: 'Prepare o Google Calendar ou Outlook Calendar para chamadas, prazos, lembretes e planeamento de missões.',
+  integrationsGoogleCalendar: 'Google Calendar',
+  integrationsOutlookCalendar: 'Outlook Calendar',
+  integrationsConnectProvider: 'Ligar conta',
+  integrationsConnecting: 'A ligar...',
+  integrationsDisconnect: 'Desligar',
+  integrationsDisconnecting: 'A desligar...',
+  integrationsCalendarConnectedAccount: 'Conta de calendário ligada',
+  integrationsCalendarConnectError: 'Não foi possível iniciar a ligação ao calendário.',
+  integrationsCalendarDisconnectError: 'Não foi possível desligar o calendário.',
+  integrationsStorageTitle: 'Armazenamento',
+  integrationsStorageDescription: 'Prepare armazenamento externo para documentos, contratos, PDFs e cópias do workspace.',
+  integrationsGoogleDrive: 'Google Drive',
+  integrationsOneDrive: 'OneDrive',
+  integrationsDropbox: 'Dropbox',
+  integrationsStorageConnectedAccount: 'Conta de armazenamento ligada',
+  integrationsStorageConnectError: 'Não foi possível iniciar a ligação ao armazenamento.',
+  integrationsStorageDisconnectError: 'Não foi possível desligar a conta de armazenamento.',
+  integrationsStorageExportFiles: 'Guardar ZIP de ficheiros',
+  integrationsStorageExporting: 'A guardar...',
+  integrationsStorageExported: 'ZIP de ficheiros guardado no armazenamento ligado.',
+  integrationsStorageOpenExport: 'Abrir',
+  integrationsStorageExportError: 'Não foi possível guardar o ZIP de ficheiros no armazenamento ligado.',
+  integrationsAiTitle: 'Fornecedores de IA',
+  integrationsAiDescription: 'Use a IA gerida pela MITIKUS por defeito e prepare chaves próprias para planos avançados.',
+  integrationsMitikusAi: 'MITIKUS IA',
+  integrationsOpenAi: 'OpenAI',
+  integrationsAnthropic: 'Anthropic',
+  integrationsGemini: 'Google Gemini',
+  integrationsManagedByMitikus: 'Gerido pela MITIKUS',
+  integrationsAiOwnKeyConfigured: 'Chave API própria configurada',
+  integrationsAiKeyLabel: 'Chave API',
+  integrationsAiKeyPlaceholder: 'Cole a chave API do fornecedor',
+  integrationsAiLabelLabel: 'Etiqueta interna',
+  integrationsAiLabelPlaceholder: 'Exemplo: chave OpenAI agência',
+  integrationsAiSecurityNote: 'A chave é cifrada antes de ser guardada.',
+  integrationsAiSave: 'Guardar fornecedor',
+  integrationsAiSaving: 'A guardar...',
+  integrationsAiSaved: 'Fornecedor de IA guardado.',
+  integrationsAiSaveError: 'Não foi possível guardar o fornecedor de IA.',
+  integrationsAiDisconnectError: 'Não foi possível desligar o fornecedor de IA.',
+  integrationsSignatureTitle: 'Assinatura digital',
+  integrationsSignatureDescription: 'Use a assinatura OTP da MITIKUS por defeito e prepare fornecedores externos para contratos avançados.',
+  integrationsMitikusSignature: 'Assinatura MITIKUS',
+  integrationsSignaturit: 'Signaturit',
+  integrationsDocuSign: 'DocuSign',
+  integrationsCommunicationTitle: 'Comunicação',
+  integrationsCommunicationDescription: 'Prepare mensagens com clientes para acompanhamento de leads, lembretes de faturas e avisos de fluxos.',
+  integrationsWhatsAppBusiness: 'WhatsApp Business',
+  integrationsTwilio: 'Twilio',
+  integrationsFormsTitle: 'Formulários e captação',
+  integrationsFormsDescription: 'Prepare formulários externos para que as respostas possam criar leads, clientes, tarefas, contratos ou missões na MITIKUS.',
+  integrationsTypeform: 'Typeform',
+  integrationsGoogleForms: 'Google Forms',
+  integrationsTally: 'Tally',
+  integrationsJotform: 'Jotform',
+  integrationsFormsWebhookHelp: 'Use this private webhook URL in external forms. Each valid submission creates a lead in MITIKUS.',
+  integrationsFormsEnableWebhook: 'Enable webhook',
+  integrationsFormsRotateToken: 'Rotate token',
+  integrationsFormsDisableWebhook: 'Disable',
+  integrationsFormsWebhookReady: 'Webhook URL generated. Copy it now.',
+  integrationsFormsWebhookUrl: 'Webhook URL',
+  integrationsFormsCopyUrl: 'Copy URL',
+  integrationsFormsCopied: 'Copied.',
+  integrationsFormsTokenPreview: 'Token',
+  integrationsFormsTokenOnlyShownOnce: 'For security, the full URL is only shown when you enable or rotate the token.',
+  integrationsFormsActionError: 'Could not update the forms integration.',
+  integrationsFormsWebhookActive: 'Webhook active',
+  integrationsVideoCallsTitle: 'Videochamadas',
+  integrationsVideoCallsDescription: 'Prepare links de reunião online para clientes, missões, contratos e acompanhamentos programados.',
+  integrationsGoogleMeet: 'Google Meet',
+  integrationsMicrosoftTeams: 'Microsoft Teams',
+  integrationsZoom: 'Zoom',
+  integrationsAutomationTitle: 'Automatizações externas',
+  integrationsAutomationDescription: 'Prepare ligações com Make, Zapier e n8n para que os fluxos da MITIKUS possam acionar processos externos mais tarde.',
+  integrationsMake: 'Make',
+  integrationsZapier: 'Zapier',
+  integrationsN8n: 'n8n',
+  integrationsAccountingTitle: 'Contabilidade',
+  integrationsAccountingDescription: 'Prepare exportações e futura sincronização com ferramentas contabilísticas usadas por freelancers, agências e PMEs.',
+  integrationsHolded: 'Holded',
+  integrationsSage: 'Sage',
+  integrationsQuipu: 'Quipu',
+  integrationsAnfix: 'Anfix',
+  integrationsContasimple: 'Contasimple',
+  integrationsEcommerceTitle: 'E-commerce',
+  integrationsEcommerceDescription: 'Prepare ligações com lojas online para importar clientes, encomendas, produtos e vendas prontas para faturar.',
+  integrationsShopify: 'Shopify',
+  integrationsWooCommerce: 'WooCommerce',
+  integrationsPrestashop: 'Prestashop',
+  integrationsPaymentsTitle: 'Pagamentos de faturas',
+  integrationsPaymentsDescription: 'Prepare futuros links de pagamento para que os clientes possam pagar faturas emitidas por este workspace.',
+  integrationsStripeConnect: 'Stripe Connect',
+  integrationsPaypal: 'PayPal',
+  integrationsRedsys: 'Redsys',
+  integrationsComingSoon: 'Brevemente',
+  integrationsRequiresSetup: 'Requer configuração OAuth antes de os utilizadores poderem ligar a sua conta.',
+  integrationsConfigured: 'Configurado',
+  integrationsNotConfigured: 'Não configurado',
   todayGreetingMorning: 'Bom dia',
   todayGreetingAfternoon: 'Boa tarde',
   todayGreetingEvening: 'Boa noite',
@@ -4250,6 +4934,7 @@ const it: DashboardTranslations = {
   navProfile: 'Il mio profilo',
   navSupport: 'Supporto',
   navSettings: 'Impostazioni',
+  navIntegrations: 'Integrazioni',
   groupWork: 'Lavoro',
   groupContent: 'Contenuto',
   groupSystem: 'Sistema',
@@ -4275,6 +4960,7 @@ const it: DashboardTranslations = {
   descProfile: 'La tua foto del profilo e le preferenze personali',
   descSupport: 'Assistente di aiuto e contatto con il team MITIKUS',
   descSettings: 'Logo, colore del brand e nome del workspace',
+  descIntegrations: 'Collega app e servizi esterni a questo workspace',
   newMission: 'Nuova missione',
   expandSidebar: 'Espandi barra laterale',
   collapseSidebar: 'Comprimi barra laterale',
@@ -4290,6 +4976,7 @@ const it: DashboardTranslations = {
   sectionUsage: 'Utilizzo',
   sectionTeam: 'Team',
   sectionSettings: 'Impostazioni',
+  sectionIntegrations: 'Integrazioni',
   sectionGenerate: 'Crea strumento',
   sectionImport: 'Importa',
   sectionCopilot: 'Arkos',
@@ -4319,6 +5006,110 @@ const it: DashboardTranslations = {
   subNew: 'Nuovo',
   bannerEarlyAccess: 'Accesso anticipato',
   bannerCta: 'Posti limitati · Unisciti ora e blocca il tuo prezzo di lancio',
+  integrationsTitle: 'Integrazioni',
+  integrationsSubtitle: 'Collega le app e gli account che questo workspace usa per lavorare con clienti, documenti e automazioni.',
+  integrationsEmailTitle: 'Email',
+  integrationsEmailDescription: 'Invia e ricevi email dei clienti con MITIKUS, Gmail, Outlook o il tuo account SMTP/IMAP.',
+  integrationsCalendarTitle: 'Calendario',
+  integrationsCalendarDescription: 'Prepara Google Calendar o Outlook Calendar per chiamate, scadenze, promemoria e pianificazione delle missioni.',
+  integrationsGoogleCalendar: 'Google Calendar',
+  integrationsOutlookCalendar: 'Outlook Calendar',
+  integrationsConnectProvider: 'Collega account',
+  integrationsConnecting: 'Connessione...',
+  integrationsDisconnect: 'Disconnetti',
+  integrationsDisconnecting: 'Disconnessione...',
+  integrationsCalendarConnectedAccount: 'Account calendario collegato',
+  integrationsCalendarConnectError: 'Impossibile avviare il collegamento del calendario.',
+  integrationsCalendarDisconnectError: 'Impossibile disconnettere il calendario.',
+  integrationsStorageTitle: 'Archiviazione',
+  integrationsStorageDescription: 'Prepara l’archiviazione esterna per documenti, contratti, PDF e backup del workspace.',
+  integrationsGoogleDrive: 'Google Drive',
+  integrationsOneDrive: 'OneDrive',
+  integrationsDropbox: 'Dropbox',
+  integrationsStorageConnectedAccount: 'Account di archiviazione collegato',
+  integrationsStorageConnectError: 'Impossibile avviare il collegamento dell’archiviazione.',
+  integrationsStorageDisconnectError: 'Impossibile disconnettere l’account di archiviazione.',
+  integrationsStorageExportFiles: 'Salva ZIP dei file',
+  integrationsStorageExporting: 'Salvataggio...',
+  integrationsStorageExported: 'ZIP dei file salvato nell’archiviazione collegata.',
+  integrationsStorageOpenExport: 'Apri',
+  integrationsStorageExportError: 'Impossibile salvare lo ZIP dei file nell’archiviazione collegata.',
+  integrationsAiTitle: 'Provider IA',
+  integrationsAiDescription: 'Usa l’IA gestita da MITIKUS per impostazione predefinita e prepara chiavi proprie per i piani avanzati.',
+  integrationsMitikusAi: 'MITIKUS IA',
+  integrationsOpenAi: 'OpenAI',
+  integrationsAnthropic: 'Anthropic',
+  integrationsGemini: 'Google Gemini',
+  integrationsManagedByMitikus: 'Gestito da MITIKUS',
+  integrationsAiOwnKeyConfigured: 'Chiave API propria configurata',
+  integrationsAiKeyLabel: 'Chiave API',
+  integrationsAiKeyPlaceholder: 'Incolla la chiave API del provider',
+  integrationsAiLabelLabel: 'Etichetta interna',
+  integrationsAiLabelPlaceholder: 'Esempio: chiave OpenAI agenzia',
+  integrationsAiSecurityNote: 'La chiave viene cifrata prima di essere salvata.',
+  integrationsAiSave: 'Salva provider',
+  integrationsAiSaving: 'Salvataggio...',
+  integrationsAiSaved: 'Provider IA salvato.',
+  integrationsAiSaveError: 'Impossibile salvare il provider IA.',
+  integrationsAiDisconnectError: 'Impossibile disconnettere il provider IA.',
+  integrationsSignatureTitle: 'Firma digitale',
+  integrationsSignatureDescription: 'Usa la firma OTP di MITIKUS per impostazione predefinita e prepara provider esterni per contratti avanzati.',
+  integrationsMitikusSignature: 'Firma MITIKUS',
+  integrationsSignaturit: 'Signaturit',
+  integrationsDocuSign: 'DocuSign',
+  integrationsCommunicationTitle: 'Comunicazione',
+  integrationsCommunicationDescription: 'Prepara la messaggistica con i clienti per follow-up dei lead, promemoria fatture e notifiche dei flussi.',
+  integrationsWhatsAppBusiness: 'WhatsApp Business',
+  integrationsTwilio: 'Twilio',
+  integrationsFormsTitle: 'Moduli e acquisizione',
+  integrationsFormsDescription: 'Prepara moduli esterni affinché le risposte possano creare lead, clienti, attività, contratti o missioni in MITIKUS.',
+  integrationsTypeform: 'Typeform',
+  integrationsGoogleForms: 'Google Forms',
+  integrationsTally: 'Tally',
+  integrationsJotform: 'Jotform',
+  integrationsFormsWebhookHelp: 'Use this private webhook URL in external forms. Each valid submission creates a lead in MITIKUS.',
+  integrationsFormsEnableWebhook: 'Enable webhook',
+  integrationsFormsRotateToken: 'Rotate token',
+  integrationsFormsDisableWebhook: 'Disable',
+  integrationsFormsWebhookReady: 'Webhook URL generated. Copy it now.',
+  integrationsFormsWebhookUrl: 'Webhook URL',
+  integrationsFormsCopyUrl: 'Copy URL',
+  integrationsFormsCopied: 'Copied.',
+  integrationsFormsTokenPreview: 'Token',
+  integrationsFormsTokenOnlyShownOnce: 'For security, the full URL is only shown when you enable or rotate the token.',
+  integrationsFormsActionError: 'Could not update the forms integration.',
+  integrationsFormsWebhookActive: 'Webhook active',
+  integrationsVideoCallsTitle: 'Videochiamate',
+  integrationsVideoCallsDescription: 'Prepara link per riunioni online con clienti, missioni, contratti e follow-up programmati.',
+  integrationsGoogleMeet: 'Google Meet',
+  integrationsMicrosoftTeams: 'Microsoft Teams',
+  integrationsZoom: 'Zoom',
+  integrationsAutomationTitle: 'Automazioni esterne',
+  integrationsAutomationDescription: 'Prepara connessioni con Make, Zapier e n8n affinché i flussi MITIKUS possano attivare processi esterni in seguito.',
+  integrationsMake: 'Make',
+  integrationsZapier: 'Zapier',
+  integrationsN8n: 'n8n',
+  integrationsAccountingTitle: 'Contabilità',
+  integrationsAccountingDescription: 'Prepara esportazioni e futura sincronizzazione con strumenti contabili usati da freelance, agenzie e PMI.',
+  integrationsHolded: 'Holded',
+  integrationsSage: 'Sage',
+  integrationsQuipu: 'Quipu',
+  integrationsAnfix: 'Anfix',
+  integrationsContasimple: 'Contasimple',
+  integrationsEcommerceTitle: 'E-commerce',
+  integrationsEcommerceDescription: 'Prepara connessioni con negozi online per importare clienti, ordini, prodotti e vendite pronte per la fatturazione.',
+  integrationsShopify: 'Shopify',
+  integrationsWooCommerce: 'WooCommerce',
+  integrationsPrestashop: 'Prestashop',
+  integrationsPaymentsTitle: 'Pagamenti fatture',
+  integrationsPaymentsDescription: 'Prepara futuri link di pagamento affinché i clienti possano pagare le fatture emesse da questo workspace.',
+  integrationsStripeConnect: 'Stripe Connect',
+  integrationsPaypal: 'PayPal',
+  integrationsRedsys: 'Redsys',
+  integrationsComingSoon: 'Prossimamente',
+  integrationsRequiresSetup: 'Richiede la configurazione OAuth prima che gli utenti possano collegare il proprio account.',
+  integrationsConfigured: 'Configurato',
+  integrationsNotConfigured: 'Non configurato',
 }
 
 // Factory: spread en, apply overrides for key strings
@@ -5379,3 +6170,5 @@ export function getDashboardTranslations(locale: Locale): DashboardTranslations 
     ...(accountLocaleOverrides[locale] ?? {}),
   }
 }
+
+
