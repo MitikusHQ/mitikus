@@ -2,7 +2,7 @@
 
 import { useState } from 'react'
 import type { InvoiceData } from '@/app/actions/invoices'
-import { updateInvoice, deleteInvoice, sendInvoiceToClient, syncInvoiceRepliesForWorkspace, createRectificativeInvoice } from '@/app/actions/invoices'
+import { updateInvoice, deleteInvoice, sendInvoiceToClient, syncInvoiceRepliesForWorkspace, createRectificativeInvoice, emitirFactura } from '@/app/actions/invoices'
 import { InvoiceModal } from './InvoiceModal'
 import { getDashboardTranslations } from '@/i18n/dashboard-translations'
 import type { Locale } from '@/i18n/config'
@@ -14,6 +14,7 @@ interface Props {
   initialInvoices: InvoiceData[]
   clients: Client[]
   defaultPaymentNotes?: string
+  emisorNif: string | null
   locale: Locale
 }
 
@@ -23,7 +24,7 @@ function fmt(n: number, currency = 'EUR', locale: string) {
   return n.toLocaleString(locale, { minimumFractionDigits: 2, maximumFractionDigits: 2 }) + ' ' + currency
 }
 
-export function InvoicesClient({ workspaceId, initialInvoices, clients, defaultPaymentNotes = '', locale }: Props) {
+export function InvoicesClient({ workspaceId, initialInvoices, clients, defaultPaymentNotes = '', emisorNif, locale }: Props) {
   const t = getDashboardTranslations(locale)
   const [invoices, setInvoices]   = useState<InvoiceData[]>(initialInvoices)
   const [selected, setSelected]   = useState<InvoiceData | null>(null)
@@ -42,6 +43,8 @@ export function InvoicesClient({ workspaceId, initialInvoices, clients, defaultP
   const [rectMotivo, setRectMotivo]       = useState('')
   const [creatingRect, setCreatingRect]   = useState(false)
   const [rectError, setRectError]         = useState<string | null>(null)
+  const [emitting, setEmitting]           = useState(false)
+  const [emitError, setEmitError]         = useState<string | null>(null)
 
   const STATUS_LABELS: Record<string, { label: string; color: string }> = {
     borrador:  { label: t.invoicesStatusDraft,     color: 'bg-gray-100 text-gray-600 dark:bg-gray-800 dark:text-gray-400' },
@@ -70,9 +73,30 @@ export function InvoicesClient({ workspaceId, initialInvoices, clients, defaultP
   }
 
   async function handleStatusChange(inv: InvoiceData, status: string) {
+    // "enviada" solo se puede alcanzar a través del botón Emitir (calcula huella Verifactu)
+    if (status === 'enviada') return
     const updated = await updateInvoice(workspaceId, inv.id, { status })
     setInvoices(prev => prev.map(i => i.id === updated.id ? updated : i))
     if (selected?.id === inv.id) setSelected(updated)
+  }
+
+  async function handleEmitir(inv: InvoiceData) {
+    if (emitting) return
+    if (!emisorNif) {
+      setEmitError('Configura el NIF/CIF fiscal del workspace en Ajustes → Perfil fiscal antes de emitir.')
+      return
+    }
+    setEmitting(true)
+    setEmitError(null)
+    try {
+      const updated = await emitirFactura(workspaceId, inv.id, emisorNif)
+      setInvoices(prev => prev.map(i => i.id === updated.id ? updated : i))
+      setSelected(updated)
+    } catch (err) {
+      setEmitError(err instanceof Error ? err.message : 'Error al emitir la factura')
+    } finally {
+      setEmitting(false)
+    }
   }
 
   function openEmailModal(inv: InvoiceData) {
@@ -272,6 +296,15 @@ export function InvoicesClient({ workspaceId, initialInvoices, clients, defaultP
                   >
                     {syncingReplies ? t.invoicesReviewingReplies : t.invoicesReviewReplies}
                   </button>
+                  {selected.status === 'borrador' && (
+                    <button
+                      onClick={() => handleEmitir(selected)}
+                      disabled={emitting}
+                      className="flex shrink-0 items-center gap-1.5 px-3 py-1.5 text-xs font-semibold bg-primary text-primary-foreground rounded-lg hover:opacity-90 transition-opacity disabled:opacity-60"
+                    >
+                      {emitting ? 'Emitiendo...' : '⚡ Emitir factura'}
+                    </button>
+                  )}
                   <button
                     onClick={() => { setEditing(selected); setShowModal(true) }}
                     className="flex shrink-0 items-center gap-1.5 px-3 py-1.5 text-xs font-medium border border-border rounded-lg text-muted-foreground hover:text-foreground transition-colors"
@@ -346,7 +379,8 @@ export function InvoicesClient({ workspaceId, initialInvoices, clients, defaultP
                       <button
                         key={key}
                         onClick={() => handleStatusChange(selected, key)}
-                        disabled={selected.status === key}
+                        disabled={selected.status === key || key === 'enviada'}
+                        title={key === 'enviada' ? 'Usa el botón "Emitir factura" — calcula la huella Verifactu' : undefined}
                         className={`text-xs px-2.5 py-1 rounded-full font-medium transition-opacity ${color} ${selected.status === key ? 'opacity-100 ring-2 ring-offset-1 ring-primary' : 'opacity-60 hover:opacity-100'}`}
                       >
                         {label}
@@ -355,6 +389,11 @@ export function InvoicesClient({ workspaceId, initialInvoices, clients, defaultP
                   </div>
                 </div>
 
+                {emitError && (
+                  <div className="mb-4 rounded-md border border-destructive/30 bg-destructive/5 px-3 py-2 text-xs text-destructive">
+                    {emitError}
+                  </div>
+                )}
                 {syncMessage && (
                   <div className="mb-4 rounded-md border border-border bg-muted/30 px-3 py-2 text-xs text-muted-foreground">
                     {syncMessage}

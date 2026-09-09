@@ -18,7 +18,7 @@ export default async function InvoicesPage({ params }: Props) {
     where: { id: workspaceId, orgId: user.orgId },
     select: {
       id: true,
-      companyProfile: { select: { defaultPaymentNotes: true } },
+      companyProfile: { select: { defaultPaymentNotes: true, nif: true } },
     },
   })
   if (!workspace) notFound()
@@ -56,6 +56,7 @@ export default async function InvoicesPage({ params }: Props) {
         initialInvoices={invoices}
         clients={clients}
         defaultPaymentNotes={workspace.companyProfile?.defaultPaymentNotes ?? ''}
+        emisorNif={workspace.companyProfile?.nif ?? null}
         locale={locale}
       />
     </div>
