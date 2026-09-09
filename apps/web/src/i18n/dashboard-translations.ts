@@ -6149,14 +6149,16 @@ const downloadFallback: Pick<DashboardTranslations, 'navDownload' | 'descDownloa
   descDownload: 'Download the MITIKUS desktop app for Windows',
 }
 
-const hrFallback: Pick<DashboardTranslations, 'groupHR' | 'navEmployees' | 'navPayroll' | 'navLeaves' | 'descEmployees' | 'descPayroll' | 'descLeaves'> = {
+const hrFallback: Pick<DashboardTranslations, 'groupHR' | 'navEmployees' | 'navPayroll' | 'navLeaves' | 'navLeads' | 'descEmployees' | 'descPayroll' | 'descLeaves' | 'descLeads'> = {
   groupHR: 'HR',
   navEmployees: 'Employees',
   navPayroll: 'Payroll',
   navLeaves: 'Time Off',
+  navLeads: 'Leads',
   descEmployees: 'Manage your team, contracts and payroll settings',
   descPayroll: 'Generate and approve monthly payrolls',
   descLeaves: 'Manage vacation, sick leave and absences',
+  descLeads: 'Contacts captured via your forms webhook',
 }
 
 export function getDashboardTranslations(locale: Locale): DashboardTranslations {

@@ -160,6 +160,12 @@ export default async function WorkspaceLayout({ children, params }: Props) {
       icon: Icons.leaves,
       description: t.descLeaves,
     },
+    {
+      label: t.navLeads,
+      href: `${base}/leads`,
+      icon: Icons.leads,
+      description: t.descLeads,
+    },
   ].filter(() => can(user, 'manage_members'))
 
   const dataItems: NavItem[] = [
