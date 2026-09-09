@@ -2,22 +2,19 @@
 
 import { useState, useRef, useCallback, useTransition } from 'react'
 import { createReceipt, type ReceiptData, type ReceiptItem } from '@/app/actions/receipts'
+import { getDashboardTranslations } from '@/i18n/dashboard-translations'
+import type { Locale } from '@/i18n/config'
 
 const CATEGORIES = [
   'alimentación', 'transporte', 'restaurante', 'alojamiento',
   'material oficina', 'servicios', 'suministros', 'otro',
 ]
 
-const STATUS_OPTS = [
-  { value: 'pendiente',      label: 'Pendiente' },
-  { value: 'revisado',       label: 'Revisado' },
-  { value: 'contabilizado',  label: 'Contabilizado' },
-]
-
 interface Props {
   workspaceId: string
   onClose: () => void
   onSaved: (receipt: ReceiptData) => void
+  locale: Locale
 }
 
 type ScanState = 'idle' | 'scanning' | 'review' | 'saving'
@@ -35,7 +32,14 @@ interface ScannedData {
   imageData:  string | null
 }
 
-export function ReceiptScanModal({ workspaceId, onClose, onSaved }: Props) {
+export function ReceiptScanModal({ workspaceId, onClose, onSaved, locale }: Props) {
+  const t = getDashboardTranslations(locale)
+  const STATUS_OPTS = [
+    { value: 'pendiente',      label: t.receiptsScanStatusPending },
+    { value: 'revisado',       label: t.receiptsScanStatusReviewed },
+    { value: 'contabilizado',  label: t.receiptsScanStatusAccounted },
+  ]
+
   const [scanState, setScanState] = useState<ScanState>('idle')
   const [error, setError] = useState<string | null>(null)
   const [data, setData] = useState<ScannedData | null>(null)
@@ -55,8 +59,8 @@ export function ReceiptScanModal({ workspaceId, onClose, onSaved }: Props) {
         body: form,
       })
       if (!res.ok) {
-        const e = await res.json().catch(() => ({ error: 'Error desconocido' }))
-        throw new Error(e.error ?? 'Error al escanear')
+        const e = await res.json().catch(() => ({ error: 'Error' }))
+        throw new Error(e.error ?? 'Error')
       }
       const json: ScannedData = await res.json()
       setData({
@@ -72,11 +76,11 @@ export function ReceiptScanModal({ workspaceId, onClose, onSaved }: Props) {
         imageData: json.imageData ?? null,
       })
       setScanState('review')
-    } catch (e) {
-      setError('No se pudo escanear el ticket. Comprueba que la imagen es legible e inténtalo de nuevo.')
+    } catch {
+      setError(t.receiptsScanError)
       setScanState('idle')
     }
-  }, [workspaceId])
+  }, [workspaceId, t])
 
   const handleDrop = (e: React.DragEvent) => {
     e.preventDefault()
@@ -89,14 +93,10 @@ export function ReceiptScanModal({ workspaceId, onClose, onSaved }: Props) {
     setScanState('saving')
     startTransition(async () => {
       try {
-        const saved = await createReceipt(workspaceId, {
-          ...data,
-          notes,
-          status,
-        })
+        const saved = await createReceipt(workspaceId, { ...data, notes, status })
         onSaved(saved)
       } catch {
-        setError('Error al guardar')
+        setError(t.receiptsScanSaveError)
         setScanState('review')
       }
     })
@@ -109,8 +109,8 @@ export function ReceiptScanModal({ workspaceId, onClose, onSaved }: Props) {
         {/* Header */}
         <div className="flex items-center justify-between px-6 py-4 border-b">
           <div>
-            <h2 className="font-semibold text-base">Escanear ticket / factura</h2>
-            <p className="text-xs text-muted-foreground mt-0.5">La IA extrae automáticamente todos los datos</p>
+            <h2 className="font-semibold text-base">{t.receiptsScanTitle}</h2>
+            <p className="text-xs text-muted-foreground mt-0.5">{t.receiptsScanSubtitle}</p>
           </div>
           <button onClick={onClose} className="text-muted-foreground hover:text-foreground transition-colors p-1">
             <svg className="w-5 h-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
@@ -137,8 +137,8 @@ export function ReceiptScanModal({ workspaceId, onClose, onSaved }: Props) {
                 {scanState === 'scanning' ? (
                   <div className="flex flex-col items-center gap-3">
                     <div className="w-10 h-10 border-2 border-primary border-t-transparent rounded-full animate-spin"/>
-                    <p className="text-sm font-medium">Analizando imagen con IA…</p>
-                    <p className="text-xs text-muted-foreground">Esto puede tardar unos segundos</p>
+                    <p className="text-sm font-medium">{t.receiptsScanAnalyzing}</p>
+                    <p className="text-xs text-muted-foreground">{t.receiptsScanAnalyzingHint}</p>
                   </div>
                 ) : (
                   <div className="flex flex-col items-center gap-3">
@@ -149,13 +149,13 @@ export function ReceiptScanModal({ workspaceId, onClose, onSaved }: Props) {
                       </svg>
                     </div>
                     <div>
-                      <p className="text-sm font-medium">Sube una foto o imagen del ticket</p>
-                      <p className="text-xs text-muted-foreground mt-0.5">JPG, PNG, HEIC, WEBP — máx. 10 MB</p>
+                      <p className="text-sm font-medium">{t.receiptsScanUploadHint}</p>
+                      <p className="text-xs text-muted-foreground mt-0.5">{t.receiptsScanFormats}</p>
                     </div>
                     <button className="text-xs bg-primary text-primary-foreground px-3 py-1.5 rounded-md font-medium hover:opacity-90 transition-opacity">
-                      Seleccionar imagen
+                      {t.receiptsScanSelectBtn}
                     </button>
-                    <p className="text-xs text-muted-foreground">o arrastra aquí</p>
+                    <p className="text-xs text-muted-foreground">{t.receiptsScanDropHint}</p>
                   </div>
                 )}
               </div>
@@ -184,7 +184,7 @@ export function ReceiptScanModal({ workspaceId, onClose, onSaved }: Props) {
                 <div className="flex justify-center">
                   <img
                     src={data.imageData}
-                    alt="Ticket escaneado"
+                    alt={t.receiptsScanThumbnailAlt}
                     className="max-h-48 rounded-lg border object-contain shadow-sm"
                   />
                 </div>
@@ -193,18 +193,18 @@ export function ReceiptScanModal({ workspaceId, onClose, onSaved }: Props) {
               {/* Extracted fields */}
               <div className="rounded-xl border overflow-hidden">
                 <div className="bg-muted/40 px-4 py-2 text-xs font-semibold uppercase tracking-wide text-muted-foreground">
-                  Datos extraídos — revisa y corrige si es necesario
+                  {t.receiptsScanExtracted}
                 </div>
                 <div className="divide-y">
-                  <Field label="Proveedor">
+                  <Field label={t.receiptsScanVendorLabel}>
                     <input
                       value={data.vendor ?? ''}
                       onChange={(e) => setData((d) => d ? { ...d, vendor: e.target.value } : d)}
                       className="field-input"
-                      placeholder="Nombre del comercio"
+                      placeholder={t.receiptsScanVendorPlaceholder}
                     />
                   </Field>
-                  <Field label="Fecha">
+                  <Field label={t.receiptsScanDateLabel}>
                     <input
                       type="date"
                       value={data.date ?? ''}
@@ -212,7 +212,7 @@ export function ReceiptScanModal({ workspaceId, onClose, onSaved }: Props) {
                       className="field-input"
                     />
                   </Field>
-                  <Field label="Total">
+                  <Field label={t.receiptsScanTotalLabel}>
                     <div className="flex gap-2">
                       <input
                         type="number"
@@ -233,7 +233,7 @@ export function ReceiptScanModal({ workspaceId, onClose, onSaved }: Props) {
                       </select>
                     </div>
                   </Field>
-                  <Field label="Base imponible">
+                  <Field label={t.receiptsScanSubtotalLabel}>
                     <input
                       type="number"
                       step="0.01"
@@ -243,7 +243,7 @@ export function ReceiptScanModal({ workspaceId, onClose, onSaved }: Props) {
                       placeholder="0,00"
                     />
                   </Field>
-                  <Field label="IVA / Tax">
+                  <Field label={t.receiptsScanTaxLabel}>
                     <div className="flex gap-2 items-center">
                       <input
                         type="number"
@@ -253,7 +253,7 @@ export function ReceiptScanModal({ workspaceId, onClose, onSaved }: Props) {
                         className="field-input w-28"
                         placeholder="0,00"
                       />
-                      <span className="text-xs text-muted-foreground">Tipo:</span>
+                      <span className="text-xs text-muted-foreground">{t.receiptsScanTaxRate}:</span>
                       <input
                         type="number"
                         step="1"
@@ -265,19 +265,19 @@ export function ReceiptScanModal({ workspaceId, onClose, onSaved }: Props) {
                       <span className="text-xs text-muted-foreground">%</span>
                     </div>
                   </Field>
-                  <Field label="Categoría">
+                  <Field label={t.receiptsScanCategoryLabel}>
                     <select
                       value={data.category ?? ''}
                       onChange={(e) => setData((d) => d ? { ...d, category: e.target.value || null } : d)}
                       className="field-input"
                     >
-                      <option value="">Sin categoría</option>
+                      <option value="">{t.receiptsScanNoCategory}</option>
                       {CATEGORIES.map((c) => (
                         <option key={c} value={c} className="capitalize">{c.charAt(0).toUpperCase() + c.slice(1)}</option>
                       ))}
                     </select>
                   </Field>
-                  <Field label="Estado">
+                  <Field label={t.receiptsScanStatusLabel}>
                     <select
                       value={status}
                       onChange={(e) => setStatus(e.target.value)}
@@ -288,12 +288,12 @@ export function ReceiptScanModal({ workspaceId, onClose, onSaved }: Props) {
                       ))}
                     </select>
                   </Field>
-                  <Field label="Notas">
+                  <Field label={t.receiptsScanNotesLabel}>
                     <input
                       value={notes}
                       onChange={(e) => setNotes(e.target.value)}
                       className="field-input"
-                      placeholder="Observaciones opcionales"
+                      placeholder={t.receiptsScanNotesPlaceholder}
                     />
                   </Field>
                 </div>
@@ -303,16 +303,16 @@ export function ReceiptScanModal({ workspaceId, onClose, onSaved }: Props) {
               {data.items.length > 0 && (
                 <div className="rounded-xl border overflow-hidden">
                   <div className="bg-muted/40 px-4 py-2 text-xs font-semibold uppercase tracking-wide text-muted-foreground">
-                    Líneas del ticket
+                    {t.receiptsScanLineItems}
                   </div>
                   <div className="overflow-x-auto">
                     <table className="w-full text-xs">
                       <thead className="bg-muted/20">
                         <tr>
-                          <th className="text-left px-4 py-2 font-medium text-muted-foreground">Descripción</th>
-                          <th className="text-right px-3 py-2 font-medium text-muted-foreground">Cant.</th>
-                          <th className="text-right px-3 py-2 font-medium text-muted-foreground">P.Unit.</th>
-                          <th className="text-right px-4 py-2 font-medium text-muted-foreground">Total</th>
+                          <th className="text-left px-4 py-2 font-medium text-muted-foreground">{t.receiptsScanColDescription}</th>
+                          <th className="text-right px-3 py-2 font-medium text-muted-foreground">{t.receiptsScanColQty}</th>
+                          <th className="text-right px-3 py-2 font-medium text-muted-foreground">{t.receiptsScanColUnitPrice}</th>
+                          <th className="text-right px-4 py-2 font-medium text-muted-foreground">{t.receiptsScanColTotal}</th>
                         </tr>
                       </thead>
                       <tbody className="divide-y">
@@ -343,7 +343,7 @@ export function ReceiptScanModal({ workspaceId, onClose, onSaved }: Props) {
               className="text-sm text-muted-foreground hover:text-foreground transition-colors"
               disabled={scanState === 'saving'}
             >
-              ← Escanear otro
+              ← {t.receiptsScanAgain}
             </button>
             <div className="flex gap-2">
               <button
@@ -351,14 +351,14 @@ export function ReceiptScanModal({ workspaceId, onClose, onSaved }: Props) {
                 className="text-sm px-4 py-2 rounded-lg border hover:bg-muted/50 transition-colors"
                 disabled={scanState === 'saving'}
               >
-                Cancelar
+                {t.receiptsScanCancel}
               </button>
               <button
                 onClick={handleSave}
                 disabled={scanState === 'saving'}
                 className="text-sm px-4 py-2 rounded-lg bg-primary text-primary-foreground font-medium hover:opacity-90 transition-opacity disabled:opacity-50"
               >
-                {scanState === 'saving' ? 'Guardando…' : 'Guardar gasto'}
+                {scanState === 'saving' ? t.receiptsScanSaving : t.receiptsScanSave}
               </button>
             </div>
           </div>

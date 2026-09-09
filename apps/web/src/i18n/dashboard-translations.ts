@@ -405,6 +405,79 @@ export interface DashboardTranslations {
   copilotMissionReady: string
   copilotViewMission: string
   copilotDashboard: string
+  // Mail page
+  mailTitle: string
+  mailSubtitle: string
+  mailFolderInbox: string
+  mailFolderSent: string
+  mailFolderDrafts: string
+  mailFolderSpam: string
+  mailFolderTrash: string
+  mailStatusQueued: string
+  mailStatusSending: string
+  mailStatusSent: string
+  mailStatusFailed: string
+  mailStatusCanceled: string
+  mailStatusReceived: string
+  mailStatusDraft: string
+  mailStatusSpam: string
+  mailStatusTrash: string
+  mailNoDate: string
+  mailNoSender: string
+  mailNoRecipient: string
+  mailNoSubject: string
+  mailNoContent: string
+  mailNoMessages: string
+  mailSelectMessage: string
+  mailRefresh: string
+  mailCompose: string
+  mailNewMessage: string
+  mailClose: string
+  mailToLabel: string
+  mailCcLabel: string
+  mailBccLabel: string
+  mailSubjectLabel: string
+  mailBodyLabel: string
+  mailToPlaceholder: string
+  mailCcPlaceholder: string
+  mailBodyPlaceholder: string
+  mailSubjectPlaceholder: string
+  mailAttachmentsNote: string
+  mailSaveDraft: string
+  mailSend: string
+  mailReply: string
+  mailDelete: string
+  mailDeletePermanent: string
+  mailDeleteConfirm: string
+  mailDeletePermanentConfirm: string
+  mailSentNotice: string
+  mailDraftSaved: string
+  mailDeletedPermanent: string
+  mailMovedToTrash: string
+  mailLoadError: string
+  mailSendError: string
+  mailDraftError: string
+  mailDeleteError: string
+  mailNoReplyError: string
+  mailImportNotice: string
+  mailImportPartialNotice: string
+  mailUpToDate: string
+  mailSyncError: string
+  mailNoSmtpNoImap: string
+  mailSmtpOnlyWarning: string
+  mailImapOnlyWarning: string
+  mailConfigureLink: string
+  mailClientInMitikus: string
+  mailFromLabel: string
+  mailToDetailLabel: string
+  mailCopyLabel: string
+  mailHiddenCopyLabel: string
+  mailRelatedInvoice: string
+  mailClientLabel: string
+  mailInvoiceLabel: string
+  mailInvoiceBadge: string
+  mailQuotedOn: string
+  mailQuotedWrote: string
   // Tools page
   toolsInstalledTitle: string
   toolsInstalledDescription: string
@@ -1614,6 +1687,43 @@ export interface DashboardTranslations {
   receiptsNotes: string
   receiptsStatus: string
   receiptsLines: string
+  // Receipts scan modal
+  receiptsScanTitle: string
+  receiptsScanSubtitle: string
+  receiptsScanAnalyzing: string
+  receiptsScanAnalyzingHint: string
+  receiptsScanUploadHint: string
+  receiptsScanFormats: string
+  receiptsScanSelectBtn: string
+  receiptsScanDropHint: string
+  receiptsScanError: string
+  receiptsScanSaveError: string
+  receiptsScanExtracted: string
+  receiptsScanVendorLabel: string
+  receiptsScanVendorPlaceholder: string
+  receiptsScanDateLabel: string
+  receiptsScanTotalLabel: string
+  receiptsScanSubtotalLabel: string
+  receiptsScanTaxLabel: string
+  receiptsScanTaxRate: string
+  receiptsScanCategoryLabel: string
+  receiptsScanNoCategory: string
+  receiptsScanStatusLabel: string
+  receiptsScanNotesLabel: string
+  receiptsScanNotesPlaceholder: string
+  receiptsScanThumbnailAlt: string
+  receiptsScanLineItems: string
+  receiptsScanColDescription: string
+  receiptsScanColQty: string
+  receiptsScanColUnitPrice: string
+  receiptsScanColTotal: string
+  receiptsScanAgain: string
+  receiptsScanCancel: string
+  receiptsScanSave: string
+  receiptsScanSaving: string
+  receiptsScanStatusPending: string
+  receiptsScanStatusReviewed: string
+  receiptsScanStatusAccounted: string
   // Workflows
   wfNewTitle: string
   wfNewDesc: string
@@ -2074,6 +2184,79 @@ const en: DashboardTranslations = {
   copilotMissionReady: 'The plan steps are ready in the dashboard.',
   copilotViewMission: 'View mission',
   copilotDashboard: 'Dashboard',
+  // Mail (en)
+  mailTitle: 'Mail',
+  mailSubtitle: 'Manage your workspace mail.',
+  mailFolderInbox: 'Inbox',
+  mailFolderSent: 'Sent',
+  mailFolderDrafts: 'Drafts',
+  mailFolderSpam: 'Spam',
+  mailFolderTrash: 'Trash',
+  mailStatusQueued: 'Queued',
+  mailStatusSending: 'Sending',
+  mailStatusSent: 'Sent',
+  mailStatusFailed: 'Failed',
+  mailStatusCanceled: 'Canceled',
+  mailStatusReceived: 'Received',
+  mailStatusDraft: 'Draft',
+  mailStatusSpam: 'Spam',
+  mailStatusTrash: 'Trash',
+  mailNoDate: 'No date',
+  mailNoSender: 'Sender',
+  mailNoRecipient: 'No recipient',
+  mailNoSubject: 'No subject',
+  mailNoContent: 'No content.',
+  mailNoMessages: 'No messages in this folder.',
+  mailSelectMessage: 'Select a message to view details.',
+  mailRefresh: 'Refresh',
+  mailCompose: '+ Compose',
+  mailNewMessage: 'New message',
+  mailClose: 'Close',
+  mailToLabel: 'To',
+  mailCcLabel: 'CC',
+  mailBccLabel: 'BCC',
+  mailSubjectLabel: 'Subject',
+  mailBodyLabel: 'Message',
+  mailToPlaceholder: 'Search by name, company or email',
+  mailCcPlaceholder: 'optional',
+  mailBodyPlaceholder: 'Write your message...',
+  mailSubjectPlaceholder: 'Email subject',
+  mailAttachmentsNote: 'General attachments will be added in a future update. Invoices are already sent with their PDF attached.',
+  mailSaveDraft: 'Save draft',
+  mailSend: 'Send',
+  mailReply: 'Reply',
+  mailDelete: 'Delete',
+  mailDeletePermanent: 'Delete permanently',
+  mailDeleteConfirm: 'Move this email to Trash?',
+  mailDeletePermanentConfirm: 'Delete this email permanently?',
+  mailSentNotice: 'Email sent and recorded in Sent.',
+  mailDraftSaved: 'Draft saved.',
+  mailDeletedPermanent: 'Email deleted permanently.',
+  mailMovedToTrash: 'Email moved to Trash.',
+  mailLoadError: 'Could not load this folder.',
+  mailSendError: 'Could not send the email. Check your SMTP settings.',
+  mailDraftError: 'Could not save the draft.',
+  mailDeleteError: 'Could not delete this email.',
+  mailNoReplyError: 'This email has no reply-to address.',
+  mailImportNotice: 'new email(s) imported.',
+  mailImportPartialNotice: 'email(s) imported, but some messages could not be read.',
+  mailUpToDate: 'Inbox up to date. No new messages.',
+  mailSyncError: 'Could not sync inbox. Check IMAP settings.',
+  mailNoSmtpNoImap: 'Mail is not configured.',
+  mailSmtpOnlyWarning: 'SMTP configured, but IMAP is missing.',
+  mailImapOnlyWarning: 'IMAP configured, but SMTP is missing.',
+  mailConfigureLink: 'Configure SMTP and IMAP in Settings',
+  mailClientInMitikus: 'Client in MITIKUS',
+  mailFromLabel: 'From',
+  mailToDetailLabel: 'To',
+  mailCopyLabel: 'CC',
+  mailHiddenCopyLabel: 'BCC',
+  mailRelatedInvoice: 'Related to invoice',
+  mailClientLabel: 'Client',
+  mailInvoiceLabel: 'Invoice',
+  mailInvoiceBadge: 'Invoice',
+  mailQuotedOn: 'On',
+  mailQuotedWrote: 'wrote',
   toolsInstalledTitle: 'Installed tools',
   toolsInstalledDescription: 'Small apps for specific business tasks: audits, checklists, reports...',
   toolsGenerate: 'Generate',
@@ -3277,6 +3460,43 @@ const en: DashboardTranslations = {
   receiptsNotes: 'Notes',
   receiptsStatus: 'Status',
   receiptsLines: 'Lines',
+  // Receipts scan modal
+  receiptsScanTitle: 'Scan receipt / invoice',
+  receiptsScanSubtitle: 'AI automatically extracts the data from your ticket or invoice.',
+  receiptsScanAnalyzing: 'Analysing image with AI…',
+  receiptsScanAnalyzingHint: 'This may take a few seconds.',
+  receiptsScanUploadHint: 'Upload a photo of your receipt or invoice',
+  receiptsScanFormats: 'JPG, PNG, WEBP — max 10 MB',
+  receiptsScanSelectBtn: 'Select image',
+  receiptsScanDropHint: 'or drag here',
+  receiptsScanError: 'Could not analyse the image. Try again.',
+  receiptsScanSaveError: 'Error saving the expense.',
+  receiptsScanExtracted: 'Extracted data — review and correct if needed',
+  receiptsScanVendorLabel: 'Supplier',
+  receiptsScanVendorPlaceholder: 'Supplier name',
+  receiptsScanDateLabel: 'Date',
+  receiptsScanTotalLabel: 'Total',
+  receiptsScanSubtotalLabel: 'Tax base',
+  receiptsScanTaxLabel: 'Tax / VAT',
+  receiptsScanTaxRate: 'Tax rate (%)',
+  receiptsScanCategoryLabel: 'Category',
+  receiptsScanNoCategory: 'No category',
+  receiptsScanStatusLabel: 'Status',
+  receiptsScanNotesLabel: 'Notes',
+  receiptsScanNotesPlaceholder: 'Additional notes…',
+  receiptsScanThumbnailAlt: 'Receipt thumbnail',
+  receiptsScanLineItems: 'Line items',
+  receiptsScanColDescription: 'Description',
+  receiptsScanColQty: 'Qty',
+  receiptsScanColUnitPrice: 'Unit price',
+  receiptsScanColTotal: 'Total',
+  receiptsScanAgain: 'Scan another',
+  receiptsScanCancel: 'Cancel',
+  receiptsScanSave: 'Save expense',
+  receiptsScanSaving: 'Saving…',
+  receiptsScanStatusPending: 'Pending',
+  receiptsScanStatusReviewed: 'Reviewed',
+  receiptsScanStatusAccounted: 'Accounted',
   // Workflows
   wfNewTitle: 'New Workflow',
   wfNewDesc: 'Define a name and description. You will add steps in the canvas editor.',
@@ -3737,6 +3957,79 @@ const es: DashboardTranslations = {
   copilotMissionReady: 'Los pasos del plan están listos en Panel.',
   copilotViewMission: 'Ver la misión',
   copilotDashboard: 'Panel',
+  // Mail (es)
+  mailTitle: 'Correo',
+  mailSubtitle: 'Gestiona el correo de tu workspace.',
+  mailFolderInbox: 'Recibidos',
+  mailFolderSent: 'Enviados',
+  mailFolderDrafts: 'Borradores',
+  mailFolderSpam: 'Spam',
+  mailFolderTrash: 'Papelera',
+  mailStatusQueued: 'En cola',
+  mailStatusSending: 'Enviando',
+  mailStatusSent: 'Enviado',
+  mailStatusFailed: 'Fallido',
+  mailStatusCanceled: 'Cancelado',
+  mailStatusReceived: 'Recibido',
+  mailStatusDraft: 'Borrador',
+  mailStatusSpam: 'Spam',
+  mailStatusTrash: 'Papelera',
+  mailNoDate: 'Sin fecha',
+  mailNoSender: 'Remitente',
+  mailNoRecipient: 'Sin destinatario',
+  mailNoSubject: 'Sin asunto',
+  mailNoContent: 'Sin contenido.',
+  mailNoMessages: 'No hay mensajes en esta bandeja.',
+  mailSelectMessage: 'Selecciona un correo para ver el detalle.',
+  mailRefresh: 'Actualizar',
+  mailCompose: '+ Redactar',
+  mailNewMessage: 'Nuevo correo',
+  mailClose: 'Cerrar',
+  mailToLabel: 'Para',
+  mailCcLabel: 'Copia',
+  mailBccLabel: 'Copia oculta',
+  mailSubjectLabel: 'Asunto',
+  mailBodyLabel: 'Mensaje',
+  mailToPlaceholder: 'Busca por nombre, empresa o email',
+  mailCcPlaceholder: 'opcional',
+  mailBodyPlaceholder: 'Escribe el mensaje...',
+  mailSubjectPlaceholder: 'Asunto del correo',
+  mailAttachmentsNote: 'Los adjuntos generales se añadirán en una siguiente mejora. Las facturas ya se envían con su PDF adjunto desde Facturas.',
+  mailSaveDraft: 'Guardar borrador',
+  mailSend: 'Enviar',
+  mailReply: 'Responder',
+  mailDelete: 'Eliminar',
+  mailDeletePermanent: 'Eliminar definitivamente',
+  mailDeleteConfirm: '¿Mover este correo a la Papelera?',
+  mailDeletePermanentConfirm: '¿Eliminar este correo definitivamente?',
+  mailSentNotice: 'Correo enviado y registrado en Enviados.',
+  mailDraftSaved: 'Borrador guardado.',
+  mailDeletedPermanent: 'Correo eliminado definitivamente.',
+  mailMovedToTrash: 'Correo movido a Papelera.',
+  mailLoadError: 'No se ha podido cargar esta bandeja.',
+  mailSendError: 'No se ha podido enviar el correo. Comprueba la configuración SMTP en Ajustes.',
+  mailDraftError: 'No se ha podido guardar el borrador.',
+  mailDeleteError: 'No se ha podido eliminar este correo.',
+  mailNoReplyError: 'Este correo no tiene una dirección a la que responder.',
+  mailImportNotice: 'correo(s) nuevo(s) importado(s).',
+  mailImportPartialNotice: 'correo(s) importado(s), pero hubo algún error al leer otros mensajes.',
+  mailUpToDate: 'Recibidos al día. No hay mensajes nuevos.',
+  mailSyncError: 'No se ha podido actualizar Recibidos. Comprueba IMAP en Ajustes.',
+  mailNoSmtpNoImap: 'El correo no está configurado.',
+  mailSmtpOnlyWarning: 'SMTP configurado, pero falta IMAP.',
+  mailImapOnlyWarning: 'IMAP configurado, pero falta SMTP.',
+  mailConfigureLink: 'Configura SMTP e IMAP en Ajustes',
+  mailClientInMitikus: 'Cliente en MITIKUS',
+  mailFromLabel: 'De',
+  mailToDetailLabel: 'Para',
+  mailCopyLabel: 'Copia',
+  mailHiddenCopyLabel: 'Copia oculta',
+  mailRelatedInvoice: 'Relacionado con factura',
+  mailClientLabel: 'Cliente',
+  mailInvoiceLabel: 'Factura',
+  mailInvoiceBadge: 'Factura',
+  mailQuotedOn: 'El',
+  mailQuotedWrote: 'escribió',
   toolsInstalledTitle: 'Herramientas instaladas',
   toolsInstalledDescription: 'Pequeñas apps para tareas concretas de tu negocio: auditorías, checklists, informes...',
   toolsGenerate: 'Generar',
@@ -4940,6 +5233,43 @@ const es: DashboardTranslations = {
   receiptsNotes: 'Notas',
   receiptsStatus: 'Estado',
   receiptsLines: 'Líneas',
+  // Receipts scan modal
+  receiptsScanTitle: 'Escanear ticket / factura',
+  receiptsScanSubtitle: 'La IA extrae automáticamente los datos de tu ticket o factura.',
+  receiptsScanAnalyzing: 'Analizando imagen con IA…',
+  receiptsScanAnalyzingHint: 'Esto puede tardar unos segundos.',
+  receiptsScanUploadHint: 'Sube una foto de tu ticket o factura',
+  receiptsScanFormats: 'JPG, PNG, WEBP — máx. 10 MB',
+  receiptsScanSelectBtn: 'Seleccionar imagen',
+  receiptsScanDropHint: 'o arrastra aquí',
+  receiptsScanError: 'No se pudo analizar la imagen. Inténtalo de nuevo.',
+  receiptsScanSaveError: 'Error al guardar el gasto.',
+  receiptsScanExtracted: 'Datos extraídos — revisa y corrige si es necesario',
+  receiptsScanVendorLabel: 'Proveedor',
+  receiptsScanVendorPlaceholder: 'Nombre del proveedor',
+  receiptsScanDateLabel: 'Fecha',
+  receiptsScanTotalLabel: 'Total',
+  receiptsScanSubtotalLabel: 'Base imponible',
+  receiptsScanTaxLabel: 'IVA / Impuesto',
+  receiptsScanTaxRate: 'Tipo impositivo (%)',
+  receiptsScanCategoryLabel: 'Categoría',
+  receiptsScanNoCategory: 'Sin categoría',
+  receiptsScanStatusLabel: 'Estado',
+  receiptsScanNotesLabel: 'Notas',
+  receiptsScanNotesPlaceholder: 'Notas adicionales…',
+  receiptsScanThumbnailAlt: 'Miniatura del ticket',
+  receiptsScanLineItems: 'Líneas del ticket',
+  receiptsScanColDescription: 'Descripción',
+  receiptsScanColQty: 'Cant.',
+  receiptsScanColUnitPrice: 'Precio unit.',
+  receiptsScanColTotal: 'Total',
+  receiptsScanAgain: 'Escanear otro',
+  receiptsScanCancel: 'Cancelar',
+  receiptsScanSave: 'Guardar gasto',
+  receiptsScanSaving: 'Guardando…',
+  receiptsScanStatusPending: 'Pendiente',
+  receiptsScanStatusReviewed: 'Revisado',
+  receiptsScanStatusAccounted: 'Contabilizado',
   // Workflows
   wfNewTitle: 'Nuevo Workflow',
   wfNewDesc: 'Define un nombre y descripción. Añadirás los pasos en el editor de canvas.',

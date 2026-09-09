@@ -3,6 +3,8 @@
 import { useMemo, useState, useTransition } from 'react'
 import type { MailFolder, WorkspaceMailMessage } from '@/app/actions/mail'
 import { deleteMailMessagePermanently, getMailboxMessages, moveMailMessageToTrash, saveWorkspaceMailDraft, sendWorkspaceMail, syncMailboxForWorkspace } from '@/app/actions/mail'
+import { getDashboardTranslations } from '@/i18n/dashboard-translations'
+import type { Locale } from '@/i18n/config'
 
 interface MailContact {
   id: string
@@ -21,31 +23,12 @@ interface Props {
   defaultSignature?: string | null
   hasSmtpConfig?: boolean
   hasImapConfig?: boolean
+  locale: Locale
 }
 
-const FOLDERS: Array<{ id: MailFolder; label: string }> = [
-  { id: 'inbox', label: 'Recibidos' },
-  { id: 'sent', label: 'Enviados' },
-  { id: 'drafts', label: 'Borradores' },
-  { id: 'spam', label: 'Spam' },
-  { id: 'trash', label: 'Papelera' },
-]
-
-const STATUS_LABELS: Record<string, string> = {
-  queued: 'En cola',
-  sending: 'Enviando',
-  sent: 'Enviado',
-  failed: 'Fallido',
-  canceled: 'Cancelado',
-  received: 'Recibido',
-  draft: 'Borrador',
-  spam: 'Spam',
-  trash: 'Papelera',
-}
-
-function fmtDate(value: string | null) {
-  if (!value) return 'Sin fecha'
-  return new Date(value).toLocaleString('es-ES', {
+function fmtDate(value: string | null, locale: string) {
+  if (!value) return ''
+  return new Date(value).toLocaleString(locale, {
     day: '2-digit',
     month: 'short',
     hour: '2-digit',
@@ -53,13 +36,13 @@ function fmtDate(value: string | null) {
   })
 }
 
-function displayPeer(message: WorkspaceMailMessage) {
+function displayPeer(message: WorkspaceMailMessage, noSender: string, noRecipient: string) {
   const context = clientContextLabel(message)
   if (context) return context
   if (message.direction === 'inbound') {
-    return message.fromName || message.fromEmail || 'Remitente'
+    return message.fromName || message.fromEmail || noSender
   }
-  return message.toEmail || 'Sin destinatario'
+  return message.toEmail || noRecipient
 }
 
 function peerEmail(message: WorkspaceMailMessage) {
@@ -72,29 +55,29 @@ function clientContextLabel(message: WorkspaceMailMessage) {
   return Array.from(new Set(parts)).join(' · ')
 }
 
-function clientTypeLabel(value: string | null) {
+function clientTypeLabel(value: string | null, fallback = 'Client') {
   const labels: Record<string, string> = {
-    company: 'Empresa',
-    freelancer: 'Autónomo',
-    individual: 'Particular',
-    patient: 'Paciente',
-    student: 'Alumno',
-    athlete: 'Deportista',
-    event: 'Evento',
-    client: 'Cliente',
+    company: 'Company',
+    freelancer: 'Freelancer',
+    individual: 'Individual',
+    patient: 'Patient',
+    student: 'Student',
+    athlete: 'Athlete',
+    event: 'Event',
+    client: 'Client',
   }
-  return value ? labels[value] ?? 'Cliente' : 'Cliente'
+  return value ? labels[value] ?? fallback : fallback
 }
 
 function clientContextDetails(message: WorkspaceMailMessage) {
   const rows: Array<[string, string]> = []
-  if (message.clientContactName) rows.push(['Contacto', message.clientContactName])
-  if (message.clientName) rows.push(['Cliente / empresa', message.clientName])
+  if (message.clientContactName) rows.push(['Contact', message.clientContactName])
+  if (message.clientName) rows.push(['Client', message.clientName])
   if (message.clientSector) rows.push(['Sector', message.clientSector])
-  if (message.clientType) rows.push(['Tipo', clientTypeLabel(message.clientType)])
+  if (message.clientType) rows.push(['Type', clientTypeLabel(message.clientType)])
   const email = peerEmail(message)
   if (email) rows.push(['Email', email])
-  if (message.invoiceNumber) rows.push(['Factura', message.invoiceNumber])
+  if (message.invoiceNumber) rows.push(['Invoice', message.invoiceNumber])
   return rows
 }
 
@@ -185,24 +168,43 @@ function statusClass(status: string) {
   return 'bg-amber-50 text-amber-700 dark:bg-amber-950/40 dark:text-amber-300'
 }
 
-function replySubject(value: string) {
-  const subject = value.trim() || 'Sin asunto'
+function replySubject(value: string, noSubject: string) {
+  const subject = value.trim() || noSubject
   return /^re:/i.test(subject) ? subject : `Re: ${subject}`
 }
 
-function quoteBody(message: WorkspaceMailMessage) {
-  const date = fmtDate(message.sentAt ?? message.createdAt)
+function quoteBody(message: WorkspaceMailMessage, locale: string, on: string, wrote: string, noSender: string, noRecipient: string) {
+  const date = fmtDate(message.sentAt ?? message.createdAt, locale)
   const author = message.direction === 'inbound'
-    ? message.fromName || message.fromEmail || 'Remitente'
-    : message.toEmail || 'Destinatario'
+    ? message.fromName || message.fromEmail || noSender
+    : message.toEmail || noRecipient
   const quoted = message.body
     .split('\n')
     .map((line) => `> ${line}`)
     .join('\n')
-  return `\n\nEl ${date}, ${author} escribió:\n${quoted}`
+  return `\n\n${on} ${date}, ${author} ${wrote}:\n${quoted}`
 }
 
-export function MailboxClient({ workspaceId, initialMessages, initialToEmail = '', contacts, defaultSignature, hasSmtpConfig = true, hasImapConfig = true }: Props) {
+export function MailboxClient({ workspaceId, initialMessages, initialToEmail = '', contacts, defaultSignature, hasSmtpConfig = true, hasImapConfig = true, locale }: Props) {
+  const t = getDashboardTranslations(locale)
+  const FOLDERS: Array<{ id: MailFolder; label: string }> = [
+    { id: 'inbox', label: t.mailFolderInbox },
+    { id: 'sent', label: t.mailFolderSent },
+    { id: 'drafts', label: t.mailFolderDrafts },
+    { id: 'spam', label: t.mailFolderSpam },
+    { id: 'trash', label: t.mailFolderTrash },
+  ]
+  const STATUS_LABELS: Record<string, string> = {
+    queued: t.mailStatusQueued,
+    sending: t.mailStatusSending,
+    sent: t.mailStatusSent,
+    failed: t.mailStatusFailed,
+    canceled: t.mailStatusCanceled,
+    received: t.mailStatusReceived,
+    draft: t.mailStatusDraft,
+    spam: t.mailStatusSpam,
+    trash: t.mailStatusTrash,
+  }
   const [folder, setFolder] = useState<MailFolder>('inbox')
   const [messages, setMessages] = useState(initialMessages)
   const [selectedId, setSelectedId] = useState(initialMessages[0]?.id ?? null)
@@ -233,7 +235,7 @@ export function MailboxClient({ workspaceId, initialMessages, initialToEmail = '
       } catch {
         setMessages([])
         setSelectedId(null)
-        setError('No se ha podido cargar esta bandeja.')
+        setError(t.mailLoadError)
       }
     })
   }
@@ -258,10 +260,10 @@ export function MailboxClient({ workspaceId, initialMessages, initialToEmail = '
           return
         }
         resetCompose()
-        setNotice('Correo enviado y registrado en Enviados.')
+        setNotice(t.mailSentNotice)
         loadFolder('sent')
-      } catch (err) {
-        setError('No se ha podido enviar el correo. Comprueba la configuración SMTP en Ajustes.')
+      } catch {
+        setError(t.mailSendError)
       }
     })
   }
@@ -273,10 +275,10 @@ export function MailboxClient({ workspaceId, initialMessages, initialToEmail = '
       try {
         await saveWorkspaceMailDraft(workspaceId, { toEmail, ccEmail, bccEmail, subject, body })
         resetCompose()
-        setNotice('Borrador guardado.')
+        setNotice(t.mailDraftSaved)
         loadFolder('drafts')
       } catch {
-        setError('No se ha podido guardar el borrador.')
+        setError(t.mailDraftError)
       }
     })
   }
@@ -292,21 +294,21 @@ export function MailboxClient({ workspaceId, initialMessages, initialToEmail = '
         setMessages(inbox.messages)
         setSelectedId(inbox.messages[0]?.id ?? null)
         if (result.errors.length > 0) {
-          const errMsg = result.errors[0]?.error ?? 'No se ha podido actualizar Recibidos. Comprueba IMAP en Ajustes.'
+          const errMsg = result.errors[0]?.error ?? t.mailSyncError
           if (result.imported === 0) {
             setError(errMsg)
             return
           }
-          setNotice(`${result.imported} correo(s) importado(s), pero hubo algún error al leer otros mensajes.`)
+          setNotice(`${result.imported} ${t.mailImportPartialNotice}`)
         } else {
           setNotice(
             result.imported > 0
-              ? `${result.imported} correo(s) nuevo(s) importado(s).`
-              : 'Recibidos al día. No hay mensajes nuevos.',
+              ? `${result.imported} ${t.mailImportNotice}`
+              : t.mailUpToDate,
           )
         }
       } catch (error) {
-        setError(error instanceof Error ? error.message : 'No se ha podido actualizar Recibidos. Comprueba IMAP en Ajustes.')
+        setError(error instanceof Error ? error.message : t.mailSyncError)
       }
     })
   }
@@ -314,7 +316,7 @@ export function MailboxClient({ workspaceId, initialMessages, initialToEmail = '
   function handleReply(message: WorkspaceMailMessage) {
     const recipient = message.replyTo || message.fromEmail || (message.direction === 'outbound' ? message.toEmail : '')
     if (!recipient) {
-      setError('Este correo no tiene una dirección a la que responder.')
+      setError(t.mailNoReplyError)
       return
     }
     setNotice(null)
@@ -322,8 +324,8 @@ export function MailboxClient({ workspaceId, initialMessages, initialToEmail = '
     setToEmail(recipient)
     setCcEmail('')
     setBccEmail('')
-    setSubject(replySubject(message.subject))
-    setBody(quoteBody(message))
+    setSubject(replySubject(message.subject, t.mailNoSubject))
+    setBody(quoteBody(message, locale, t.mailQuotedOn, t.mailQuotedWrote, t.mailNoSender, t.mailNoRecipient))
     setComposeOpen(true)
   }
 
@@ -337,7 +339,7 @@ export function MailboxClient({ workspaceId, initialMessages, initialToEmail = '
 
   function handleDeleteMessage(message: WorkspaceMailMessage) {
     const permanent = folder === 'trash'
-    const confirmed = window.confirm(permanent ? '¿Eliminar este correo definitivamente?' : '¿Mover este correo a la Papelera?')
+    const confirmed = window.confirm(permanent ? t.mailDeletePermanentConfirm : t.mailDeleteConfirm)
     if (!confirmed) return
     setNotice(null)
     setError(null)
@@ -345,14 +347,14 @@ export function MailboxClient({ workspaceId, initialMessages, initialToEmail = '
       try {
         if (permanent) {
           await deleteMailMessagePermanently(workspaceId, message.id)
-          setNotice('Correo eliminado definitivamente.')
+          setNotice(t.mailDeletedPermanent)
         } else {
           await moveMailMessageToTrash(workspaceId, message.id)
-          setNotice('Correo movido a Papelera.')
+          setNotice(t.mailMovedToTrash)
         }
         removeSelectedFromList(message.id)
       } catch {
-        setError('No se ha podido eliminar este correo.')
+        setError(t.mailDeleteError)
       }
     })
   }
@@ -375,27 +377,27 @@ export function MailboxClient({ workspaceId, initialMessages, initialToEmail = '
         <div className="ml-auto flex shrink-0 items-center gap-1.5">
           <button type="button" onClick={handleSync} disabled={isPending} className="flex h-9 items-center gap-1.5 rounded-md border px-3 text-sm font-medium hover:bg-muted disabled:opacity-60">
             {isPending ? <span className="h-3.5 w-3.5 animate-spin rounded-full border-2 border-current border-t-transparent" /> : null}
-            Actualizar
+            {t.mailRefresh}
           </button>
           <button type="button" onClick={() => { resetCompose(); setComposeOpen(true) }} className="flex h-9 items-center rounded-md bg-primary px-3 text-sm font-semibold text-primary-foreground hover:opacity-90">
-            + Redactar
+            {t.mailCompose}
           </button>
         </div>
       </div>
 
       {!hasImapConfig && !hasSmtpConfig && (
         <div className="rounded-md border border-amber-200 bg-amber-50 px-3 py-2 text-sm text-amber-800 dark:border-amber-800/40 dark:bg-amber-900/20 dark:text-amber-300">
-          El correo no está configurado. <a href={`/workspace/${workspaceId}/settings`} className="font-medium underline underline-offset-2">Configura SMTP e IMAP en Ajustes</a> para enviar y recibir mensajes.
+          {t.mailNoSmtpNoImap}{' '}<a href={`/workspace/${workspaceId}/settings`} className="font-medium underline underline-offset-2">{t.mailConfigureLink}</a>
         </div>
       )}
       {hasSmtpConfig && !hasImapConfig && (
         <div className="rounded-md border border-amber-200 bg-amber-50 px-3 py-2 text-sm text-amber-800 dark:border-amber-800/40 dark:bg-amber-900/20 dark:text-amber-300">
-          SMTP configurado, pero falta IMAP. <a href={`/workspace/${workspaceId}/settings`} className="font-medium underline underline-offset-2">Configura IMAP en Ajustes</a> para recibir mensajes.
+          {t.mailSmtpOnlyWarning}{' '}<a href={`/workspace/${workspaceId}/settings`} className="font-medium underline underline-offset-2">{t.mailConfigureLink}</a>
         </div>
       )}
       {!hasSmtpConfig && hasImapConfig && (
         <div className="rounded-md border border-amber-200 bg-amber-50 px-3 py-2 text-sm text-amber-800 dark:border-amber-800/40 dark:bg-amber-900/20 dark:text-amber-300">
-          IMAP configurado, pero falta SMTP. <a href={`/workspace/${workspaceId}/settings`} className="font-medium underline underline-offset-2">Configura SMTP en Ajustes</a> para enviar mensajes.
+          {t.mailImapOnlyWarning}{' '}<a href={`/workspace/${workspaceId}/settings`} className="font-medium underline underline-offset-2">{t.mailConfigureLink}</a>
         </div>
       )}
       {notice && <div className="rounded-md border border-emerald-200 bg-emerald-50 px-3 py-2 text-sm text-emerald-700 dark:border-emerald-900 dark:bg-emerald-950/30 dark:text-emerald-300">{notice}</div>}
@@ -404,30 +406,30 @@ export function MailboxClient({ workspaceId, initialMessages, initialToEmail = '
       {composeOpen && (
         <div className="rounded-lg border bg-card p-4 shadow-sm">
           <div className="mb-4 flex items-center justify-between">
-            <h2 className="text-base font-semibold">Nuevo correo</h2>
-            <button type="button" onClick={() => setComposeOpen(false)} className="text-sm text-muted-foreground hover:text-foreground">Cerrar</button>
+            <h2 className="text-base font-semibold">{t.mailNewMessage}</h2>
+            <button type="button" onClick={() => setComposeOpen(false)} className="text-sm text-muted-foreground hover:text-foreground">{t.mailClose}</button>
           </div>
           <div className="space-y-3">
-            <RecipientInput label="Para" value={toEmail} onChange={setToEmail} contacts={contacts} placeholder="Busca por nombre, empresa o email" />
+            <RecipientInput label={t.mailToLabel} value={toEmail} onChange={setToEmail} contacts={contacts} placeholder={t.mailToPlaceholder} />
             <div className="grid gap-3 md:grid-cols-2">
-              <RecipientInput label="Copia" value={ccEmail} onChange={setCcEmail} contacts={contacts} placeholder="opcional" />
-              <RecipientInput label="Copia oculta" value={bccEmail} onChange={setBccEmail} contacts={contacts} placeholder="opcional" />
+              <RecipientInput label={t.mailCcLabel} value={ccEmail} onChange={setCcEmail} contacts={contacts} placeholder={t.mailCcPlaceholder} />
+              <RecipientInput label={t.mailBccLabel} value={bccEmail} onChange={setBccEmail} contacts={contacts} placeholder={t.mailCcPlaceholder} />
             </div>
             <label className="block space-y-1 text-sm">
-              <span className="font-medium">Asunto</span>
-              <input value={subject} onChange={(e) => setSubject(e.target.value)} className="w-full rounded-md border bg-background px-3 py-2" placeholder="Asunto del correo" />
+              <span className="font-medium">{t.mailSubjectLabel}</span>
+              <input value={subject} onChange={(e) => setSubject(e.target.value)} className="w-full rounded-md border bg-background px-3 py-2" placeholder={t.mailSubjectPlaceholder} />
             </label>
             <label className="block space-y-1 text-sm">
-              <span className="font-medium">Mensaje</span>
-              <textarea value={body} onChange={(e) => setBody(e.target.value)} rows={8} className="w-full rounded-md border bg-background px-3 py-2" placeholder="Escribe el mensaje..." />
+              <span className="font-medium">{t.mailBodyLabel}</span>
+              <textarea value={body} onChange={(e) => setBody(e.target.value)} rows={8} className="w-full rounded-md border bg-background px-3 py-2" placeholder={t.mailBodyPlaceholder} />
             </label>
           </div>
           <div className="mt-3 rounded-md bg-muted/50 px-3 py-2 text-xs text-muted-foreground">
-            Los adjuntos generales se añadirán en una siguiente mejora. Las facturas ya se envían con su PDF adjunto desde Facturas.
+            {t.mailAttachmentsNote}
           </div>
           <div className="mt-4 flex justify-end gap-2">
-            <button type="button" onClick={handleDraft} disabled={isPending} className="rounded-md border px-3 py-2 text-sm font-medium hover:bg-muted disabled:opacity-60">Guardar borrador</button>
-            <button type="button" onClick={handleSend} disabled={isPending} className="rounded-md bg-primary px-4 py-2 text-sm font-semibold text-primary-foreground hover:opacity-90 disabled:opacity-60">Enviar</button>
+            <button type="button" onClick={handleDraft} disabled={isPending} className="rounded-md border px-3 py-2 text-sm font-medium hover:bg-muted disabled:opacity-60">{t.mailSaveDraft}</button>
+            <button type="button" onClick={handleSend} disabled={isPending} className="rounded-md bg-primary px-4 py-2 text-sm font-semibold text-primary-foreground hover:opacity-90 disabled:opacity-60">{t.mailSend}</button>
           </div>
         </div>
       )}
@@ -437,7 +439,7 @@ export function MailboxClient({ workspaceId, initialMessages, initialToEmail = '
           <div className="border-b px-4 py-3 text-sm font-semibold">{FOLDERS.find((item) => item.id === folder)?.label}</div>
           <div className="max-h-[620px] overflow-y-auto">
             {messages.length === 0 ? (
-              <div className="p-6 text-sm text-muted-foreground">No hay mensajes en esta bandeja.</div>
+              <div className="p-6 text-sm text-muted-foreground">{t.mailNoMessages}</div>
             ) : messages.map((message, index) => (
               <button
                 key={message.id}
@@ -446,14 +448,14 @@ export function MailboxClient({ workspaceId, initialMessages, initialToEmail = '
                 className={`group relative block w-full overflow-visible border-b px-4 py-3 text-left hover:bg-muted/60 ${selected?.id === message.id ? 'bg-muted' : ''}`}
               >
                 <div className="flex items-center justify-between gap-3">
-                  <span className="truncate text-sm font-semibold">{displayPeer(message)}</span>
-                  <span className="shrink-0 text-xs text-muted-foreground">{fmtDate(message.sentAt ?? message.createdAt)}</span>
+                  <span className="truncate text-sm font-semibold">{displayPeer(message, t.mailNoSender, t.mailNoRecipient)}</span>
+                  <span className="shrink-0 text-xs text-muted-foreground">{fmtDate(message.sentAt ?? message.createdAt, locale)}</span>
                 </div>
                 {peerEmail(message) && <div className="mt-1 truncate text-xs text-muted-foreground">{peerEmail(message)}</div>}
-                <div className="mt-1 truncate text-sm">{message.subject || 'Sin asunto'}</div>
+                <div className="mt-1 truncate text-sm">{message.subject || t.mailNoSubject}</div>
                 <div className="mt-1 flex items-center gap-2 text-xs text-muted-foreground">
                   <span className={`rounded-full px-2 py-0.5 ${statusClass(message.status)}`}>{STATUS_LABELS[message.status] ?? message.status}</span>
-                  {message.invoiceNumber && <span>Factura {message.invoiceNumber}</span>}
+                  {message.invoiceNumber && <span>{t.mailInvoiceBadge} {message.invoiceNumber}</span>}
                 </div>
                 <ClientContextPopover message={message} position={index === 0 ? 'bottom' : 'top'} />
               </button>
@@ -463,28 +465,28 @@ export function MailboxClient({ workspaceId, initialMessages, initialToEmail = '
 
         <div className="rounded-lg border bg-card p-5">
           {!selected ? (
-            <div className="flex h-full min-h-[360px] items-center justify-center text-sm text-muted-foreground">Selecciona un correo para ver el detalle.</div>
+            <div className="flex h-full min-h-[360px] items-center justify-center text-sm text-muted-foreground">{t.mailSelectMessage}</div>
           ) : (
             <div className="space-y-5">
               <div className="flex flex-col gap-3 border-b pb-4 sm:flex-row sm:items-start sm:justify-between">
                 <div className="min-w-0">
-                  <h2 className="break-words text-xl font-semibold">{selected.subject || 'Sin asunto'}</h2>
+                  <h2 className="break-words text-xl font-semibold">{selected.subject || t.mailNoSubject}</h2>
                   <div className="mt-2 space-y-1 text-sm text-muted-foreground">
                     {clientContextLabel(selected) && (
                       <div className="group relative w-fit max-w-full">
-                        <p className="max-w-full truncate">Cliente: {clientContextLabel(selected)}</p>
+                        <p className="max-w-full truncate">{t.mailClientLabel}: {clientContextLabel(selected)}</p>
                         <ClientContextPopover message={selected} />
                       </div>
                     )}
-                    <p>De: {selected.fromEmail || selected.fromName || 'Remitente'}</p>
-                    <p>Para: {selected.toEmail || 'Sin destinatario'}</p>
-                    {selected.ccEmail && <p>Copia: {selected.ccEmail}</p>}
-                    {selected.bccEmail && selected.status === 'draft' && <p>Copia oculta: {selected.bccEmail}</p>}
-                    {selected.invoiceNumber && <p>Relacionado con factura {selected.invoiceNumber}</p>}
+                    <p>{t.mailFromLabel}: {selected.fromEmail || selected.fromName || t.mailNoSender}</p>
+                    <p>{t.mailToDetailLabel}: {selected.toEmail || t.mailNoRecipient}</p>
+                    {selected.ccEmail && <p>{t.mailCopyLabel}: {selected.ccEmail}</p>}
+                    {selected.bccEmail && selected.status === 'draft' && <p>{t.mailHiddenCopyLabel}: {selected.bccEmail}</p>}
+                    {selected.invoiceNumber && <p>{t.mailRelatedInvoice} {selected.invoiceNumber}</p>}
                   </div>
                   {selected.clientName && (
                     <div className="mt-3 rounded-md border bg-muted/30 p-3 text-sm">
-                      <div className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">Cliente en MITIKUS</div>
+                      <div className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">{t.mailClientInMitikus}</div>
                       <div className="mt-1 font-medium">{clientContextLabel(selected)}</div>
                       <div className="mt-1 text-xs text-muted-foreground">{selected.fromEmail || selected.toEmail}</div>
                     </div>
@@ -493,16 +495,16 @@ export function MailboxClient({ workspaceId, initialMessages, initialToEmail = '
                 <div className="flex shrink-0 flex-col items-start gap-2 sm:items-end">
                   <span className={`w-fit rounded-full px-3 py-1 text-xs font-medium ${statusClass(selected.status)}`}>{STATUS_LABELS[selected.status] ?? selected.status}</span>
                   <button type="button" onClick={() => handleReply(selected)} className="rounded-md border px-3 py-2 text-sm font-medium hover:bg-muted">
-                    Responder
+                    {t.mailReply}
                   </button>
                   <button type="button" onClick={() => handleDeleteMessage(selected)} className="rounded-md border border-red-200 px-3 py-2 text-sm font-medium text-red-600 hover:bg-red-50 dark:border-red-900 dark:text-red-300 dark:hover:bg-red-950/30">
-                    {folder === 'trash' ? 'Eliminar definitivamente' : 'Eliminar'}
+                    {folder === 'trash' ? t.mailDeletePermanent : t.mailDelete}
                   </button>
                 </div>
               </div>
               {selected.lastError && <div className="rounded-md border border-red-200 bg-red-50 px-3 py-2 text-sm text-red-700 dark:border-red-900 dark:bg-red-950/30 dark:text-red-300">{selected.lastError}</div>}
               <div className="whitespace-pre-wrap break-words rounded-md bg-muted/30 p-4 text-sm leading-6">
-                {selected.body || 'Sin contenido.'}
+                {selected.body || t.mailNoContent}
               </div>
             </div>
           )}

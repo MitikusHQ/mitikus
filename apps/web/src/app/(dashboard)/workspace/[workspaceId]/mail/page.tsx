@@ -1,6 +1,8 @@
 import { getMailboxMessages } from '@/app/actions/mail'
 import { requireUser } from '@/lib/auth'
 import { db } from '@/lib/db'
+import { getLocale } from '@/i18n/locale'
+import { getDashboardTranslations } from '@/i18n/dashboard-translations'
 import { MailboxClient } from './_components/MailboxClient'
 
 interface Props {
@@ -9,7 +11,8 @@ interface Props {
 }
 
 export default async function MailPage({ params, searchParams }: Props) {
-  const [{ workspaceId }, query] = await Promise.all([params, searchParams ?? Promise.resolve({} as { to?: string })])
+  const [{ workspaceId }, query, locale] = await Promise.all([params, searchParams ?? Promise.resolve({} as { to?: string }), getLocale()])
+  const t = getDashboardTranslations(locale)
   const user = await requireUser()
   const [inbox, contacts, companyProfile] = await Promise.all([
     getMailboxMessages(workspaceId, 'inbox'),
@@ -33,13 +36,11 @@ export default async function MailPage({ params, searchParams }: Props) {
     <div className="p-6 max-w-6xl mx-auto">
       <div className="mb-6 flex flex-col gap-3 sm:flex-row sm:items-end sm:justify-between">
         <div>
-          <h1 className="text-xl font-semibold">Correo</h1>
-          <p className="text-sm text-muted-foreground mt-1">
-            Gestiona el correo de tu workspace.
-          </p>
+          <h1 className="text-xl font-semibold">{t.mailTitle}</h1>
+          <p className="text-sm text-muted-foreground mt-1">{t.mailSubtitle}</p>
         </div>
       </div>
-      <MailboxClient workspaceId={workspaceId} initialMessages={inbox.messages} initialToEmail={query.to ?? ''} contacts={mailContacts} defaultSignature={companyProfile?.emailSignature} hasSmtpConfig={hasSmtpConfig} hasImapConfig={hasImapConfig} />
+      <MailboxClient workspaceId={workspaceId} initialMessages={inbox.messages} initialToEmail={query.to ?? ''} contacts={mailContacts} defaultSignature={companyProfile?.emailSignature} hasSmtpConfig={hasSmtpConfig} hasImapConfig={hasImapConfig} locale={locale} />
     </div>
   )
 }

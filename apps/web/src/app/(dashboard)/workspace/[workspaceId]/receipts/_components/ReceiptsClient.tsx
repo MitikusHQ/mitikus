@@ -223,7 +223,7 @@ export function ReceiptsClient({ workspaceId, initialReceipts, locale }: Props) 
       )}
 
       {showModal && (
-        <ReceiptScanModal workspaceId={workspaceId} onClose={() => setShowModal(false)} onSaved={handleSaved} />
+        <ReceiptScanModal workspaceId={workspaceId} onClose={() => setShowModal(false)} onSaved={handleSaved} locale={locale} />
       )}
     </div>
   )
