@@ -12,6 +12,7 @@ interface Member {
   id: string
   name: string | null
   email: string
+  avatarUrl: string | null
   isMe: boolean
   status: PresenceStatus
 }
@@ -84,10 +85,11 @@ const PRESENCE_LABEL: Record<PresenceStatus, string> = {
   IN_MEETING: 'En reunión',
 }
 
-function Avatar({ id, name, email, status, statusLabel, size = 'md' }: {
+function Avatar({ id, name, email, avatarUrl, status, statusLabel, size = 'md' }: {
   id: string
   name: string | null
   email: string
+  avatarUrl?: string | null
   status: PresenceStatus
   statusLabel: string
   size?: 'sm' | 'md'
@@ -96,9 +98,17 @@ function Avatar({ id, name, email, status, statusLabel, size = 'md' }: {
   const dot = size === 'sm' ? 'w-2 h-2 border' : 'w-2.5 h-2.5 border'
   return (
     <span className="relative shrink-0 inline-block" title={statusLabel}>
-      <span className={`${sz} ${avatarColor(id)} rounded-full flex items-center justify-center font-semibold text-white select-none`}>
-        {initials(name, email)}
-      </span>
+      {avatarUrl ? (
+        <img
+          src={avatarUrl}
+          alt={name ?? email}
+          className={`${sz} rounded-full object-cover`}
+        />
+      ) : (
+        <span className={`${sz} ${avatarColor(id)} rounded-full flex items-center justify-center font-semibold text-white select-none`}>
+          {initials(name, email)}
+        </span>
+      )}
       <span className={`absolute bottom-0 right-0 ${dot} ${PRESENCE_DOT[status]} rounded-full border-card`} />
     </span>
   )
@@ -485,7 +495,7 @@ export function TeamPanel({ onClose, myId, locale }: Props) {
                 key={m.id}
                 className="flex items-center gap-3 px-4 py-2.5 hover:bg-muted/50 transition-colors"
               >
-                <Avatar id={m.id} name={m.name} email={m.email} status={m.status} statusLabel={presenceLabel(m.status)} />
+                <Avatar id={m.id} name={m.name} email={m.email} avatarUrl={m.avatarUrl} status={m.status} statusLabel={presenceLabel(m.status)} />
                 <div className="flex-1 min-w-0">
                   <p className="text-sm font-medium truncate">
                     {m.name ?? m.email}
@@ -545,7 +555,7 @@ export function TeamPanel({ onClose, myId, locale }: Props) {
                 </svg>
               </button>
               {activePeer && (
-                <Avatar id={activePeer.id} name={activePeer.name} email={activePeer.email} status={activePeer.status} statusLabel={presenceLabel(activePeer.status)} size="sm" />
+                <Avatar id={activePeer.id} name={activePeer.name} email={activePeer.email} avatarUrl={activePeer.avatarUrl} status={activePeer.status} statusLabel={presenceLabel(activePeer.status)} size="sm" />
               )}
               <div className="flex-1 min-w-0">
                 <p className="text-sm font-medium truncate">{activePeer?.name ?? activePeer?.email}</p>
