@@ -33,6 +33,7 @@ function makeSectionLabels(t: DashboardTranslations): Array<{ segment: string; l
     { segment: '/usage',         label: t.sectionUsage },
     { segment: '/team',          label: t.sectionTeam },
     { segment: '/settings',      label: t.sectionSettings },
+    { segment: '/integrations',  label: t.sectionIntegrations },
     { segment: '/generate',      label: t.sectionGenerate },
     { segment: '/import',        label: t.sectionImport },
     { segment: '/copilot',       label: t.sectionCopilot },

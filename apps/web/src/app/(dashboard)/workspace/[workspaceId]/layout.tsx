@@ -242,6 +242,12 @@ export default async function WorkspaceLayout({ children, params }: Props) {
       icon: Icons.settings,
       description: t.descSettings,
     },
+    {
+      label: t.navIntegrations,
+      href: `${base}/integrations`,
+      icon: Icons.integrations,
+      description: t.descIntegrations,
+    },
   ]
 
   const navGroups: NavGroup[] = [

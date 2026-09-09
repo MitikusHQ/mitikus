@@ -2,17 +2,21 @@
 import { auth } from '@clerk/nextjs/server'
 import { db } from '@/lib/db'
 import Anthropic from '@anthropic-ai/sdk'
+import OpenAI from 'openai'
 import { validateToolSchema } from '@protools/schema'
 import type { ValidatedToolSchema } from '@protools/schema'
 import { buildSimpleFallbackSchema } from '@/lib/tool-generation/simple-fallback'
 import type { Prisma } from '@prisma/client'
 import { estimateCostEUR } from '@/lib/ai-cost'
 import { checkAllLimits } from '@/lib/ai-rate-limit'
+import { getAiProviderApiKey, parseWorkspaceIntegrations, type AiProvider } from '@/lib/integrations/calendar'
 
 export const runtime = 'nodejs'
 export const maxDuration = 60
 
 const MODEL = 'claude-sonnet-4-6'
+const OPENAI_TOOL_MODEL = process.env.OPENAI_TOOL_GENERATION_MODEL ?? 'gpt-4o-mini'
+const GEMINI_TOOL_MODEL = process.env.GEMINI_TOOL_GENERATION_MODEL ?? 'gemini-1.5-flash'
 
 // Configurable via env — defaults are conservative for dev
 const MAX_TOKENS = parseInt(process.env.MAX_AI_OUTPUT_TOKENS ?? '4000', 10)
@@ -151,6 +155,70 @@ async function callClaude(
   return { text, inputTokens: msg.usage.input_tokens, outputTokens: msg.usage.output_tokens }
 }
 
+async function callOpenAI(
+  apiKey: string,
+  systemPrompt: string,
+  userPrompt: string,
+): Promise<{ text: string; inputTokens: number; outputTokens: number }> {
+  const client = new OpenAI({ apiKey })
+  const response = await client.chat.completions.create({
+    model: OPENAI_TOOL_MODEL,
+    max_tokens: MAX_TOKENS,
+    messages: [
+      { role: 'system', content: systemPrompt },
+      { role: 'user', content: userPrompt },
+    ],
+  })
+
+  return {
+    text: response.choices.map((c) => c.message.content ?? '').join(''),
+    inputTokens: response.usage?.prompt_tokens ?? 0,
+    outputTokens: response.usage?.completion_tokens ?? 0,
+  }
+}
+
+async function callGemini(
+  apiKey: string,
+  systemPrompt: string,
+  userPrompt: string,
+): Promise<{ text: string; inputTokens: number; outputTokens: number }> {
+  const res = await fetch(
+    `https://generativelanguage.googleapis.com/v1beta/models/${GEMINI_TOOL_MODEL}:generateContent?key=${encodeURIComponent(apiKey)}`,
+    {
+      method: 'POST',
+      headers: { 'content-type': 'application/json' },
+      body: JSON.stringify({
+        systemInstruction: { parts: [{ text: systemPrompt }] },
+        contents: [{ role: 'user', parts: [{ text: userPrompt }] }],
+        generationConfig: { maxOutputTokens: MAX_TOKENS },
+      }),
+    },
+  )
+  const data = await res.json() as {
+    candidates?: { content?: { parts?: { text?: string }[] } }[]
+    usageMetadata?: { promptTokenCount?: number; candidatesTokenCount?: number }
+    error?: { message?: string }
+  }
+  if (!res.ok) throw new Error(data.error?.message ?? 'Gemini generation failed')
+
+  return {
+    text: data.candidates?.flatMap((c) => c.content?.parts ?? []).map((p) => p.text ?? '').join('') ?? '',
+    inputTokens: data.usageMetadata?.promptTokenCount ?? 0,
+    outputTokens: data.usageMetadata?.candidatesTokenCount ?? 0,
+  }
+}
+
+async function callConfiguredProvider(
+  provider: AiProvider,
+  apiKey: string,
+  systemPrompt: string,
+  userPrompt: string,
+): Promise<{ text: string; inputTokens: number; outputTokens: number }> {
+  if (provider === 'openai') return callOpenAI(apiKey, systemPrompt, userPrompt)
+  if (provider === 'gemini') return callGemini(apiKey, systemPrompt, userPrompt)
+  return callClaude(new Anthropic({ apiKey }), systemPrompt, userPrompt)
+}
+
 function validateGeneratedSchema(
   parsed: unknown,
   attempt: number,
@@ -277,10 +345,20 @@ export async function POST(req: NextRequest) {
   }
   const workspace = await db.workspace.findFirst({
     where: { id: workspaceId, orgId: user.orgId },
+    select: {
+      id: true,
+      companyProfile: {
+        select: {
+          integrations: true,
+        },
+      },
+    },
   })
   if (!workspace) {
     return NextResponse.json({ error: 'Workspace not found' }, { status: 404 })
   }
+  const configuredAiProvider = parseWorkspaceIntegrations(workspace.companyProfile?.integrations).aiProvider ?? null
+  const configuredAiApiKey = getAiProviderApiKey(configuredAiProvider)
 
   const limitFailed = simpleMode ? null : await checkAllLimits(user.id, workspaceId)
   if (limitFailed) {
@@ -318,15 +396,21 @@ export async function POST(req: NextRequest) {
     if (simpleMode) {
       generatedSchema = buildSimpleFallbackSchema(trimmed)
       attempts = 1
-    } else if (!process.env.ANTHROPIC_API_KEY) {
+    } else if (configuredAiProvider && !configuredAiApiKey) {
+      return NextResponse.json(
+        { error: 'The workspace AI provider could not be read. Reconnect the provider in Integrations.' },
+        { status: 422 },
+      )
+    } else if (!configuredAiProvider && !process.env.ANTHROPIC_API_KEY) {
       return NextResponse.json(
         { error: 'AI generation is not configured. Add ANTHROPIC_API_KEY to .env.local.' },
         { status: 503 },
       )
     } else {
-      const client = new Anthropic()
+      const selectedProvider = configuredAiProvider?.provider ?? 'anthropic'
+      const selectedApiKey = configuredAiApiKey ?? process.env.ANTHROPIC_API_KEY!
       console.info(
-        `[AI] Generating tool workspace=${workspaceId} user=${user.id} simpleMode=${simpleMode} locale=${locale} MAX_TOKENS=${MAX_TOKENS} MAX_RETRIES=${MAX_RETRIES}`,
+        `[AI] Generating tool workspace=${workspaceId} user=${user.id} provider=${selectedProvider} simpleMode=${simpleMode} locale=${locale} MAX_TOKENS=${MAX_TOKENS} MAX_RETRIES=${MAX_RETRIES}`,
       )
 
       let lastError = ''
@@ -349,7 +433,12 @@ export async function POST(req: NextRequest) {
             ? `${prefix}:\n<user_input>\n${trimmed}\n</user_input>`
             : `${prefix}:\n<user_input>\n${trimmed}\n</user_input>\n\n${fixInstruction}${lastError}${fixSuffix}`
 
-        const { text, inputTokens, outputTokens } = await callClaude(client, systemPrompt, userPrompt)
+        const { text, inputTokens, outputTokens } = await callConfiguredProvider(
+          selectedProvider,
+          selectedApiKey,
+          systemPrompt,
+          userPrompt,
+        )
         totalInputTokens += inputTokens
         totalOutputTokens += outputTokens
 

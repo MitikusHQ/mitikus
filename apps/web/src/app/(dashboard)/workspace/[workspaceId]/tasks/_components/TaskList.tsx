@@ -109,7 +109,7 @@ export function TaskList({ workspaceId, userId, initialTasks, initialFilters, lo
           </div>
         ) : (
           tasks.map((task) => (
-            <TaskRow key={task.id} task={task} workspaceId={workspaceId} onEdit={setEditingTask} />
+            <TaskRow key={task.id} task={task} workspaceId={workspaceId} onEdit={setEditingTask} locale={locale} />
           ))
         )}
         {tasks.length > 0 && (
