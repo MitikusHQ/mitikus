@@ -2,8 +2,8 @@
 
 import { useState, useTransition } from 'react'
 import { updatePdfMeta } from '@/app/actions/pdfs'
-
-const CATEGORIES = ['Contratos', 'Informes', 'Propuestas', 'Facturas', 'Otro']
+import { getDashboardTranslations } from '@/i18n/dashboard-translations'
+import type { Locale } from '@/i18n/config'
 
 interface Props {
   pdfId:       string
@@ -15,14 +15,23 @@ interface Props {
   onDownload:  () => void
   onConvert:   () => void
   isConverting: boolean
+  locale:      Locale
 }
 
 export function PdfHeader({
   pdfId, workspaceId,
   title: initialTitle, category: initialCategory,
   fileSize, pageCount,
-  onDownload, onConvert, isConverting,
+  onDownload, onConvert, isConverting, locale,
 }: Props) {
+  const t = getDashboardTranslations(locale)
+  const categories = [
+    { value: 'Contratos', label: t.pdfsCategoryContracts },
+    { value: 'Informes', label: t.pdfsCategoryReports },
+    { value: 'Propuestas', label: t.pdfsCategoryProposals },
+    { value: 'Facturas', label: t.pdfsCategoryInvoices },
+    { value: 'Otro', label: t.pdfsCategoryOther },
+  ]
   const [title, setTitle]       = useState(initialTitle)
   const [category, setCategory] = useState(initialCategory ?? '')
   const [isDirty, setIsDirty]   = useState(false)
@@ -51,18 +60,18 @@ export function PdfHeader({
         value={title}
         onChange={handleTitleChange}
         className="text-base font-semibold bg-transparent border-none outline-none flex-1 min-w-0"
-        placeholder="Sin título"
-        aria-label="Título del PDF"
+        placeholder={t.pdfsUntitled}
+        aria-label={t.pdfsTitleAria}
       />
       <select
         value={category}
         onChange={handleCategoryChange}
         className="text-xs border rounded px-2 py-1 bg-background"
-        aria-label="Categoría"
+        aria-label={t.pdfsCategoryAria}
       >
-        <option value="">Sin categoría</option>
-        {CATEGORIES.map((c) => (
-          <option key={c} value={c}>{c}</option>
+        <option value="">{t.pdfsNoCategory}</option>
+        {categories.map((c) => (
+          <option key={c.value} value={c.value}>{c.label}</option>
         ))}
       </select>
       {isDirty && (
@@ -71,25 +80,25 @@ export function PdfHeader({
           disabled={isPending}
           className="text-xs px-3 py-1 rounded bg-primary text-primary-foreground hover:bg-primary/90 disabled:opacity-50"
         >
-          Guardar
+          {t.pdfsSave}
         </button>
       )}
       <span className="text-xs text-muted-foreground">
-        {pageCount} {pageCount === 1 ? 'pág.' : 'págs.'} · {Math.round(fileSize / 1024)} KB
+        {pageCount} {pageCount === 1 ? t.pdfsPageShortSingular : t.pdfsPageShortPlural} · {Math.round(fileSize / 1024)} KB
       </span>
       <button
         onClick={onDownload}
         className="text-xs px-2 py-1 rounded border hover:bg-muted transition-colors"
       >
-        ↓ Descargar
+        ↓ {t.pdfsDownload}
       </button>
       <button
         onClick={onConvert}
         disabled={isConverting}
-        title="El resultado depende del contenido del PDF"
+        title={t.pdfsConvertTooltip}
         className="text-xs px-2 py-1 rounded border hover:bg-muted transition-colors disabled:opacity-50"
       >
-        {isConverting ? 'Convirtiendo…' : 'Abrir como Doc'}
+        {isConverting ? t.pdfsConverting : t.pdfsOpenAsDoc}
       </button>
     </div>
   )

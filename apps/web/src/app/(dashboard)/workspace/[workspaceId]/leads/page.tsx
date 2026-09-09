@@ -5,15 +5,11 @@ import { requireUser } from '@/lib/auth'
 import type { LeadStatus } from '@prisma/client'
 import { LeadStatusSelect } from './_components/LeadStatusSelect'
 import { DeleteLeadButton } from './_components/DeleteLeadButton'
+import { getLocale } from '@/i18n/locale'
+import { getDashboardTranslations } from '@/i18n/dashboard-translations'
+import type { Locale } from '@/i18n/config'
 
 export const metadata: Metadata = { title: 'Leads - MITIKUS' }
-
-const STATUS_LABELS: Record<string, string> = {
-  NUEVO: 'Nuevo',
-  CONTACTADO: 'Contactado',
-  CUALIFICADO: 'Cualificado',
-  PERDIDO: 'Perdido',
-}
 
 const ALL_STATUSES = ['NUEVO', 'CONTACTADO', 'CUALIFICADO', 'PERDIDO'] as const
 
@@ -22,16 +18,18 @@ interface Props {
   searchParams: Promise<{ status?: string }>
 }
 
-function fmtDate(d: Date) {
-  return new Date(d).toLocaleDateString('es-ES', { day: '2-digit', month: 'short', year: 'numeric' })
+function fmtDate(d: Date, locale: Locale) {
+  return new Date(d).toLocaleDateString(locale, { day: '2-digit', month: 'short', year: 'numeric' })
 }
 
 export default async function LeadsPage({ params, searchParams }: Props) {
-  const [{ workspaceId }, { status: statusFilter }, user] = await Promise.all([
+  const [{ workspaceId }, { status: statusFilter }, user, locale] = await Promise.all([
     params,
     searchParams,
     requireUser(),
+    getLocale(),
   ])
+  const t = getDashboardTranslations(locale)
 
   const workspace = await db.workspace.findFirst({
     where: { id: workspaceId, orgId: user.orgId },
@@ -55,42 +53,48 @@ export default async function LeadsPage({ params, searchParams }: Props) {
   const total = counts.reduce((acc, c) => acc + c._count, 0)
 
   const base = `/workspace/${workspaceId}/leads`
+  const statusLabels: Record<LeadStatus, string> = {
+    NUEVO: t.leadsStatusNew,
+    CONTACTADO: t.leadsStatusContacted,
+    CUALIFICADO: t.leadsStatusQualified,
+    PERDIDO: t.leadsStatusLost,
+  }
 
   return (
     <div className="mx-auto max-w-5xl px-6 py-10">
       <div className="mb-8">
-        <h1 className="text-2xl font-bold mb-1">Leads</h1>
+        <h1 className="text-2xl font-bold mb-1">{t.leadsTitle}</h1>
         <p className="text-sm text-muted-foreground">
-          Contactos captados a través del webhook de formularios.
+          {t.leadsSubtitle}
         </p>
       </div>
 
       {/* Filtros por estado */}
       <div className="flex flex-wrap gap-2 mb-6">
-        <FilterChip href={base} active={!validStatus} label="Todos" count={total} />
+        <FilterChip href={base} active={!validStatus} label={t.leadsAll} count={total} />
         {ALL_STATUSES.map(s => (
           <FilterChip
             key={s}
             href={`${base}?status=${s}`}
             active={validStatus === s}
-            label={STATUS_LABELS[s]!}
+            label={statusLabels[s]}
             count={countMap[s] ?? 0}
           />
         ))}
       </div>
 
       {leads.length === 0 ? (
-        <EmptyState filtered={!!validStatus} />
+        <EmptyState filtered={!!validStatus} t={t} />
       ) : (
         <div className="border rounded-xl overflow-hidden">
           <table className="w-full text-sm">
             <thead className="bg-muted/50 border-b">
               <tr>
-                <th className="text-left px-4 py-3 font-medium text-muted-foreground">Contacto</th>
-                <th className="text-left px-4 py-3 font-medium text-muted-foreground hidden md:table-cell">Empresa</th>
-                <th className="text-left px-4 py-3 font-medium text-muted-foreground hidden lg:table-cell">Mensaje</th>
-                <th className="text-left px-4 py-3 font-medium text-muted-foreground">Estado</th>
-                <th className="text-left px-4 py-3 font-medium text-muted-foreground hidden sm:table-cell">Fecha</th>
+                <th className="text-left px-4 py-3 font-medium text-muted-foreground">{t.leadsContact}</th>
+                <th className="text-left px-4 py-3 font-medium text-muted-foreground hidden md:table-cell">{t.leadsCompany}</th>
+                <th className="text-left px-4 py-3 font-medium text-muted-foreground hidden lg:table-cell">{t.leadsMessage}</th>
+                <th className="text-left px-4 py-3 font-medium text-muted-foreground">{t.leadsStatus}</th>
+                <th className="text-left px-4 py-3 font-medium text-muted-foreground hidden sm:table-cell">{t.leadsDate}</th>
                 <th className="px-4 py-3" />
               </tr>
             </thead>
@@ -113,13 +117,13 @@ export default async function LeadsPage({ params, searchParams }: Props) {
                     ) : '—'}
                   </td>
                   <td className="px-4 py-3">
-                    <LeadStatusSelect leadId={lead.id} workspaceId={workspaceId} status={lead.status} />
+                    <LeadStatusSelect leadId={lead.id} workspaceId={workspaceId} status={lead.status} locale={locale} />
                   </td>
                   <td className="px-4 py-3 text-muted-foreground text-xs hidden sm:table-cell whitespace-nowrap">
-                    {fmtDate(lead.createdAt)}
+                    {fmtDate(lead.createdAt, locale)}
                   </td>
                   <td className="px-4 py-3">
-                    <DeleteLeadButton leadId={lead.id} workspaceId={workspaceId} leadName={lead.name} />
+                    <DeleteLeadButton leadId={lead.id} workspaceId={workspaceId} leadName={lead.name} locale={locale} />
                   </td>
                 </tr>
               ))}
@@ -147,17 +151,17 @@ function FilterChip({ href, active, label, count }: { href: string; active: bool
   )
 }
 
-function EmptyState({ filtered }: { filtered: boolean }) {
+function EmptyState({ filtered, t }: { filtered: boolean; t: ReturnType<typeof getDashboardTranslations> }) {
   return (
     <div className="border rounded-xl p-12 text-center">
       <div className="text-3xl mb-3">📬</div>
       <h3 className="font-semibold mb-1">
-        {filtered ? 'Sin leads con este estado' : 'Sin leads todavía'}
+        {filtered ? t.leadsEmptyFiltered : t.leadsNoLeads}
       </h3>
       <p className="text-sm text-muted-foreground max-w-sm mx-auto">
         {filtered
-          ? 'Prueba con otro filtro o vuelve a la vista completa.'
-          : 'Activa el webhook de formularios en Integraciones para empezar a captar leads desde Typeform, Tally o Jotform.'}
+          ? t.leadsEmptyFilteredHelp
+          : t.leadsEmptyWebhookHelp}
       </p>
     </div>
   )

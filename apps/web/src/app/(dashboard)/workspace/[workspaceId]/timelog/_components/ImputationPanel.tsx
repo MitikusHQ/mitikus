@@ -3,14 +3,18 @@
 import { useState, useEffect, useTransition } from 'react'
 import { addImputation, deleteImputation, getImputationOptions } from '@/app/actions/timelog'
 import type { TimeEntryData, ImputationOption } from '@/app/actions/timelog'
+import { getDashboardTranslations } from '@/i18n/dashboard-translations'
+import type { Locale } from '@/i18n/config'
 
 interface Props {
   workspaceId: string
   entry: TimeEntryData
+  locale: Locale
   onUpdated: (updated: TimeEntryData) => void
 }
 
-export function ImputationPanel({ workspaceId, entry, onUpdated }: Props) {
+export function ImputationPanel({ workspaceId, entry, locale, onUpdated }: Props) {
+  const t = getDashboardTranslations(locale)
   const [options, setOptions] = useState<ImputationOption | null>(null)
   const [showForm, setShowForm] = useState(false)
   const [objectiveId, setObjectiveId] = useState('')
@@ -27,7 +31,7 @@ export function ImputationPanel({ workspaceId, entry, onUpdated }: Props) {
   function handleAdd() {
     const h = parseFloat(hours)
     if (isNaN(h) || h <= 0 || h > 24) {
-      setError('Introduce un número de horas válido (0.5 – 24)')
+      setError(t.timelogInvalidHours)
       return
     }
     setError(null)
@@ -48,7 +52,7 @@ export function ImputationPanel({ workspaceId, entry, onUpdated }: Props) {
         setHours('')
         setDescription('')
       } catch (e) {
-        setError('No se pudo añadir la imputación. Inténtalo de nuevo.')
+        setError(t.timelogAddError)
       }
     })
   }
@@ -59,7 +63,7 @@ export function ImputationPanel({ workspaceId, entry, onUpdated }: Props) {
         await deleteImputation(impId, workspaceId)
         onUpdated({ ...entry, imputations: entry.imputations.filter(i => i.id !== impId) })
       } catch (e) {
-        setError('No se pudo eliminar la imputación. Inténtalo de nuevo.')
+        setError(t.timelogDeleteError)
       }
     })
   }
@@ -67,7 +71,7 @@ export function ImputationPanel({ workspaceId, entry, onUpdated }: Props) {
   return (
     <div className="px-4 py-3 space-y-3">
       {entry.imputations.length === 0 && !showForm && (
-        <p className="text-xs text-muted-foreground">Sin imputaciones para este día.</p>
+        <p className="text-xs text-muted-foreground">{t.timelogNoImputations}</p>
       )}
 
       {entry.imputations.map((imp) => (
@@ -87,7 +91,7 @@ export function ImputationPanel({ workspaceId, entry, onUpdated }: Props) {
           <button
             onClick={() => handleDelete(imp.id)}
             disabled={isPending}
-            aria-label="Eliminar imputación"
+            aria-label={t.timelogDeleteImputation}
             className="text-xs text-destructive hover:text-destructive/80 disabled:opacity-50 shrink-0"
           >
             🗑️
@@ -99,13 +103,13 @@ export function ImputationPanel({ workspaceId, entry, onUpdated }: Props) {
         <div className="space-y-2 pt-1 border-t">
           <div className="grid grid-cols-2 gap-2">
             <div className="space-y-1">
-              <label className="text-xs font-medium">Misión (opcional)</label>
+              <label className="text-xs font-medium">{t.timelogMissionOptional}</label>
               <select
                 value={objectiveId}
                 onChange={e => setObjectiveId(e.target.value)}
                 className="w-full rounded-lg border bg-background px-2 py-1.5 text-xs focus:outline-none focus:ring-2 focus:ring-primary"
               >
-                <option value="">Sin misión</option>
+                <option value="">{t.timelogNoMission}</option>
                 {options?.objectives.map(o => (
                   <option key={o.id} value={o.id}>
                     {o.label}{o.clientName ? ` (${o.clientName})` : ''}
@@ -114,13 +118,13 @@ export function ImputationPanel({ workspaceId, entry, onUpdated }: Props) {
               </select>
             </div>
             <div className="space-y-1">
-              <label className="text-xs font-medium">Cliente (opcional)</label>
+              <label className="text-xs font-medium">{t.timelogClientOptional}</label>
               <select
                 value={clientId}
                 onChange={e => setClientId(e.target.value)}
                 className="w-full rounded-lg border bg-background px-2 py-1.5 text-xs focus:outline-none focus:ring-2 focus:ring-primary"
               >
-                <option value="">Sin cliente</option>
+                <option value="">{t.timelogNoClient}</option>
                 {options?.clients.map(c => (
                   <option key={c.id} value={c.id}>{c.name}</option>
                 ))}
@@ -129,7 +133,7 @@ export function ImputationPanel({ workspaceId, entry, onUpdated }: Props) {
           </div>
           <div className="grid grid-cols-2 gap-2">
             <div className="space-y-1">
-              <label className="text-xs font-medium">Horas *</label>
+              <label className="text-xs font-medium">{t.timelogHours}</label>
               <input
                 type="number"
                 min="0.5"
@@ -137,17 +141,17 @@ export function ImputationPanel({ workspaceId, entry, onUpdated }: Props) {
                 step="0.5"
                 value={hours}
                 onChange={e => setHours(e.target.value)}
-                placeholder="ej. 2.5"
+                placeholder={t.timelogHoursPlaceholder}
                 className="w-full rounded-lg border bg-background px-2 py-1.5 text-xs focus:outline-none focus:ring-2 focus:ring-primary"
               />
             </div>
             <div className="space-y-1">
-              <label className="text-xs font-medium">Descripción</label>
+              <label className="text-xs font-medium">{t.timelogDescription}</label>
               <input
                 type="text"
                 value={description}
                 onChange={e => setDescription(e.target.value)}
-                placeholder="ej. Reunión de kick-off"
+                placeholder={t.timelogDescriptionPlaceholder}
                 className="w-full rounded-lg border bg-background px-2 py-1.5 text-xs focus:outline-none focus:ring-2 focus:ring-primary"
               />
             </div>
@@ -159,14 +163,14 @@ export function ImputationPanel({ workspaceId, entry, onUpdated }: Props) {
               disabled={isPending}
               className="text-xs px-3 py-1.5 rounded border hover:bg-muted/30 disabled:opacity-60 transition-colors"
             >
-              Cancelar
+              {t.timelogCancel}
             </button>
             <button
               onClick={handleAdd}
               disabled={isPending}
               className="text-xs px-3 py-1.5 rounded bg-primary text-primary-foreground hover:bg-primary/90 disabled:opacity-60 transition-colors"
             >
-              {isPending ? 'Añadiendo...' : 'Añadir'}
+              {isPending ? t.timelogAdding : t.timelogAdd}
             </button>
           </div>
         </div>
@@ -177,7 +181,7 @@ export function ImputationPanel({ workspaceId, entry, onUpdated }: Props) {
           onClick={() => setShowForm(true)}
           className="text-xs text-primary hover:underline"
         >
-          + Añadir imputación
+          {t.timelogAddImputation}
         </button>
       )}
     </div>

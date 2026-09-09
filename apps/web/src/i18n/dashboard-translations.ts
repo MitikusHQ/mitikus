@@ -49,6 +49,167 @@ export interface DashboardTranslations {
   descWorkflows: string
   descOffice: string
   descFiles: string
+  filesTitle: string
+  filesSubtitle: string
+  filesStorage: string
+  filesUsedSuffix: string
+  filesExportZip: string
+  filesGenerating: string
+  filesStorageLimitError: string
+  filesSizeLimitError: string
+  filesUploadError: string
+  filesConnectionError: string
+  filesExportPermissionError: string
+  filesExportError: string
+  filesUploading: string
+  filesDropPrefix: string
+  filesDropAction: string
+  filesMaxSize: string
+  filesEmpty: string
+  filesDelete: string
+  pdfsTitle: string
+  pdfsSubtitle: string
+  pdfsAll: string
+  pdfsCategoryContracts: string
+  pdfsCategoryReports: string
+  pdfsCategoryProposals: string
+  pdfsCategoryInvoices: string
+  pdfsCategoryOther: string
+  pdfsOnlyPdfError: string
+  pdfsUploadError: string
+  pdfsConnectionError: string
+  pdfsSelectFileAria: string
+  pdfsProcessing: string
+  pdfsDropPrefix: string
+  pdfsDropAction: string
+  pdfsChooseFile: string
+  pdfsEmptyInCategory: string
+  pdfsEmpty: string
+  pdfsEmptyFilteredHelp: string
+  pdfsEmptyHelp: string
+  pdfsPageSingular: string
+  pdfsPagePlural: string
+  pdfsUntitled: string
+  pdfsTitleAria: string
+  pdfsCategoryAria: string
+  pdfsNoCategory: string
+  pdfsSave: string
+  pdfsPageShortSingular: string
+  pdfsPageShortPlural: string
+  pdfsDownload: string
+  pdfsConvertTooltip: string
+  pdfsConverting: string
+  pdfsOpenAsDoc: string
+  pdfsDeleteConfirm: string
+  pdfsDeleting: string
+  pdfsDelete: string
+  pdfsGoToPageAria: string
+  pdfsPagesShort: string
+  pdfsSearchPlaceholder: string
+  pdfsSearchAria: string
+  pdfsPreviousMatch: string
+  pdfsNextMatch: string
+  pdfsHideThumbnails: string
+  pdfsShowThumbnails: string
+  pdfsPreviousPage: string
+  pdfsNextPage: string
+  pdfsPageAbbrev: string
+  pdfsZoomOut: string
+  pdfsZoomIn: string
+  pdfsLoading: string
+  pdfsLoadError: string
+  timelogTitle: string
+  timelogSubtitle: string
+  timelogPrevious: string
+  timelogNext: string
+  timelogInProgress: string
+  timelogNoClockIn: string
+  timelogImputations: string
+  timelogClose: string
+  timelogViewImputations: string
+  timelogEditEntryAria: string
+  timelogDeleteEntryAria: string
+  timelogTotal: string
+  timelogNoImputations: string
+  timelogDeleteImputation: string
+  timelogMissionOptional: string
+  timelogNoMission: string
+  timelogClientOptional: string
+  timelogNoClient: string
+  timelogHours: string
+  timelogHoursPlaceholder: string
+  timelogDescription: string
+  timelogDescriptionPlaceholder: string
+  timelogCancel: string
+  timelogAdd: string
+  timelogAdding: string
+  timelogAddImputation: string
+  timelogInvalidHours: string
+  timelogAddError: string
+  timelogDeleteError: string
+  timelogEditTitle: string
+  timelogClockIn: string
+  timelogClockOut: string
+  timelogEditReason: string
+  timelogEditReasonPlaceholder: string
+  timelogEditReasonRequired: string
+  timelogClockOutRequired: string
+  timelogSaveError: string
+  timelogSave: string
+  timelogSaving: string
+  timelogDayMon: string
+  timelogDayTue: string
+  timelogDayWed: string
+  timelogDayThu: string
+  timelogDayFri: string
+  timelogDaySat: string
+  timelogDaySun: string
+  importTitle: string
+  importSubtitle: string
+  importExcelDescription: string
+  importCsvDescription: string
+  importJsonDescription: string
+  importWordDescription: string
+  importPdfDescription: string
+  importMarkdownDescription: string
+  importRecent: string
+  importSaved: string
+  importNotSaved: string
+  importPlainText: string
+  importProcessError: string
+  importNetworkProcessError: string
+  importConvertError: string
+  importNetworkConvertError: string
+  importSaveError: string
+  importNetworkSaveError: string
+  importDropTitle: string
+  importDropSubtitle: string
+  importProcessing: string
+  importSelectFile: string
+  importFormat: string
+  importConfidence: string
+  importFields: string
+  importTables: string
+  importChecklists: string
+  importSections: string
+  importDetectedFields: string
+  importMore: string
+  importWarnings: string
+  importConvertToTool: string
+  importCancel: string
+  importAnalyzing: string
+  importAnalyzingHelp: string
+  importImportedToolFallback: string
+  importValidToolSchema: string
+  importTokensProcessed: string
+  importGeneratedSchemaPreview: string
+  importSaveTool: string
+  importSaving: string
+  importBack: string
+  importToolImported: string
+  importAvailableInCatalog: string
+  importViewTools: string
+  importAnother: string
   descMissions: string
   descFiscal: string
   descInvoices: string
@@ -67,6 +228,10 @@ export interface DashboardTranslations {
   expandSidebar: string
   collapseSidebar: string
   openMenu: string
+  teamStatusOffline: string
+  teamStatusAvailable: string
+  teamStatusBusy: string
+  teamStatusInMeeting: string
   closeTeamPanel: string
   openTeamPanel: string
   welcomeTour: string
@@ -177,6 +342,69 @@ export interface DashboardTranslations {
   todaySourcePlural: string
   todayFirstSteps: string
   todayCompletedProgress: string
+  // Copilot page
+  copilotSetupPrompt: string
+  copilotAssistantOf: string
+  copilotKnowledgeTitle: string
+  copilotKnowledgeTooltip: string
+  copilotCompany: string
+  copilotEmptyCompany: string
+  copilotCompanyName: string
+  copilotSector: string
+  copilotCountry: string
+  copilotSize: string
+  copilotDigitalMaturity: string
+  copilotRegulations: string
+  copilotActiveObjectives: string
+  copilotOpenRisks: string
+  copilotAvailableDocs: string
+  copilotSizeMicro: string
+  copilotSizeSmall: string
+  copilotSizeMedium: string
+  copilotSizeLarge: string
+  copilotMaturityEmerging: string
+  copilotMaturityDeveloping: string
+  copilotMaturityEstablished: string
+  copilotMaturityAdvanced: string
+  copilotMaturityLeading: string
+  copilotConnectionError: string
+  copilotPlanSelectError: string
+  copilotWelcomeTitle: string
+  copilotWelcomeDescriptionPrefix: string
+  copilotWelcomeDescriptionStrong: string
+  copilotWelcomeDescriptionSuffix: string
+  copilotQuickExamples: string
+  copilotInitialPromptAgency: string
+  copilotInitialPromptHr: string
+  copilotInitialPromptEcommerce: string
+  copilotInitialPromptLaw: string
+  copilotInitialWithContext: string
+  copilotMaybeYouMeant: string
+  copilotClarifyPlaceholder: string
+  copilotEmptyContextPlaceholder: string
+  copilotGoalPlaceholder: string
+  copilotSend: string
+  copilotNew: string
+  copilotNoMoreSuggestions: string
+  copilotWriteDirectly: string
+  copilotSuggestionsForCompany: string
+  copilotInProgress: string
+  copilotFiscal: string
+  copilotDismiss: string
+  copilotAvailableStrategies: string
+  copilotRecommended: string
+  copilotSteps: string
+  copilotDaySingular: string
+  copilotDayPlural: string
+  copilotRisk: string
+  copilotRiskLow: string
+  copilotRiskMedium: string
+  copilotRiskHigh: string
+  copilotChooseStrategy: string
+  copilotMissionCreated: string
+  copilotMissionReady: string
+  copilotViewMission: string
+  copilotDashboard: string
   // Tools page
   toolsInstalledTitle: string
   toolsInstalledDescription: string
@@ -334,6 +562,10 @@ export interface DashboardTranslations {
   toolSettingsAiModelDescription: string
   toolSettingsProvider: string
   toolSettingsModel: string
+  toolSettingsProviderAvailable: string
+  toolSettingsProviderComingSoon: string
+  toolSettingsModelSingular: string
+  toolSettingsModelPlural: string
   toolSettingsCreativity: string
   toolSettingsCreativityDescription: string
   toolSettingsTemperature: string
@@ -799,12 +1031,14 @@ export interface DashboardTranslations {
   // Leads page
   leadsTitle: string
   leadsSubtitle: string
+  leadsAll: string
   leadsNoLeads: string
   leadsNoLeadsHelp: string
   leadsName: string
   leadsStatus: string
   leadsCompany: string
   leadsDate: string
+  leadsContact: string
   leadsPhone: string
   leadsMessage: string
   leadsInternalNotes: string
@@ -822,6 +1056,13 @@ export interface DashboardTranslations {
   leadsConvertConfirmSuffix: string
   leadsDeleteConfirmPrefix: string
   leadsDeleteConfirmSuffix: string
+  leadsDeleteModalTitle: string
+  leadsDeleteModalBody: string
+  leadsCancel: string
+  leadsDeleting: string
+  leadsEmptyFiltered: string
+  leadsEmptyFilteredHelp: string
+  leadsEmptyWebhookHelp: string
   // History page
   historyTitle: string
   historySubtitle: string
@@ -1114,6 +1355,11 @@ export interface DashboardTranslations {
   invoicesStatusCancelled: string
   invoicesSend: string
   invoicesReviewReplies: string
+  invoicesIssueInvoice: string
+  invoicesIssuing: string
+  invoicesIssueMissingNif: string
+  invoicesIssueError: string
+  invoicesIssueSentTooltip: string
   invoicesReviewingReplies: string
   invoicesView: string
   invoicesEdit: string
@@ -1160,6 +1406,14 @@ export interface DashboardTranslations {
   wsSettingsSubtitle: string
   integrationsTitle: string
   integrationsSubtitle: string
+  integrationsAvailableNow: string
+  integrationsAvailableNowDescription: string
+  integrationsComingSoonSection: string
+  integrationsComingSoonSectionDescription: string
+  integrationsLaterSection: string
+  integrationsLaterSectionDescription: string
+  integrationsBankingTitle: string
+  integrationsBankingDescription: string
   integrationsEmailTitle: string
   integrationsEmailDescription: string
   integrationsCalendarTitle: string
@@ -1470,6 +1724,167 @@ const en: DashboardTranslations = {
   descWorkflows: 'Chain several tools to automate a complete process',
   descOffice: 'Documents, spreadsheets, PDFs, contracts and presentations',
   descFiles: 'Workspace file storage with ZIP export',
+  filesTitle: 'Files',
+  filesSubtitle: 'Upload and manage this workspace files.',
+  filesStorage: 'Storage',
+  filesUsedSuffix: 'used',
+  filesExportZip: 'Export ZIP',
+  filesGenerating: 'Generating...',
+  filesStorageLimitError: 'You have reached your plan storage limit.',
+  filesSizeLimitError: 'The file exceeds the 50 MB limit.',
+  filesUploadError: 'Could not upload the file.',
+  filesConnectionError: 'Connection error. Try again.',
+  filesExportPermissionError: 'You do not have permission to export this workspace.',
+  filesExportError: 'Could not generate the ZIP.',
+  filesUploading: 'Uploading...',
+  filesDropPrefix: 'Drag a file here or',
+  filesDropAction: 'choose one',
+  filesMaxSize: 'Maximum 50 MB per file',
+  filesEmpty: 'No files in this workspace yet.',
+  filesDelete: 'Delete file',
+  pdfsTitle: 'PDFs',
+  pdfsSubtitle: 'Upload PDF files to view them and convert them into editable documents',
+  pdfsAll: 'All',
+  pdfsCategoryContracts: 'Contracts',
+  pdfsCategoryReports: 'Reports',
+  pdfsCategoryProposals: 'Proposals',
+  pdfsCategoryInvoices: 'Invoices',
+  pdfsCategoryOther: 'Other',
+  pdfsOnlyPdfError: 'Only PDF files (.pdf) are supported',
+  pdfsUploadError: 'Could not upload the PDF',
+  pdfsConnectionError: 'Connection error. Try again.',
+  pdfsSelectFileAria: 'Select PDF file',
+  pdfsProcessing: 'Processing...',
+  pdfsDropPrefix: 'Drag a',
+  pdfsDropAction: 'here or',
+  pdfsChooseFile: 'choose file',
+  pdfsEmptyInCategory: 'No PDFs in "{category}"',
+  pdfsEmpty: 'No PDFs yet',
+  pdfsEmptyFilteredHelp: 'Try another category or upload a new PDF.',
+  pdfsEmptyHelp: 'Drag a PDF into the upload area above to get started.',
+  pdfsPageSingular: 'page',
+  pdfsPagePlural: 'pages',
+  pdfsUntitled: 'Untitled',
+  pdfsTitleAria: 'PDF title',
+  pdfsCategoryAria: 'Category',
+  pdfsNoCategory: 'No category',
+  pdfsSave: 'Save',
+  pdfsPageShortSingular: 'page',
+  pdfsPageShortPlural: 'pages',
+  pdfsDownload: 'Download',
+  pdfsConvertTooltip: 'The result depends on the PDF content',
+  pdfsConverting: 'Converting...',
+  pdfsOpenAsDoc: 'Open as Doc',
+  pdfsDeleteConfirm: 'Delete this PDF? This action cannot be undone.',
+  pdfsDeleting: 'Deleting...',
+  pdfsDelete: 'Delete PDF',
+  pdfsGoToPageAria: 'Go to page {page}',
+  pdfsPagesShort: 'Pages',
+  pdfsSearchPlaceholder: 'Search...',
+  pdfsSearchAria: 'Search in the PDF',
+  pdfsPreviousMatch: 'Previous match',
+  pdfsNextMatch: 'Next match',
+  pdfsHideThumbnails: 'Hide thumbnails',
+  pdfsShowThumbnails: 'Show thumbnails',
+  pdfsPreviousPage: 'Previous page',
+  pdfsNextPage: 'Next page',
+  pdfsPageAbbrev: 'Page',
+  pdfsZoomOut: 'Zoom out',
+  pdfsZoomIn: 'Zoom in',
+  pdfsLoading: 'Loading PDF...',
+  pdfsLoadError: 'Could not load the PDF.',
+  timelogTitle: 'Time tracking',
+  timelogSubtitle: 'Workday record and hour allocation',
+  timelogPrevious: 'Previous',
+  timelogNext: 'Next',
+  timelogInProgress: 'In progress',
+  timelogNoClockIn: 'Not clocked in',
+  timelogImputations: 'Allocations',
+  timelogClose: 'Close',
+  timelogViewImputations: 'View allocations',
+  timelogEditEntryAria: 'Edit time entry for {day}',
+  timelogDeleteEntryAria: 'Delete time entry for {day}',
+  timelogTotal: 'Total',
+  timelogNoImputations: 'No allocations for this day.',
+  timelogDeleteImputation: 'Delete allocation',
+  timelogMissionOptional: 'Mission (optional)',
+  timelogNoMission: 'No mission',
+  timelogClientOptional: 'Client (optional)',
+  timelogNoClient: 'No client',
+  timelogHours: 'Hours *',
+  timelogHoursPlaceholder: 'e.g. 2.5',
+  timelogDescription: 'Description',
+  timelogDescriptionPlaceholder: 'e.g. Kick-off meeting',
+  timelogCancel: 'Cancel',
+  timelogAdd: 'Add',
+  timelogAdding: 'Adding...',
+  timelogAddImputation: '+ Add allocation',
+  timelogInvalidHours: 'Enter a valid number of hours (0.5 - 24)',
+  timelogAddError: 'Could not add the allocation. Try again.',
+  timelogDeleteError: 'Could not delete the allocation. Try again.',
+  timelogEditTitle: 'Edit time entry',
+  timelogClockIn: 'Clock in',
+  timelogClockOut: 'Clock out',
+  timelogEditReason: 'Correction reason *',
+  timelogEditReasonPlaceholder: 'e.g. I forgot to clock out',
+  timelogEditReasonRequired: 'Correction reason is required',
+  timelogClockOutRequired: 'Enter the clock-out time',
+  timelogSaveError: 'Could not save the entry. Try again.',
+  timelogSave: 'Save',
+  timelogSaving: 'Saving...',
+  timelogDayMon: 'Mon',
+  timelogDayTue: 'Tue',
+  timelogDayWed: 'Wed',
+  timelogDayThu: 'Thu',
+  timelogDayFri: 'Fri',
+  timelogDaySat: 'Sat',
+  timelogDaySun: 'Sun',
+  importTitle: 'Import Center',
+  importSubtitle: 'Turn any file into a MITIKUS tool',
+  importExcelDescription: 'Spreadsheets with fields, tables and lists',
+  importCsvDescription: 'Tabular data separated by commas or semicolons',
+  importJsonDescription: 'Generic JSON or a MITIKUS ToolSchema directly',
+  importWordDescription: 'Documents with headings, forms and lists',
+  importPdfDescription: 'Forms and documents with extractable text',
+  importMarkdownDescription: 'Guides, checklists and technical documents',
+  importRecent: 'Recent imports',
+  importSaved: 'saved',
+  importNotSaved: 'not saved',
+  importPlainText: 'Plain text',
+  importProcessError: 'Could not process the file',
+  importNetworkProcessError: 'Network error while processing the file',
+  importConvertError: 'Could not convert',
+  importNetworkConvertError: 'Network error while converting',
+  importSaveError: 'Could not save',
+  importNetworkSaveError: 'Network error while saving',
+  importDropTitle: 'Drag your file here',
+  importDropSubtitle: 'Excel, CSV, JSON, Word, PDF, Markdown - maximum 20 MB',
+  importProcessing: 'Processing...',
+  importSelectFile: 'Select file',
+  importFormat: 'Format',
+  importConfidence: 'Confidence',
+  importFields: 'Fields',
+  importTables: 'Tables',
+  importChecklists: 'Checklists',
+  importSections: 'Sections',
+  importDetectedFields: 'Detected fields',
+  importMore: 'more',
+  importWarnings: 'Warnings',
+  importConvertToTool: 'Convert to tool',
+  importCancel: 'Cancel',
+  importAnalyzing: 'Claude is analyzing the document...',
+  importAnalyzingHelp: 'This can take a few seconds',
+  importImportedToolFallback: 'Imported tool',
+  importValidToolSchema: 'Valid ToolSchema',
+  importTokensProcessed: 'tokens processed',
+  importGeneratedSchemaPreview: 'Generated schema (preview)',
+  importSaveTool: 'Save tool',
+  importSaving: 'Saving...',
+  importBack: 'Back',
+  importToolImported: 'Tool imported',
+  importAvailableInCatalog: 'It is now available in your catalog',
+  importViewTools: 'View tools',
+  importAnother: 'Import another',
   descMissions: 'Strategic goals and their execution steps',
   descFiscal: 'Tax obligations calendar for your company',
   descInvoices: 'Create and manage invoices for your clients with downloadable PDF',
@@ -1487,6 +1902,10 @@ const en: DashboardTranslations = {
   expandSidebar: 'Expand sidebar',
   collapseSidebar: 'Collapse sidebar',
   openMenu: 'Open menu',
+  teamStatusOffline: 'Offline',
+  teamStatusAvailable: 'Available',
+  teamStatusBusy: 'Busy',
+  teamStatusInMeeting: 'In meeting',
   closeTeamPanel: 'Close team panel',
   openTeamPanel: 'Open team panel',
   welcomeTour: 'Welcome tour',
@@ -1593,6 +2012,68 @@ const en: DashboardTranslations = {
   todaySourcePlural: 'sources',
   todayFirstSteps: 'First steps',
   todayCompletedProgress: 'completed',
+  copilotSetupPrompt: 'Tell me what you want to work on today.',
+  copilotAssistantOf: 'Assistant for {company}',
+  copilotKnowledgeTitle: 'company knowledge',
+  copilotKnowledgeTooltip: 'Based on conversations, documents and objectives registered in this workspace',
+  copilotCompany: 'Company',
+  copilotEmptyCompany: 'I do not have company data yet. Tell me what you do and I will learn it.',
+  copilotCompanyName: 'Company',
+  copilotSector: 'Sector',
+  copilotCountry: 'Country',
+  copilotSize: 'Size',
+  copilotDigitalMaturity: 'Digital maturity',
+  copilotRegulations: 'Regulations',
+  copilotActiveObjectives: 'Active objectives',
+  copilotOpenRisks: 'Open risks',
+  copilotAvailableDocs: 'Available documents',
+  copilotSizeMicro: 'Micro business (< 10)',
+  copilotSizeSmall: 'Small (10-49)',
+  copilotSizeMedium: 'Medium (50-249)',
+  copilotSizeLarge: 'Large (250+)',
+  copilotMaturityEmerging: 'Emerging',
+  copilotMaturityDeveloping: 'Developing',
+  copilotMaturityEstablished: 'Established',
+  copilotMaturityAdvanced: 'Advanced',
+  copilotMaturityLeading: 'Digital leader',
+  copilotConnectionError: 'Connection error.',
+  copilotPlanSelectError: 'Could not select the plan.',
+  copilotWelcomeTitle: 'Hi! I am Arkos, your strategic copilot.',
+  copilotWelcomeDescriptionPrefix: 'To help you properly, I need to understand your business. ',
+  copilotWelcomeDescriptionStrong: 'Describe what you do in one sentence',
+  copilotWelcomeDescriptionSuffix: ' and we will begin.',
+  copilotQuickExamples: 'Examples - choose one or write your own',
+  copilotInitialPromptAgency: 'We are a freelance design agency specializing in branding',
+  copilotInitialPromptHr: 'I am an independent HR consultant serving SMEs',
+  copilotInitialPromptEcommerce: 'We run an online store for handmade products',
+  copilotInitialPromptLaw: 'We are a law firm with 3 partners',
+  copilotInitialWithContext: 'Tell me what objective you want to work on today or choose a suggestion. I will turn it into a mission with clear steps.',
+  copilotMaybeYouMeant: 'Maybe you meant one of these:',
+  copilotClarifyPlaceholder: 'Reply or choose an option above...',
+  copilotEmptyContextPlaceholder: 'Example: We are a 5-person marketing agency...',
+  copilotGoalPlaceholder: 'Describe the objective...',
+  copilotSend: 'Send',
+  copilotNew: 'New',
+  copilotNoMoreSuggestions: 'No more suggestions.',
+  copilotWriteDirectly: 'Write directly what you want to work on.',
+  copilotSuggestionsForCompany: 'Suggestions for your company',
+  copilotInProgress: 'In progress',
+  copilotFiscal: 'Tax',
+  copilotDismiss: 'Dismiss',
+  copilotAvailableStrategies: 'Available strategies',
+  copilotRecommended: 'Recommended',
+  copilotSteps: 'steps',
+  copilotDaySingular: 'day',
+  copilotDayPlural: 'days',
+  copilotRisk: 'Risk',
+  copilotRiskLow: 'low',
+  copilotRiskMedium: 'medium',
+  copilotRiskHigh: 'high',
+  copilotChooseStrategy: 'Choose this strategy',
+  copilotMissionCreated: 'Mission created with all its steps',
+  copilotMissionReady: 'The plan steps are ready in the dashboard.',
+  copilotViewMission: 'View mission',
+  copilotDashboard: 'Dashboard',
   toolsInstalledTitle: 'Installed tools',
   toolsInstalledDescription: 'Small apps for specific business tasks: audits, checklists, reports...',
   toolsGenerate: 'Generate',
@@ -1749,6 +2230,10 @@ const en: DashboardTranslations = {
   toolSettingsAiModelDescription: 'Choose the provider and model this tool will use when it runs',
   toolSettingsProvider: 'Provider',
   toolSettingsModel: 'Model',
+  toolSettingsProviderAvailable: 'Available',
+  toolSettingsProviderComingSoon: 'Coming soon',
+  toolSettingsModelSingular: 'model',
+  toolSettingsModelPlural: 'models',
   toolSettingsCreativity: 'Creativity',
   toolSettingsCreativityDescription: 'Control the randomness and creativity of responses',
   toolSettingsTemperature: 'Temperature',
@@ -2209,12 +2694,14 @@ const en: DashboardTranslations = {
   // Leads
   leadsTitle: 'Leads',
   leadsSubtitle: 'Potential clients — captured from your public form.',
+  leadsAll: 'All',
   leadsNoLeads: 'No leads yet',
   leadsNoLeadsHelp: 'Share the form link and start capturing potential clients.',
   leadsName: 'Name',
   leadsStatus: 'Status',
   leadsCompany: 'Company',
   leadsDate: 'Date',
+  leadsContact: 'Contact',
   leadsPhone: 'Phone',
   leadsMessage: 'Message',
   leadsInternalNotes: 'Internal notes',
@@ -2232,6 +2719,13 @@ const en: DashboardTranslations = {
   leadsConvertConfirmSuffix: ' to client?',
   leadsDeleteConfirmPrefix: 'Delete the lead of ',
   leadsDeleteConfirmSuffix: '?',
+  leadsDeleteModalTitle: 'Delete lead?',
+  leadsDeleteModalBody: 'This lead will be permanently deleted:',
+  leadsCancel: 'Cancel',
+  leadsDeleting: 'Deleting...',
+  leadsEmptyFiltered: 'No leads with this status',
+  leadsEmptyFilteredHelp: 'Try another filter or return to the full view.',
+  leadsEmptyWebhookHelp: 'Enable the forms webhook in Integrations to start capturing leads from Typeform, Tally or Jotform.',
   // History
   historyTitle: 'Work history',
   historySubtitle: 'All work history in this workspace',
@@ -2524,6 +3018,11 @@ const en: DashboardTranslations = {
   invoicesStatusCancelled: 'Cancelled',
   invoicesSend: 'Send',
   invoicesReviewReplies: 'Check replies',
+  invoicesIssueInvoice: 'Issue invoice',
+  invoicesIssuing: 'Issuing...',
+  invoicesIssueMissingNif: 'Set the workspace tax ID in Settings -> Fiscal profile before issuing.',
+  invoicesIssueError: 'Could not issue the invoice.',
+  invoicesIssueSentTooltip: 'Use the Issue invoice button. It calculates the Verifactu fingerprint.',
   invoicesReviewingReplies: 'Checking…',
   invoicesView: 'View detail',
   invoicesEdit: 'Edit',
@@ -2570,6 +3069,14 @@ const en: DashboardTranslations = {
   wsSettingsSubtitle: 'Customise branding, visible data and sending settings for your workspace.',
   integrationsTitle: 'Integrations',
   integrationsSubtitle: 'Connect the apps and accounts this workspace uses to work with clients, documents and automations.',
+  integrationsAvailableNow: 'Available now',
+  integrationsAvailableNowDescription: 'Configurable today, without needing additional external accounts.',
+  integrationsComingSoonSection: 'Coming soon',
+  integrationsComingSoonSectionDescription: 'In development. You can connect them when they become available.',
+  integrationsLaterSection: 'Later',
+  integrationsLaterSectionDescription: 'On the roadmap. Still in design phase.',
+  integrationsBankingTitle: 'Banking and reconciliation',
+  integrationsBankingDescription: 'Connect your bank account to import transactions and reconcile them automatically with your invoices and expenses.',
   integrationsEmailTitle: 'Email',
   integrationsEmailDescription: 'Send and receive client emails with MITIKUS, Gmail, Outlook or your own SMTP/IMAP account.',
   integrationsCalendarTitle: 'Calendar',
@@ -2880,6 +3387,167 @@ const es: DashboardTranslations = {
   descWorkflows: 'Encadena varias herramientas para automatizar un proceso completo',
   descOffice: 'Documentos, hojas de cálculo, PDFs, contratos y presentaciones',
   descFiles: 'Almacén de archivos del workspace con exportación ZIP',
+  filesTitle: 'Archivos',
+  filesSubtitle: 'Sube y gestiona los archivos de este workspace.',
+  filesStorage: 'Almacenamiento',
+  filesUsedSuffix: 'usado',
+  filesExportZip: 'Exportar ZIP',
+  filesGenerating: 'Generando...',
+  filesStorageLimitError: 'Has alcanzado el límite de almacenamiento de tu plan.',
+  filesSizeLimitError: 'El archivo supera el límite de 50 MB.',
+  filesUploadError: 'Error al subir el archivo.',
+  filesConnectionError: 'Error de conexión. Inténtalo de nuevo.',
+  filesExportPermissionError: 'No tienes permisos para exportar este workspace.',
+  filesExportError: 'Error al generar el ZIP.',
+  filesUploading: 'Subiendo...',
+  filesDropPrefix: 'Arrastra un archivo aquí o',
+  filesDropAction: 'elige uno',
+  filesMaxSize: 'Máximo 50 MB por archivo',
+  filesEmpty: 'Aún no hay archivos en este workspace.',
+  filesDelete: 'Eliminar archivo',
+  pdfsTitle: 'PDFs',
+  pdfsSubtitle: 'Sube archivos PDF para visualizarlos y convertirlos a documentos editables',
+  pdfsAll: 'Todas',
+  pdfsCategoryContracts: 'Contratos',
+  pdfsCategoryReports: 'Informes',
+  pdfsCategoryProposals: 'Propuestas',
+  pdfsCategoryInvoices: 'Facturas',
+  pdfsCategoryOther: 'Otro',
+  pdfsOnlyPdfError: 'Solo se admiten archivos PDF (.pdf)',
+  pdfsUploadError: 'Error al subir el PDF',
+  pdfsConnectionError: 'Error de conexión. Inténtalo de nuevo.',
+  pdfsSelectFileAria: 'Seleccionar archivo PDF',
+  pdfsProcessing: 'Procesando...',
+  pdfsDropPrefix: 'Arrastra un',
+  pdfsDropAction: 'aquí o',
+  pdfsChooseFile: 'elige archivo',
+  pdfsEmptyInCategory: 'Sin PDFs en "{category}"',
+  pdfsEmpty: 'Sin PDFs todavía',
+  pdfsEmptyFilteredHelp: 'Prueba otra categoría o sube un PDF nuevo.',
+  pdfsEmptyHelp: 'Arrastra un PDF en la zona de carga superior para empezar.',
+  pdfsPageSingular: 'página',
+  pdfsPagePlural: 'páginas',
+  pdfsUntitled: 'Sin título',
+  pdfsTitleAria: 'Título del PDF',
+  pdfsCategoryAria: 'Categoría',
+  pdfsNoCategory: 'Sin categoría',
+  pdfsSave: 'Guardar',
+  pdfsPageShortSingular: 'pág.',
+  pdfsPageShortPlural: 'págs.',
+  pdfsDownload: 'Descargar',
+  pdfsConvertTooltip: 'El resultado depende del contenido del PDF',
+  pdfsConverting: 'Convirtiendo...',
+  pdfsOpenAsDoc: 'Abrir como Doc',
+  pdfsDeleteConfirm: '¿Eliminar este PDF? Esta acción no se puede deshacer.',
+  pdfsDeleting: 'Eliminando...',
+  pdfsDelete: 'Eliminar PDF',
+  pdfsGoToPageAria: 'Ir a página {page}',
+  pdfsPagesShort: 'Págs',
+  pdfsSearchPlaceholder: 'Buscar...',
+  pdfsSearchAria: 'Buscar en el PDF',
+  pdfsPreviousMatch: 'Coincidencia anterior',
+  pdfsNextMatch: 'Coincidencia siguiente',
+  pdfsHideThumbnails: 'Ocultar miniaturas',
+  pdfsShowThumbnails: 'Mostrar miniaturas',
+  pdfsPreviousPage: 'Página anterior',
+  pdfsNextPage: 'Página siguiente',
+  pdfsPageAbbrev: 'Pág',
+  pdfsZoomOut: 'Reducir zoom',
+  pdfsZoomIn: 'Aumentar zoom',
+  pdfsLoading: 'Cargando PDF...',
+  pdfsLoadError: 'Error al cargar el PDF.',
+  timelogTitle: 'Control horario',
+  timelogSubtitle: 'Registro de jornada e imputación de horas',
+  timelogPrevious: 'Anterior',
+  timelogNext: 'Siguiente',
+  timelogInProgress: 'En curso',
+  timelogNoClockIn: 'Sin fichar',
+  timelogImputations: 'Imputaciones',
+  timelogClose: 'Cerrar',
+  timelogViewImputations: 'Ver imputaciones',
+  timelogEditEntryAria: 'Editar fichaje del {day}',
+  timelogDeleteEntryAria: 'Eliminar fichaje del {day}',
+  timelogTotal: 'Total',
+  timelogNoImputations: 'Sin imputaciones para este día.',
+  timelogDeleteImputation: 'Eliminar imputación',
+  timelogMissionOptional: 'Misión (opcional)',
+  timelogNoMission: 'Sin misión',
+  timelogClientOptional: 'Cliente (opcional)',
+  timelogNoClient: 'Sin cliente',
+  timelogHours: 'Horas *',
+  timelogHoursPlaceholder: 'ej. 2.5',
+  timelogDescription: 'Descripción',
+  timelogDescriptionPlaceholder: 'ej. Reunión de kick-off',
+  timelogCancel: 'Cancelar',
+  timelogAdd: 'Añadir',
+  timelogAdding: 'Añadiendo...',
+  timelogAddImputation: '+ Añadir imputación',
+  timelogInvalidHours: 'Introduce un número de horas válido (0.5 - 24)',
+  timelogAddError: 'No se pudo añadir la imputación. Inténtalo de nuevo.',
+  timelogDeleteError: 'No se pudo eliminar la imputación. Inténtalo de nuevo.',
+  timelogEditTitle: 'Editar fichaje',
+  timelogClockIn: 'Entrada',
+  timelogClockOut: 'Salida',
+  timelogEditReason: 'Motivo de corrección *',
+  timelogEditReasonPlaceholder: 'ej. Olvidé fichar la salida',
+  timelogEditReasonRequired: 'El motivo de corrección es obligatorio',
+  timelogClockOutRequired: 'Indica la hora de salida',
+  timelogSaveError: 'No se pudo guardar la entrada. Inténtalo de nuevo.',
+  timelogSave: 'Guardar',
+  timelogSaving: 'Guardando...',
+  timelogDayMon: 'Lun',
+  timelogDayTue: 'Mar',
+  timelogDayWed: 'Mié',
+  timelogDayThu: 'Jue',
+  timelogDayFri: 'Vie',
+  timelogDaySat: 'Sáb',
+  timelogDaySun: 'Dom',
+  importTitle: 'Centro de importación',
+  importSubtitle: 'Convierte cualquier archivo en una herramienta MITIKUS',
+  importExcelDescription: 'Hojas de cálculo con campos, tablas y listas',
+  importCsvDescription: 'Datos tabulares separados por comas o punto y coma',
+  importJsonDescription: 'JSON genérico o ToolSchema MITIKUS directamente',
+  importWordDescription: 'Documentos con encabezados, formularios y listas',
+  importPdfDescription: 'Formularios y documentos con texto extraíble',
+  importMarkdownDescription: 'Guías, checklists y documentos técnicos',
+  importRecent: 'Importaciones recientes',
+  importSaved: 'guardada',
+  importNotSaved: 'sin guardar',
+  importPlainText: 'Texto plano',
+  importProcessError: 'Error al procesar el archivo',
+  importNetworkProcessError: 'Error de red al procesar el archivo',
+  importConvertError: 'Error al convertir',
+  importNetworkConvertError: 'Error de red al convertir',
+  importSaveError: 'Error al guardar',
+  importNetworkSaveError: 'Error de red al guardar',
+  importDropTitle: 'Arrastra tu archivo aquí',
+  importDropSubtitle: 'Excel, CSV, JSON, Word, PDF, Markdown - máximo 20 MB',
+  importProcessing: 'Procesando...',
+  importSelectFile: 'Seleccionar archivo',
+  importFormat: 'Formato',
+  importConfidence: 'Confianza',
+  importFields: 'Campos',
+  importTables: 'Tablas',
+  importChecklists: 'Checklists',
+  importSections: 'Secciones',
+  importDetectedFields: 'Campos detectados',
+  importMore: 'más',
+  importWarnings: 'Advertencias',
+  importConvertToTool: 'Convertir a herramienta',
+  importCancel: 'Cancelar',
+  importAnalyzing: 'Claude está analizando el documento...',
+  importAnalyzingHelp: 'Esto puede tardar unos segundos',
+  importImportedToolFallback: 'Herramienta importada',
+  importValidToolSchema: 'ToolSchema válido',
+  importTokensProcessed: 'tokens procesados',
+  importGeneratedSchemaPreview: 'Schema generado (preview)',
+  importSaveTool: 'Guardar herramienta',
+  importSaving: 'Guardando...',
+  importBack: 'Volver',
+  importToolImported: 'Herramienta importada',
+  importAvailableInCatalog: 'Ya está disponible en tu catálogo',
+  importViewTools: 'Ver herramientas',
+  importAnother: 'Importar otro',
   descMissions: 'Objetivos estratégicos y sus pasos de ejecución',
   descFiscal: 'Calendario de obligaciones fiscales para tu empresa',
   descInvoices: 'Crea y gestiona facturas para tus clientes con PDF descargable',
@@ -2897,6 +3565,10 @@ const es: DashboardTranslations = {
   expandSidebar: 'Expandir sidebar',
   collapseSidebar: 'Colapsar sidebar',
   openMenu: 'Abrir menú',
+  teamStatusOffline: 'Desconectado',
+  teamStatusAvailable: 'Disponible',
+  teamStatusBusy: 'Ocupado',
+  teamStatusInMeeting: 'En reunion',
   closeTeamPanel: 'Cerrar panel de equipo',
   openTeamPanel: 'Abrir panel de equipo',
   welcomeTour: 'Tour de bienvenida',
@@ -3003,6 +3675,68 @@ const es: DashboardTranslations = {
   todaySourcePlural: 'fuentes',
   todayFirstSteps: 'Primeros pasos',
   todayCompletedProgress: 'completados',
+  copilotSetupPrompt: 'Cuéntame en qué quieres trabajar hoy.',
+  copilotAssistantOf: 'Asistente de {company}',
+  copilotKnowledgeTitle: 'conocimiento empresa',
+  copilotKnowledgeTooltip: 'Basado en conversaciones, documentos y objetivos registrados en este espacio',
+  copilotCompany: 'Empresa',
+  copilotEmptyCompany: 'Aún no tengo datos sobre tu empresa. Cuéntame en qué trabajas y los iré aprendiendo.',
+  copilotCompanyName: 'Empresa',
+  copilotSector: 'Sector',
+  copilotCountry: 'País',
+  copilotSize: 'Tamaño',
+  copilotDigitalMaturity: 'Madurez digital',
+  copilotRegulations: 'Normativas',
+  copilotActiveObjectives: 'Objetivos activos',
+  copilotOpenRisks: 'Riesgos abiertos',
+  copilotAvailableDocs: 'Documentos disponibles',
+  copilotSizeMicro: 'Microempresa (< 10)',
+  copilotSizeSmall: 'Pequeña (10-49)',
+  copilotSizeMedium: 'Mediana (50-249)',
+  copilotSizeLarge: 'Grande (250+)',
+  copilotMaturityEmerging: 'Emergente',
+  copilotMaturityDeveloping: 'En desarrollo',
+  copilotMaturityEstablished: 'Establecida',
+  copilotMaturityAdvanced: 'Avanzada',
+  copilotMaturityLeading: 'Líder digital',
+  copilotConnectionError: 'Error de conexión.',
+  copilotPlanSelectError: 'Error seleccionando plan.',
+  copilotWelcomeTitle: '¡Hola! Soy Arkos, tu copiloto estratégico.',
+  copilotWelcomeDescriptionPrefix: 'Para ayudarte de verdad necesito conocer tu negocio. ',
+  copilotWelcomeDescriptionStrong: 'Descríbeme en una frase a qué te dedicas',
+  copilotWelcomeDescriptionSuffix: ' y empezamos.',
+  copilotQuickExamples: 'Ejemplos - elige uno o escribe el tuyo',
+  copilotInitialPromptAgency: 'Somos una agencia de diseño freelance especializada en branding',
+  copilotInitialPromptHr: 'Soy consultor de RRHH independiente con clientes en pymes',
+  copilotInitialPromptEcommerce: 'Tenemos una tienda online de productos artesanales',
+  copilotInitialPromptLaw: 'Somos un despacho de abogados con 3 socios',
+  copilotInitialWithContext: 'Dime en qué objetivo quieres trabajar hoy o elige una sugerencia. Lo convertiré en una misión con pasos claros.',
+  copilotMaybeYouMeant: 'Quizás te referías a alguno de estos:',
+  copilotClarifyPlaceholder: 'Responde o elige una opción arriba...',
+  copilotEmptyContextPlaceholder: 'Ej: Somos una agencia de marketing con 5 personas...',
+  copilotGoalPlaceholder: 'Describe el objetivo...',
+  copilotSend: 'Enviar',
+  copilotNew: 'Nuevo',
+  copilotNoMoreSuggestions: 'No hay más sugerencias.',
+  copilotWriteDirectly: 'Escríbeme directamente en qué quieres trabajar.',
+  copilotSuggestionsForCompany: 'Sugerencias para tu empresa',
+  copilotInProgress: 'En curso',
+  copilotFiscal: 'Fiscal',
+  copilotDismiss: 'Descartar',
+  copilotAvailableStrategies: 'Estrategias disponibles',
+  copilotRecommended: 'Recomendada',
+  copilotSteps: 'pasos',
+  copilotDaySingular: 'día',
+  copilotDayPlural: 'días',
+  copilotRisk: 'Riesgo',
+  copilotRiskLow: 'bajo',
+  copilotRiskMedium: 'medio',
+  copilotRiskHigh: 'alto',
+  copilotChooseStrategy: 'Elegir esta estrategia',
+  copilotMissionCreated: 'Misión creada con todos sus pasos',
+  copilotMissionReady: 'Los pasos del plan están listos en Panel.',
+  copilotViewMission: 'Ver la misión',
+  copilotDashboard: 'Panel',
   toolsInstalledTitle: 'Herramientas instaladas',
   toolsInstalledDescription: 'Pequeñas apps para tareas concretas de tu negocio: auditorías, checklists, informes...',
   toolsGenerate: 'Generar',
@@ -3159,6 +3893,10 @@ const es: DashboardTranslations = {
   toolSettingsAiModelDescription: 'Elige el proveedor y modelo que usará esta herramienta al ejecutarse',
   toolSettingsProvider: 'Proveedor',
   toolSettingsModel: 'Modelo',
+  toolSettingsProviderAvailable: 'Disponible',
+  toolSettingsProviderComingSoon: 'Proximamente',
+  toolSettingsModelSingular: 'modelo',
+  toolSettingsModelPlural: 'modelos',
   toolSettingsCreativity: 'Creatividad',
   toolSettingsCreativityDescription: 'Controla la aleatoriedad y creatividad de las respuestas',
   toolSettingsTemperature: 'Temperatura',
@@ -3619,12 +4357,14 @@ const es: DashboardTranslations = {
   // Leads
   leadsTitle: 'Leads',
   leadsSubtitle: 'Potenciales clientes — captados desde tu formulario público.',
+  leadsAll: 'Todos',
   leadsNoLeads: 'Aún no tienes leads',
   leadsNoLeadsHelp: 'Comparte el enlace del formulario y empieza a captar potenciales clientes.',
   leadsName: 'Nombre',
   leadsStatus: 'Estado',
   leadsCompany: 'Empresa',
   leadsDate: 'Fecha',
+  leadsContact: 'Contacto',
   leadsPhone: 'Teléfono',
   leadsMessage: 'Mensaje',
   leadsInternalNotes: 'Notas internas',
@@ -3642,6 +4382,13 @@ const es: DashboardTranslations = {
   leadsConvertConfirmSuffix: ' en cliente?',
   leadsDeleteConfirmPrefix: '¿Eliminar el lead de ',
   leadsDeleteConfirmSuffix: '?',
+  leadsDeleteModalTitle: 'Eliminar lead?',
+  leadsDeleteModalBody: 'Este lead se eliminara de forma permanente:',
+  leadsCancel: 'Cancelar',
+  leadsDeleting: 'Eliminando...',
+  leadsEmptyFiltered: 'Sin leads con este estado',
+  leadsEmptyFilteredHelp: 'Prueba con otro filtro o vuelve a la vista completa.',
+  leadsEmptyWebhookHelp: 'Activa el webhook de formularios en Integraciones para empezar a captar leads desde Typeform, Tally o Jotform.',
   // History
   historyTitle: 'Historial de trabajo',
   historySubtitle: 'Todo el historial de trabajo en este workspace',
@@ -3934,6 +4681,11 @@ const es: DashboardTranslations = {
   invoicesStatusCancelled: 'Cancelada',
   invoicesSend: 'Enviar',
   invoicesReviewReplies: 'Revisar respuestas',
+  invoicesIssueInvoice: 'Emitir factura',
+  invoicesIssuing: 'Emitiendo...',
+  invoicesIssueMissingNif: 'Configura el NIF/CIF fiscal del workspace en Ajustes -> Perfil fiscal antes de emitir.',
+  invoicesIssueError: 'Error al emitir la factura',
+  invoicesIssueSentTooltip: 'Usa el boton Emitir factura. Calcula la huella Verifactu.',
   invoicesReviewingReplies: 'Revisando…',
   invoicesView: 'Ver detalle',
   invoicesEdit: 'Editar',
@@ -3980,6 +4732,14 @@ const es: DashboardTranslations = {
   wsSettingsSubtitle: 'Personaliza marca, datos visibles y envíos de tu espacio de trabajo.',
   integrationsTitle: 'Integraciones',
   integrationsSubtitle: 'Conecta las apps y cuentas que usa este workspace para trabajar con clientes, documentos y automatizaciones.',
+  integrationsAvailableNow: 'Disponible ahora',
+  integrationsAvailableNowDescription: 'Configurable hoy, sin necesidad de cuentas externas adicionales.',
+  integrationsComingSoonSection: 'Proximamente',
+  integrationsComingSoonSectionDescription: 'En desarrollo. Puedes conectarlas cuando esten disponibles.',
+  integrationsLaterSection: 'Mas adelante',
+  integrationsLaterSectionDescription: 'En el roadmap. Todavia en fase de diseno.',
+  integrationsBankingTitle: 'Banca y conciliacion',
+  integrationsBankingDescription: 'Conecta tu cuenta bancaria para importar movimientos y conciliarlos automaticamente con tus facturas y gastos.',
   integrationsEmailTitle: 'Correo',
   integrationsEmailDescription: 'Envía y recibe correos de clientes con MITIKUS, Gmail, Outlook o tu propia cuenta SMTP/IMAP.',
   integrationsCalendarTitle: 'Calendario',
@@ -4703,6 +5463,10 @@ const pt: DashboardTranslations = {
   expandSidebar: 'Expandir barra lateral',
   collapseSidebar: 'Recolher barra lateral',
   openMenu: 'Abrir menu',
+  teamStatusOffline: 'Desconectado',
+  teamStatusAvailable: 'Disponible',
+  teamStatusBusy: 'Ocupado',
+  teamStatusInMeeting: 'En reunion',
   closeTeamPanel: 'Fechar painel de equipa',
   openTeamPanel: 'Abrir painel de equipa',
   welcomeTour: 'Tour de boas-vindas',
@@ -6172,5 +6936,6 @@ export function getDashboardTranslations(locale: Locale): DashboardTranslations 
     ...(accountLocaleOverrides[locale] ?? {}),
   }
 }
+
 
 

@@ -2,12 +2,15 @@
 
 import { useRef, useState, useEffect } from 'react'
 import { Document, Page } from 'react-pdf'
+import { getDashboardTranslations } from '@/i18n/dashboard-translations'
+import type { Locale } from '@/i18n/config'
 
 interface Props {
   pdfData:      { data: Uint8Array }
   numPages:     number
   currentPage:  number
   onPageSelect: (page: number) => void
+  locale:       Locale
 }
 
 const THUMB_W = 71
@@ -17,11 +20,14 @@ function LazyThumbnail({
   pageNumber,
   isActive,
   onSelect,
+  locale,
 }: {
   pageNumber: number
   isActive:   boolean
   onSelect:   () => void
+  locale:     Locale
 }) {
+  const t = getDashboardTranslations(locale)
   const ref                   = useRef<HTMLDivElement>(null)
   const [visible, setVisible] = useState(false)
 
@@ -41,7 +47,7 @@ function LazyThumbnail({
       ref={ref}
       role="button"
       tabIndex={0}
-      aria-label={`Ir a página ${pageNumber}`}
+      aria-label={t.pdfsGoToPageAria.replace('{page}', String(pageNumber))}
       onClick={onSelect}
       onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') onSelect() }}
       className={[
@@ -77,7 +83,8 @@ function LazyThumbnail({
   )
 }
 
-export function PdfThumbnailSidebar({ pdfData, numPages, currentPage, onPageSelect }: Props) {
+export function PdfThumbnailSidebar({ pdfData, numPages, currentPage, onPageSelect, locale }: Props) {
+  const t = getDashboardTranslations(locale)
   return (
     <Document
       file={pdfData}
@@ -85,13 +92,14 @@ export function PdfThumbnailSidebar({ pdfData, numPages, currentPage, onPageSele
       error={<div style={{ width: 88 }} className="text-[9px] text-destructive text-center py-2">Error</div>}
     >
       <div className="flex flex-col gap-2 overflow-y-auto pr-1" style={{ width: 88, maxHeight: '70vh' }}>
-        <p className="text-[9px] uppercase tracking-wide text-muted-foreground text-center">Págs</p>
+        <p className="text-[9px] uppercase tracking-wide text-muted-foreground text-center">{t.pdfsPagesShort}</p>
         {Array.from({ length: numPages }, (_, i) => i + 1).map((n) => (
           <LazyThumbnail
             key={n}
             pageNumber={n}
             isActive={n === currentPage}
             onSelect={() => onPageSelect(n)}
+            locale={locale}
           />
         ))}
       </div>

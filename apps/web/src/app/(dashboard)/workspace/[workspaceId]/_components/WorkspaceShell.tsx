@@ -186,6 +186,7 @@ export function WorkspaceShell({ workspaceId, workspaceName, workspaceLogoUrl, w
             <TeamPanel
               myId={myId}
               onClose={() => setTeamPanelOpen(false)}
+              locale={locale}
             />
           )}
         </div>
@@ -206,3 +207,4 @@ export function WorkspaceShell({ workspaceId, workspaceName, workspaceLogoUrl, w
     </div>
   )
 }
+

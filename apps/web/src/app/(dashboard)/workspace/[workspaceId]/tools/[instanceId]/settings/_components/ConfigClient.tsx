@@ -72,6 +72,7 @@ export function ConfigClient({ toolInstanceId, workspaceId, initialConfig, avail
                 isSelected={config.provider === provider.id}
                 isAvailable={availableProviderIds.includes(provider.id)}
                 onSelect={handleProviderChange}
+                locale={locale}
               />
             ))}
           </div>
@@ -226,3 +227,4 @@ export function ConfigClient({ toolInstanceId, workspaceId, initialConfig, avail
     </div>
   )
 }
+

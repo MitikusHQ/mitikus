@@ -7,6 +7,9 @@ import { getCopilotSuggestions } from '@/lib/business-copilot'
 import { CopilotInterface } from './_components/CopilotInterface'
 import type { BusinessContext } from '@/lib/business-memory/memory-types'
 import type { CopilotSuggestion } from '@/lib/business-copilot'
+import { getLocale } from '@/i18n/locale'
+import { getDashboardTranslations, type DashboardTranslations } from '@/i18n/dashboard-translations'
+import type { Locale } from '@/i18n/config'
 
 interface Props {
   params:       Promise<{ workspaceId: string }>
@@ -14,7 +17,8 @@ interface Props {
 }
 
 export default async function CopilotPage({ params, searchParams }: Props) {
-  const [{ workspaceId }, { setup }, user] = await Promise.all([params, searchParams, requireUser()])
+  const [{ workspaceId }, { setup }, user, locale] = await Promise.all([params, searchParams, requireUser(), getLocale()])
+  const t = getDashboardTranslations(locale)
   const initialMessage = setup ? decodeURIComponent(setup) : undefined
 
   const workspace = await db.workspace.findFirst({
@@ -34,15 +38,16 @@ export default async function CopilotPage({ params, searchParams }: Props) {
       <PageHeader
         workspaceName={workspace.name}
         context={context}
+        t={t}
       />
 
       <div className="grid gap-6 lg:grid-cols-3">
         {/* Panel izquierdo — contexto empresa */}
         <aside className="lg:col-span-1 space-y-4">
-          <CompanyContextPanel context={context} />
-          <ObjectivesPanel context={context} workspaceId={workspaceId} />
-          <RisksPanel context={context} />
-          <DocsPanel context={context} />
+          <CompanyContextPanel context={context} t={t} />
+          <ObjectivesPanel context={context} workspaceId={workspaceId} t={t} />
+          <RisksPanel context={context} t={t} />
+          <DocsPanel context={context} t={t} />
         </aside>
 
         {/* Panel principal — interfaz copilot */}
@@ -53,6 +58,7 @@ export default async function CopilotPage({ params, searchParams }: Props) {
             initialContext={context}
             initialSuggestions={suggestions}
             initialMessage={initialMessage}
+            locale={locale}
           />
         </div>
       </div>
@@ -65,9 +71,11 @@ export default async function CopilotPage({ params, searchParams }: Props) {
 function PageHeader({
   workspaceName,
   context,
+  t,
 }: {
   workspaceName: string
   context: BusinessContext
+  t: DashboardTranslations
 }) {
   const companyLabel = context.companyName ?? workspaceName
   const confidencePct = Math.round(context.confidence * 100)
@@ -78,16 +86,16 @@ function PageHeader({
         <h1 className="text-2xl font-semibold">Arkos</h1>
         <p className="text-sm text-muted-foreground mt-1">
           {context.isEmpty
-            ? 'Cuéntame en qué quieres trabajar hoy.'
-            : `Asistente de ${companyLabel}`}
+            ? t.copilotSetupPrompt
+            : t.copilotAssistantOf.replace('{company}', companyLabel)}
         </p>
       </div>
       {!context.isEmpty && (
         <div
           className="text-right text-xs text-muted-foreground cursor-default"
-          title="Basado en conversaciones, documentos y objetivos registrados en este espacio"
+          title={t.copilotKnowledgeTooltip}
         >
-          <span className="font-medium">{confidencePct}%</span> conocimiento empresa
+          <span className="font-medium">{confidencePct}%</span> {t.copilotKnowledgeTitle}
           <ConfidenceBar value={context.confidence} />
         </div>
       )}
@@ -109,32 +117,32 @@ function ConfidenceBar({ value }: { value: number }) {
 
 // ── Company Context Panel ─────────────────────────────────────────
 
-function CompanyContextPanel({ context }: { context: BusinessContext }) {
+function CompanyContextPanel({ context, t }: { context: BusinessContext; t: DashboardTranslations }) {
   if (context.isEmpty) {
     return (
       <div className="rounded-lg border bg-card p-4 space-y-2">
         <h2 className="text-sm font-semibold text-muted-foreground uppercase tracking-wide">
-          Empresa
+          {t.copilotCompany}
         </h2>
         <p className="text-sm text-muted-foreground">
-          Aún no tengo datos sobre tu empresa. Cuéntame en qué trabajas y los iré aprendiendo.
+          {t.copilotEmptyCompany}
         </p>
       </div>
     )
   }
 
   const items: { label: string; value: string | null }[] = [
-    { label: 'Empresa',   value: context.companyName },
-    { label: 'Sector',    value: context.sector },
-    { label: 'País',      value: context.country },
-    { label: 'Tamaño',    value: sizeLabel(context.size) },
-    { label: 'Madurez digital', value: maturityLabel(context.digitalMaturity) },
+    { label: t.copilotCompanyName,   value: context.companyName },
+    { label: t.copilotSector,    value: context.sector },
+    { label: t.copilotCountry,      value: context.country },
+    { label: t.copilotSize,    value: sizeLabel(context.size, t) },
+    { label: t.copilotDigitalMaturity, value: maturityLabel(context.digitalMaturity, t) },
   ]
 
   return (
     <div className="rounded-lg border bg-card p-4 space-y-3">
       <h2 className="text-sm font-semibold text-muted-foreground uppercase tracking-wide">
-        Empresa
+        {t.copilotCompany}
       </h2>
       <dl className="space-y-2">
         {items.filter((i) => i.value).map((item) => (
@@ -146,7 +154,7 @@ function CompanyContextPanel({ context }: { context: BusinessContext }) {
       </dl>
       {context.regulations.length > 0 && (
         <div className="pt-2 border-t">
-          <p className="text-xs text-muted-foreground mb-1.5">Normativas</p>
+          <p className="text-xs text-muted-foreground mb-1.5">{t.copilotRegulations}</p>
           <div className="flex flex-wrap gap-1">
             {context.regulations.map((r) => (
               <span key={r} className="text-xs px-2 py-0.5 rounded-full bg-muted">
@@ -165,16 +173,18 @@ function CompanyContextPanel({ context }: { context: BusinessContext }) {
 function ObjectivesPanel({
   context,
   workspaceId,
+  t,
 }: {
   context: BusinessContext
   workspaceId: string
+  t: DashboardTranslations
 }) {
   if (context.activeObjectives.length === 0) return null
 
   return (
     <div className="rounded-lg border bg-card p-4 space-y-3">
       <h2 className="text-sm font-semibold text-muted-foreground uppercase tracking-wide">
-        Objetivos activos
+        {t.copilotActiveObjectives}
       </h2>
       <ul className="space-y-3">
         {context.activeObjectives.slice(0, 3).map((obj) => (
@@ -201,7 +211,7 @@ function ObjectivesPanel({
 
 // ── Risks Panel ───────────────────────────────────────────────────
 
-function RisksPanel({ context }: { context: BusinessContext }) {
+function RisksPanel({ context, t }: { context: BusinessContext; t: DashboardTranslations }) {
   const critical = context.openRisks.filter(
     (r) => r.level === 'high' || r.level === 'critical',
   )
@@ -210,7 +220,7 @@ function RisksPanel({ context }: { context: BusinessContext }) {
   return (
     <div className="rounded-lg border border-destructive/20 bg-destructive/5 p-4 space-y-3">
       <h2 className="text-sm font-semibold text-destructive uppercase tracking-wide">
-        Riesgos abiertos
+        {t.copilotOpenRisks}
       </h2>
       <ul className="space-y-2">
         {critical.slice(0, 3).map((risk) => (
@@ -228,7 +238,7 @@ function RisksPanel({ context }: { context: BusinessContext }) {
 
 // ── Docs Panel ────────────────────────────────────────────────────
 
-function DocsPanel({ context }: { context: BusinessContext }) {
+function DocsPanel({ context, t }: { context: BusinessContext; t: DashboardTranslations }) {
   if (!context.docsContext) return null
 
   const docTitles = context.docsContext
@@ -239,7 +249,7 @@ function DocsPanel({ context }: { context: BusinessContext }) {
   return (
     <div className="rounded-lg border bg-card p-4 space-y-3">
       <h2 className="text-sm font-semibold text-muted-foreground uppercase tracking-wide">
-        Documentos disponibles
+        {t.copilotAvailableDocs}
       </h2>
       <ul className="space-y-1.5">
         {docTitles.map((title) => (
@@ -255,24 +265,24 @@ function DocsPanel({ context }: { context: BusinessContext }) {
 
 // ── Helpers ───────────────────────────────────────────────────────
 
-function sizeLabel(size: string | null): string | null {
+function sizeLabel(size: string | null, t: DashboardTranslations): string | null {
   const labels: Record<string, string> = {
-    micro:   'Microempresa (< 10)',
-    small:   'Pequeña (10–49)',
-    medium:  'Mediana (50–249)',
-    large:   'Grande (250+)',
+    micro:   t.copilotSizeMicro,
+    small:   t.copilotSizeSmall,
+    medium:  t.copilotSizeMedium,
+    large:   t.copilotSizeLarge,
     unknown: '',
   }
   return size ? (labels[size] ?? size) : null
 }
 
-function maturityLabel(maturity: string | null): string | null {
+function maturityLabel(maturity: string | null, t: DashboardTranslations): string | null {
   const labels: Record<string, string> = {
-    emerging:     'Emergente',
-    developing:   'En desarrollo',
-    established:  'Establecida',
-    advanced:     'Avanzada',
-    leading:      'Líder digital',
+    emerging:     t.copilotMaturityEmerging,
+    developing:   t.copilotMaturityDeveloping,
+    established:  t.copilotMaturityEstablished,
+    advanced:     t.copilotMaturityAdvanced,
+    leading:      t.copilotMaturityLeading,
   }
   return maturity ? (labels[maturity] ?? maturity) : null
 }

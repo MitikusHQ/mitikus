@@ -2,6 +2,8 @@ import { requireUser } from '@/lib/auth'
 import { db } from '@/lib/db'
 import { getStorageStatus } from '@/lib/storage/check-storage-limit'
 import { FilesClient } from './_components/FilesClient'
+import { getLocale } from '@/i18n/locale'
+import { getDashboardTranslations } from '@/i18n/dashboard-translations'
 
 interface Props {
   params: Promise<{ workspaceId: string }>
@@ -10,7 +12,8 @@ interface Props {
 export const metadata = { title: 'Archivos' }
 
 export default async function FilesPage({ params }: Props) {
-  const [{ workspaceId }, user] = await Promise.all([params, requireUser()])
+  const [{ workspaceId }, user, locale] = await Promise.all([params, requireUser(), getLocale()])
+  const t = getDashboardTranslations(locale)
 
   const workspace = await db.workspace.findFirst({
     where: { id: workspaceId, orgId: user.orgId },
@@ -30,15 +33,16 @@ export default async function FilesPage({ params }: Props) {
   return (
     <div className="p-6 max-w-3xl mx-auto space-y-6">
       <div>
-        <h1 className="text-xl font-semibold">Archivos</h1>
+        <h1 className="text-xl font-semibold">{t.filesTitle}</h1>
         <p className="text-sm text-muted-foreground mt-1">
-          Sube y gestiona los archivos de este workspace
+          {t.filesSubtitle}
         </p>
       </div>
       <FilesClient
         workspaceId={workspaceId}
         initialFiles={files.map((f) => ({ ...f, createdAt: f.createdAt.toISOString() }))}
         initialStorage={storage}
+        locale={locale}
       />
     </div>
   )

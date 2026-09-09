@@ -3,13 +3,8 @@
 import { useTransition } from 'react'
 import { updateLeadStatus } from '@/app/actions/leads'
 import type { LeadStatus } from '@prisma/client'
-
-const STATUS_LABELS: Record<LeadStatus, string> = {
-  NUEVO: 'Nuevo',
-  CONTACTADO: 'Contactado',
-  CUALIFICADO: 'Cualificado',
-  PERDIDO: 'Perdido',
-}
+import { getDashboardTranslations } from '@/i18n/dashboard-translations'
+import type { Locale } from '@/i18n/config'
 
 const STATUS_COLORS: Record<LeadStatus, string> = {
   NUEVO: 'bg-blue-500/10 text-blue-600 border-blue-200',
@@ -22,10 +17,18 @@ interface Props {
   leadId: string
   workspaceId: string
   status: LeadStatus
+  locale: Locale
 }
 
-export function LeadStatusSelect({ leadId, workspaceId, status }: Props) {
+export function LeadStatusSelect({ leadId, workspaceId, status, locale }: Props) {
+  const t = getDashboardTranslations(locale)
   const [isPending, startTransition] = useTransition()
+  const statusLabels: Record<LeadStatus, string> = {
+    NUEVO: t.leadsStatusNew,
+    CONTACTADO: t.leadsStatusContacted,
+    CUALIFICADO: t.leadsStatusQualified,
+    PERDIDO: t.leadsStatusLost,
+  }
 
   function handleChange(e: React.ChangeEvent<HTMLSelectElement>) {
     const next = e.target.value as LeadStatus
@@ -40,8 +43,8 @@ export function LeadStatusSelect({ leadId, workspaceId, status }: Props) {
       className={`text-xs font-medium px-2 py-1 rounded-full border cursor-pointer disabled:opacity-60 transition-opacity ${STATUS_COLORS[status]}`}
       style={{ appearance: 'none', paddingRight: '0.5rem' }}
     >
-      {(Object.keys(STATUS_LABELS) as LeadStatus[]).map(s => (
-        <option key={s} value={s}>{STATUS_LABELS[s]}</option>
+      {(Object.keys(statusLabels) as LeadStatus[]).map(s => (
+        <option key={s} value={s}>{statusLabels[s]}</option>
       ))}
     </select>
   )

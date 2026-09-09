@@ -59,8 +59,8 @@ export default async function IntegrationsPage({ params }: Props) {
 
       {/* ── Disponible ahora ──────────────────────────────── */}
       <SectionHeader
-        label="Disponible ahora"
-        description="Configurable hoy, sin necesidad de cuentas externas adicionales."
+        label={t.integrationsAvailableNow}
+        description={t.integrationsAvailableNowDescription}
       />
       <div className="space-y-4 mb-10">
         <EmailIntegrationClient workspace={workspace} locale={locale} />
@@ -69,8 +69,8 @@ export default async function IntegrationsPage({ params }: Props) {
 
       {/* ── Próximamente ──────────────────────────────────── */}
       <SectionHeader
-        label="Próximamente"
-        description="En desarrollo. Puedes conectarlas cuando estén disponibles."
+        label={t.integrationsComingSoonSection}
+        description={t.integrationsComingSoonSectionDescription}
       />
       <div className="space-y-4 mb-10">
         <CalendarIntegrationClient workspaceId={workspace.id} locale={locale} calendar={integrations.calendar ?? null} />
@@ -151,14 +151,14 @@ export default async function IntegrationsPage({ params }: Props) {
 
       {/* ── Más adelante ──────────────────────────────────── */}
       <SectionHeader
-        label="Más adelante"
-        description="En el roadmap. Todavía en fase de diseño."
+        label={t.integrationsLaterSection}
+        description={t.integrationsLaterSectionDescription}
       />
       <div className="space-y-4">
         <ComingSoonIntegrationPanel
           locale={locale}
-          title="Banca y conciliación"
-          description="Conecta tu cuenta bancaria para importar movimientos y conciliarlos automáticamente con tus facturas y gastos."
+          title={t.integrationsBankingTitle}
+          description={t.integrationsBankingDescription}
           providers={[
             { name: 'BBVA', mark: 'B' },
             { name: 'CaixaBank', mark: 'C' },
@@ -182,3 +182,4 @@ function SectionHeader({ label, description }: { label: string; description: str
     </div>
   )
 }
+

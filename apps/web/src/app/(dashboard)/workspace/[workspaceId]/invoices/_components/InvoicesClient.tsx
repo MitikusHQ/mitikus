@@ -83,7 +83,7 @@ export function InvoicesClient({ workspaceId, initialInvoices, clients, defaultP
   async function handleEmitir(inv: InvoiceData) {
     if (emitting) return
     if (!emisorNif) {
-      setEmitError('Configura el NIF/CIF fiscal del workspace en Ajustes → Perfil fiscal antes de emitir.')
+      setEmitError(t.invoicesIssueMissingNif)
       return
     }
     setEmitting(true)
@@ -93,7 +93,7 @@ export function InvoicesClient({ workspaceId, initialInvoices, clients, defaultP
       setInvoices(prev => prev.map(i => i.id === updated.id ? updated : i))
       setSelected(updated)
     } catch (err) {
-      setEmitError(err instanceof Error ? err.message : 'Error al emitir la factura')
+      setEmitError(err instanceof Error ? err.message : t.invoicesIssueError)
     } finally {
       setEmitting(false)
     }
@@ -302,7 +302,7 @@ export function InvoicesClient({ workspaceId, initialInvoices, clients, defaultP
                       disabled={emitting}
                       className="flex shrink-0 items-center gap-1.5 px-3 py-1.5 text-xs font-semibold bg-primary text-primary-foreground rounded-lg hover:opacity-90 transition-opacity disabled:opacity-60"
                     >
-                      {emitting ? 'Emitiendo...' : '⚡ Emitir factura'}
+                      {emitting ? t.invoicesIssuing : t.invoicesIssueInvoice}
                     </button>
                   )}
                   <button
@@ -380,7 +380,7 @@ export function InvoicesClient({ workspaceId, initialInvoices, clients, defaultP
                         key={key}
                         onClick={() => handleStatusChange(selected, key)}
                         disabled={selected.status === key || key === 'enviada'}
-                        title={key === 'enviada' ? 'Usa el botón "Emitir factura" — calcula la huella Verifactu' : undefined}
+                        title={key === 'enviada' ? t.invoicesIssueSentTooltip : undefined}
                         className={`text-xs px-2.5 py-1 rounded-full font-medium transition-opacity ${color} ${selected.status === key ? 'opacity-100 ring-2 ring-offset-1 ring-primary' : 'opacity-60 hover:opacity-100'}`}
                       >
                         {label}
@@ -568,3 +568,4 @@ export function InvoicesClient({ workspaceId, initialInvoices, clients, defaultP
     </div>
   )
 }
+

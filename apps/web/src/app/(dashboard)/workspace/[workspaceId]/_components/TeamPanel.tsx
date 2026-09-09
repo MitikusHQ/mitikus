@@ -1,6 +1,8 @@
 'use client'
 
 import { useState, useEffect, useRef, useCallback } from 'react'
+import { getDashboardTranslations } from '@/i18n/dashboard-translations'
+import type { Locale } from '@/i18n/config'
 
 // ─── Types ────────────────────────────────────────────────────────────────────
 
@@ -33,6 +35,7 @@ interface TeamEvent {
 interface Props {
   onClose: () => void
   myId: string
+  locale: Locale
 }
 
 // ─── ICE config ──────────────────────────────────────────────────────────────
@@ -81,17 +84,18 @@ const PRESENCE_LABEL: Record<PresenceStatus, string> = {
   IN_MEETING: 'En reunión',
 }
 
-function Avatar({ id, name, email, status, size = 'md' }: {
+function Avatar({ id, name, email, status, statusLabel, size = 'md' }: {
   id: string
   name: string | null
   email: string
   status: PresenceStatus
+  statusLabel: string
   size?: 'sm' | 'md'
 }) {
   const sz = size === 'sm' ? 'w-7 h-7 text-[11px]' : 'w-9 h-9 text-sm'
   const dot = size === 'sm' ? 'w-2 h-2 border' : 'w-2.5 h-2.5 border'
   return (
-    <span className="relative shrink-0 inline-block" title={PRESENCE_LABEL[status]}>
+    <span className="relative shrink-0 inline-block" title={statusLabel}>
       <span className={`${sz} ${avatarColor(id)} rounded-full flex items-center justify-center font-semibold text-white select-none`}>
         {initials(name, email)}
       </span>
@@ -100,18 +104,26 @@ function Avatar({ id, name, email, status, size = 'md' }: {
   )
 }
 
-function PresenceDot({ status }: { status: PresenceStatus }) {
+function statusLabelKey(status: PresenceStatus) {
+  if (status === 'OFFLINE') return 'Offline'
+  if (status === 'AVAILABLE') return 'Available'
+  if (status === 'BUSY') return 'Busy'
+  return 'InMeeting'
+}
+
+function PresenceDot({ status, statusLabel }: { status: PresenceStatus; statusLabel: string }) {
   return (
     <span
       className={`inline-block w-2.5 h-2.5 rounded-full shrink-0 ${PRESENCE_DOT[status]}`}
-      title={PRESENCE_LABEL[status]}
+      title={statusLabel}
     />
   )
 }
 
 // ─── Main component ───────────────────────────────────────────────────────────
 
-export function TeamPanel({ onClose, myId }: Props) {
+export function TeamPanel({ onClose, myId, locale }: Props) {
+  const t = getDashboardTranslations(locale)
   const [members, setMembers] = useState<Member[]>([])
   const [myStatus, setMyStatus] = useState<PresenceStatus>('AVAILABLE')
   const [activeConvId, setActiveConvId] = useState<string | null>(null)
@@ -126,6 +138,13 @@ export function TeamPanel({ onClose, myId }: Props) {
   const [callPeer, setCallPeer] = useState<{ id: string; name: string | null } | null>(null)
   const [callMode, setCallMode] = useState<'audio' | 'video'>('audio')
   const [incomingOffer, setIncomingOffer] = useState<RTCSessionDescriptionInit | null>(null)
+
+  function presenceLabel(status: PresenceStatus) {
+    if (status === 'OFFLINE') return t.teamStatusOffline
+    if (status === 'AVAILABLE') return t.teamStatusAvailable
+    if (status === 'BUSY') return t.teamStatusBusy
+    return t.teamStatusInMeeting
+  }
 
   const pcRef = useRef<RTCPeerConnection | null>(null)
   const localStreamRef = useRef<MediaStream | null>(null)
@@ -353,9 +372,9 @@ export function TeamPanel({ onClose, myId }: Props) {
   }
 
   const STATUS_OPTIONS: Array<{ value: PresenceStatus; label: string }> = [
-    { value: 'AVAILABLE', label: 'Disponible' },
-    { value: 'BUSY', label: 'Ocupado' },
-    { value: 'IN_MEETING', label: 'En reunión' },
+    { value: 'AVAILABLE', label: t.teamStatusAvailable },
+    { value: 'BUSY', label: t.teamStatusBusy },
+    { value: 'IN_MEETING', label: t.teamStatusInMeeting },
   ]
 
   // ─── Render ────────────────────────────────────────────────────────────────
@@ -466,7 +485,7 @@ export function TeamPanel({ onClose, myId }: Props) {
                 key={m.id}
                 className="flex items-center gap-3 px-4 py-2.5 hover:bg-muted/50 transition-colors"
               >
-                <Avatar id={m.id} name={m.name} email={m.email} status={m.status} />
+                <Avatar id={m.id} name={m.name} email={m.email} status={m.status} statusLabel={presenceLabel(m.status)} />
                 <div className="flex-1 min-w-0">
                   <p className="text-sm font-medium truncate">
                     {m.name ?? m.email}
@@ -526,7 +545,7 @@ export function TeamPanel({ onClose, myId }: Props) {
                 </svg>
               </button>
               {activePeer && (
-                <Avatar id={activePeer.id} name={activePeer.name} email={activePeer.email} status={activePeer.status} size="sm" />
+                <Avatar id={activePeer.id} name={activePeer.name} email={activePeer.email} status={activePeer.status} statusLabel={presenceLabel(activePeer.status)} size="sm" />
               )}
               <div className="flex-1 min-w-0">
                 <p className="text-sm font-medium truncate">{activePeer?.name ?? activePeer?.email}</p>
@@ -618,3 +637,5 @@ export function TeamPanel({ onClose, myId }: Props) {
     </>
   )
 }
+
+

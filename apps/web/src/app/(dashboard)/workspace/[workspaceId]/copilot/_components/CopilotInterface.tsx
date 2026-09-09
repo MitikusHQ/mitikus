@@ -10,6 +10,8 @@ import type {
   PlanSummary,
   CopilotAction,
 } from '@/lib/business-copilot'
+import { getDashboardTranslations, type DashboardTranslations } from '@/i18n/dashboard-translations'
+import type { Locale } from '@/i18n/config'
 
 // ── Types ─────────────────────────────────────────────────────────
 
@@ -51,14 +53,25 @@ interface Props {
   initialContext:      BusinessContext
   initialSuggestions:  CopilotSuggestion[]
   initialMessage?:     string
+  locale:              Locale
 }
 
-const QUICK_START_PROMPTS = [
-  'Somos una agencia de diseño freelance especializada en branding',
-  'Soy consultor de RRHH independiente con clientes en pymes',
-  'Tenemos una tienda online de productos artesanales',
-  'Somos un despacho de abogados con 3 socios',
-]
+function quickStartPrompts(t: DashboardTranslations) {
+  return [
+    t.copilotInitialPromptAgency,
+    t.copilotInitialPromptHr,
+    t.copilotInitialPromptEcommerce,
+    t.copilotInitialPromptLaw,
+  ]
+}
+
+function translatedRiskLevel(level: PlanSummary['riskLevel'], t: DashboardTranslations): string {
+  return ({
+    low:    t.copilotRiskLow,
+    medium: t.copilotRiskMedium,
+    high:   t.copilotRiskHigh,
+  } as Record<string, string>)[level] ?? level
+}
 
 // ── Main component ─────────────────────────────────────────────────
 
@@ -68,7 +81,9 @@ export function CopilotInterface({
   initialContext,
   initialSuggestions,
   initialMessage,
+  locale,
 }: Props) {
+  const t = getDashboardTranslations(locale)
   const router = useRouter()
   const [ui, setUi]             = useState<UIState>({ ...INITIAL_UI, suggestions: initialSuggestions })
   const [messages, setMessages] = useState<ChatMessage[]>([])
@@ -113,7 +128,7 @@ export function CopilotInterface({
       applyResponse(data)
       router.refresh()
     } catch {
-      setUi((s) => ({ ...s, loading: false, error: 'Error de conexión.' }))
+      setUi((s) => ({ ...s, loading: false, error: t.copilotConnectionError }))
     }
   }
 
@@ -143,7 +158,7 @@ export function CopilotInterface({
       applyResponse(data)
       router.refresh()
     } catch {
-      setUi((s) => ({ ...s, loading: false, error: 'Error de conexión.' }))
+      setUi((s) => ({ ...s, loading: false, error: t.copilotConnectionError }))
     }
   }
 
@@ -158,7 +173,7 @@ export function CopilotInterface({
       const data: CopilotResponse = await res.json()
       applyResponse(data)
     } catch {
-      setUi((s) => ({ ...s, loading: false, error: 'Error seleccionando plan.' }))
+      setUi((s) => ({ ...s, loading: false, error: t.copilotPlanSelectError }))
     }
   }
 
@@ -259,16 +274,16 @@ export function CopilotInterface({
                   <span className="text-sm font-bold text-primary">A</span>
                 </div>
                 <div>
-                  <p className="text-sm font-medium">¡Hola! Soy Arkos, tu copiloto estratégico.</p>
+                  <p className="text-sm font-medium">{t.copilotWelcomeTitle}</p>
                   <p className="text-sm text-muted-foreground mt-1">
-                    Para ayudarte de verdad necesito conocer tu negocio. <strong>Descríbeme en una frase a qué te dedicas</strong> y empezamos.
+                    {t.copilotWelcomeDescriptionPrefix}<strong>{t.copilotWelcomeDescriptionStrong}</strong>{t.copilotWelcomeDescriptionSuffix}
                   </p>
                 </div>
               </div>
             </div>
             <div className="space-y-2">
-              <p className="text-xs text-muted-foreground font-medium uppercase tracking-wide">Ejemplos — elige uno o escribe el tuyo</p>
-              {QUICK_START_PROMPTS.map((prompt) => (
+              <p className="text-xs text-muted-foreground font-medium uppercase tracking-wide">{t.copilotQuickExamples}</p>
+              {quickStartPrompts(t).map((prompt) => (
                 <button
                   key={prompt}
                   onClick={() => { setInput(prompt); textareaRef.current?.focus() }}
@@ -285,9 +300,9 @@ export function CopilotInterface({
         {showInitialSuggestions && !initialContext.isEmpty && (
           <div className="space-y-4">
             <p className="text-sm text-muted-foreground">
-              Dime en qué objetivo quieres trabajar hoy o elige una sugerencia. Lo convertiré en una misión con pasos claros.
+              {t.copilotInitialWithContext}
             </p>
-            <SuggestionsGrid suggestions={visibleSuggestions} onSelect={handleSuggestion} onDismiss={handleDismiss} allDismissed={visibleSuggestions.length === 0 && ui.suggestions.length > 0} />
+            <SuggestionsGrid suggestions={visibleSuggestions} onSelect={handleSuggestion} onDismiss={handleDismiss} allDismissed={visibleSuggestions.length === 0 && ui.suggestions.length > 0} t={t} />
           </div>
         )}
 
@@ -343,12 +358,12 @@ export function CopilotInterface({
 
         {/* Planes */}
         {!isLoading && showPlans && (
-          <PlansPanel plans={ui.plans} onSelect={handleSelectPlan} />
+          <PlansPanel plans={ui.plans} onSelect={handleSelectPlan} t={t} />
         )}
 
         {/* Misión creada */}
         {!isLoading && showWorkflow && (
-          <WorkflowReadyPanel objectiveId={ui.objectiveId} workspaceId={workspaceId} />
+          <WorkflowReadyPanel objectiveId={ui.objectiveId} workspaceId={workspaceId} t={t} />
         )}
 
         {/* Error + sugerencias de recuperación */}
@@ -357,7 +372,7 @@ export function CopilotInterface({
             <p className="text-sm text-destructive">{ui.error}</p>
             {ui.suggestions.length > 0 && (
               <div className="space-y-1.5">
-                <p className="text-xs text-muted-foreground font-medium">Quizás te referías a alguno de estos:</p>
+                <p className="text-xs text-muted-foreground font-medium">{t.copilotMaybeYouMeant}</p>
                 <div className="flex flex-wrap gap-2">
                   {ui.suggestions.map((s) => (
                     <button
@@ -404,10 +419,10 @@ export function CopilotInterface({
             onKeyDown={handleKeyDown}
             placeholder={
               ui.phase === 'clarifying'
-                ? 'Responde o elige una opción arriba…'
+                ? t.copilotClarifyPlaceholder
                 : initialContext.isEmpty && messages.length === 0
-                  ? 'Ej: Somos una agencia de marketing con 5 personas…'
-                  : 'Describe el objetivo…'
+                  ? t.copilotEmptyContextPlaceholder
+                  : t.copilotGoalPlaceholder
             }
             rows={2}
             className="flex-1 resize-none rounded-md border bg-background px-3 py-2 text-sm placeholder:text-muted-foreground focus:outline-none focus:ring-1 focus:ring-ring"
@@ -419,14 +434,14 @@ export function CopilotInterface({
               disabled={!input.trim() || isLoading}
               className="px-4 py-2 rounded-md bg-primary text-primary-foreground text-sm font-medium hover:bg-primary/90 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
             >
-              Enviar
+              {t.copilotSend}
             </button>
             {messages.length > 0 && (
               <button
                 onClick={handleReset}
                 className="px-4 py-2 rounded-md border text-sm text-muted-foreground hover:bg-muted transition-colors"
               >
-                Nuevo
+                {t.copilotNew}
               </button>
             )}
           </div>
@@ -508,17 +523,19 @@ function SuggestionsGrid({
   onSelect,
   onDismiss,
   allDismissed,
+  t,
 }: {
   suggestions: CopilotSuggestion[]
   onSelect: (s: CopilotSuggestion) => void
   onDismiss: (id: string, e: React.MouseEvent) => void
   allDismissed?: boolean
+  t: DashboardTranslations
 }) {
   if (allDismissed) {
     return (
       <div className="rounded-lg border border-dashed p-5 text-center space-y-1">
-        <p className="text-sm text-muted-foreground">No hay más sugerencias.</p>
-        <p className="text-xs text-muted-foreground">Escríbeme directamente en qué quieres trabajar.</p>
+        <p className="text-sm text-muted-foreground">{t.copilotNoMoreSuggestions}</p>
+        <p className="text-xs text-muted-foreground">{t.copilotWriteDirectly}</p>
       </div>
     )
   }
@@ -526,7 +543,7 @@ function SuggestionsGrid({
   return (
     <div className="space-y-2">
       <p className="text-xs text-muted-foreground font-medium uppercase tracking-wide">
-        Sugerencias para tu empresa
+        {t.copilotSuggestionsForCompany}
       </p>
       <div className="space-y-2">
         {suggestions.map((s) => (
@@ -544,12 +561,12 @@ function SuggestionsGrid({
                     </p>
                     {s.category === 'objective' && (
                       <span className="shrink-0 text-[10px] font-semibold px-1.5 py-0.5 rounded-full bg-primary/10 text-primary leading-none">
-                        En curso
+                        {t.copilotInProgress}
                       </span>
                     )}
                     {s.category === 'fiscal' && (
                       <span className="shrink-0 text-[10px] font-semibold px-1.5 py-0.5 rounded-full bg-amber-100 text-amber-700 dark:bg-amber-900/30 dark:text-amber-400 leading-none">
-                        Fiscal
+                        {t.copilotFiscal}
                       </span>
                     )}
                   </div>
@@ -560,7 +577,7 @@ function SuggestionsGrid({
             <button
               onClick={(e) => onDismiss(s.id, e)}
               className="absolute top-2 right-2 w-5 h-5 flex items-center justify-center rounded text-muted-foreground/40 hover:text-muted-foreground hover:bg-muted transition-colors opacity-0 group-hover/card:opacity-100"
-              title="Descartar"
+              title={t.copilotDismiss}
             >
               <svg className="w-3 h-3" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5"><path d="M18 6L6 18M6 6l12 12"/></svg>
             </button>
@@ -576,14 +593,16 @@ function SuggestionsGrid({
 function PlansPanel({
   plans,
   onSelect,
+  t,
 }: {
   plans: PlanSummary[]
   onSelect: (planId: string) => void
+  t: DashboardTranslations
 }) {
   return (
     <div className="space-y-3 pl-8">
       <p className="text-xs text-muted-foreground font-medium uppercase tracking-wide">
-        Estrategias disponibles
+        {t.copilotAvailableStrategies}
       </p>
       <div className="space-y-2">
         {plans.map((plan) => (
@@ -599,7 +618,7 @@ function PlansPanel({
                   <h3 className="text-sm font-semibold">{plan.label}</h3>
                   {plan.isRecommended && (
                     <span className="text-xs px-2 py-0.5 rounded-full bg-primary text-primary-foreground">
-                      Recomendada
+                      {t.copilotRecommended}
                     </span>
                   )}
                 </div>
@@ -608,14 +627,14 @@ function PlansPanel({
             </div>
 
             <div className="flex items-center gap-4 text-xs text-muted-foreground">
-              <span>{plan.totalTools} pasos</span>
-              <span>~{plan.estimatedDays} día{plan.estimatedDays !== 1 ? 's' : ''}</span>
+              <span>{plan.totalTools} {t.copilotSteps}</span>
+              <span>~{plan.estimatedDays} {plan.estimatedDays === 1 ? t.copilotDaySingular : t.copilotDayPlural}</span>
               <span className={`font-medium ${
                 plan.riskLevel === 'low'    ? 'text-green-600 dark:text-green-400' :
                 plan.riskLevel === 'medium' ? 'text-yellow-600 dark:text-yellow-400'
                                             : 'text-red-600 dark:text-red-400'
               }`}>
-                Riesgo {plan.riskLevel === 'low' ? 'bajo' : plan.riskLevel === 'medium' ? 'medio' : 'alto'}
+                {t.copilotRisk} {translatedRiskLevel(plan.riskLevel, t)}
               </span>
               <span className="ml-auto font-semibold text-foreground">{plan.score}/100</span>
             </div>
@@ -626,7 +645,7 @@ function PlansPanel({
               onClick={() => onSelect(plan.id)}
               className="w-full px-4 py-2 rounded-md border text-sm font-medium hover:bg-muted transition-colors"
             >
-              Elegir esta estrategia
+              {t.copilotChooseStrategy}
             </button>
           </div>
         ))}
@@ -640,9 +659,11 @@ function PlansPanel({
 function WorkflowReadyPanel({
   objectiveId,
   workspaceId,
+  t,
 }: {
   objectiveId: string | null
   workspaceId: string
+  t: DashboardTranslations
 }) {
   const missionUrl = objectiveId
     ? `/workspace/${workspaceId}/missions/${objectiveId}`
@@ -654,24 +675,24 @@ function WorkflowReadyPanel({
         <div className="flex items-center gap-2">
           <span className="text-green-600 text-lg">✓</span>
           <p className="text-sm font-medium text-green-700 dark:text-green-400">
-            Misión creada con todos sus pasos
+            {t.copilotMissionCreated}
           </p>
         </div>
         <p className="text-xs text-muted-foreground">
-          Los pasos del plan están listos en Panel.
+          {t.copilotMissionReady}
         </p>
         <div className="flex items-center gap-4">
           <a
             href={missionUrl}
             className="inline-flex items-center gap-1.5 text-sm font-medium text-primary hover:underline"
           >
-            Ver la misión →
+            {t.copilotViewMission} →
           </a>
           <a
             href={`/workspace/${workspaceId}`}
             className="text-xs text-muted-foreground hover:text-foreground transition-colors"
           >
-            Panel
+            {t.copilotDashboard}
           </a>
         </div>
       </div>

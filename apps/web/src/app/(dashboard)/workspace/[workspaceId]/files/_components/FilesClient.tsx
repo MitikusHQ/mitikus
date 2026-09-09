@@ -1,6 +1,8 @@
 'use client'
 
 import { useRef, useState, useCallback } from 'react'
+import { getDashboardTranslations } from '@/i18n/dashboard-translations'
+import type { Locale } from '@/i18n/config'
 
 // ── Tipos ─────────────────────────────────────────────────────────────────────
 
@@ -24,6 +26,7 @@ interface Props {
   workspaceId: string
   initialFiles: FileRecord[]
   initialStorage: StorageStatus
+  locale: Locale
 }
 
 // ── Helpers ───────────────────────────────────────────────────────────────────
@@ -47,7 +50,8 @@ function fileIcon(mime: string | null) {
 
 // ── Componente ────────────────────────────────────────────────────────────────
 
-export function FilesClient({ workspaceId, initialFiles, initialStorage }: Props) {
+export function FilesClient({ workspaceId, initialFiles, initialStorage, locale }: Props) {
+  const t = getDashboardTranslations(locale)
   const [files, setFiles] = useState<FileRecord[]>(initialFiles)
   const [storage, setStorage] = useState<StorageStatus>(initialStorage)
   const [isDragging, setIsDragging] = useState(false)
@@ -70,17 +74,17 @@ export function FilesClient({ workspaceId, initialFiles, initialStorage }: Props
       if (!res.ok) {
         setError(
           res.status === 507
-            ? 'Has alcanzado el límite de almacenamiento de tu plan.'
+            ? t.filesStorageLimitError
             : res.status === 413
-            ? 'El archivo supera el límite de 50 MB.'
-            : data.error ?? 'Error al subir el archivo.',
+            ? t.filesSizeLimitError
+            : data.error ?? t.filesUploadError,
         )
         return
       }
       if (data.file) setFiles((prev) => [data.file!, ...prev])
       if (data.storage) setStorage(data.storage)
     } catch {
-      setError('Error de conexión. Inténtalo de nuevo.')
+      setError(t.filesConnectionError)
     } finally {
       setUploading(false)
     }
@@ -123,7 +127,7 @@ export function FilesClient({ workspaceId, initialFiles, initialStorage }: Props
     setExporting(true)
     try {
       const res = await fetch(`/api/workspaces/${workspaceId}/export`)
-      if (!res.ok) { setError('No tienes permisos para exportar este workspace.'); return }
+      if (!res.ok) { setError(t.filesExportPermissionError); return }
       const blob = await res.blob()
       const disposition = res.headers.get('Content-Disposition') ?? ''
       const filename = disposition.match(/filename="(.+)"/)?.[1] ?? 'export.zip'
@@ -134,7 +138,7 @@ export function FilesClient({ workspaceId, initialFiles, initialStorage }: Props
       a.click()
       URL.revokeObjectURL(url)
     } catch {
-      setError('Error al generar el ZIP.')
+      setError(t.filesExportError)
     } finally {
       setExporting(false)
     }
@@ -150,7 +154,7 @@ export function FilesClient({ workspaceId, initialFiles, initialStorage }: Props
       {/* Barra de almacenamiento + export */}
       <div className="rounded-xl border border-border bg-card p-4 space-y-3">
         <div className="flex items-center justify-between text-sm">
-          <span className="font-medium">Almacenamiento</span>
+          <span className="font-medium">{t.filesStorage}</span>
           <span className="text-muted-foreground">
             {fmtBytes(storage.usedBytes)} / {fmtBytes(storage.limitBytes)}
           </span>
@@ -159,7 +163,7 @@ export function FilesClient({ workspaceId, initialFiles, initialStorage }: Props
           <div className={`h-full rounded-full transition-all ${barColor}`} style={{ width: `${pct}%` }} />
         </div>
         <div className="flex items-center justify-between">
-          <span className="text-xs text-muted-foreground">{pct}% usado</span>
+          <span className="text-xs text-muted-foreground">{pct}% {t.filesUsedSuffix}</span>
           <button
             onClick={downloadExport}
             disabled={exporting}
@@ -168,7 +172,7 @@ export function FilesClient({ workspaceId, initialFiles, initialStorage }: Props
             <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
               <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/>
             </svg>
-            {exporting ? 'Generando…' : 'Exportar ZIP'}
+            {exporting ? t.filesGenerating : t.filesExportZip}
           </button>
         </div>
       </div>
@@ -190,10 +194,10 @@ export function FilesClient({ workspaceId, initialFiles, initialStorage }: Props
           </svg>
           <p className="text-sm text-muted-foreground">
             {uploading
-              ? 'Subiendo…'
-              : <>Arrastra un archivo aquí o <span className="text-primary font-medium">elige uno</span></>}
+              ? t.filesUploading
+              : <>{t.filesDropPrefix} <span className="text-primary font-medium">{t.filesDropAction}</span></>}
           </p>
-          <p className="text-xs text-muted-foreground">Máximo 50 MB por archivo</p>
+          <p className="text-xs text-muted-foreground">{t.filesMaxSize}</p>
         </div>
       </div>
 
@@ -203,7 +207,7 @@ export function FilesClient({ workspaceId, initialFiles, initialStorage }: Props
 
       {/* Lista de archivos */}
       {files.length === 0 ? (
-        <p className="text-sm text-muted-foreground text-center py-4">Aún no hay archivos en este workspace.</p>
+        <p className="text-sm text-muted-foreground text-center py-4">{t.filesEmpty}</p>
       ) : (
         <ul className="space-y-2">
           {files.map((f) => (
@@ -219,13 +223,13 @@ export function FilesClient({ workspaceId, initialFiles, initialStorage }: Props
                   {f.name}
                 </a>
                 <p className="text-xs text-muted-foreground">
-                  {fmtBytes(f.size)} · {new Date(f.createdAt).toLocaleDateString('es-ES')}
+                  {fmtBytes(f.size)} · {new Date(f.createdAt).toLocaleDateString(locale)}
                 </p>
               </div>
               <button
                 onClick={() => void deleteFile(f.id)}
                 disabled={deletingId === f.id}
-                aria-label="Eliminar archivo"
+                aria-label={t.filesDelete}
                 className="shrink-0 rounded-md p-1.5 text-muted-foreground hover:text-destructive hover:bg-destructive/10 transition-colors disabled:opacity-40"
               >
                 <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">

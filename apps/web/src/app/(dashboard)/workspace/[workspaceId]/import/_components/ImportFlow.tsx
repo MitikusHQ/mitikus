@@ -3,27 +3,33 @@
 import { useState, useRef } from 'react'
 import { useRouter } from 'next/navigation'
 import type { NormalizedDocument } from '@protools/import-engine'
+import { getDashboardTranslations } from '@/i18n/dashboard-translations'
+import type { Locale } from '@/i18n/config'
 
 type Step = 'upload' | 'preview' | 'converting' | 'review' | 'done'
 
 interface ImportFlowProps {
   workspaceId: string
+  locale: Locale
 }
 
 const ACCEPTED_TYPES = '.xlsx,.xls,.csv,.json,.docx,.doc,.pdf,.md,.txt'
 
-const FORMAT_LABELS: Record<string, string> = {
-  excel: 'Excel',
-  csv: 'CSV',
-  json: 'JSON',
-  'tool-schema': 'ToolSchema (ProTools)',
-  docx: 'Word',
-  pdf: 'PDF',
-  markdown: 'Markdown',
-  'plain-text': 'Texto plano',
+function getFormatLabels(t: ReturnType<typeof getDashboardTranslations>): Record<string, string> {
+  return {
+    excel: 'Excel',
+    csv: 'CSV',
+    json: 'JSON',
+    'tool-schema': 'ToolSchema (MITIKUS)',
+    docx: 'Word',
+    pdf: 'PDF',
+    markdown: 'Markdown',
+    'plain-text': t.importPlainText,
+  }
 }
 
-export function ImportFlow({ workspaceId }: ImportFlowProps) {
+export function ImportFlow({ workspaceId, locale }: ImportFlowProps) {
+  const t = getDashboardTranslations(locale)
   const router = useRouter()
   const fileRef = useRef<HTMLInputElement>(null)
   const [step, setStep] = useState<Step>('upload')
@@ -50,7 +56,7 @@ export function ImportFlow({ workspaceId }: ImportFlowProps) {
       const data = await res.json()
 
       if (!res.ok) {
-        setError(data.error ?? 'Error al procesar el archivo')
+        setError(data.error ?? t.importProcessError)
         setLoading(false)
         return
       }
@@ -66,7 +72,7 @@ export function ImportFlow({ workspaceId }: ImportFlowProps) {
         setStep('review')
       }
     } catch {
-      setError('Error de red al procesar el archivo')
+      setError(t.importNetworkProcessError)
     } finally {
       setLoading(false)
     }
@@ -87,7 +93,7 @@ export function ImportFlow({ workspaceId }: ImportFlowProps) {
       const data = await res.json()
 
       if (!res.ok) {
-        setError(data.error ?? 'Error al convertir')
+        setError(data.error ?? t.importConvertError)
         setStep('preview')
         setLoading(false)
         return
@@ -98,7 +104,7 @@ export function ImportFlow({ workspaceId }: ImportFlowProps) {
       setWarnings((prev) => [...prev, ...(data.warnings ?? [])])
       setStep('review')
     } catch {
-      setError('Error de red al convertir')
+      setError(t.importNetworkConvertError)
       setStep('preview')
     } finally {
       setLoading(false)
@@ -128,7 +134,7 @@ export function ImportFlow({ workspaceId }: ImportFlowProps) {
       const data = await res.json()
 
       if (!res.ok) {
-        setError(data.error ?? 'Error al guardar')
+        setError(data.error ?? t.importSaveError)
         setLoading(false)
         return
       }
@@ -136,7 +142,7 @@ export function ImportFlow({ workspaceId }: ImportFlowProps) {
       setSavedSlug(data.slug)
       setStep('done')
     } catch {
-      setError('Error de red al guardar')
+      setError(t.importNetworkSaveError)
     } finally {
       setLoading(false)
     }
@@ -181,16 +187,16 @@ export function ImportFlow({ workspaceId }: ImportFlowProps) {
           }}
         />
         <div className="text-4xl mb-4">📂</div>
-        <h3 className="text-lg font-semibold mb-2">Arrastra tu archivo aquí</h3>
+        <h3 className="text-lg font-semibold mb-2">{t.importDropTitle}</h3>
         <p className="text-sm text-muted-foreground mb-6">
-          Excel, CSV, JSON, Word, PDF, Markdown — máximo 20 MB
+          {t.importDropSubtitle}
         </p>
         <button
           onClick={() => fileRef.current?.click()}
           disabled={loading}
           className="px-6 py-2 bg-primary text-primary-foreground rounded-lg text-sm font-medium hover:bg-primary/90 transition-colors disabled:opacity-50"
         >
-          {loading ? 'Procesando...' : 'Seleccionar archivo'}
+          {loading ? t.importProcessing : t.importSelectFile}
         </button>
         {error && <p className="mt-4 text-sm text-red-500">{error}</p>}
       </div>
@@ -199,7 +205,7 @@ export function ImportFlow({ workspaceId }: ImportFlowProps) {
 
   // ─── Preview step ──────────────────────────────────────────
   if (step === 'preview' && document) {
-    const fmt = FORMAT_LABELS[document.metadata.format] ?? document.metadata.format
+    const fmt = getFormatLabels(t)[document.metadata.format] ?? document.metadata.format
     return (
       <div className="space-y-6">
         <div className="rounded-xl border bg-card p-6 space-y-4">
@@ -207,7 +213,7 @@ export function ImportFlow({ workspaceId }: ImportFlowProps) {
             <div>
               <h3 className="font-semibold text-lg">{document.metadata.title ?? document.metadata.source}</h3>
               <p className="text-sm text-muted-foreground">
-                Formato: <span className="font-medium">{fmt}</span> · Confianza: {Math.round(document.metadata.confidence * 100)}%
+                {t.importFormat}: <span className="font-medium">{fmt}</span> · {t.importConfidence}: {Math.round(document.metadata.confidence * 100)}%
               </p>
             </div>
             <span className="text-xs bg-muted px-2 py-1 rounded font-mono">
@@ -216,15 +222,15 @@ export function ImportFlow({ workspaceId }: ImportFlowProps) {
           </div>
 
           <div className="grid grid-cols-2 gap-4 text-sm">
-            <Stat label="Campos" value={document.fields.length} />
-            <Stat label="Tablas" value={document.tables.length} />
-            <Stat label="Checklists" value={document.checklists.length} />
-            <Stat label="Secciones" value={document.sections.length} />
+            <Stat label={t.importFields} value={document.fields.length} />
+            <Stat label={t.importTables} value={document.tables.length} />
+            <Stat label={t.importChecklists} value={document.checklists.length} />
+            <Stat label={t.importSections} value={document.sections.length} />
           </div>
 
           {document.fields.length > 0 && (
             <div>
-              <p className="text-xs font-medium text-muted-foreground uppercase tracking-wide mb-2">Campos detectados</p>
+              <p className="text-xs font-medium text-muted-foreground uppercase tracking-wide mb-2">{t.importDetectedFields}</p>
               <div className="flex flex-wrap gap-2">
                 {document.fields.slice(0, 12).map((f) => (
                   <span key={f.id} className="text-xs bg-muted px-2 py-1 rounded">
@@ -232,7 +238,7 @@ export function ImportFlow({ workspaceId }: ImportFlowProps) {
                   </span>
                 ))}
                 {document.fields.length > 12 && (
-                  <span className="text-xs text-muted-foreground">+{document.fields.length - 12} más</span>
+                  <span className="text-xs text-muted-foreground">+{document.fields.length - 12} {t.importMore}</span>
                 )}
               </div>
             </div>
@@ -240,7 +246,7 @@ export function ImportFlow({ workspaceId }: ImportFlowProps) {
 
           {warnings.length > 0 && (
             <div className="rounded-lg bg-yellow-50 border border-yellow-200 p-3">
-              <p className="text-xs font-medium text-yellow-800 mb-1">Advertencias</p>
+              <p className="text-xs font-medium text-yellow-800 mb-1">{t.importWarnings}</p>
               {warnings.slice(0, 5).map((w, i) => (
                 <p key={i} className="text-xs text-yellow-700">· {w}</p>
               ))}
@@ -256,13 +262,13 @@ export function ImportFlow({ workspaceId }: ImportFlowProps) {
             disabled={loading}
             className="flex-1 py-2.5 bg-primary text-primary-foreground rounded-lg text-sm font-medium hover:bg-primary/90 transition-colors disabled:opacity-50"
           >
-            {loading ? 'Procesando...' : '✦ Convertir a herramienta'}
+            {loading ? t.importProcessing : `✦ ${t.importConvertToTool}`}
           </button>
           <button
             onClick={reset}
             className="px-4 py-2.5 border rounded-lg text-sm hover:bg-muted transition-colors"
           >
-            Cancelar
+            {t.importCancel}
           </button>
         </div>
       </div>
@@ -274,8 +280,8 @@ export function ImportFlow({ workspaceId }: ImportFlowProps) {
     return (
       <div className="rounded-xl border bg-card p-12 text-center space-y-4">
         <div className="text-4xl animate-pulse">⚙️</div>
-        <p className="font-medium">Claude está analizando el documento...</p>
-        <p className="text-sm text-muted-foreground">Esto puede tardar unos segundos</p>
+        <p className="font-medium">{t.importAnalyzing}</p>
+        <p className="text-sm text-muted-foreground">{t.importAnalyzingHelp}</p>
       </div>
     )
   }
@@ -288,22 +294,22 @@ export function ImportFlow({ workspaceId }: ImportFlowProps) {
         <div className="rounded-xl border bg-card p-6 space-y-4">
           <div className="flex items-start justify-between gap-4">
             <div>
-              <h3 className="font-semibold text-lg">{String(s.title ?? 'Herramienta importada')}</h3>
+              <h3 className="font-semibold text-lg">{String(s.title ?? t.importImportedToolFallback)}</h3>
               <p className="text-sm text-muted-foreground">{String(s.description ?? '')}</p>
             </div>
             {isDirectSchema && (
-              <span className="text-xs bg-green-100 text-green-800 px-2 py-1 rounded font-medium">ToolSchema válido</span>
+              <span className="text-xs bg-green-100 text-green-800 px-2 py-1 rounded font-medium">{t.importValidToolSchema}</span>
             )}
           </div>
 
           {usage && (
             <div className="text-xs text-muted-foreground bg-muted rounded px-3 py-2">
-              {usage.inputTokens.toLocaleString()} tokens procesados · ~€{usage.costEUR.toFixed(4)}
+              {usage.inputTokens.toLocaleString(locale)} {t.importTokensProcessed} · ~€{usage.costEUR.toFixed(4)}
             </div>
           )}
 
           <div>
-            <p className="text-xs font-medium text-muted-foreground uppercase tracking-wide mb-2">Schema generado (preview)</p>
+            <p className="text-xs font-medium text-muted-foreground uppercase tracking-wide mb-2">{t.importGeneratedSchemaPreview}</p>
             <pre className="text-xs bg-muted p-3 rounded-lg overflow-auto max-h-64">
               {JSON.stringify(schema, null, 2).slice(0, 2000)}
             </pre>
@@ -326,14 +332,14 @@ export function ImportFlow({ workspaceId }: ImportFlowProps) {
             disabled={loading}
             className="flex-1 py-2.5 bg-primary text-primary-foreground rounded-lg text-sm font-medium hover:bg-primary/90 transition-colors disabled:opacity-50"
           >
-            {loading ? 'Guardando...' : 'Guardar herramienta'}
+            {loading ? t.importSaving : t.importSaveTool}
           </button>
           <button
             onClick={() => setStep('preview')}
             disabled={loading}
             className="px-4 py-2.5 border rounded-lg text-sm hover:bg-muted transition-colors"
           >
-            Volver
+            {t.importBack}
           </button>
         </div>
       </div>
@@ -345,20 +351,20 @@ export function ImportFlow({ workspaceId }: ImportFlowProps) {
     return (
       <div className="rounded-xl border bg-card p-12 text-center space-y-4">
         <div className="text-4xl">✓</div>
-        <h3 className="font-semibold text-lg">Herramienta importada</h3>
-        <p className="text-sm text-muted-foreground">Ya está disponible en tu catálogo</p>
+        <h3 className="font-semibold text-lg">{t.importToolImported}</h3>
+        <p className="text-sm text-muted-foreground">{t.importAvailableInCatalog}</p>
         <div className="flex gap-3 justify-center pt-2">
           <button
             onClick={() => router.push(`/workspace/${workspaceId}/tools`)}
             className="px-6 py-2 bg-primary text-primary-foreground rounded-lg text-sm font-medium hover:bg-primary/90 transition-colors"
           >
-            Ver herramientas
+            {t.importViewTools}
           </button>
           <button
             onClick={reset}
             className="px-6 py-2 border rounded-lg text-sm hover:bg-muted transition-colors"
           >
-            Importar otro
+            {t.importAnother}
           </button>
         </div>
       </div>

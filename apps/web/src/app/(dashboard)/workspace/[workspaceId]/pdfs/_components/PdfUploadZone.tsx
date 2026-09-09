@@ -2,13 +2,17 @@
 
 import { useRef, useState } from 'react'
 import type { PdfData } from '@/app/actions/pdfs'
+import { getDashboardTranslations } from '@/i18n/dashboard-translations'
+import type { Locale } from '@/i18n/config'
 
 interface Props {
   workspaceId: string
   onUploaded:  (pdf: PdfData) => void
+  locale:      Locale
 }
 
-export function PdfUploadZone({ workspaceId, onUploaded }: Props) {
+export function PdfUploadZone({ workspaceId, onUploaded, locale }: Props) {
+  const t = getDashboardTranslations(locale)
   const [isDragging, setIsDragging]   = useState(false)
   const [isUploading, setIsUploading] = useState(false)
   const [error, setError]             = useState<string | null>(null)
@@ -16,7 +20,7 @@ export function PdfUploadZone({ workspaceId, onUploaded }: Props) {
 
   async function uploadFile(file: File) {
     if (!file.name.toLowerCase().endsWith('.pdf')) {
-      setError('Solo se admiten archivos PDF (.pdf)')
+      setError(t.pdfsOnlyPdfError)
       return
     }
     setIsUploading(true)
@@ -30,7 +34,7 @@ export function PdfUploadZone({ workspaceId, onUploaded }: Props) {
       const res  = await fetch('/api/pdfs/upload', { method: 'POST', body: formData })
       const data = await res.json()
       if (!res.ok) {
-        setError(data.error ?? 'Error al subir el PDF')
+        setError(data.error ?? t.pdfsUploadError)
         return
       }
       onUploaded({
@@ -43,7 +47,7 @@ export function PdfUploadZone({ workspaceId, onUploaded }: Props) {
         uploaderName: null,
       })
     } catch {
-      setError('Error de conexión. Inténtalo de nuevo.')
+      setError(t.pdfsConnectionError)
     } finally {
       setIsUploading(false)
     }
@@ -81,14 +85,14 @@ export function PdfUploadZone({ workspaceId, onUploaded }: Props) {
           accept=".pdf"
           onChange={handleChange}
           className="hidden"
-          aria-label="Seleccionar archivo PDF"
+          aria-label={t.pdfsSelectFileAria}
         />
         {isUploading ? (
-          <p className="text-sm text-muted-foreground">Procesando...</p>
+          <p className="text-sm text-muted-foreground">{t.pdfsProcessing}</p>
         ) : (
           <p className="text-sm text-muted-foreground">
-            Arrastra un <span className="font-medium">.pdf</span> aquí o{' '}
-            <span className="text-primary hover:underline">elige archivo</span>
+            {t.pdfsDropPrefix} <span className="font-medium">.pdf</span> {t.pdfsDropAction}{' '}
+            <span className="text-primary hover:underline">{t.pdfsChooseFile}</span>
           </p>
         )}
       </div>

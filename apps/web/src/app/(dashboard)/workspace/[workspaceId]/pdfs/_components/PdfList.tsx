@@ -5,16 +5,25 @@ import Link from 'next/link'
 import type { PdfData } from '@/app/actions/pdfs'
 import { PdfUploadZone } from './PdfUploadZone'
 import { CommentBadge } from '@/components/resource-drawer'
-
-const CATEGORIES = ['Contratos', 'Informes', 'Propuestas', 'Facturas', 'Otro']
+import { getDashboardTranslations } from '@/i18n/dashboard-translations'
+import type { Locale } from '@/i18n/config'
 
 interface Props {
   workspaceId:   string
   initial:       PdfData[]
   currentUserId: string
+  locale:        Locale
 }
 
-export function PdfList({ workspaceId, initial, currentUserId }: Props) {
+export function PdfList({ workspaceId, initial, currentUserId, locale }: Props) {
+  const t = getDashboardTranslations(locale)
+  const categories = [
+    { value: 'Contratos', label: t.pdfsCategoryContracts },
+    { value: 'Informes', label: t.pdfsCategoryReports },
+    { value: 'Propuestas', label: t.pdfsCategoryProposals },
+    { value: 'Facturas', label: t.pdfsCategoryInvoices },
+    { value: 'Otro', label: t.pdfsCategoryOther },
+  ]
   const [pdfs, setPdfs]              = useState(initial)
   const [activeCategory, setActive]  = useState<string | null>(null)
 
@@ -38,35 +47,37 @@ export function PdfList({ workspaceId, initial, currentUserId }: Props) {
                 : 'border-border hover:border-primary/50'
             }`}
           >
-            Todas
+            {t.pdfsAll}
           </button>
-          {CATEGORIES.map((cat) => (
+          {categories.map((cat) => (
             <button
-              key={cat}
-              onClick={() => setActive(cat === activeCategory ? null : cat)}
+              key={cat.value}
+              onClick={() => setActive(cat.value === activeCategory ? null : cat.value)}
               className={`text-xs px-3 py-1 rounded-full border transition-colors ${
-                activeCategory === cat
+                activeCategory === cat.value
                   ? 'bg-primary text-primary-foreground border-primary'
                   : 'border-border hover:border-primary/50'
               }`}
             >
-              {cat}
+              {cat.label}
             </button>
           ))}
         </div>
       </div>
 
-      <PdfUploadZone workspaceId={workspaceId} onUploaded={handleUploaded} />
+      <PdfUploadZone workspaceId={workspaceId} onUploaded={handleUploaded} locale={locale} />
 
       {visible.length === 0 ? (
         <div className="py-12 text-center space-y-3">
           <div className="w-11 h-11 rounded-xl bg-primary/10 flex items-center justify-center text-xl mx-auto">📑</div>
           <div className="space-y-1">
             <p className="font-semibold text-sm">
-              {activeCategory ? `Sin PDFs en "${activeCategory}"` : 'Sin PDFs todavía'}
+              {activeCategory
+                ? t.pdfsEmptyInCategory.replace('{category}', categories.find((cat) => cat.value === activeCategory)?.label ?? activeCategory)
+                : t.pdfsEmpty}
             </p>
             <p className="text-xs text-muted-foreground max-w-xs mx-auto">
-              {activeCategory ? 'Prueba otra categoría o sube un PDF nuevo.' : 'Arrastra un PDF en la zona de carga superior para empezar.'}
+              {activeCategory ? t.pdfsEmptyFilteredHelp : t.pdfsEmptyHelp}
             </p>
           </div>
         </div>
@@ -83,8 +94,8 @@ export function PdfList({ workspaceId, initial, currentUserId }: Props) {
                   {pdf.title}
                 </p>
                 <p className="text-xs text-muted-foreground mt-0.5">
-                  {pdf.pageCount} {pdf.pageCount === 1 ? 'página' : 'páginas'} ·{' '}
-                  {new Date(pdf.createdAt).toLocaleDateString('es-ES')}
+                  {pdf.pageCount} {pdf.pageCount === 1 ? t.pdfsPageSingular : t.pdfsPagePlural} ·{' '}
+                  {new Date(pdf.createdAt).toLocaleDateString(locale)}
                   {pdf.uploaderName ? ` · ${pdf.uploaderName}` : ''}
                 </p>
               </div>
@@ -101,7 +112,7 @@ export function PdfList({ workspaceId, initial, currentUserId }: Props) {
                 </span>
                 {pdf.category && (
                   <span className="text-xs px-2 py-0.5 rounded-full bg-secondary text-secondary-foreground">
-                    {pdf.category}
+                    {categories.find((cat) => cat.value === pdf.category)?.label ?? pdf.category}
                   </span>
                 )}
               </div>

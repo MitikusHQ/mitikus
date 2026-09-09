@@ -6,6 +6,8 @@ import 'react-pdf/dist/Page/AnnotationLayer.css'
 import 'react-pdf/dist/Page/TextLayer.css'
 import { PdfThumbnailSidebar } from './PdfThumbnailSidebar'
 import { PdfSearchBar } from './PdfSearchBar'
+import { getDashboardTranslations } from '@/i18n/dashboard-translations'
+import type { Locale } from '@/i18n/config'
 
 pdfjs.GlobalWorkerOptions.workerSrc = new URL(
   'pdfjs-dist/build/pdf.worker.min.mjs',
@@ -19,9 +21,11 @@ type PdfDocProxy = any
 interface Props {
   dataArray: number[]
   title:     string
+  locale:    Locale
 }
 
-export function PdfViewer({ dataArray, title }: Props) {
+export function PdfViewer({ dataArray, title, locale }: Props) {
+  const t = getDashboardTranslations(locale)
   const [numPages, setNumPages]         = useState<number | null>(null)
   const [pageNumber, setPageNumber]     = useState(1)
   const [scale, setScale]               = useState(1.0)
@@ -68,8 +72,8 @@ export function PdfViewer({ dataArray, title }: Props) {
               ? 'border-primary bg-primary text-primary-foreground'
               : 'border-border hover:bg-muted',
           ].join(' ')}
-          aria-label={showSidebar ? 'Ocultar miniaturas' : 'Mostrar miniaturas'}
-          title={showSidebar ? 'Ocultar miniaturas' : 'Mostrar miniaturas'}
+          aria-label={showSidebar ? t.pdfsHideThumbnails : t.pdfsShowThumbnails}
+          title={showSidebar ? t.pdfsHideThumbnails : t.pdfsShowThumbnails}
         >
           ⊞
         </button>
@@ -80,25 +84,25 @@ export function PdfViewer({ dataArray, title }: Props) {
             onClick={prevPage}
             disabled={pageNumber <= 1}
             className="text-sm px-2 py-1 rounded border border-border hover:bg-muted disabled:opacity-40 disabled:cursor-not-allowed transition-colors"
-            aria-label="Página anterior"
+            aria-label={t.pdfsPreviousPage}
           >
             ←
           </button>
           <span className="text-sm text-muted-foreground whitespace-nowrap">
-            Pág {pageNumber} / {numPages ?? '…'}
+            {t.pdfsPageAbbrev} {pageNumber} / {numPages ?? '...'}
           </span>
           <button
             onClick={nextPage}
             disabled={pageNumber >= (numPages ?? 1)}
             className="text-sm px-2 py-1 rounded border border-border hover:bg-muted disabled:opacity-40 disabled:cursor-not-allowed transition-colors"
-            aria-label="Página siguiente"
+            aria-label={t.pdfsNextPage}
           >
             →
           </button>
         </div>
 
         {/* Búsqueda */}
-        <PdfSearchBar pdfDoc={pdfDoc} onMatchPage={setPageNumber} />
+        <PdfSearchBar pdfDoc={pdfDoc} onMatchPage={setPageNumber} locale={locale} />
 
         {/* Zoom */}
         <div className="flex items-center gap-2">
@@ -106,7 +110,7 @@ export function PdfViewer({ dataArray, title }: Props) {
             onClick={zoomOut}
             disabled={scale <= 0.5}
             className="text-sm px-2 py-1 rounded border border-border hover:bg-muted disabled:opacity-40 disabled:cursor-not-allowed transition-colors"
-            aria-label="Reducir zoom"
+            aria-label={t.pdfsZoomOut}
           >
             −
           </button>
@@ -117,7 +121,7 @@ export function PdfViewer({ dataArray, title }: Props) {
             onClick={zoomIn}
             disabled={scale >= 2.0}
             className="text-sm px-2 py-1 rounded border border-border hover:bg-muted disabled:opacity-40 disabled:cursor-not-allowed transition-colors"
-            aria-label="Aumentar zoom"
+            aria-label={t.pdfsZoomIn}
           >
             +
           </button>
@@ -132,6 +136,7 @@ export function PdfViewer({ dataArray, title }: Props) {
             numPages={numPages}
             currentPage={pageNumber}
             onPageSelect={setPageNumber}
+            locale={locale}
           />
         )}
 
@@ -141,12 +146,12 @@ export function PdfViewer({ dataArray, title }: Props) {
             onLoadSuccess={onDocumentLoadSuccess}
             loading={
               <div className="flex items-center justify-center py-16">
-                <p className="text-sm text-muted-foreground">Cargando PDF…</p>
+                <p className="text-sm text-muted-foreground">{t.pdfsLoading}</p>
               </div>
             }
             error={
               <div className="flex items-center justify-center py-16">
-                <p className="text-sm text-destructive">Error al cargar el PDF.</p>
+                <p className="text-sm text-destructive">{t.pdfsLoadError}</p>
               </div>
             }
           >

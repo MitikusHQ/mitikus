@@ -1,14 +1,18 @@
 import { cn } from '@/lib/utils'
 import type { ProviderInfo } from '@/lib/providers'
+import { getDashboardTranslations } from '@/i18n/dashboard-translations'
+import type { Locale } from '@/i18n/config'
 
 interface Props {
   provider: ProviderInfo
   isSelected: boolean
   isAvailable: boolean
   onSelect: (id: string) => void
+  locale: Locale
 }
 
-export function ProviderCard({ provider, isSelected, isAvailable, onSelect }: Props) {
+export function ProviderCard({ provider, isSelected, isAvailable, onSelect, locale }: Props) {
+  const t = getDashboardTranslations(locale)
   return (
     <button
       type="button"
@@ -32,7 +36,7 @@ export function ProviderCard({ provider, isSelected, isAvailable, onSelect }: Pr
             : 'bg-muted text-muted-foreground',
         )}
       >
-        {isAvailable ? 'Disponible' : 'Próximamente'}
+        {isAvailable ? t.toolSettingsProviderAvailable : t.toolSettingsProviderComingSoon}
       </span>
 
       <div className="flex items-start gap-3">
@@ -41,7 +45,7 @@ export function ProviderCard({ provider, isSelected, isAvailable, onSelect }: Pr
           <p className="font-semibold text-sm">{provider.name}</p>
           <p className="text-xs text-muted-foreground mt-0.5 leading-snug">{provider.description}</p>
           <p className="text-xs text-muted-foreground/60 mt-1.5">
-            {provider.models.length} {provider.models.length === 1 ? 'modelo' : 'modelos'}
+            {provider.models.length} {provider.models.length === 1 ? t.toolSettingsModelSingular : t.toolSettingsModelPlural}
           </p>
         </div>
       </div>
@@ -53,3 +57,5 @@ export function ProviderCard({ provider, isSelected, isAvailable, onSelect }: Pr
     </button>
   )
 }
+
+

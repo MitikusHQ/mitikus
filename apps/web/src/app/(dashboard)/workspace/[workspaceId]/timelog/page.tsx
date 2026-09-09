@@ -5,6 +5,7 @@ import { getTodayEntry, getWeekEntries } from '@/app/actions/timelog'
 import { ClockWidget } from '../today/_components/ClockWidget'
 import { WeekTable } from './_components/WeekTable'
 import { getLocale } from '@/i18n/locale'
+import { getDashboardTranslations } from '@/i18n/dashboard-translations'
 
 interface Props {
   params: Promise<{ workspaceId: string }>
@@ -21,6 +22,7 @@ function getMonday(date: Date): Date {
 
 export default async function TimelogPage({ params }: Props) {
   const [{ workspaceId }, user, locale] = await Promise.all([params, requireUser(), getLocale()])
+  const t = getDashboardTranslations(locale)
 
   const workspace = await db.workspace.findFirst({ where: { id: workspaceId, orgId: user.orgId } })
   if (!workspace) notFound()
@@ -35,8 +37,8 @@ export default async function TimelogPage({ params }: Props) {
   return (
     <div className="max-w-3xl mx-auto px-6 py-8 space-y-8">
       <div>
-        <h1 className="text-2xl font-semibold">Control horario</h1>
-        <p className="text-sm text-muted-foreground mt-0.5">Registro de jornada e imputación de horas</p>
+        <h1 className="text-2xl font-semibold">{t.timelogTitle}</h1>
+        <p className="text-sm text-muted-foreground mt-0.5">{t.timelogSubtitle}</p>
       </div>
 
       <ClockWidget workspaceId={workspaceId} initialEntry={todayEntry} locale={locale} />
@@ -45,6 +47,7 @@ export default async function TimelogPage({ params }: Props) {
         workspaceId={workspaceId}
         initialEntries={entries}
         weekStart={weekStart.toISOString()}
+        locale={locale}
       />
     </div>
   )

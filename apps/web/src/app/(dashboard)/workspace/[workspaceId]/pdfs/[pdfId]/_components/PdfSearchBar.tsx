@@ -2,6 +2,8 @@
 
 import { useState, useCallback, useRef, useEffect } from 'react'
 import type { PDFDocumentProxy } from 'pdfjs-dist'
+import { getDashboardTranslations } from '@/i18n/dashboard-translations'
+import type { Locale } from '@/i18n/config'
 
 interface Match {
   page:  number
@@ -11,11 +13,13 @@ interface Match {
 interface Props {
   pdfDoc:      PDFDocumentProxy | null
   onMatchPage: (page: number) => void
+  locale:      Locale
 }
 
 declare global { interface Window { find: (str: string, ...args: boolean[]) => boolean } }
 
-export function PdfSearchBar({ pdfDoc, onMatchPage }: Props) {
+export function PdfSearchBar({ pdfDoc, onMatchPage, locale }: Props) {
+  const t = getDashboardTranslations(locale)
   const [query, setQuery]             = useState('')
   const [matches, setMatches]         = useState<Match[]>([])
   const [currentIdx, setCurrentIdx]   = useState(0)
@@ -104,8 +108,8 @@ export function PdfSearchBar({ pdfDoc, onMatchPage }: Props) {
         type="text"
         value={query}
         onChange={handleChange}
-        placeholder="Buscar…"
-        aria-label="Buscar en el PDF"
+        placeholder={t.pdfsSearchPlaceholder}
+        aria-label={t.pdfsSearchAria}
         className={[
           'text-xs border rounded px-2 py-0.5 bg-background focus:outline-none focus:ring-1 focus:ring-primary w-28 transition-colors',
           noResults ? 'border-destructive/60' : 'border-border',
@@ -126,7 +130,7 @@ export function PdfSearchBar({ pdfDoc, onMatchPage }: Props) {
             onClick={goPrev}
             disabled={matches.length === 0 || isSearching}
             className="text-xs border border-border px-1.5 py-0.5 rounded hover:bg-muted disabled:opacity-40 disabled:cursor-not-allowed transition-colors"
-            aria-label="Coincidencia anterior"
+            aria-label={t.pdfsPreviousMatch}
           >
             ↑
           </button>
@@ -134,7 +138,7 @@ export function PdfSearchBar({ pdfDoc, onMatchPage }: Props) {
             onClick={goNext}
             disabled={matches.length === 0 || isSearching}
             className="text-xs border border-border px-1.5 py-0.5 rounded hover:bg-muted disabled:opacity-40 disabled:cursor-not-allowed transition-colors"
-            aria-label="Coincidencia siguiente"
+            aria-label={t.pdfsNextMatch}
           >
             ↓
           </button>

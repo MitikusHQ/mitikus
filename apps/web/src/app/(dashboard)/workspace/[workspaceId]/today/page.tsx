@@ -51,6 +51,13 @@ function statusLabels(t: DashboardTranslations): Record<string, { label: string;
   }
 }
 
+function cleanDisplayName(value: unknown): string | null {
+  if (typeof value !== 'string') return null
+  const trimmed = value.trim()
+  if (!trimmed || trimmed.includes('@')) return null
+  return trimmed
+}
+
 export default async function TodayPage({ params }: Props) {
   const [{ workspaceId }, user, locale, clerkUser] = await Promise.all([params, requireUser(), getLocale(), currentUser()])
   const t = getDashboardTranslations(locale)
@@ -75,9 +82,15 @@ export default async function TodayPage({ params }: Props) {
     : []
 
   const isEmpty = data.pendingSteps.length === 0 && data.pendingWorkflows.length === 0
-  const rawName = user.name && !user.name.includes('@') ? user.name.split(' ')[0] : null
+  const metadataName =
+    cleanDisplayName(clerkUser?.publicMetadata?.name) ??
+    cleanDisplayName(clerkUser?.publicMetadata?.displayName)
+  const rawName = cleanDisplayName(user.name)
   const displayName =
-    clerkUser?.firstName ??
+    cleanDisplayName(clerkUser?.fullName) ??
+    cleanDisplayName([clerkUser?.firstName, clerkUser?.lastName].filter(Boolean).join(' ')) ??
+    cleanDisplayName(clerkUser?.username) ??
+    metadataName ??
     rawName ??
     user.email?.split('@')[0] ??
     t.todayFallbackName

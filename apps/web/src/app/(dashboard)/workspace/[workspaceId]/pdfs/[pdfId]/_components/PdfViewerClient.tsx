@@ -7,25 +7,20 @@ import { PdfHeader } from './PdfHeader'
 import { DeletePdfButton } from './DeletePdfButton'
 import { convertPdfToDoc } from '@/app/actions/pdfs'
 import type { PdfDetail } from '@/app/actions/pdfs'
+import type { Locale } from '@/i18n/config'
 
 const PdfViewer = dynamic(
   () => import('./PdfViewer').then((m) => m.PdfViewer),
-  {
-    ssr: false,
-    loading: () => (
-      <div className="flex items-center justify-center py-16">
-        <p className="text-sm text-muted-foreground">Cargando visor…</p>
-      </div>
-    ),
-  },
+  { ssr: false },
 )
 
 interface Props {
   pdf: PdfDetail
   workspaceId: string
+  locale: Locale
 }
 
-export function PdfViewerClient({ pdf, workspaceId }: Props) {
+export function PdfViewerClient({ pdf, workspaceId, locale }: Props) {
   const router = useRouter()
   const [isConverting, startConvert] = useTransition()
 
@@ -59,14 +54,15 @@ export function PdfViewerClient({ pdf, workspaceId }: Props) {
         onDownload={handleDownload}
         onConvert={handleConvert}
         isConverting={isConverting}
+        locale={locale}
       />
 
       <div className="px-4">
-        <PdfViewer dataArray={pdf.dataArray} title={pdf.title} />
+        <PdfViewer dataArray={pdf.dataArray} title={pdf.title} locale={locale} />
       </div>
 
       <div className="px-4 pb-6">
-        <DeletePdfButton pdfId={pdf.id} workspaceId={workspaceId} />
+        <DeletePdfButton pdfId={pdf.id} workspaceId={workspaceId} locale={locale} />
       </div>
     </div>
   )
