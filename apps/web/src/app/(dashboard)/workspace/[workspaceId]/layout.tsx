@@ -147,18 +147,15 @@ export default async function WorkspaceLayout({ children, params }: Props) {
   if (show('admin') && can(user, 'manage_members')) {
     adminItems.push({ label: t.navAdminOrg, href: '/org', icon: Icons.organization, description: t.descAdminOrg })
   }
-  if (isSuperadmin) {
-    adminItems.push({ label: 'MITIKUS Admin', href: '/admin', icon: Icons.admin, description: 'Panel de control de MITIKUS' })
-  }
 
   const profileChildren: NavItem[] = [
     { label: locale === 'es' ? 'Ajustes' : 'Settings', href: `${base}/settings`, icon: Icons.settings, description: locale === 'es' ? 'Configuración del workspace' : 'Workspace settings' },
     { label: locale === 'es' ? 'Integraciones' : 'Integrations', href: `${base}/integrations`, icon: Icons.integrations, description: locale === 'es' ? 'Conecta herramientas externas' : 'Connect external tools' },
     { label: locale === 'es' ? 'App de escritorio' : 'Desktop app', href: '/download', icon: Icons.download, description: locale === 'es' ? 'Descarga la app nativa' : 'Download the native app' },
     { label: locale === 'es' ? 'Soporte' : 'Support', href: `${base}/support`, icon: Icons.support, description: locale === 'es' ? 'Ayuda y contacto' : 'Help and contact' },
-  ].filter((_item, _i) => {
-    // Si settings no está permitido, lo omitimos del array de hijos
-    if (_item.href === `${base}/settings` && !show('settings')) return false
+    ...(isSuperadmin ? [{ label: 'MITIKUS Admin', href: '/admin', icon: Icons.admin, description: 'Panel de control de MITIKUS' }] : []),
+  ].filter((item) => {
+    if (item.href === `${base}/settings` && !show('settings')) return false
     return true
   })
 
