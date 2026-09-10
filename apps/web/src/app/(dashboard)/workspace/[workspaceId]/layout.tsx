@@ -3,6 +3,7 @@ import { db } from '@/lib/db'
 import { requireUser } from '@/lib/auth'
 import { can } from '@/lib/permissions'
 import { getNavSections } from '@/lib/nav-permissions'
+import { auth, currentUser } from '@clerk/nextjs/server'
 import { WorkspaceShell } from './_components/WorkspaceShell'
 import { Icons } from './_components/WorkspaceIcons'
 import type { NavItem } from './_components/WorkspaceSidebarItem'
@@ -22,7 +23,7 @@ interface NavGroup {
 }
 
 export default async function WorkspaceLayout({ children, params }: Props) {
-  const [{ workspaceId }, user, locale] = await Promise.all([params, requireUser(), getLocale()])
+  const [{ workspaceId }, user, clerkUser, locale] = await Promise.all([params, requireUser(), currentUser(), getLocale()])
   const t = getDashboardTranslations(locale)
 
   const [workspace, pendingCount, taskCount] = await Promise.all([
@@ -132,7 +133,8 @@ export default async function WorkspaceLayout({ children, params }: Props) {
   ].filter(Boolean) as NavItem[]
 
   const superadminEmails = (process.env.SUPERADMIN_EMAILS ?? 'borjaprietomark82@gmail.com').split(',').map(e => e.trim())
-  const isSuperadmin = superadminEmails.includes(user.email ?? '')
+  const clerkEmail = clerkUser?.emailAddresses?.[0]?.emailAddress ?? ''
+  const isSuperadmin = superadminEmails.includes(clerkEmail)
 
   const adminItems: NavItem[] = []
   if (can(user, 'view_usage')) {
