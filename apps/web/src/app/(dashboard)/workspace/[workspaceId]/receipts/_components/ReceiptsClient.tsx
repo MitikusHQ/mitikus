@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useTransition } from 'react'
+import { useState, useTransition, useMemo } from 'react'
 import { deleteReceipt, updateReceiptStatus, type ReceiptData } from '@/app/actions/receipts'
 import { ReceiptScanModal } from './ReceiptScanModal'
 import { getDashboardTranslations } from '@/i18n/dashboard-translations'
@@ -17,10 +17,38 @@ const CATEGORY_ICONS: Record<string, string> = {
   'otro':             '📄',
 }
 
+const CATEGORIES = Object.keys(CATEGORY_ICONS)
+
 interface Props {
   workspaceId: string
   initialReceipts: ReceiptData[]
   locale: Locale
+}
+
+function exportCSV(receipts: ReceiptData[], locale: Locale) {
+  const headers = ['Fecha', 'Proveedor', 'Categoría', 'Total', 'Divisa', 'Base imponible', 'IVA', 'Tipo IVA %', 'Estado', 'Notas']
+  const rows = receipts.map((r) => [
+    r.date ? new Date(r.date).toLocaleDateString(locale) : '',
+    r.vendor ?? '',
+    r.category ?? '',
+    r.total != null ? String(r.total) : '',
+    r.currency,
+    r.subtotal != null ? String(r.subtotal) : '',
+    r.tax != null ? String(r.tax) : '',
+    r.taxRate != null ? String(r.taxRate) : '',
+    r.status,
+    r.notes ?? '',
+  ])
+  const csv = [headers, ...rows]
+    .map((row) => row.map((v) => `"${String(v).replace(/"/g, '""')}"`).join(','))
+    .join('\n')
+  const blob = new Blob(['﻿' + csv], { type: 'text/csv;charset=utf-8;' })
+  const url = URL.createObjectURL(blob)
+  const a = document.createElement('a')
+  a.href = url
+  a.download = `gastos-${new Date().toISOString().slice(0, 10)}.csv`
+  a.click()
+  URL.revokeObjectURL(url)
 }
 
 export function ReceiptsClient({ workspaceId, initialReceipts, locale }: Props) {
@@ -36,6 +64,41 @@ export function ReceiptsClient({ workspaceId, initialReceipts, locale }: Props) 
   const [showModal, setShowModal] = useState(false)
   const [selected, setSelected] = useState<ReceiptData | null>(null)
   const [, startTransition] = useTransition()
+
+  // Filters
+  const [search, setSearch] = useState('')
+  const [filterStatus, setFilterStatus] = useState('')
+  const [filterCategory, setFilterCategory] = useState('')
+  const [filterDateFrom, setFilterDateFrom] = useState('')
+  const [filterDateTo, setFilterDateTo] = useState('')
+
+  const filtered = useMemo(() => {
+    return receipts.filter((r) => {
+      if (filterStatus && r.status !== filterStatus) return false
+      if (filterCategory && r.category !== filterCategory) return false
+      if (search) {
+        const q = search.toLowerCase()
+        if (
+          !r.vendor?.toLowerCase().includes(q) &&
+          !r.notes?.toLowerCase().includes(q) &&
+          !r.category?.toLowerCase().includes(q)
+        ) return false
+      }
+      if (filterDateFrom) {
+        const from = new Date(filterDateFrom)
+        const d = r.date ? new Date(r.date) : null
+        if (!d || d < from) return false
+      }
+      if (filterDateTo) {
+        const to = new Date(filterDateTo)
+        const d = r.date ? new Date(r.date) : null
+        if (!d || d > to) return false
+      }
+      return true
+    })
+  }, [receipts, search, filterStatus, filterCategory, filterDateFrom, filterDateTo])
+
+  const hasFilters = search || filterStatus || filterCategory || filterDateFrom || filterDateTo
 
   const totalPendiente = receipts
     .filter((r) => r.status === 'pendiente' && r.total != null)
@@ -85,16 +148,32 @@ export function ReceiptsClient({ workspaceId, initialReceipts, locale }: Props) 
           <h1 className="text-xl font-semibold">{t.receiptsTitle}</h1>
           <p className="text-sm text-muted-foreground mt-0.5">{t.receiptsSubtitle}</p>
         </div>
-        <button
-          onClick={() => setShowModal(true)}
-          className="flex items-center gap-2 bg-primary text-primary-foreground text-sm font-medium px-4 py-2 rounded-lg hover:opacity-90 transition-opacity"
-        >
-          <svg className="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-            <path d="M3 9a2 2 0 0 1 2-2h.93a2 2 0 0 0 1.664-.89l.812-1.22A2 2 0 0 1 10.07 4h3.86a2 2 0 0 1 1.664.89l.812 1.22A2 2 0 0 0 18.07 7H19a2 2 0 0 1 2 2v9a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V9z"/>
-            <circle cx="12" cy="13" r="3"/>
-          </svg>
-          {t.receiptsScan}
-        </button>
+        <div className="flex items-center gap-2">
+          {receipts.length > 0 && (
+            <button
+              onClick={() => exportCSV(filtered, locale)}
+              className="flex items-center gap-1.5 text-sm font-medium px-3 py-2 rounded-lg border hover:bg-muted/50 transition-colors"
+              title="Exportar CSV"
+            >
+              <svg className="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/>
+                <polyline points="7 10 12 15 17 10"/>
+                <line x1="12" y1="15" x2="12" y2="3"/>
+              </svg>
+              CSV
+            </button>
+          )}
+          <button
+            onClick={() => setShowModal(true)}
+            className="flex items-center gap-2 bg-primary text-primary-foreground text-sm font-medium px-4 py-2 rounded-lg hover:opacity-90 transition-opacity"
+          >
+            <svg className="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+              <path d="M3 9a2 2 0 0 1 2-2h.93a2 2 0 0 0 1.664-.89l.812-1.22A2 2 0 0 1 10.07 4h3.86a2 2 0 0 1 1.664.89l.812 1.22A2 2 0 0 0 18.07 7H19a2 2 0 0 1 2 2v9a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V9z"/>
+              <circle cx="12" cy="13" r="3"/>
+            </svg>
+            {t.receiptsScan}
+          </button>
+        </div>
       </div>
 
       {/* Stats */}
@@ -103,6 +182,71 @@ export function ReceiptsClient({ workspaceId, initialReceipts, locale }: Props) 
         <StatCard label={t.receiptsPendingReview} value={fmt(totalPendiente)} accent />
         <StatCard label={t.receiptsCount} value={String(receipts.length)} />
       </div>
+
+      {/* Filters */}
+      {receipts.length > 0 && (
+        <div className="flex flex-wrap items-center gap-2">
+          <div className="relative flex-1 min-w-[180px]">
+            <svg className="absolute left-2.5 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-muted-foreground" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+              <circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/>
+            </svg>
+            <input
+              type="text"
+              value={search}
+              onChange={(e) => setSearch(e.target.value)}
+              placeholder="Buscar por proveedor, notas…"
+              className="w-full pl-8 pr-3 py-1.5 text-xs rounded-lg border border-input bg-background focus:outline-none focus:ring-1 focus:ring-ring"
+            />
+          </div>
+          <select
+            value={filterStatus}
+            onChange={(e) => setFilterStatus(e.target.value)}
+            className="text-xs rounded-lg border border-input bg-background px-2 py-1.5 focus:outline-none focus:ring-1 focus:ring-ring"
+          >
+            <option value="">Todos los estados</option>
+            <option value="pendiente">{t.receiptsStatusPending}</option>
+            <option value="revisado">{t.receiptsStatusReviewed}</option>
+            <option value="contabilizado">{t.receiptsStatusAccounted}</option>
+          </select>
+          <select
+            value={filterCategory}
+            onChange={(e) => setFilterCategory(e.target.value)}
+            className="text-xs rounded-lg border border-input bg-background px-2 py-1.5 focus:outline-none focus:ring-1 focus:ring-ring"
+          >
+            <option value="">Todas las categorías</option>
+            {CATEGORIES.map((c) => (
+              <option key={c} value={c}>{CATEGORY_ICONS[c]} {c.charAt(0).toUpperCase() + c.slice(1)}</option>
+            ))}
+          </select>
+          <input
+            type="date"
+            value={filterDateFrom}
+            onChange={(e) => setFilterDateFrom(e.target.value)}
+            className="text-xs rounded-lg border border-input bg-background px-2 py-1.5 focus:outline-none focus:ring-1 focus:ring-ring"
+            title="Desde"
+          />
+          <input
+            type="date"
+            value={filterDateTo}
+            onChange={(e) => setFilterDateTo(e.target.value)}
+            className="text-xs rounded-lg border border-input bg-background px-2 py-1.5 focus:outline-none focus:ring-1 focus:ring-ring"
+            title="Hasta"
+          />
+          {hasFilters && (
+            <button
+              onClick={() => { setSearch(''); setFilterStatus(''); setFilterCategory(''); setFilterDateFrom(''); setFilterDateTo('') }}
+              className="text-xs text-muted-foreground hover:text-foreground transition-colors px-1"
+            >
+              ✕ Limpiar
+            </button>
+          )}
+          {hasFilters && (
+            <span className="text-xs text-muted-foreground ml-auto">
+              {filtered.length} de {receipts.length}
+            </span>
+          )}
+        </div>
+      )}
 
       {/* List + detail */}
       {receipts.length === 0 ? (
@@ -119,13 +263,23 @@ export function ReceiptsClient({ workspaceId, initialReceipts, locale }: Props) 
             {t.receiptsScanNow}
           </button>
         </div>
+      ) : filtered.length === 0 ? (
+        <div className="rounded-xl border border-dashed bg-muted/10 p-10 text-center">
+          <p className="text-sm text-muted-foreground">Sin resultados para los filtros aplicados.</p>
+          <button
+            onClick={() => { setSearch(''); setFilterStatus(''); setFilterCategory(''); setFilterDateFrom(''); setFilterDateTo('') }}
+            className="mt-3 text-xs text-primary hover:underline"
+          >
+            Limpiar filtros
+          </button>
+        </div>
       ) : (
         <div className="grid grid-cols-1 lg:grid-cols-[1fr_360px] gap-4">
 
           {/* List */}
           <div className="rounded-xl border overflow-hidden">
             <div className="divide-y">
-              {receipts.map((r) => {
+              {filtered.map((r) => {
                 const badge = STATUS_LABELS[r.status] ?? STATUS_LABELS.pendiente!
                 const icon = r.category ? (CATEGORY_ICONS[r.category] ?? '📄') : '📄'
                 const dateStr = r.date
@@ -162,7 +316,7 @@ export function ReceiptsClient({ workspaceId, initialReceipts, locale }: Props) 
           </div>
 
           {/* Detail panel */}
-          {selected ? (
+          {selected && filtered.some((r) => r.id === selected.id) ? (
             <div className="rounded-xl border overflow-hidden self-start sticky top-4">
               <div className="bg-muted/40 px-4 py-3 border-b flex items-center justify-between">
                 <span className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">{t.receiptsDetail}</span>
