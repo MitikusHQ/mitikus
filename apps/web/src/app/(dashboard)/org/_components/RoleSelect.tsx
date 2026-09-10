@@ -15,6 +15,7 @@ const ROLE_LABELS: Record<OrgRole, string> = {
   MEMBER:   'Miembro',
   OPERATOR: 'Operador',
   VIEWER:   'Lector',
+  EMPLOYEE: 'Empleado',
 }
 
 const ROLE_DESCRIPTIONS: Record<OrgRole, string> = {
@@ -24,6 +25,7 @@ const ROLE_DESCRIPTIONS: Record<OrgRole, string> = {
   MEMBER:   'Igual que Editor (rol heredado)',
   OPERATOR: 'Ejecuta herramientas y crea registros',
   VIEWER:   'Solo lectura',
+  EMPLOYEE: 'Acceso a sus propias nóminas y permisos',
 }
 
 interface Props {
@@ -133,7 +135,7 @@ export function RoleSelect({ memberId, currentRole, actorRole, isOwnProfile, own
 
 // Importar desde permissions sería un import circular aquí (client component → server lib is fine, but let's keep the level inline)
 const ROLE_LEVEL: Record<OrgRole, number> = {
-  OWNER: 50, ADMIN: 40, EDITOR: 30, MEMBER: 30, OPERATOR: 20, VIEWER: 10,
+  OWNER: 50, ADMIN: 40, EDITOR: 30, MEMBER: 30, OPERATOR: 20, VIEWER: 10, EMPLOYEE: 5,
 }
 
 function can(role: OrgRole, _action: 'manage_members'): boolean {

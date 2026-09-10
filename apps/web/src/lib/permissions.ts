@@ -31,6 +31,7 @@ const ROLE_LEVEL: Record<OrgRole, number> = {
   MEMBER:   30,  // Legacy alias — mismo nivel que EDITOR
   OPERATOR: 20,
   VIEWER:   10,
+  EMPLOYEE: 5,
 }
 
 // ── Catálogo de acciones ─────────────────────────────────────────
@@ -204,6 +205,7 @@ export const ROLE_LABELS: Record<OrgRole, string> = {
   MEMBER:   'Miembro',
   OPERATOR: 'Operador',
   VIEWER:   'Lector',
+  EMPLOYEE: 'Empleado',
 }
 
 export const ROLE_DESCRIPTIONS: Record<OrgRole, string> = {
@@ -213,4 +215,5 @@ export const ROLE_DESCRIPTIONS: Record<OrgRole, string> = {
   MEMBER:   'Rol heredado — mismo nivel que Editor.',
   OPERATOR: 'Puede ejecutar herramientas y añadir registros. No puede crear ni eliminar recursos.',
   VIEWER:   'Solo lectura. No puede crear ni modificar nada.',
+  EMPLOYEE: 'Acceso solo a sus propias nóminas, permisos y secciones configuradas.',
 }
