@@ -74,79 +74,53 @@ export default async function WorkspaceLayout({ children, params }: Props) {
     },
   ].filter(Boolean) as NavItem[]
 
-  const workItems: NavItem[] = [
-    show('clients') && {
-      label: t.navClients, href: `${base}/clients`, icon: Icons.clients, description: t.descClients,
-    },
-    show('leads') && {
-      label: t.navLeads, href: `${base}/leads`, icon: Icons.leads, description: t.descLeads,
-    },
-    show('tasks') && {
-      label: t.navTasks, href: `${base}/tasks`, icon: Icons.tasks,
-      description: t.descTasks, badge: taskCount > 0 ? String(taskCount) : undefined,
-    },
-    show('tools') && {
-      label: t.navTools, href: `${base}/tools`, icon: Icons.tools, description: t.descTools,
-    },
-    show('workflows') && {
-      label: t.navWorkflows, href: `${base}/workflows`, icon: Icons.workflows, description: t.descWorkflows,
-    },
+  // Acordeón Trabajo — Leads, Herramientas, Flujos (secundarios)
+  const workSecondary: NavItem[] = [
+    show('leads') && { label: t.navLeads, href: `${base}/leads`, icon: Icons.leads, description: t.descLeads },
+    show('tools') && { label: t.navTools, href: `${base}/tools`, icon: Icons.tools, description: t.descTools },
+    show('workflows') && { label: t.navWorkflows, href: `${base}/workflows`, icon: Icons.workflows, description: t.descWorkflows },
   ].filter(Boolean) as NavItem[]
 
-  const contentItems: NavItem[] = [
-    show('studio') && {
-      label: t.navOffice, href: `${base}/office`, icon: Icons.office, description: t.descOffice,
-    },
-    show('files') && {
-      label: t.navFiles, href: `${base}/files`, icon: Icons.files, description: t.descFiles,
-    },
-    show('missions') && {
-      label: t.navMissions, href: `${base}/missions`, icon: Icons.missions, description: t.descMissions,
-    },
+  // Clientes y Tareas siempre visibles (capa 1 de trabajo)
+  const workCoreItems: NavItem[] = [
+    show('clients') && { label: t.navClients, href: `${base}/clients`, icon: Icons.clients, description: t.descClients },
+    show('tasks') && { label: t.navTasks, href: `${base}/tasks`, icon: Icons.tasks, description: t.descTasks, badge: taskCount > 0 ? String(taskCount) : undefined },
   ].filter(Boolean) as NavItem[]
 
-  const hrItems: NavItem[] = [
-    show('employees') && {
-      label: t.navEmployees, href: `${base}/employees`, icon: Icons.employees, description: t.descEmployees,
-    },
-    show('payroll') && {
-      label: t.navPayroll, href: `${base}/payroll`, icon: Icons.payroll, description: t.descPayroll,
-    },
-    show('leaves') && {
-      label: t.navLeaves, href: `${base}/leaves`, icon: Icons.leaves, description: t.descLeaves,
-    },
+  // Acordeón Contenido
+  const contentChildren: NavItem[] = [
+    show('studio') && { label: t.navOffice, href: `${base}/office`, icon: Icons.office, description: t.descOffice },
+    show('files') && { label: t.navFiles, href: `${base}/files`, icon: Icons.files, description: t.descFiles },
+    show('missions') && { label: t.navMissions, href: `${base}/missions`, icon: Icons.missions, description: t.descMissions },
+  ].filter(Boolean) as NavItem[]
+
+  // Acordeón RRHH
+  const hrChildren: NavItem[] = [
+    show('employees') && { label: t.navEmployees, href: `${base}/employees`, icon: Icons.employees, description: t.descEmployees },
+    show('payroll') && { label: t.navPayroll, href: `${base}/payroll`, icon: Icons.payroll, description: t.descPayroll },
+    show('leaves') && { label: t.navLeaves, href: `${base}/leaves`, icon: Icons.leaves, description: t.descLeaves },
     { label: locale === 'es' ? 'Control horario' : 'Time Tracking', href: `${base}/timelog`, icon: Icons.timelog, description: locale === 'es' ? 'Registro de jornada e imputación de horas' : 'Workday record and hour allocation' },
   ].filter(Boolean) as NavItem[]
 
-  const dataItems: NavItem[] = [
-    show('fiscal') && {
-      label: t.navFiscal, href: `${base}/fiscal`, icon: Icons.fiscal, description: t.descFiscal,
-    },
-    show('invoices') && {
-      label: t.navInvoices, href: `${base}/invoices`, icon: Icons.invoices, description: t.descInvoices,
-    },
-    show('receipts') && {
-      label: t.navReceipts, href: `${base}/receipts`, icon: Icons.receipts, description: t.descReceipts,
-    },
-    show('analytics') && {
-      label: t.navAnalytics, href: `${base}/analytics`, icon: Icons.analytics, description: t.descAnalytics,
-    },
-  ].filter(Boolean) as NavItem[]
-
+  // Acordeón Sistema
   const superadminEmails = (process.env.SUPERADMIN_EMAILS ?? 'borjaprietomark82@gmail.com').split(',').map(e => e.trim())
   const clerkEmail = clerkUser?.emailAddresses?.[0]?.emailAddress ?? ''
   const isSuperadmin = superadminEmails.includes(clerkEmail)
 
-  const adminItems: NavItem[] = [
+  const sistemaChildren: NavItem[] = [
+    show('fiscal') && { label: t.navFiscal, href: `${base}/fiscal`, icon: Icons.fiscal, description: t.descFiscal },
+    show('invoices') && { label: t.navInvoices, href: `${base}/invoices`, icon: Icons.invoices, description: t.descInvoices },
+    show('receipts') && { label: t.navReceipts, href: `${base}/receipts`, icon: Icons.receipts, description: t.descReceipts },
+    show('analytics') && { label: t.navAnalytics, href: `${base}/analytics`, icon: Icons.analytics, description: t.descAnalytics },
     { label: locale === 'es' ? 'Historial' : 'History', href: `${base}/history`, icon: Icons.history, description: locale === 'es' ? 'Historial de ejecuciones IA' : 'AI execution history' },
-  ]
-  if (can(user, 'view_usage')) {
-    adminItems.push({ label: t.navUsage, href: `${base}/usage`, icon: Icons.usage, description: t.descUsage })
-    adminItems.push({ label: t.navAudit, href: `${base}/audit`, icon: Icons.audit, description: t.descAudit })
-  }
-  if (show('admin') && can(user, 'manage_members')) {
-    adminItems.push({ label: t.navAdminOrg, href: '/org', icon: Icons.organization, description: t.descAdminOrg })
-  }
+    ...(can(user, 'view_usage') ? [
+      { label: t.navUsage, href: `${base}/usage`, icon: Icons.usage, description: t.descUsage },
+      { label: t.navAudit, href: `${base}/audit`, icon: Icons.audit, description: t.descAudit },
+    ] : []),
+    ...(show('admin') && can(user, 'manage_members') ? [
+      { label: t.navAdminOrg, href: '/org', icon: Icons.organization, description: t.descAdminOrg },
+    ] : []),
+  ].filter(Boolean) as NavItem[]
 
   const profileChildren: NavItem[] = [
     { label: locale === 'es' ? 'Ajustes' : 'Settings', href: `${base}/settings`, icon: Icons.settings, description: locale === 'es' ? 'Configuración del workspace' : 'Workspace settings' },
@@ -169,12 +143,45 @@ export default async function WorkspaceLayout({ children, params }: Props) {
     },
   ]
 
+  // Ítem acordeón Trabajo (secundarios: leads, herramientas, flujos)
+  const trabajoAccordion: NavItem[] = workSecondary.length > 0 ? [{
+    label: locale === 'es' ? 'Más trabajo' : 'More work',
+    href: `${base}/tools`,
+    icon: Icons.tools,
+    description: locale === 'es' ? 'Leads, herramientas y flujos' : 'Leads, tools and workflows',
+    children: workSecondary,
+  }] : []
+
+  // Ítem acordeón Contenido
+  const contenidoAccordion: NavItem[] = contentChildren.length > 0 ? [{
+    label: locale === 'es' ? 'Contenido' : 'Content',
+    href: `${base}/office`,
+    icon: Icons.office,
+    description: locale === 'es' ? 'Studio, archivos y misiones' : 'Studio, files and missions',
+    children: contentChildren,
+  }] : []
+
+  // Ítem acordeón RRHH
+  const rrhhAccordion: NavItem[] = hrChildren.length > 0 ? [{
+    label: locale === 'es' ? 'RRHH' : 'HR',
+    href: `${base}/employees`,
+    icon: Icons.employees,
+    description: locale === 'es' ? 'Empleados, nóminas y permisos' : 'Employees, payroll and leaves',
+    children: hrChildren,
+  }] : []
+
+  // Ítem acordeón Sistema
+  const sistemaAccordion: NavItem[] = sistemaChildren.length > 0 ? [{
+    label: locale === 'es' ? 'Sistema' : 'System',
+    href: `${base}/invoices`,
+    icon: Icons.invoices,
+    description: locale === 'es' ? 'Fiscal, facturas, analítica y más' : 'Fiscal, invoices, analytics and more',
+    children: sistemaChildren,
+  }] : []
+
   const navGroups: NavGroup[] = [
     { items: coreItems },
-    { label: t.groupWork, items: workItems },
-    { label: t.groupContent, items: contentItems },
-    { label: t.groupHR, items: hrItems },
-    { label: t.groupSystem, items: [...dataItems, ...adminItems] },
+    { items: [...workCoreItems, ...trabajoAccordion, ...contenidoAccordion, ...rrhhAccordion, ...sistemaAccordion] },
     { items: profileItems },
   ].filter((g) => g.items.length > 0)
 
