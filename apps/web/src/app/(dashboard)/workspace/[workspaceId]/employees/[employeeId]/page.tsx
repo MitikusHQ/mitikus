@@ -82,7 +82,7 @@ export default async function EmployeePage({ params }: Props) {
       </div>
 
       {/* Grid de secciones */}
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+      <div className="grid grid-cols-1 gap-4">
 
         {/* Datos personales */}
         <section className="border rounded-xl p-5 space-y-3">
