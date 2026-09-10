@@ -49,7 +49,7 @@ export default async function EmployeePage({ params }: Props) {
   const monthlyGross = employee.annualGrossSalary / 12
 
   return (
-    <div className="p-6 max-w-4xl mx-auto space-y-6">
+    <div className="p-6 max-w-2xl mx-auto space-y-6">
       {/* Cabecera */}
       <div className="flex items-start justify-between gap-4">
         <div className="flex items-center gap-3">

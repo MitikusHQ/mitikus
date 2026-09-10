@@ -457,11 +457,8 @@ export function TeamPanel({ onClose, myId, locale }: Props) {
         </div>
       )}
 
-      {/* Backdrop */}
-      <div className="fixed inset-0 z-40 bg-black/20 md:hidden" onClick={onClose} aria-hidden />
-
-      {/* Panel lateral — drawer superpuesto */}
-      <div className="fixed top-0 right-0 h-full w-72 border-l bg-card text-card-foreground shadow-xl z-50 flex flex-col">
+      {/* Panel lateral */}
+      <div className="flex flex-col h-full w-72 shrink-0 border-l bg-card text-card-foreground">
         {/* Header */}
         <div className="flex items-center justify-between px-4 py-3 border-b shrink-0">
           <span className="font-semibold text-sm">Equipo</span>
