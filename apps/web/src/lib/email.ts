@@ -847,3 +847,47 @@ export async function sendStorageAlertEmail({
     `,
   })
 }
+
+export async function sendPaymentFailedEmail({
+  to,
+  userName,
+  amount,
+  currency,
+  retryUrl,
+}: {
+  to: string
+  userName: string | null
+  amount: string
+  currency: string
+  retryUrl: string
+}): Promise<void> {
+  if (!process.env.RESEND_API_KEY) return
+
+  const resend = new Resend(process.env.RESEND_API_KEY)
+  const greeting = userName ? `Hola ${userName},` : 'Hola,'
+
+  await resend.emails.send({
+    from: 'MITIKUS <noreply@mitikus.com>',
+    to,
+    subject: `⚠️ No se pudo cobrar tu suscripción MITIKUS`,
+    html: `
+      <div style="font-family:sans-serif;max-width:480px;margin:0 auto;padding:24px;background:#fff">
+        <div style="background:#dc2626;border-radius:8px;padding:16px 20px;margin-bottom:20px">
+          <p style="margin:0;font-size:16px;font-weight:700;color:#fff">Pago fallido: ${amount} ${currency}</p>
+        </div>
+        <p style="font-size:15px;color:#111;line-height:1.6">${greeting}</p>
+        <p style="font-size:15px;color:#111;line-height:1.6">
+          No hemos podido cobrar el importe de <strong>${amount} ${currency}</strong> correspondiente a tu suscripción MITIKUS.
+          Tu cuenta puede quedar limitada si el pago no se regulariza en los próximos días.
+        </p>
+        <p style="font-size:14px;color:#555;line-height:1.6">
+          Revisa los datos de tu método de pago y vuelve a intentarlo desde la página de configuración de tu cuenta.
+        </p>
+        <a href="${retryUrl}" style="display:inline-block;padding:10px 20px;background:#dc2626;color:#fff;border-radius:6px;text-decoration:none;font-size:14px;margin-top:8px">
+          Actualizar método de pago
+        </a>
+        <p style="margin-top:24px;font-size:12px;color:#888">Si ya lo has solucionado, ignora este mensaje. MITIKUS &middot; <a href="https://mitikus.com" style="color:#888">mitikus.com</a></p>
+      </div>
+    `,
+  })
+}

@@ -134,6 +134,26 @@ export async function POST(req: Request) {
         )
         if (!orgId) break
         await markPastDue(orgId, event.id)
+
+        // Notificar al owner que el pago ha fallado — fire-and-forget
+        void (async () => {
+          try {
+            const { sendPaymentFailedEmail } = await import('@/lib/email')
+            const amountCents = invoice.amount_due ?? 0
+            const amount = (amountCents / 100).toLocaleString('es-ES', { minimumFractionDigits: 2 })
+            const currency = (invoice.currency ?? 'eur').toUpperCase()
+            const ws = await db.workspace.findFirst({ where: { orgId }, select: { id: true } })
+            const owner = await db.user.findFirst({
+              where: { orgId, role: 'OWNER' },
+              select: { email: true, name: true },
+            })
+            if (!owner) return
+            const retryUrl = ws
+              ? `${process.env.NEXT_PUBLIC_APP_URL ?? 'https://mitikus.com'}/workspace/${ws.id}/settings`
+              : 'https://mitikus.com'
+            await sendPaymentFailedEmail({ to: owner.email, userName: owner.name, amount, currency, retryUrl })
+          } catch { /* no interrumpimos el flujo principal */ }
+        })()
         break
       }
 
