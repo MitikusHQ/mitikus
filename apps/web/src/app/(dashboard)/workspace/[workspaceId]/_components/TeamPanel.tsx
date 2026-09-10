@@ -458,7 +458,7 @@ export function TeamPanel({ onClose, myId, locale }: Props) {
       )}
 
       {/* Panel lateral */}
-      <div className="flex flex-col h-full w-80 border-l bg-card text-card-foreground">
+      <div className="flex flex-col h-full w-80 border-l bg-card text-card-foreground shrink-0 z-10 relative">
         {/* Header */}
         <div className="flex items-center justify-between px-4 py-3 border-b shrink-0">
           <span className="font-semibold text-sm">Equipo</span>
