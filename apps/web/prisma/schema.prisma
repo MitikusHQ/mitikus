@@ -2059,6 +2059,13 @@ model Invoice {
   // Notificaciones automáticas
   overdueNotifiedAt DateTime? // null = aún no se ha enviado aviso de vencimiento
 
+  // Facturación recurrente
+  recurringInterval String?   // null = no recurrente | monthly | quarterly | yearly
+  recurringNextDate DateTime? // próxima fecha de generación automática
+  recurringAnchorId String?   // ID de la factura plantilla (null en la propia plantilla)
+  recurringCopies   Invoice[] @relation("RecurringCopy")
+  recurringAnchor   Invoice?  @relation("RecurringCopy", fields: [recurringAnchorId], references: [id], onDelete: SetNull)
+
   createdAt   DateTime  @default(now())
   updatedAt   DateTime  @updatedAt
 
