@@ -3634,7 +3634,7 @@ const es: DashboardTranslations = {
   groupHR: 'RRHH',
   navEmployees: 'Empleados',
   navPayroll: 'Nóminas',
-  navLeaves: 'Ausencias',
+  navLeaves: 'Permisos',
   descEmployees: 'Gestiona tu equipo, contratos y configuración de nóminas',
   descPayroll: 'Genera y aprueba nóminas mensuales',
   descLeaves: 'Gestiona vacaciones, bajas y ausencias',
