@@ -15,13 +15,13 @@ const inter = Inter({ subsets: ['latin'] })
 export const metadata: Metadata = {
   metadataBase: new URL('https://www.mitikus.com'),
   title: {
-    default: 'MITIKUS — Tu negocio, all in one!',
+    default: 'MITIKUS | Tu negocio, all in one',
     template: '%s · MITIKUS',
   },
   description:
     'El hub de productividad para profesionales, pymes y equipos. Gestiona clientes, documentos, facturas, contratos y tu equipo desde un único lugar.',
   openGraph: {
-    title: 'MITIKUS — Tu negocio, all in one!',
+    title: 'MITIKUS | Tu negocio, all in one',
     description:
       'El hub de productividad para profesionales, pymes y equipos. Gestiona clientes, documentos, facturas, contratos y tu equipo desde un único lugar.',
     url: 'https://www.mitikus.com',
@@ -31,7 +31,7 @@ export const metadata: Metadata = {
   },
   twitter: {
     card: 'summary_large_image',
-    title: 'MITIKUS — Tu negocio, all in one!',
+    title: 'MITIKUS | Tu negocio, all in one',
     description:
       'El hub de productividad para profesionales, pymes y equipos. Gestiona clientes, documentos, facturas, contratos y tu equipo desde un único lugar.',
   },
