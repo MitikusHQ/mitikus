@@ -1,4 +1,4 @@
-export const dynamic = 'force-dynamic'
+﻿export const dynamic = 'force-dynamic'
 
 import type { Metadata } from 'next'
 import type React from 'react'
@@ -14,28 +14,28 @@ import { LandingNav } from './_components/LandingNav'
 import { getLandingTranslations } from '@/i18n/landing-translations'
 
 export const metadata: Metadata = {
-  title: 'MITIKUS — Tu espacio de trabajo, todo en uno',
+  title: 'MITIKUS â€” Tu espacio de trabajo, todo en uno',
   description:
-    'Propuestas, contratos con firma digital, facturas y presentaciones para profesionales y equipos — todo en un solo lugar. Prueba gratis 15 días.',
+    'Propuestas, contratos con firma digital, facturas y presentaciones para profesionales y equipos â€” todo en un solo lugar. Prueba gratis 15 dÃ­as.',
   keywords: [
-    'gestión documental profesionales', 'contratos firma digital pymes',
-    'crear propuestas comerciales IA', 'facturación online pymes',
-    'presentaciones clientes', 'software gestión documentos cliente',
+    'gestiÃ³n documental profesionales', 'contratos firma digital pymes',
+    'crear propuestas comerciales IA', 'facturaciÃ³n online pymes',
+    'presentaciones clientes', 'software gestiÃ³n documentos cliente',
   ],
   openGraph: {
-    title: 'MITIKUS — Tu espacio de trabajo, todo en uno',
+    title: 'MITIKUS â€” Tu espacio de trabajo, todo en uno',
     description:
-      'Propuestas, contratos con firma digital, facturas y presentaciones — para profesionales y equipos que quieren entregar más rápido.',
+      'Propuestas, contratos con firma digital, facturas y presentaciones â€” para profesionales y equipos que quieren entregar mÃ¡s rÃ¡pido.',
     type: 'website',
     locale: 'es_ES',
     url: 'https://www.mitikus.com/',
     siteName: 'MITIKUS',
-    images: [{ url: 'https://www.mitikus.com/api/og', width: 1200, height: 630, alt: 'MITIKUS — El espacio de trabajo completo para tu equipo' }],
+    images: [{ url: 'https://www.mitikus.com/api/og', width: 1200, height: 630, alt: 'MITIKUS â€” El espacio de trabajo completo para tu equipo' }],
   },
   twitter: {
     card: 'summary_large_image',
-    title: 'MITIKUS — Tu espacio de trabajo, todo en uno',
-    description: 'Documentos, contratos, hojas de cálculo, presentaciones y IA en un solo lugar.',
+    title: 'MITIKUS â€” Tu espacio de trabajo, todo en uno',
+    description: 'Documentos, contratos, hojas de cÃ¡lculo, presentaciones y IA en un solo lugar.',
     images: ['https://www.mitikus.com/api/og'],
   },
   alternates: {
@@ -65,7 +65,7 @@ export default async function HomePage() {
     applicationCategory: 'BusinessApplication',
     operatingSystem: 'Web',
     description:
-      'Espacio de trabajo para equipos: documentos, contratos con firma digital, hojas de cálculo, presentaciones, cuadernos de investigación y flujos de trabajo con IA.',
+      'Espacio de trabajo para equipos: documentos, contratos con firma digital, hojas de cÃ¡lculo, presentaciones, cuadernos de investigaciÃ³n y flujos de trabajo con IA.',
     offers: {
       '@type': 'AggregateOffer',
       priceCurrency: 'EUR',
@@ -80,7 +80,7 @@ export default async function HomePage() {
     name: 'MITIKUS',
     url: 'https://www.mitikus.com',
     logo: 'https://www.mitikus.com/favicon.svg',
-    description: 'Hub de productividad para profesionales, pymes y equipos. Gestión de clientes, documentos, facturas y contratos en un único lugar.',
+    description: 'Hub de productividad para profesionales, pymes y equipos. GestiÃ³n de clientes, documentos, facturas y contratos en un Ãºnico lugar.',
     contactPoint: {
       '@type': 'ContactPoint',
       contactType: 'customer support',
@@ -113,7 +113,7 @@ export default async function HomePage() {
       <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLdOrg) }} />
       <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLdWebSite) }} />
 
-      {/* ── NAV ── */}
+      {/* â”€â”€ NAV â”€â”€ */}
       <header className="border-b sticky top-0 z-50 bg-background/95 backdrop-blur-sm relative">
         <div className="max-w-5xl mx-auto px-6 py-4 flex items-center justify-between">
           <div className="flex items-center gap-2.5">
@@ -142,7 +142,7 @@ export default async function HomePage() {
         </div>
       </header>
 
-      {/* ── HERO ── */}
+      {/* â”€â”€ HERO â”€â”€ */}
       <section data-no-reveal className="max-w-4xl mx-auto px-6 pt-16 pb-12 text-center">
         <h1 className="text-3xl sm:text-5xl font-bold tracking-tight mb-4 leading-tight">
           {landing.heroLine1}<br className="hidden sm:block" /> {landing.heroLine2}
@@ -165,11 +165,11 @@ export default async function HomePage() {
           </a>
         </div>
 
-        {/* Hero visual — Mi Office en miniatura */}
+        {/* Hero visual â€” Studio en miniatura */}
         <MockupOfficeHub locale={locale} />
       </section>
 
-      {/* ── EL PROBLEMA ── */}
+      {/* â”€â”€ EL PROBLEMA â”€â”€ */}
       <section className="bg-muted/30 border-y">
         <div className="max-w-4xl mx-auto px-6 py-14">
           <h2 className="text-2xl font-bold text-center mb-2">{landing.problemEyebrow}</h2>
@@ -184,7 +184,7 @@ export default async function HomePage() {
         </div>
       </section>
 
-      {/* ── CASOS DE USO ── */}
+      {/* â”€â”€ CASOS DE USO â”€â”€ */}
       <section className="max-w-5xl mx-auto px-6 py-16">
         <p className="text-xs font-semibold uppercase tracking-widest text-muted-foreground text-center mb-3">
           {landing.useCasesEyebrow}
@@ -213,7 +213,7 @@ export default async function HomePage() {
         </div>
       </section>
 
-      {/* ── HERRAMIENTAS (Mi Office) ── */}
+      {/* â”€â”€ HERRAMIENTAS (Studio) â”€â”€ */}
       <section id="herramientas" className="bg-muted/30 border-y">
         <div className="max-w-5xl mx-auto px-6 py-16">
         <h2 className="text-2xl font-bold text-center mb-2">{landing.toolsTitle}</h2>
@@ -228,7 +228,7 @@ export default async function HomePage() {
         </div>
       </section>
 
-      {/* ── IA CON ARKOS ── */}
+      {/* â”€â”€ IA CON ARKOS â”€â”€ */}
       <section className="bg-muted/30 border-y">
         <div className="max-w-4xl mx-auto px-6 py-16">
           <div className="flex flex-col lg:flex-row gap-12 items-center">
@@ -243,7 +243,7 @@ export default async function HomePage() {
               <ul className="space-y-2 text-sm text-muted-foreground">
                 {landing.arkosBullets.map((item) => (
                   <li key={item} className="flex items-start gap-2">
-                    <span className="text-primary mt-0.5">✓</span>
+                    <span className="text-primary mt-0.5">âœ“</span>
                     <span>{item}</span>
                   </li>
                 ))}
@@ -256,7 +256,7 @@ export default async function HomePage() {
         </div>
       </section>
 
-      {/* ── EQUIPO ── */}
+      {/* â”€â”€ EQUIPO â”€â”€ */}
       <section className="max-w-4xl mx-auto px-6 py-16">
         <div className="flex flex-col lg:flex-row-reverse gap-12 items-center">
           <div className="flex-1">
@@ -270,7 +270,7 @@ export default async function HomePage() {
             <ul className="space-y-2 text-sm text-muted-foreground">
               {landing.teamBullets.map((item) => (
                 <li key={item} className="flex items-start gap-2">
-                  <span className="text-primary mt-0.5">✓</span>
+                  <span className="text-primary mt-0.5">âœ“</span>
                   <span>{item}</span>
                 </li>
               ))}
@@ -282,7 +282,7 @@ export default async function HomePage() {
         </div>
       </section>
 
-      {/* ── BENEFICIOS ── */}
+      {/* â”€â”€ BENEFICIOS â”€â”€ */}
       <section className="bg-muted/30 border-y">
         <div className="max-w-4xl mx-auto px-6 py-14">
           <h2 className="text-2xl font-bold text-center mb-10">{landing.benefitsTitle}</h2>
@@ -295,7 +295,7 @@ export default async function HomePage() {
       </section>
 
 
-      {/* ── PARA QUIÉN ── */}
+      {/* â”€â”€ PARA QUIÃ‰N â”€â”€ */}
       <section className="max-w-5xl mx-auto px-6 py-14">
         <p className="text-xs font-semibold uppercase tracking-widest text-muted-foreground text-center mb-3">
           {landing.forWhomEyebrow}
@@ -311,7 +311,7 @@ export default async function HomePage() {
         </div>
       </section>
 
-      {/* ── VS COMPETENCIA ── */}
+      {/* â”€â”€ VS COMPETENCIA â”€â”€ */}
       <section className="bg-muted/30 border-y">
         <div className="max-w-4xl mx-auto px-6 py-14">
           <p className="text-xs font-semibold uppercase tracking-widest text-muted-foreground text-center mb-3">
@@ -342,12 +342,12 @@ export default async function HomePage() {
         </div>
       </section>
 
-      {/* ── PRECIOS ── */}
+      {/* â”€â”€ PRECIOS â”€â”€ */}
       <section id="precios">
         <PricingSection />
       </section>
 
-      {/* ── FAQ ── */}
+      {/* â”€â”€ FAQ â”€â”€ */}
       <section className="bg-muted/30 border-y">
         <div className="max-w-3xl mx-auto px-6 py-14">
           <h2 className="text-2xl font-bold text-center mb-10">{landing.faqTitle}</h2>
@@ -360,7 +360,7 @@ export default async function HomePage() {
       </section>
 
 
-      {/* ── CTA FINAL ── */}
+      {/* â”€â”€ CTA FINAL â”€â”€ */}
       <section>
         <div className="max-w-xl mx-auto px-6 py-16 text-center">
           <h2 className="text-2xl font-bold mb-3">{landing.ctaTitle}</h2>
@@ -397,17 +397,17 @@ export default async function HomePage() {
                   <polygon points="-10,102 192,100 192,105 -10,200" fill="url(#flg)"/>
                 </g>
               </svg>
-              MITIKUS — {landing.footerTagline}
+              MITIKUS â€” {landing.footerTagline}
             </span>
             <div className="flex flex-wrap items-center gap-3 justify-center">
               <a href="/privacy" className="hover:text-foreground transition-colors">{landing.footerPrivacy}</a>
-              <span>·</span>
+              <span>Â·</span>
               <a href="/terms" className="hover:text-foreground transition-colors">{landing.footerTerms}</a>
-              <span>·</span>
+              <span>Â·</span>
               <a href="/dpa" className="hover:text-foreground transition-colors">{landing.footerDpa}</a>
             </div>
           </div>
-          <p className="text-center">© {new Date().getFullYear()} MITIKUS</p>
+          <p className="text-center">Â© {new Date().getFullYear()} MITIKUS</p>
         </div>
       </footer>
       <CookieBanner initialShow={!hasConsentCookie} />
@@ -415,7 +415,7 @@ export default async function HomePage() {
   )
 }
 
-// ── Mockup components ─────────────────────────────────────────────────────────
+// â”€â”€ Mockup components â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 
 function MockupOfficeHub({ locale }: { locale: string }) {
   const t = getLandingTranslations(locale as import('@/i18n/config').Locale)
@@ -456,17 +456,17 @@ function MockupArkos() {
         <div className="w-2.5 h-2.5 rounded-full bg-red-400/60" />
         <div className="w-2.5 h-2.5 rounded-full bg-yellow-400/60" />
         <div className="w-2.5 h-2.5 rounded-full bg-green-400/60" />
-        <span className="text-xs text-muted-foreground ml-2">Arkos — asistente IA</span>
+        <span className="text-xs text-muted-foreground ml-2">Arkos â€” asistente IA</span>
       </div>
       <div className="p-4 flex flex-col gap-3 min-h-[220px]">
         <div className="bg-muted rounded-lg p-3 text-xs text-muted-foreground max-w-[88%]">
-          Cuéntame en qué trabaja tu empresa. Puedo ayudarte a redactar documentos, preparar propuestas o sintetizar información de tus proyectos.
+          CuÃ©ntame en quÃ© trabaja tu empresa. Puedo ayudarte a redactar documentos, preparar propuestas o sintetizar informaciÃ³n de tus proyectos.
         </div>
         <div className="bg-primary/10 border border-primary/20 rounded-lg p-3 text-xs ml-auto max-w-[88%]">
-          Somos una agencia de diseño. Necesito una propuesta de servicios para un cliente nuevo del sector retail.
+          Somos una agencia de diseÃ±o. Necesito una propuesta de servicios para un cliente nuevo del sector retail.
         </div>
         <div className="bg-muted rounded-lg p-3 text-xs text-muted-foreground max-w-[88%]">
-          Perfecto. He preparado un borrador de propuesta con servicios, cronograma y condiciones. ¿Quieres que ajuste el tono o añada apartados específicos?
+          Perfecto. He preparado un borrador de propuesta con servicios, cronograma y condiciones. Â¿Quieres que ajuste el tono o aÃ±ada apartados especÃ­ficos?
         </div>
         <div className="mt-auto border rounded-lg p-2 flex items-center gap-2">
           <span className="text-xs text-muted-foreground flex-1">Escribe tu objetivo...</span>
@@ -481,10 +481,10 @@ function MockupArkos() {
 
 function MockupTeam() {
   const members = [
-    { name: 'Laura García', role: 'Propietaria', initials: 'LG', color: 'bg-violet-100 text-violet-700 dark:bg-violet-900/30 dark:text-violet-400' },
+    { name: 'Laura GarcÃ­a', role: 'Propietaria', initials: 'LG', color: 'bg-violet-100 text-violet-700 dark:bg-violet-900/30 dark:text-violet-400' },
     { name: 'Marcos Ruiz', role: 'Administrador', initials: 'MR', color: 'bg-blue-100 text-blue-700 dark:bg-blue-900/30 dark:text-blue-400' },
-    { name: 'Ana Pérez', role: 'Editora', initials: 'AP', color: 'bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-400' },
-    { name: 'Invitación pendiente', role: 'Pendiente', initials: '···', color: 'bg-muted text-muted-foreground' },
+    { name: 'Ana PÃ©rez', role: 'Editora', initials: 'AP', color: 'bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-400' },
+    { name: 'InvitaciÃ³n pendiente', role: 'Pendiente', initials: 'Â·Â·Â·', color: 'bg-muted text-muted-foreground' },
   ]
   return (
     <div className="rounded-xl border bg-card overflow-hidden shadow-sm">
@@ -492,7 +492,7 @@ function MockupTeam() {
         <div className="w-2.5 h-2.5 rounded-full bg-red-400/60" />
         <div className="w-2.5 h-2.5 rounded-full bg-yellow-400/60" />
         <div className="w-2.5 h-2.5 rounded-full bg-green-400/60" />
-        <span className="text-xs text-muted-foreground ml-2">Organización — equipo</span>
+        <span className="text-xs text-muted-foreground ml-2">OrganizaciÃ³n â€” equipo</span>
       </div>
       <div className="p-4 space-y-2.5">
         {members.map((m) => (
@@ -519,7 +519,7 @@ function MockupTeam() {
   )
 }
 
-// ── Utility components ────────────────────────────────────────────────────────
+// â”€â”€ Utility components â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 
 function ProblemItem({ title, text }: { title: string; text: string }) {
   return (
@@ -543,7 +543,7 @@ function ToolCard({ icon, title, text }: { icon: string; title: string; text: st
 function BenefitItem({ title, text }: { title: string; text: string }) {
   return (
     <div className="rounded-lg border bg-card p-5">
-      <p className="font-semibold text-sm mb-1">✓ {title}</p>
+      <p className="font-semibold text-sm mb-1">âœ“ {title}</p>
       <p className="text-xs text-muted-foreground leading-relaxed">{text}</p>
     </div>
   )
@@ -577,9 +577,10 @@ function TestimonialCard({
         </div>
         <div className="min-w-0">
           <p className="text-sm font-semibold">{name}</p>
-          <p className="text-xs text-muted-foreground">{role} · {company}</p>
+          <p className="text-xs text-muted-foreground">{role} Â· {company}</p>
         </div>
       </div>
     </div>
   )
 }
+

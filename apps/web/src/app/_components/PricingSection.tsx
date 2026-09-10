@@ -1,29 +1,29 @@
-'use client'
+﻿'use client'
 
 import { useState } from 'react'
 
 const PLANS = [
   {
-    name:     'Evaluación',
+    name:     'EvaluaciÃ³n',
     monthly:  null,
     annual:   null,
     label:    'Gratis',
-    period:   '15 días',
+    period:   '15 dÃ­as',
     forWhom:  'Prueba con un proyecto real antes de decidir.',
     cta:      'Empezar gratis',
     ctaHref:  '/sign-up',
-    features: ['1 usuario', '1 workspace', 'Mi Office completo', 'Arkos IA (limitado)', '5 misiones activas', 'Soporte por email'],
+    features: ['1 usuario', '1 workspace', 'Studio completo', 'Arkos IA (limitado)', '5 misiones activas', 'Soporte por email'],
   },
   {
-    name:     'Autónomo',
+    name:     'AutÃ³nomo',
     monthly:  29,
     annual:   26,
     label:    null,
     period:   '/mes',
-    forWhom:  'Autónomo o profesional independiente que trabaja solo.',
+    forWhom:  'AutÃ³nomo o profesional independiente que trabaja solo.',
     cta:      'Contratar',
     ctaHref:  '/sign-up',
-    features: ['1 usuario', '1 workspace', 'Mi Office completo', 'Arkos IA', 'Misiones ilimitadas', 'Firma digital OTP', 'Facturación + fiscal', 'Soporte por email'],
+    features: ['1 usuario', '1 workspace', 'Studio completo', 'Arkos IA', 'Misiones ilimitadas', 'Firma digital OTP', 'FacturaciÃ³n + fiscal', 'Soporte por email'],
   },
   {
     name:     'Starter',
@@ -31,10 +31,10 @@ const PLANS = [
     annual:   35,
     label:    null,
     period:   '/mes',
-    forWhom:  'Profesionales independientes o equipos pequeños de hasta 2 personas.',
+    forWhom:  'Profesionales independientes o equipos pequeÃ±os de hasta 2 personas.',
     cta:      'Contratar',
     ctaHref:  '/sign-up',
-    features: ['Hasta 2 usuarios', '1 workspace', 'Mi Office completo', 'Arkos IA', 'Misiones ilimitadas', 'Firma digital OTP', 'Soporte por email'],
+    features: ['Hasta 2 usuarios', '1 workspace', 'Studio completo', 'Arkos IA', 'Misiones ilimitadas', 'Firma digital OTP', 'Soporte por email'],
   },
   {
     name:        'Professional',
@@ -46,7 +46,7 @@ const PLANS = [
     cta:         'Contratar',
     ctaHref:     '/sign-up',
     highlighted: true,
-    features:    ['Hasta 15 usuarios', '3 workspaces', 'Mi Office completo', 'Arkos IA avanzado', 'Misiones + Flujos', 'Firma digital OTP', 'Historial de auditoría', 'Soporte prioritario'],
+    features:    ['Hasta 15 usuarios', '3 workspaces', 'Studio completo', 'Arkos IA avanzado', 'Misiones + Flujos', 'Firma digital OTP', 'Historial de auditorÃ­a', 'Soporte prioritario'],
   },
   {
     name:     'Business',
@@ -65,7 +65,7 @@ const PLANS = [
     annual:   null,
     label:    'A medida',
     period:   '',
-    forWhom:  'SSO, integraciones personalizadas o condiciones específicas.',
+    forWhom:  'SSO, integraciones personalizadas o condiciones especÃ­ficas.',
     cta:      'Hablar con nosotros',
     ctaHref:  '/sign-up',
     features: ['Usuarios a medida', 'Workspaces a medida', 'Todo lo de Business', 'SSO empresarial', 'Integraciones a medida', 'SLA garantizado', 'Gestor de cuenta'],
@@ -79,7 +79,7 @@ export function PricingSection() {
     <div className="max-w-5xl mx-auto px-6 py-14">
       <h2 className="text-2xl font-bold text-center mb-2">Precios</h2>
       <p className="text-center text-muted-foreground mb-1">Sin permanencia. Cancela cuando quieras.</p>
-      <p className="text-center text-xs text-muted-foreground mb-6">IVA incluido · Facturación mensual o anual</p>
+      <p className="text-center text-xs text-muted-foreground mb-6">IVA incluido Â· FacturaciÃ³n mensual o anual</p>
 
       {/* Toggle mensual / anual */}
       <div className="flex items-center justify-center gap-3 mb-10">
@@ -89,7 +89,7 @@ export function PricingSection() {
         <button
           type="button"
           role="switch"
-          aria-label="Cambiar a facturación anual"
+          aria-label="Cambiar a facturaciÃ³n anual"
           aria-checked={annual}
           onClick={() => setAnnual((v) => !v)}
           className={`relative w-11 h-6 rounded-full transition-colors focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary ${
@@ -106,7 +106,7 @@ export function PricingSection() {
           Anual
         </span>
         <span className="text-xs font-semibold px-2 py-0.5 rounded-full bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-400">
-          −10%
+          âˆ’10%
         </span>
       </div>
 
@@ -115,8 +115,8 @@ export function PricingSection() {
           const price = plan.label
             ? plan.label
             : annual
-              ? `${plan.annual}€`
-              : `${plan.monthly}€`
+              ? `${plan.annual}â‚¬`
+              : `${plan.monthly}â‚¬`
           const period = plan.label
             ? plan.period
             : plan.period
@@ -132,7 +132,7 @@ export function PricingSection() {
             >
               {plan.highlighted && (
                 <span className="self-start text-[10px] font-bold uppercase tracking-wide text-primary mb-2">
-                  Más popular
+                  MÃ¡s popular
                 </span>
               )}
               <p className="font-semibold text-sm mb-0.5">{plan.name}</p>
@@ -146,7 +146,7 @@ export function PricingSection() {
               {/* Ahorro anual */}
               {annual && plan.monthly && plan.annual && (
                 <p className="text-[10px] text-green-600 dark:text-green-400 font-medium mb-2">
-                  Ahorras {(plan.monthly - plan.annual) * 12}€/año
+                  Ahorras {(plan.monthly - plan.annual) * 12}â‚¬/aÃ±o
                 </p>
               )}
 
@@ -156,7 +156,7 @@ export function PricingSection() {
                 <ul className="space-y-1.5 mb-4 flex-1">
                   {plan.features.map((f) => (
                     <li key={f} className="flex items-start gap-1.5 text-xs text-muted-foreground">
-                      <span className="text-primary mt-0.5 shrink-0">✓</span>
+                      <span className="text-primary mt-0.5 shrink-0">âœ“</span>
                       <span>{f}</span>
                     </li>
                   ))}
@@ -180,3 +180,4 @@ export function PricingSection() {
     </div>
   )
 }
+

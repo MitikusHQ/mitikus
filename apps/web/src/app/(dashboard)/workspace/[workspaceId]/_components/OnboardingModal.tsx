@@ -411,13 +411,13 @@ const SLIDES: Slide[] = [
     ),
   },
 
-  // ─── 8. Mi Office ────────────────────────────────────────────────────
+  // ─── 8. Studio ────────────────────────────────────────────────────
   {
-    tag: '📁 Mi Office',
+    tag: '📁 Studio',
     tagColor: '#0E7490',
     tagBg: '#ECFEFF',
     title: 'Todos tus documentos en un solo lugar',
-    desc: 'Mi Office incluye editor de texto con IA, hojas de cálculo, visor de PDFs con búsqueda, notebooks, contratos con firma digital y presentaciones.',
+    desc: 'Studio incluye editor de texto con IA, hojas de cálculo, visor de PDFs con búsqueda, notebooks, contratos con firma digital y presentaciones.',
     tips: [
       { icon: '✍️', text: 'Los contratos pueden enviarse al cliente para firma digital con verificación OTP.' },
       { icon: '🤖', text: 'El Notebook analiza documentos y PDFs y responde preguntas sobre su contenido.' },
@@ -429,7 +429,7 @@ const SLIDES: Slide[] = [
         <rect width="160" height="160" fill="#F0FDFF" rx="10"/>
         {/* Header */}
         <rect x="0" y="0" width="160" height="18" fill="#CFFAFE" rx="10"/>
-        <text x="10" y="13" fontSize="8" fontWeight="700" fontFamily="system-ui, sans-serif" fill="#155E75">📁  Mi Office</text>
+        <text x="10" y="13" fontSize="8" fontWeight="700" fontFamily="system-ui, sans-serif" fill="#155E75">📁  Studio</text>
         {/* 2×3 tool grid */}
         {[
           { x: 6,  y: 24, emoji: '📝', label: 'Documentos', c: '#0891B2', bg: '#E0F7FA' },

@@ -1,4 +1,4 @@
-import { allOfficialTools } from '@/registry/official'
+﻿import { allOfficialTools } from '@/registry/official'
 import type { BrainFragment } from './brain-search'
 
 interface ProductHelpEntry {
@@ -87,9 +87,9 @@ const PRODUCT_HELP: ProductHelpEntry[] = [
   },
   {
     id: 'section-office',
-    title: 'Mi Office',
-    body: 'Mi Office concentra archivos y documentos del workspace. Permite guardar material, organizarlo en carpetas, vincularlo a clientes y exportar documentos del workspace cuando haga falta.',
-    keywords: ['mi office', 'office', 'archivos', 'documentos', 'carpetas', 'galeria', 'almacenamiento'],
+    title: 'Studio',
+    body: 'Studio concentra archivos y documentos del workspace. Permite guardar material, organizarlo en carpetas, vincularlo a clientes y exportar documentos del workspace cuando haga falta.',
+    keywords: ['Studio', 'office', 'archivos', 'documentos', 'carpetas', 'galeria', 'almacenamiento'],
   },
   {
     id: 'section-missions',
@@ -171,37 +171,37 @@ const PRODUCT_HELP: ProductHelpEntry[] = [
   },
   {
     id: 'section-timelog-setup',
-    title: 'Cómo usar el control horario',
+    title: 'CÃ³mo usar el control horario',
     body: 'Para fichar: 1) Haz clic en el icono de reloj de la barra superior. 2) Pulsa "Iniciar jornada" para registrar la entrada. 3) Al terminar, vuelve a pulsar y selecciona "Finalizar jornada". Las jornadas quedan guardadas en el historial. Si cierras la sesion sin fichar la salida, el sistema preguntara al volver.',
     keywords: ['como fichar', 'como usar control horario', 'iniciar jornada', 'finalizar jornada', 'historial horas'],
   },
   {
     id: 'howto-mail-smtp',
-    title: 'Cómo configurar el correo SMTP e IMAP',
+    title: 'CÃ³mo configurar el correo SMTP e IMAP',
     body: 'Para usar tu propio correo en MITIKUS: 1) Ve a Ajustes del workspace (icono de engranaje en el sidebar). 2) Busca la seccion "Correo". 3) Introduce los datos SMTP (servidor, puerto, usuario y contrasena) para poder enviar. 4) Introduce los datos IMAP (servidor, puerto, usuario y contrasena) para poder recibir y sincronizar. 5) Usa los botones "Probar SMTP" o "Probar IMAP" para verificar que la conexion funciona antes de guardar. 6) Guarda los cambios. Si usas Gmail, los datos suelen ser: SMTP smtp.gmail.com puerto 587, IMAP imap.gmail.com puerto 993. Necesitas activar acceso SMTP en tu cuenta de Google.',
     keywords: ['smtp', 'imap', 'configurar correo', 'como configurar email', 'servidor correo', 'gmail smtp', 'contrasena correo', 'ajustes correo'],
   },
   {
     id: 'howto-invoice-create',
-    title: 'Cómo crear una factura',
-    body: 'Para emitir una factura en MITIKUS: 1) Ve a la seccion Facturas en el sidebar. 2) Pulsa el boton "+ Nueva factura". 3) Selecciona el cliente (debe estar dado de alta en Clientes). 4) Revisa los datos fiscales del emisor — si faltan, ve a Ajustes y completa NIF, nombre fiscal y direccion. 5) Anade las lineas de concepto con descripcion, cantidad y precio. 6) MITIKUS calcula la base, IVA y total automaticamente. 7) Guarda la factura. 8) Descarga el PDF o enviala por correo desde la propia factura.',
+    title: 'CÃ³mo crear una factura',
+    body: 'Para emitir una factura en MITIKUS: 1) Ve a la seccion Facturas en el sidebar. 2) Pulsa el boton "+ Nueva factura". 3) Selecciona el cliente (debe estar dado de alta en Clientes). 4) Revisa los datos fiscales del emisor â€” si faltan, ve a Ajustes y completa NIF, nombre fiscal y direccion. 5) Anade las lineas de concepto con descripcion, cantidad y precio. 6) MITIKUS calcula la base, IVA y total automaticamente. 7) Guarda la factura. 8) Descarga el PDF o enviala por correo desde la propia factura.',
     keywords: ['crear factura', 'nueva factura', 'emitir factura', 'como facturar', 'pdf factura', 'enviar factura', 'lineas factura', 'concepto'],
   },
   {
     id: 'howto-client-create',
-    title: 'Cómo añadir un cliente',
+    title: 'CÃ³mo aÃ±adir un cliente',
     body: 'Para dar de alta un cliente: 1) Ve a la seccion Clientes en el sidebar. 2) Pulsa "+ Nuevo cliente". 3) Indica si es empresa, autonomo o particular. 4) Rellena nombre, email y, si vas a facturarle, su NIF/CIF y direccion fiscal. 5) Guarda. El cliente ya estara disponible para vincularlo a facturas, correos y tareas.',
     keywords: ['anadir cliente', 'nuevo cliente', 'dar de alta cliente', 'crear cliente', 'nif cliente', 'cif cliente'],
   },
   {
     id: 'howto-members-invite',
-    title: 'Cómo invitar miembros al workspace',
+    title: 'CÃ³mo invitar miembros al workspace',
     body: 'Para invitar a alguien: 1) Ve a Admin Org en el sidebar (necesitas permisos de administrador). 2) Pulsa "Invitar miembro". 3) Introduce el email de la persona. 4) Elige su rol: Administrador (acceso total), Editor (puede crear y editar) o Viewer (solo lectura). 5) La persona recibira un email con el enlace de invitacion. 6) Al aceptar, tendra acceso al workspace segun su rol.',
     keywords: ['invitar miembro', 'anadir usuario', 'nuevo miembro', 'roles', 'admin', 'editor', 'viewer', 'permisos', 'compartir workspace'],
   },
   {
     id: 'howto-signature-setup',
-    title: 'Cómo configurar la firma de correo',
+    title: 'CÃ³mo configurar la firma de correo',
     body: 'Para establecer la firma que aparece en los correos enviados desde MITIKUS: 1) Ve a Ajustes del workspace. 2) Busca la seccion "Correo" o "Marca". 3) Encuentra el campo "Firma de correo". 4) Escribe o pega el texto de tu firma. 5) Guarda los cambios. La firma se anadira automaticamente al redactar nuevos correos desde el modulo Correo.',
     keywords: ['firma correo', 'firma email', 'signature', 'configurar firma', 'pie de correo'],
   },
@@ -213,7 +213,7 @@ const PRODUCT_HELP: ProductHelpEntry[] = [
   },
   {
     id: 'section-plans-limits',
-    title: 'Planes y límites de MITIKUS',
+    title: 'Planes y lÃ­mites de MITIKUS',
     body: 'MITIKUS ofrece distintos planes con diferentes capacidades. Los limites incluyen: consultas al Brain por mes, almacenamiento de archivos, numero de workspaces y funciones avanzadas. Puedes consultar el consumo actual en "Uso del plan" dentro de Ajustes. Si superas un limite, MITIKUS te avisara antes de bloquear la operacion. Para cambiar de plan o ampliar capacidades, ve a la seccion de suscripcion en Ajustes.',
     keywords: ['plan', 'planes', 'limites', 'suscripcion', 'upgrade', 'capacidad', 'almacenamiento', 'consultas brain', 'precio'],
   },
@@ -225,8 +225,8 @@ const PRODUCT_HELP: ProductHelpEntry[] = [
   },
   {
     id: 'howto-export-data',
-    title: 'Cómo exportar o descargar datos',
-    body: 'MITIKUS permite descargar facturas en PDF desde la propia factura, descargar archivos del expediente de un cliente desde Mi Office o desde la ficha del cliente. El modulo de Analitica permite ver datos de actividad. Si necesitas exportar un listado completo de facturas o clientes en formato CSV, usa la opcion de exportar disponible en cada seccion (icono de descarga). Para copias de seguridad completas del workspace, contacta con Soporte.',
+    title: 'CÃ³mo exportar o descargar datos',
+    body: 'MITIKUS permite descargar facturas en PDF desde la propia factura, descargar archivos del expediente de un cliente desde Studio o desde la ficha del cliente. El modulo de Analitica permite ver datos de actividad. Si necesitas exportar un listado completo de facturas o clientes en formato CSV, usa la opcion de exportar disponible en cada seccion (icono de descarga). Para copias de seguridad completas del workspace, contacta con Soporte.',
     keywords: ['exportar', 'descargar', 'csv', 'pdf', 'backup', 'copia seguridad', 'factura pdf', 'listado facturas'],
   },
 ]
@@ -310,4 +310,5 @@ export function searchProductKnowledge(query: string): BrainFragment[] {
       score: Number((0.05 + Math.min(score, 10) / 100).toFixed(4)),
     }))
 }
+
 
