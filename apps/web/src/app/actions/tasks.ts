@@ -35,9 +35,10 @@ export interface TaskData {
 export interface NotificationData {
   id: string
   type: string
-  taskId: string
-  taskTitle: string
+  taskId: string | null
+  taskTitle: string | null
   message: string
+  link: string | null
   readAt: string | null
   createdAt: string
 }
@@ -199,7 +200,13 @@ export async function getTaskFormOptions(workspaceId: string): Promise<TaskFormO
 export async function getNotifications(workspaceId: string): Promise<NotificationData[]> {
   const userId = await getAuthUserId()
   const notifications = await db.notification.findMany({
-    where: { userId, task: { workspaceId } },
+    where: {
+      userId,
+      OR: [
+        { task: { workspaceId } },
+        { workspaceId },
+      ],
+    },
     include: { task: { select: { title: true } } },
     orderBy: { createdAt: 'desc' },
     take: 30,
@@ -208,9 +215,10 @@ export async function getNotifications(workspaceId: string): Promise<Notificatio
   return notifications.map((n) => ({
     id: n.id,
     type: n.type,
-    taskId: n.taskId,
-    taskTitle: n.task.title,
+    taskId: n.taskId ?? null,
+    taskTitle: n.task?.title ?? null,
     message: n.message,
+    link: n.link ?? null,
     readAt: n.readAt?.toISOString() ?? null,
     createdAt: n.createdAt.toISOString(),
   }))
@@ -219,7 +227,14 @@ export async function getNotifications(workspaceId: string): Promise<Notificatio
 export async function getUnreadCount(workspaceId: string): Promise<number> {
   const userId = await getAuthUserId()
   return db.notification.count({
-    where: { userId, readAt: null, task: { workspaceId } },
+    where: {
+      userId,
+      readAt: null,
+      OR: [
+        { task: { workspaceId } },
+        { workspaceId },
+      ],
+    },
   })
 }
 

@@ -63,6 +63,33 @@ export async function POST(
       metadata: { role: invitation.role },
     })
 
+    // Notificar a owners/admins que alguien se unió — fire-and-forget
+    void (async () => {
+      try {
+        const ws = await db.workspace.findFirst({
+          where: { orgId: invitation.orgId },
+          select: { id: true },
+        })
+        if (!ws) return
+        const owners = await db.user.findMany({
+          where: { orgId: invitation.orgId, role: { in: ['OWNER', 'ADMIN'] }, id: { not: user.id } },
+          select: { id: true },
+        })
+        if (owners.length > 0) {
+          await db.notification.createMany({
+            data: owners.map((o) => ({
+              userId: o.id,
+              workspaceId: ws.id,
+              type: 'member_joined',
+              message: `${user.name ?? user.email} se ha unido a la organización`,
+              link: `/workspace/${ws.id}/settings`,
+            })),
+          })
+        }
+      } catch { /* no interrumpimos el flujo principal */ }
+    })()
+
+
     // Bienvenida al invitado — fire-and-forget, no bloqueamos la respuesta
     void (async () => {
       try {

@@ -117,13 +117,15 @@ export function NotificationBell({ workspaceId }: Props) {
                       <p className="text-xs text-foreground leading-relaxed">{n.message}</p>
                       <div className="flex items-center gap-2 mt-1">
                         <span className="text-[10px] text-muted-foreground">{timeAgo(n.createdAt)}</span>
-                        <Link
-                          href={`/workspace/${workspaceId}/tasks?task=${n.taskId}`}
-                          onClick={() => { handleMarkRead(n.id); setOpen(false) }}
-                          className="text-[10px] text-primary hover:underline"
-                        >
-                          Ver tarea →
-                        </Link>
+                        {(n.link ?? (n.taskId ? `/workspace/${workspaceId}/tasks?task=${n.taskId}` : null)) && (
+                          <Link
+                            href={n.link ?? `/workspace/${workspaceId}/tasks?task=${n.taskId}`}
+                            onClick={() => { handleMarkRead(n.id); setOpen(false) }}
+                            className="text-[10px] text-primary hover:underline"
+                          >
+                            {n.taskId ? 'Ver tarea →' : 'Ver →'}
+                          </Link>
+                        )}
                       </div>
                     </div>
                     {!n.readAt && (
