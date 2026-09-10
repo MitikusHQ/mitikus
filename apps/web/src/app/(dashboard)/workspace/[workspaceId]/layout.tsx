@@ -151,13 +151,26 @@ export default async function WorkspaceLayout({ children, params }: Props) {
     adminItems.push({ label: 'MITIKUS Admin', href: '/admin', icon: Icons.admin, description: 'Panel de control de MITIKUS' })
   }
 
+  const profileChildren: NavItem[] = [
+    { label: locale === 'es' ? 'Ajustes' : 'Settings', href: `${base}/settings`, icon: Icons.settings, description: locale === 'es' ? 'Configuración del workspace' : 'Workspace settings' },
+    { label: locale === 'es' ? 'Integraciones' : 'Integrations', href: `${base}/integrations`, icon: Icons.integrations, description: locale === 'es' ? 'Conecta herramientas externas' : 'Connect external tools' },
+    { label: locale === 'es' ? 'App de escritorio' : 'Desktop app', href: '/download', icon: Icons.download, description: locale === 'es' ? 'Descarga la app nativa' : 'Download the native app' },
+    { label: locale === 'es' ? 'Soporte' : 'Support', href: `${base}/support`, icon: Icons.support, description: locale === 'es' ? 'Ayuda y contacto' : 'Help and contact' },
+  ].filter((_item, _i) => {
+    // Si settings no está permitido, lo omitimos del array de hijos
+    if (_item.href === `${base}/settings` && !show('settings')) return false
+    return true
+  })
+
   const profileItems: NavItem[] = [
-    { label: t.navProfile, href: `${base}/profile`, icon: Icons.profile, description: t.descProfile },
-    { label: t.navDownload, href: '/download', icon: Icons.download, description: t.descDownload },
-    { label: t.navSupport, href: `${base}/support`, icon: Icons.support, description: t.descSupport },
-    show('settings') && { label: t.navSettings, href: `${base}/settings`, icon: Icons.settings, description: t.descSettings },
-    { label: t.navIntegrations, href: `${base}/integrations`, icon: Icons.integrations, description: t.descIntegrations },
-  ].filter(Boolean) as NavItem[]
+    {
+      label: t.navProfile,
+      href: `${base}/profile`,
+      icon: Icons.profile,
+      description: t.descProfile,
+      children: profileChildren,
+    },
+  ]
 
   const navGroups: NavGroup[] = [
     { items: coreItems },

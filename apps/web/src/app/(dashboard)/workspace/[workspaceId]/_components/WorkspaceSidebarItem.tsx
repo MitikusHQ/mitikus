@@ -1,17 +1,19 @@
 'use client'
 
+import { useState } from 'react'
 import Link from 'next/link'
 import { usePathname } from 'next/navigation'
 import { cn } from '@/lib/utils'
 
 export interface NavItem {
   label: string
-  href: string        // absolute href
+  href: string
   icon: React.ReactNode
-  description?: string // tooltip — una frase que explica qué hace esta sección
+  description?: string
   badge?: string
   comingSoon?: boolean
   disabled?: boolean
+  children?: NavItem[]  // si tiene hijos, se renderiza como acordeón
 }
 
 interface Props {
@@ -19,13 +21,30 @@ interface Props {
   collapsed?: boolean
 }
 
+const ChevronIcon = ({ open }: { open: boolean }) => (
+  <svg
+    width="12" height="12" viewBox="0 0 24 24" fill="none"
+    stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"
+    className={cn('transition-transform duration-150 shrink-0', open && 'rotate-180')}
+    aria-hidden
+  >
+    <polyline points="6 9 12 15 18 9" />
+  </svg>
+)
+
 export function WorkspaceSidebarItem({ item, collapsed = false }: Props) {
   const pathname = usePathname()
 
-  // Active: exact for dashboard (ends in workspaceId), prefix for others
   const isActive = item.href.endsWith(pathname)
     ? true
     : pathname.startsWith(item.href) && item.href.split('/').length > 4
+
+  const hasChildren = (item.children?.length ?? 0) > 0
+  const anyChildActive = item.children?.some(
+    (c) => pathname === c.href || (pathname.startsWith(c.href) && c.href.split('/').length > 4)
+  ) ?? false
+
+  const [open, setOpen] = useState(anyChildActive)
 
   if (item.comingSoon || item.disabled) {
     return (
@@ -46,6 +65,46 @@ export function WorkspaceSidebarItem({ item, collapsed = false }: Props) {
               </span>
             )}
           </>
+        )}
+      </div>
+    )
+  }
+
+  // Acordeón — ítem con hijos
+  if (hasChildren) {
+    return (
+      <div>
+        <button
+          type="button"
+          onClick={() => setOpen((p) => !p)}
+          title={collapsed ? item.label : item.description}
+          className={cn(
+            'w-full flex items-center gap-3 px-3 py-2 rounded-md text-sm transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring',
+            collapsed && 'justify-center px-2',
+            anyChildActive
+              ? 'text-primary font-medium'
+              : 'text-muted-foreground hover:text-foreground hover:bg-muted/60',
+          )}
+        >
+          <span className={cn('shrink-0', anyChildActive ? 'text-primary' : 'text-muted-foreground')}>
+            {item.icon}
+          </span>
+          {!collapsed && (
+            <>
+              <span className="flex-1 truncate text-left">{item.label}</span>
+              <ChevronIcon open={open} />
+            </>
+          )}
+        </button>
+
+        {open && !collapsed && (
+          <ul className="mt-0.5 ml-3 pl-3 border-l border-border space-y-0.5">
+            {item.children!.map((child) => (
+              <li key={child.href}>
+                <WorkspaceSidebarItem item={child} collapsed={false} />
+              </li>
+            ))}
+          </ul>
         )}
       </div>
     )
