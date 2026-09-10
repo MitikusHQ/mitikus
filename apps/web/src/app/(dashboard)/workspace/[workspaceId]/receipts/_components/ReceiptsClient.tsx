@@ -113,6 +113,20 @@ export function ReceiptsClient({ workspaceId, initialReceipts, locale }: Props) 
     })
     .reduce((s, r) => s + (r.total ?? 0), 0)
 
+  const categoryTotals = useMemo(() => {
+    const map: Record<string, { total: number; count: number }> = {}
+    for (const r of receipts) {
+      if (r.total == null) continue
+      const key = r.category ?? 'otro'
+      if (!map[key]) map[key] = { total: 0, count: 0 }
+      map[key]!.total += r.total
+      map[key]!.count++
+    }
+    return Object.entries(map)
+      .map(([cat, v]) => ({ cat, ...v }))
+      .sort((a, b) => b.total - a.total)
+  }, [receipts])
+
   function handleSaved(r: ReceiptData) {
     setReceipts((prev) => [r, ...prev])
     setShowModal(false)
@@ -182,6 +196,49 @@ export function ReceiptsClient({ workspaceId, initialReceipts, locale }: Props) 
         <StatCard label={t.receiptsPendingReview} value={fmt(totalPendiente)} accent />
         <StatCard label={t.receiptsCount} value={String(receipts.length)} />
       </div>
+
+      {/* Category breakdown */}
+      {categoryTotals.length > 0 && (
+        <div className="rounded-xl border bg-card overflow-hidden">
+          <div className="px-4 py-2.5 border-b bg-muted/30 flex items-center justify-between">
+            <span className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">Gasto por categoría</span>
+            <span className="text-xs text-muted-foreground">{receipts.filter(r => r.total != null).length} tickets</span>
+          </div>
+          <div className="p-4 space-y-2.5">
+            {(() => {
+              const maxTotal = categoryTotals[0]?.total ?? 1
+              return categoryTotals.map(({ cat, total, count }) => {
+                const w = Math.round((total / maxTotal) * 100)
+                const icon = CATEGORY_ICONS[cat] ?? '📄'
+                return (
+                  <button
+                    key={cat}
+                    onClick={() => setFilterCategory(filterCategory === cat ? '' : cat)}
+                    className={`w-full text-left group transition-opacity ${filterCategory && filterCategory !== cat ? 'opacity-40' : ''}`}
+                  >
+                    <div className="flex items-center justify-between text-xs mb-1">
+                      <span className="flex items-center gap-1.5 text-muted-foreground group-hover:text-foreground transition-colors">
+                        <span>{icon}</span>
+                        <span className="capitalize">{cat}</span>
+                        <span className="text-[10px] opacity-60">({count})</span>
+                      </span>
+                      <span className="tabular-nums font-medium text-foreground">
+                        {total.toLocaleString(locale, { minimumFractionDigits: 2, maximumFractionDigits: 2 })} €
+                      </span>
+                    </div>
+                    <div className="h-1.5 bg-muted rounded-full overflow-hidden">
+                      <div
+                        className="h-full bg-primary rounded-full transition-all"
+                        style={{ width: `${w}%` }}
+                      />
+                    </div>
+                  </button>
+                )
+              })
+            })()}
+          </div>
+        </div>
+      )}
 
       {/* Filters */}
       {receipts.length > 0 && (
