@@ -171,7 +171,7 @@ export function WorkspaceShell({ workspaceId, workspaceName, workspaceLogoUrl, w
           <main
             id="workspace-main"
             className={cn(
-              'flex-1 min-w-0',
+              'flex-1 min-w-0 overflow-x-hidden',
               isFullscreen
                 ? 'overflow-hidden'     // workflow editor fills exactly
                 : 'overflow-y-auto',    // normal pages scroll
