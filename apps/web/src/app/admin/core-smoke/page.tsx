@@ -60,9 +60,14 @@ async function runChecks(): Promise<CheckResult[]> {
     results.push({ label: 'Facturas emitidas con huella Verifactu', ok: false, detail: String(e) })
   }
 
-  // 6. Usuarios sin org (estado huérfano)
+  // 6. Usuarios cuya org no existe (huérfanos por FK rota)
   try {
-    const orphans = await db.user.count({ where: { orgId: null } })
+    const rows = await db.$queryRaw<{ count: bigint }[]>`
+      SELECT COUNT(*) AS count FROM users u
+      LEFT JOIN organizations o ON o.id = u."orgId"
+      WHERE o.id IS NULL
+    `
+    const orphans = Number(rows[0]?.count ?? 0)
     results.push({
       label: 'Usuarios sin organización',
       ok: orphans === 0,

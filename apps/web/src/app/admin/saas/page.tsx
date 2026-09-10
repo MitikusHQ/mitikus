@@ -71,7 +71,7 @@ export default async function AdminSaasPage() {
       select: {
         type: true, fromTier: true, toTier: true,
         fromStatus: true, toStatus: true, createdAt: true,
-        organization: { select: { name: true } },
+        subscription: { select: { organization: { select: { name: true } } } },
       },
     }),
     // Nuevas orgs por mes (últimos 6 meses)
@@ -222,7 +222,7 @@ export default async function AdminSaasPage() {
               <div className="min-w-0">
                 <p className="text-sm font-medium">{EVENT_LABEL[ev.type] ?? ev.type}</p>
                 <p className="text-xs text-muted-foreground truncate">
-                  {ev.organization?.name ?? '—'}
+                  {ev.subscription?.organization?.name ?? '—'}
                   {ev.fromTier && ev.toTier ? ` · ${ev.fromTier} → ${ev.toTier}` : ''}
                   {ev.fromStatus && ev.toStatus ? ` · ${ev.fromStatus} → ${ev.toStatus}` : ''}
                 </p>

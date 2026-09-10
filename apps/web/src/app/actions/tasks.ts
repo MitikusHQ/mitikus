@@ -415,7 +415,14 @@ export async function markNotificationRead(notificationId: string): Promise<void
 export async function markAllNotificationsRead(workspaceId: string): Promise<void> {
   const userId = await getAuthUserId()
   await db.notification.updateMany({
-    where: { userId, readAt: null, task: { workspaceId } },
+    where: {
+      userId,
+      readAt: null,
+      OR: [
+        { task: { workspaceId } },
+        { workspaceId },
+      ],
+    },
     data: { readAt: new Date() },
   })
 }

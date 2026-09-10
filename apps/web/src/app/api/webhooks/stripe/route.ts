@@ -145,6 +145,32 @@ export async function POST(req: Request) {
         )
         if (!orgId) break
         await recoverPastDue(orgId, event.id)
+
+        // Notificar al owner/admin que se ha cobrado la suscripción — fire-and-forget
+        void (async () => {
+          try {
+            const amountCents = invoice.amount_paid ?? 0
+            const amount = (amountCents / 100).toLocaleString('es-ES', { minimumFractionDigits: 2 })
+            const currency = (invoice.currency ?? 'eur').toUpperCase()
+            const ws = await db.workspace.findFirst({ where: { orgId }, select: { id: true } })
+            if (!ws) return
+            const owners = await db.user.findMany({
+              where: { orgId, role: { in: ['OWNER', 'ADMIN'] } },
+              select: { id: true },
+            })
+            if (owners.length > 0) {
+              await db.notification.createMany({
+                data: owners.map((o) => ({
+                  userId: o.id,
+                  workspaceId: ws.id,
+                  type: 'payment_succeeded',
+                  message: `Pago recibido: ${amount} ${currency}`,
+                  link: `/workspace/${ws.id}/usage`,
+                })),
+              })
+            }
+          } catch { /* no interrumpimos el flujo principal */ }
+        })()
         break
       }
 
