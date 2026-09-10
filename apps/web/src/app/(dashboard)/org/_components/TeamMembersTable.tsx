@@ -3,6 +3,7 @@
 import { useState } from 'react'
 import { RoleSelect } from './RoleSelect'
 import { RoleBadge } from './RoleBadge'
+import { NavPermissionsEditor } from './NavPermissionsEditor'
 import { cn } from '@/lib/utils'
 import type { OrgMember } from '@/app/actions/org'
 import type { OrgRole } from '@prisma/client'
@@ -57,6 +58,7 @@ const OWNER_COUNT = (members: OrgMember[]) => members.filter((m) => m.role === '
 
 export function TeamMembersTable({ members: initialMembers, currentUserId, actorRole, showRemove }: Props) {
   const [members, setMembers] = useState<OrgMember[]>(initialMembers)
+  const [editingNavId, setEditingNavId] = useState<string | null>(null)
   const ownerCount = OWNER_COUNT(members)
 
   function handleRoleChange(memberId: string, newRole: OrgRole) {
@@ -69,7 +71,11 @@ export function TeamMembersTable({ members: initialMembers, currentUserId, actor
     )
   }
 
+  const canManage = actorRole === 'OWNER' || actorRole === 'ADMIN'
+  const editingMember = editingNavId ? members.find((m) => m.id === editingNavId) : null
+
   return (
+    <>
     <div className="rounded-xl border bg-card overflow-hidden">
       {/* Desktop table */}
       <div className="hidden md:block overflow-x-auto">
@@ -109,7 +115,7 @@ export function TeamMembersTable({ members: initialMembers, currentUserId, actor
                     </div>
                   </td>
                   <td className="px-4 py-3.5">
-                    <div className="flex items-center">
+                    <div className="flex items-center gap-2 flex-wrap">
                       <RoleSelect
                         memberId={member.id}
                         currentRole={member.role}
@@ -118,6 +124,16 @@ export function TeamMembersTable({ members: initialMembers, currentUserId, actor
                         ownerCount={ownerCount}
                         onSuccess={(newRole) => handleRoleChange(member.id, newRole)}
                       />
+                      {canManage && !isMe && (
+                        <button
+                          type="button"
+                          onClick={() => setEditingNavId(member.id)}
+                          className="text-xs text-muted-foreground hover:text-foreground border rounded px-1.5 py-0.5 hover:bg-muted transition-colors"
+                          title="Configurar secciones visibles"
+                        >
+                          Nav
+                        </button>
+                      )}
                       {showRemove && !isMe && member.role !== 'OWNER' && (
                         <RemoveButton
                           memberId={member.id}
@@ -190,5 +206,15 @@ export function TeamMembersTable({ members: initialMembers, currentUserId, actor
         })}
       </div>
     </div>
+
+    {editingMember && (
+      <NavPermissionsEditor
+        memberId={editingMember.id}
+        memberRole={editingMember.role}
+        navPermissions={editingMember.navPermissions}
+        onClose={() => setEditingNavId(null)}
+      />
+    )}
+    </>
   )
 }

@@ -25,6 +25,7 @@ export interface OrgMember {
   roleLabel: string
   createdAt: string
   lastActivityAt: string | null
+  navPermissions: string[]
 }
 
 export interface OrgWorkspaceSummary {
@@ -181,6 +182,7 @@ export async function listOrgMembers(): Promise<OrgMember[] | { error: string }>
       roleLabel: ROLE_LABELS[m.role],
       createdAt: m.createdAt.toISOString(),
       lastActivityAt: activityMap.get(m.id) ?? null,
+      navPermissions: m.navPermissions ?? [],
     }))
   } catch (e) {
     return { error: e instanceof Error ? e.message : 'Error al listar miembros' }
@@ -382,6 +384,30 @@ export async function listPendingInvitations(): Promise<PendingInvitation[] | { 
     }))
   } catch (e) {
     return { error: e instanceof Error ? e.message : 'Error al listar invitaciones' }
+  }
+}
+
+// ── updateMemberNavPermissions ────────────────────────────────────
+
+export async function updateMemberNavPermissions(
+  targetUserId: string,
+  navPermissions: string[],
+): Promise<{ success: true } | { error: string }> {
+  try {
+    const actor = await requireUser()
+    assertCan(actor, 'manage_members', { orgId: actor.orgId, userId: actor.id })
+
+    const target = await db.user.findFirst({ where: { id: targetUserId, orgId: actor.orgId } })
+    if (!target) return { error: 'Usuario no encontrado' }
+
+    await db.user.update({
+      where: { id: targetUserId },
+      data: { navPermissions },
+    })
+
+    return { success: true }
+  } catch (e) {
+    return { error: e instanceof Error ? e.message : 'Error al actualizar permisos' }
   }
 }
 

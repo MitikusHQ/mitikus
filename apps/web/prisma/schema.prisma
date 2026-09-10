@@ -66,6 +66,7 @@ enum OrgRole {
   MEMBER   // Alias legacy de EDITOR — mismo nivel de permisos
   OPERATOR // Operador — solo puede ejecutar herramientas y añadir registros
   VIEWER   // Lector — solo lectura
+  EMPLOYEE // Empleado — acceso solo a sus propias nóminas, permisos y secciones configuradas
 }
 
 enum ToolCategory {
@@ -268,6 +269,7 @@ model User {
   jobTitle  String?  // Cargo libre: "CEO", "Diseñadora", etc.
   orgId     String
   role      OrgRole  @default(MEMBER)
+  navPermissions String[] @default([]) // secciones habilitadas individualmente (vacío = usa defaults del rol)
   // Beta access control
   emailType String   @default("unknown")   // personal | business | disposable | unknown
   trialPlan String   @default("trial_personal") // trial_personal | trial_business | blocked

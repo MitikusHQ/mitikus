@@ -2,6 +2,7 @@ import { notFound, redirect } from 'next/navigation'
 import { db } from '@/lib/db'
 import { requireUser } from '@/lib/auth'
 import { can } from '@/lib/permissions'
+import { getNavSections } from '@/lib/nav-permissions'
 import { WorkspaceShell } from './_components/WorkspaceShell'
 import { Icons } from './_components/WorkspaceIcons'
 import type { NavItem } from './_components/WorkspaceSidebarItem'
@@ -53,208 +54,99 @@ export default async function WorkspaceLayout({ children, params }: Props) {
 
   const base = `/workspace/${workspaceId}`
 
-  const canView = can(user, 'view_workspace')
+  const allowed = new Set(getNavSections(user.role, user.navPermissions ?? []))
+  const show = (section: string) => allowed.has(section as never)
 
-  // Top — acceso inmediato diario
   const coreItems: NavItem[] = [
-    {
-      label: t.navToday,
-      href: `${base}/today`,
-      icon: Icons.today,
-      description: t.descToday,
-      badge: pendingCount > 0 ? String(pendingCount) : undefined,
+    show('today') && {
+      label: t.navToday, href: `${base}/today`, icon: Icons.today,
+      description: t.descToday, badge: pendingCount > 0 ? String(pendingCount) : undefined,
     },
-    {
-      label: t.navCopilot,
-      href: `${base}/copilot`,
-      icon: Icons.copilot,
-      description: t.descCopilot,
+    show('arkos') && {
+      label: t.navCopilot, href: `${base}/copilot`, icon: Icons.copilot, description: t.descCopilot,
     },
-    {
-      label: t.navBrain,
-      href: `${base}/brain`,
-      icon: Icons.brain,
-      description: t.descBrain,
+    show('brain') && {
+      label: t.navBrain, href: `${base}/brain`, icon: Icons.brain, description: t.descBrain,
     },
-    {
-      label: t.navMail,
-      href: `${base}/mail`,
-      icon: Icons.mail,
-      description: t.descMail,
+    show('mail') && {
+      label: t.navMail, href: `${base}/mail`, icon: Icons.mail, description: t.descMail,
     },
-  ].filter(() => canView)
+  ].filter(Boolean) as NavItem[]
 
-  // Trabajo — operativa del negocio
   const workItems: NavItem[] = [
-    {
-      label: t.navClients,
-      href: `${base}/clients`,
-      icon: Icons.clients,
-      description: t.descClients,
+    show('clients') && {
+      label: t.navClients, href: `${base}/clients`, icon: Icons.clients, description: t.descClients,
     },
-    {
-      label: t.navLeads,
-      href: `${base}/leads`,
-      icon: Icons.leads,
-      description: t.descLeads,
+    show('leads') && {
+      label: t.navLeads, href: `${base}/leads`, icon: Icons.leads, description: t.descLeads,
     },
-    {
-      label: t.navTasks,
-      href: `${base}/tasks`,
-      icon: Icons.tasks,
-      description: t.descTasks,
-      badge: taskCount > 0 ? String(taskCount) : undefined,
+    show('tasks') && {
+      label: t.navTasks, href: `${base}/tasks`, icon: Icons.tasks,
+      description: t.descTasks, badge: taskCount > 0 ? String(taskCount) : undefined,
     },
-    {
-      label: t.navTools,
-      href: `${base}/tools`,
-      icon: Icons.tools,
-      description: t.descTools,
+    show('tools') && {
+      label: t.navTools, href: `${base}/tools`, icon: Icons.tools, description: t.descTools,
     },
-    {
-      label: t.navWorkflows,
-      href: `${base}/workflows`,
-      icon: Icons.workflows,
-      description: t.descWorkflows,
+    show('workflows') && {
+      label: t.navWorkflows, href: `${base}/workflows`, icon: Icons.workflows, description: t.descWorkflows,
     },
-  ].filter(() => canView)
+  ].filter(Boolean) as NavItem[]
 
-  // Contenido — documentos y planificación
   const contentItems: NavItem[] = [
-    {
-      label: t.navOffice,
-      href: `${base}/office`,
-      icon: Icons.office,
-      description: t.descOffice,
+    show('studio') && {
+      label: t.navOffice, href: `${base}/office`, icon: Icons.office, description: t.descOffice,
     },
-    {
-      label: t.navFiles,
-      href: `${base}/files`,
-      icon: Icons.files,
-      description: t.descFiles,
+    show('files') && {
+      label: t.navFiles, href: `${base}/files`, icon: Icons.files, description: t.descFiles,
     },
-    {
-      label: t.navMissions,
-      href: `${base}/missions`,
-      icon: Icons.missions,
-      description: t.descMissions,
+    show('missions') && {
+      label: t.navMissions, href: `${base}/missions`, icon: Icons.missions, description: t.descMissions,
     },
-  ].filter(() => canView)
+  ].filter(Boolean) as NavItem[]
 
   const hrItems: NavItem[] = [
-    {
-      label: t.navEmployees,
-      href: `${base}/employees`,
-      icon: Icons.employees,
-      description: t.descEmployees,
+    show('employees') && {
+      label: t.navEmployees, href: `${base}/employees`, icon: Icons.employees, description: t.descEmployees,
     },
-    {
-      label: t.navPayroll,
-      href: `${base}/payroll`,
-      icon: Icons.payroll,
-      description: t.descPayroll,
+    show('payroll') && {
+      label: t.navPayroll, href: `${base}/payroll`, icon: Icons.payroll, description: t.descPayroll,
     },
-    {
-      label: t.navLeaves,
-      href: `${base}/leaves`,
-      icon: Icons.leaves,
-      description: t.descLeaves,
+    show('leaves') && {
+      label: t.navLeaves, href: `${base}/leaves`, icon: Icons.leaves, description: t.descLeaves,
     },
-    {
-      label: t.navLeads,
-      href: `${base}/leads`,
-      icon: Icons.leads,
-      description: t.descLeads,
-    },
-  ].filter(() => can(user, 'manage_members'))
+  ].filter(Boolean) as NavItem[]
 
   const dataItems: NavItem[] = [
-    {
-      label: t.navFiscal,
-      href: `${base}/fiscal`,
-      icon: Icons.fiscal,
-      description: t.descFiscal,
+    show('fiscal') && {
+      label: t.navFiscal, href: `${base}/fiscal`, icon: Icons.fiscal, description: t.descFiscal,
     },
-    {
-      label: t.navInvoices,
-      href: `${base}/invoices`,
-      icon: Icons.invoices,
-      description: t.descInvoices,
+    show('invoices') && {
+      label: t.navInvoices, href: `${base}/invoices`, icon: Icons.invoices, description: t.descInvoices,
     },
-    {
-      label: t.navReceipts,
-      href: `${base}/receipts`,
-      icon: Icons.receipts,
-      description: t.descReceipts,
+    show('receipts') && {
+      label: t.navReceipts, href: `${base}/receipts`, icon: Icons.receipts, description: t.descReceipts,
     },
-    {
-      label: t.navAnalytics,
-      href: `${base}/analytics`,
-      icon: Icons.analytics,
-      description: t.descAnalytics,
+    show('analytics') && {
+      label: t.navAnalytics, href: `${base}/analytics`, icon: Icons.analytics, description: t.descAnalytics,
     },
-  ].filter(() => can(user, 'view_usage'))
+  ].filter(Boolean) as NavItem[]
 
   const adminItems: NavItem[] = []
-
-  // Audit — VIEWER+ (can view_usage)
   if (can(user, 'view_usage')) {
-    adminItems.push({
-      label: t.navUsage,
-      href: `${base}/usage`,
-      icon: Icons.usage,
-      description: t.descUsage,
-    })
-    adminItems.push({
-      label: t.navAudit,
-      href: `${base}/audit`,
-      icon: Icons.audit,
-      description: t.descAudit,
-    })
+    adminItems.push({ label: t.navUsage, href: `${base}/usage`, icon: Icons.usage, description: t.descUsage })
+    adminItems.push({ label: t.navAudit, href: `${base}/audit`, icon: Icons.audit, description: t.descAudit })
   }
-
-  // Org Admin — ADMIN+
-  if (can(user, 'manage_members')) {
-    adminItems.push({
-      label: t.navAdminOrg,
-      href: '/org',
-      icon: Icons.organization,
-      description: t.descAdminOrg,
-    })
+  if (show('admin') && can(user, 'manage_members')) {
+    adminItems.push({ label: t.navAdminOrg, href: '/org', icon: Icons.organization, description: t.descAdminOrg })
   }
 
   const profileItems: NavItem[] = [
-    {
-      label: t.navProfile,
-      href: `${base}/profile`,
-      icon: Icons.profile,
-      description: t.descProfile,
-    },
-    {
-      label: t.navDownload,
-      href: '/download',
-      icon: Icons.download,
-      description: t.descDownload,
-    },
-    {
-      label: t.navSupport,
-      href: `${base}/support`,
-      icon: Icons.support,
-      description: t.descSupport,
-    },
-    {
-      label: t.navSettings,
-      href: `${base}/settings`,
-      icon: Icons.settings,
-      description: t.descSettings,
-    },
-    {
-      label: t.navIntegrations,
-      href: `${base}/integrations`,
-      icon: Icons.integrations,
-      description: t.descIntegrations,
-    },
-  ]
+    { label: t.navProfile, href: `${base}/profile`, icon: Icons.profile, description: t.descProfile },
+    { label: t.navDownload, href: '/download', icon: Icons.download, description: t.descDownload },
+    { label: t.navSupport, href: `${base}/support`, icon: Icons.support, description: t.descSupport },
+    show('settings') && { label: t.navSettings, href: `${base}/settings`, icon: Icons.settings, description: t.descSettings },
+    { label: t.navIntegrations, href: `${base}/integrations`, icon: Icons.integrations, description: t.descIntegrations },
+  ].filter(Boolean) as NavItem[]
 
   const navGroups: NavGroup[] = [
     { items: coreItems },
