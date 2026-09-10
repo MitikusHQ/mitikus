@@ -115,6 +115,7 @@ export default async function WorkspaceLayout({ children, params }: Props) {
     show('leaves') && {
       label: t.navLeaves, href: `${base}/leaves`, icon: Icons.leaves, description: t.descLeaves,
     },
+    { label: locale === 'es' ? 'Control horario' : 'Time Tracking', href: `${base}/timelog`, icon: Icons.timelog, description: locale === 'es' ? 'Registro de jornada e imputación de horas' : 'Workday record and hour allocation' },
   ].filter(Boolean) as NavItem[]
 
   const dataItems: NavItem[] = [
@@ -136,7 +137,9 @@ export default async function WorkspaceLayout({ children, params }: Props) {
   const clerkEmail = clerkUser?.emailAddresses?.[0]?.emailAddress ?? ''
   const isSuperadmin = superadminEmails.includes(clerkEmail)
 
-  const adminItems: NavItem[] = []
+  const adminItems: NavItem[] = [
+    { label: locale === 'es' ? 'Historial' : 'History', href: `${base}/history`, icon: Icons.history, description: locale === 'es' ? 'Historial de ejecuciones IA' : 'AI execution history' },
+  ]
   if (can(user, 'view_usage')) {
     adminItems.push({ label: t.navUsage, href: `${base}/usage`, icon: Icons.usage, description: t.descUsage })
     adminItems.push({ label: t.navAudit, href: `${base}/audit`, icon: Icons.audit, description: t.descAudit })
