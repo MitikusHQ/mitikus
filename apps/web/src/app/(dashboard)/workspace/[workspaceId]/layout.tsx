@@ -131,6 +131,9 @@ export default async function WorkspaceLayout({ children, params }: Props) {
     },
   ].filter(Boolean) as NavItem[]
 
+  const superadminEmails = (process.env.SUPERADMIN_EMAILS ?? 'borjaprietomark82@gmail.com').split(',').map(e => e.trim())
+  const isSuperadmin = superadminEmails.includes(user.email ?? '')
+
   const adminItems: NavItem[] = []
   if (can(user, 'view_usage')) {
     adminItems.push({ label: t.navUsage, href: `${base}/usage`, icon: Icons.usage, description: t.descUsage })
@@ -138,6 +141,9 @@ export default async function WorkspaceLayout({ children, params }: Props) {
   }
   if (show('admin') && can(user, 'manage_members')) {
     adminItems.push({ label: t.navAdminOrg, href: '/org', icon: Icons.organization, description: t.descAdminOrg })
+  }
+  if (isSuperadmin) {
+    adminItems.push({ label: 'MITIKUS Admin', href: '/admin', icon: Icons.admin, description: 'Panel de control de MITIKUS' })
   }
 
   const profileItems: NavItem[] = [
