@@ -5,6 +5,7 @@ import { requireUser } from '@/lib/auth'
 import { can } from '@/lib/permissions'
 import { revalidatePath } from 'next/cache'
 import { z } from 'zod'
+import { isRedirectError } from 'next/dist/client/components/redirect-error'
 
 const EmployeeSchema = z.object({
   workspaceId: z.string(),
@@ -77,6 +78,7 @@ export async function createEmployee(data: z.infer<typeof EmployeeSchema>): Prom
     revalidatePath(`/workspace/${parsed.data.workspaceId}/employees`)
     return { ok: true, employee: { id: employee.id } }
   } catch (e) {
+    if (isRedirectError(e)) throw e
     const msg = e instanceof Error ? e.message : 'Error inesperado al crear el empleado'
     return { ok: false, error: msg }
   }
