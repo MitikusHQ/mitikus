@@ -1,7 +1,7 @@
 {
   "$schema": "https://openapi.vercel.sh/vercel.json",
   "framework": "nextjs",
-  "buildCommand": "npx turbo build --filter=@protools/web",
+  "buildCommand": "DATABASE_URL=${DATABASE_URL:-postgresql://build-placeholder/db} npx turbo build --filter=@protools/web",
   "installCommand": "npm install --legacy-peer-deps",
   "ignoreCommand": "npx turbo-ignore @protools/web",
   "regions": ["iad1"],
