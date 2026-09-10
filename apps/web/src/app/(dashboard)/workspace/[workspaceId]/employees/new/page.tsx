@@ -33,6 +33,7 @@ export default function NewEmployeePage() {
     lastName: '',
     email: '',
     nif: '',
+    nss: '',
     phone: '',
     position: '',
     department: '',
@@ -70,6 +71,7 @@ export default function NewEmployeePage() {
         lastName: form.lastName,
         email: form.email,
         nif: form.nif || undefined,
+        nss: form.nss || undefined,
         phone: form.phone || undefined,
         position: form.position,
         department: form.department || undefined,
@@ -135,6 +137,9 @@ export default function NewEmployeePage() {
             </Field>
             <Field label="NIF">
               <input value={form.nif} onChange={e => set('nif', e.target.value)} placeholder="12345678A" />
+            </Field>
+            <Field label="Nº Seguridad Social">
+              <input value={form.nss} onChange={e => set('nss', e.target.value)} placeholder="28-12345678-20" />
             </Field>
             <Field label="Teléfono">
               <input value={form.phone} onChange={e => set('phone', e.target.value)} placeholder="+34 600 000 000" />

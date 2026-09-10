@@ -41,6 +41,7 @@ export function EmployeeEditForm({ workspaceId, employee }: Props) {
     lastName: employee.lastName,
     email: employee.email,
     nif: employee.nif ?? '',
+    nss: employee.nss ?? '',
     phone: employee.phone ?? '',
     position: employee.jobTitle ?? '' as string,
     department: employee.department ?? '',
@@ -78,6 +79,7 @@ export function EmployeeEditForm({ workspaceId, employee }: Props) {
           lastName: form.lastName,
           email: form.email ?? undefined,
           nif: form.nif || undefined,
+          nss: form.nss || undefined,
           phone: form.phone || undefined,
           position: form.position,
           department: form.department || undefined,
@@ -141,6 +143,9 @@ export function EmployeeEditForm({ workspaceId, employee }: Props) {
             </Field>
             <Field label="NIF">
               <input value={form.nif ?? ''} onChange={e => set('nif', e.target.value)} />
+            </Field>
+            <Field label="Nº Seguridad Social">
+              <input value={form.nss ?? ''} onChange={e => set('nss', e.target.value)} placeholder="28-12345678-20" />
             </Field>
             <Field label="Teléfono">
               <input value={form.phone} onChange={e => set('phone', e.target.value)} />
