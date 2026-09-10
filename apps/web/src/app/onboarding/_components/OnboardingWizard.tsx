@@ -1,57 +1,57 @@
-﻿'use client'
+'use client'
 
 import { useActionState, useState } from 'react'
 import { useRouter } from 'next/navigation'
 import { createWorkspaceWithProfile, type WorkspaceWithProfileState } from '@/app/actions/workspace'
 
 const SECTORS = [
-  { value: 'consultoria-gestion', label: 'ConsultorÃ­a y servicios profesionales' },
-  { value: 'marketing-comunicacion', label: 'Marketing y comunicaciÃ³n' },
-  { value: 'diseno-creatividad', label: 'DiseÃ±o y creatividad' },
-  { value: 'legal-juridico', label: 'Legal y asesorÃ­a' },
-  { value: 'contabilidad-fiscal', label: 'Contabilidad y fiscal' },
-  { value: 'tecnologia-it', label: 'TecnologÃ­a e IT' },
-  { value: 'arquitectura-ingenieria', label: 'Arquitectura e ingenierÃ­a' },
-  { value: 'salud-bienestar', label: 'Salud y bienestar' },
-  { value: 'educacion-formacion', label: 'EducaciÃ³n y formaciÃ³n' },
-  { value: 'inmobiliario', label: 'Inmobiliario' },
-  { value: 'comercio-retail', label: 'Comercio y retail' },
-  { value: 'otro', label: 'Otro' },
+  { value: 'consultoria-gestion',    label: 'Consultoría y servicios profesionales' },
+  { value: 'marketing-comunicacion', label: 'Marketing y comunicación' },
+  { value: 'diseno-creatividad',     label: 'Diseño y creatividad' },
+  { value: 'legal-juridico',         label: 'Legal y asesoría' },
+  { value: 'contabilidad-fiscal',    label: 'Contabilidad y fiscal' },
+  { value: 'tecnologia-it',          label: 'Tecnología e IT' },
+  { value: 'arquitectura-ingenieria',label: 'Arquitectura e ingeniería' },
+  { value: 'salud-bienestar',        label: 'Salud y bienestar' },
+  { value: 'educacion-formacion',    label: 'Educación y formación' },
+  { value: 'inmobiliario',           label: 'Inmobiliario' },
+  { value: 'comercio-retail',        label: 'Comercio y retail' },
+  { value: 'otro',                   label: 'Otro' },
 ]
 
 const SIZES = [
-  { value: 'micro', label: 'Solo yo' },
-  { value: 'small', label: '2â€“20 personas' },
-  { value: 'medium', label: '20â€“100 personas' },
-  { value: 'large', label: 'MÃ¡s de 100' },
+  { value: 'micro',  label: 'Solo yo' },
+  { value: 'small',  label: '2–20 personas' },
+  { value: 'medium', label: '20–100 personas' },
+  { value: 'large',  label: 'Más de 100' },
 ]
 
 const CUSTOMER_TYPES = [
-  { value: 'pymes', label: 'Pymes' },
-  { value: 'grandes-cuentas', label: 'Grandes cuentas' },
-  { value: 'administracion-publica', label: 'AdministraciÃ³n pÃºblica' },
-  { value: 'startups', label: 'Startups' },
-  { value: 'mixto', label: 'Variado / mixto' },
+  { value: 'pymes',               label: 'Pymes' },
+  { value: 'grandes-cuentas',     label: 'Grandes cuentas' },
+  { value: 'administracion-publica', label: 'Administración pública' },
+  { value: 'startups',            label: 'Startups' },
+  { value: 'mixto',               label: 'Variado / mixto' },
 ]
 
 const LEGAL_FORMS = [
-  { value: 'autonomo',   label: 'AutÃ³nomo' },
-  { value: 'sl',         label: 'SL / SLU' },
-  { value: 'sa',         label: 'SA' },
-  { value: 'comunidad',  label: 'Comunidad de bienes' },
-  { value: 'otro',       label: 'Otra forma' },
+  { value: 'autonomo',  label: 'Autónomo' },
+  { value: 'sl',        label: 'SL / SLU' },
+  { value: 'sa',        label: 'SA' },
+  { value: 'comunidad', label: 'Comunidad de bienes' },
+  { value: 'otro',      label: 'Otra forma' },
 ]
 
 const COUNTRIES = [
-  { value: 'ES', label: 'ðŸ‡ªðŸ‡¸ EspaÃ±a' },
-  { value: 'FR', label: 'ðŸ‡«ðŸ‡· Francia' },
-  { value: 'PT', label: 'ðŸ‡µðŸ‡¹ Portugal' },
-  { value: 'IT', label: 'ðŸ‡®ðŸ‡¹ Italia' },
-  { value: 'BE', label: 'ðŸ‡§ðŸ‡ª BÃ©lgica' },
-  { value: 'DE', label: 'ðŸ‡©ðŸ‡ª Alemania' },
-  { value: 'US', label: 'ðŸ‡ºðŸ‡¸ EE. UU.' },
-  { value: 'CA', label: 'ðŸ‡¨ðŸ‡¦ CanadÃ¡' },
-  { value: 'IL', label: 'ðŸ‡®ðŸ‡± Israel' },
+  { value: 'ES', label: '🇪🇸 España' },
+  { value: 'FR', label: '🇫🇷 Francia' },
+  { value: 'PT', label: '🇵🇹 Portugal' },
+  { value: 'IT', label: '🇮🇹 Italia' },
+  { value: 'BE', label: '🇧🇪 Bélgica' },
+  { value: 'DE', label: '🇩🇪 Alemania' },
+  { value: 'US', label: '🇺🇸 EE. UU.' },
+  { value: 'CA', label: '🇨🇦 Canadá' },
+  { value: 'IL', label: '🇮🇱 Israel' },
 ]
 
 function toSlug(name: string): string {
@@ -65,27 +65,27 @@ function toSlug(name: string): string {
 
 const PLAN_HINT: Record<string, { plan: string; color: string; msg: string; link: string }> = {
   micro: {
-    plan: 'Solo',
+    plan: 'Autónomo',
     color: 'bg-blue-50 border-blue-200 text-blue-700 dark:bg-blue-900/20 dark:border-blue-800 dark:text-blue-300',
-    msg: 'El plan Solo (29 â‚¬/mes) estÃ¡ hecho para ti â€” 1 usuario, 1 workspace y todas las herramientas incluidas.',
+    msg: 'El plan Autónomo (19 €/mes) está hecho para ti — 1 usuario, todas las herramientas incluidas.',
     link: '/pricing',
   },
   small: {
     plan: 'Starter',
     color: 'bg-violet-50 border-violet-200 text-violet-700 dark:bg-violet-900/20 dark:border-violet-800 dark:text-violet-300',
-    msg: 'El plan Starter (49 â‚¬/mes) encaja perfectamente â€” hasta 2 usuarios, 1 workspace y todas las herramientas.',
+    msg: 'El plan Starter (39 €/mes) encaja perfectamente — hasta 5 usuarios y todas las herramientas.',
     link: '/pricing',
   },
   medium: {
     plan: 'Professional',
     color: 'bg-amber-50 border-amber-200 text-amber-700 dark:bg-amber-900/20 dark:border-amber-800 dark:text-amber-400',
-    msg: 'Para equipos de hasta 15 personas recomendamos el plan Professional (149 â‚¬/mes) â€” 3 workspaces y soporte prioritario.',
+    msg: 'Para equipos medianos recomendamos el plan Professional (79 €/mes) — usuarios ilimitados y soporte prioritario.',
     link: '/pricing',
   },
   large: {
     plan: 'Business',
     color: 'bg-gray-50 border-gray-200 text-gray-700 dark:bg-gray-800 dark:border-gray-700 dark:text-gray-300',
-    msg: 'Para mÃ¡s de 100 personas, el plan Business (349 â‚¬/mes) ofrece hasta 15 usuarios y 10 workspaces.',
+    msg: 'Para más de 100 personas, el plan Business (149 €/mes) con workspaces ilimitados y gestor de cuenta dedicado.',
     link: '/pricing',
   },
 }
@@ -122,9 +122,9 @@ export function OnboardingWizard() {
   return (
     <div className="w-full max-w-sm mx-auto">
       <StepIndicator current={1} total={3} />
-      <h2 className="text-lg font-semibold mb-1">CuÃ©ntanos sobre tu negocio</h2>
+      <h2 className="text-lg font-semibold mb-1">Cuéntanos sobre tu negocio</h2>
       <p className="text-sm text-muted-foreground mb-6">
-        Con esto Arkos podrÃ¡ ayudarte desde el primer momento.
+        Con esto Arkos podrá ayudarte desde el primer momento.
       </p>
 
       <form action={action} className="space-y-4">
@@ -159,16 +159,16 @@ export function OnboardingWizard() {
             name="sector"
             className="w-full rounded-md border border-input bg-background px-3 py-2 text-sm shadow-sm focus:outline-none focus:ring-2 focus:ring-ring"
           >
-            <option value="">Seleccionaâ€¦</option>
+            <option value="">Selecciona…</option>
             {SECTORS.map((s) => (
               <option key={s.value} value={s.value}>{s.label}</option>
             ))}
           </select>
         </div>
 
-        {/* TamaÃ±o equipo */}
+        {/* Tamaño equipo */}
         <div className="space-y-1.5">
-          <span className="text-sm font-medium">TamaÃ±o del equipo</span>
+          <span className="text-sm font-medium">Tamaño del equipo</span>
           <div className="grid grid-cols-2 gap-2">
             {SIZES.map((s) => (
               <label
@@ -187,10 +187,9 @@ export function OnboardingWizard() {
             ))}
           </div>
 
-          {/* Banner de plan recomendado */}
           {selectedSize && PLAN_HINT[selectedSize] && (
             <div className={`mt-2 flex items-start gap-2.5 rounded-lg border px-3 py-2.5 text-xs ${PLAN_HINT[selectedSize]!.color}`}>
-              <span className="mt-0.5 shrink-0">âœ¦</span>
+              <span className="mt-0.5 shrink-0">✦</span>
               <span>
                 {PLAN_HINT[selectedSize]!.msg}{' '}
                 <a
@@ -216,17 +215,17 @@ export function OnboardingWizard() {
             name="customerType"
             className="w-full rounded-md border border-input bg-background px-3 py-2 text-sm shadow-sm focus:outline-none focus:ring-2 focus:ring-ring"
           >
-            <option value="">Seleccionaâ€¦</option>
+            <option value="">Selecciona…</option>
             {CUSTOMER_TYPES.map((c) => (
               <option key={c.value} value={c.value}>{c.label}</option>
             ))}
           </select>
         </div>
 
-        {/* PaÃ­s fiscal â€” opcional, activa el mÃ³dulo fiscal */}
+        {/* País fiscal */}
         <div className="space-y-1">
           <label htmlFor="country" className="text-sm font-medium">
-            PaÃ­s fiscal <span className="text-muted-foreground font-normal">(opcional â€” activa el calendario fiscal)</span>
+            País fiscal <span className="text-muted-foreground font-normal">(opcional — activa el calendario fiscal)</span>
           </label>
           <select
             id="country"
@@ -240,10 +239,10 @@ export function OnboardingWizard() {
           </select>
         </div>
 
-        {/* Forma jurÃ­dica â€” solo para EspaÃ±a */}
+        {/* Forma jurídica */}
         <div className="space-y-1">
           <label htmlFor="legalForm" className="text-sm font-medium">
-            Forma jurÃ­dica <span className="text-muted-foreground font-normal">(solo EspaÃ±a)</span>
+            Forma jurídica <span className="text-muted-foreground font-normal">(solo España)</span>
           </label>
           <select
             id="legalForm"
@@ -266,7 +265,7 @@ export function OnboardingWizard() {
           disabled={isPending}
           className="w-full rounded-md bg-primary px-4 py-2 text-sm font-medium text-primary-foreground shadow hover:bg-primary/90 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
         >
-          {isPending ? 'Creando tu espacioâ€¦' : 'Continuar â†’'}
+          {isPending ? 'Creando tu espacio…' : 'Continuar →'}
         </button>
       </form>
     </div>
@@ -279,10 +278,10 @@ function Step2({ workspaceId, onInvite }: { workspaceId: string; onInvite: () =>
   return (
     <div className="w-full max-w-sm mx-auto text-center">
       <StepIndicator current={2} total={3} />
-      <div className="text-4xl mb-4">ðŸŽ‰</div>
-      <h2 className="text-lg font-semibold mb-2">Tu espacio estÃ¡ listo</h2>
+      <div className="text-4xl mb-4">🎉</div>
+      <h2 className="text-lg font-semibold mb-2">Tu espacio está listo</h2>
       <p className="text-sm text-muted-foreground mb-6">
-        Tienes acceso a todas las herramientas. Â¿Por dÃ³nde quieres empezar?
+        Tienes acceso a todas las herramientas. ¿Por dónde quieres empezar?
       </p>
 
       <div className="space-y-3">
@@ -290,13 +289,13 @@ function Step2({ workspaceId, onInvite }: { workspaceId: string; onInvite: () =>
           onClick={() => router.push(`/workspace/${workspaceId}/office`)}
           className="w-full rounded-md bg-primary px-4 py-2.5 text-sm font-medium text-primary-foreground shadow hover:bg-primary/90 transition-colors"
         >
-          Explorar Studio â†’
+          Explorar Studio →
         </button>
         <button
           onClick={() => router.push(`/workspace/${workspaceId}/fiscal/configurar`)}
           className="w-full rounded-md border border-amber-300 dark:border-amber-700 bg-amber-50 dark:bg-amber-900/20 px-4 py-2.5 text-sm font-medium text-amber-700 dark:text-amber-300 hover:bg-amber-100 dark:hover:bg-amber-900/40 transition-colors"
         >
-          ðŸ§¾ AÃ±adir mis datos fiscales
+          🧾 Añadir mis datos fiscales
         </button>
         <button
           onClick={onInvite}
@@ -318,12 +317,10 @@ function Step2({ workspaceId, onInvite }: { workspaceId: string; onInvite: () =>
 function Step3({ workspaceId }: { workspaceId: string }) {
   const router = useRouter()
   const [email, setEmail] = useState('')
-  const [sent, setSent] = useState(false)
 
-  async function handleInvite(e: React.FormEvent) {
+  function handleInvite(e: React.FormEvent) {
     e.preventDefault()
-    // Redirige a /team con email prefilled via query param â€” la lÃ³gica de invite ya existe allÃ­
-    router.push(`/settings/team?invite=email`)
+    router.push(`/workspace/${workspaceId}/settings?invite=${encodeURIComponent(email)}`)
   }
 
   return (
@@ -331,20 +328,20 @@ function Step3({ workspaceId }: { workspaceId: string }) {
       <StepIndicator current={3} total={3} />
       <h2 className="text-lg font-semibold mb-2">Invita a tu equipo</h2>
       <p className="text-sm text-muted-foreground mb-6">
-        Los miembros invitados tendrÃ¡n acceso a herramientas, clientes y documentos de este workspace.
+        Los miembros invitados tendrán acceso a herramientas, clientes y documentos de este workspace.
       </p>
 
       <form onSubmit={handleInvite} className="space-y-4">
         <div className="space-y-1">
           <label htmlFor="invite-email" className="text-sm font-medium">
-            Email del compaÃ±ero
+            Email del compañero
           </label>
           <input
             id="invite-email"
             type="email"
             value={email}
             onChange={(e) => setEmail(e.target.value)}
-            placeholder="compaÃ±ero@empresa.com"
+            placeholder="companero@empresa.com"
             className="w-full rounded-md border border-input bg-background px-3 py-2 text-sm shadow-sm placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-ring"
           />
         </div>
@@ -354,7 +351,7 @@ function Step3({ workspaceId }: { workspaceId: string }) {
           disabled={!email}
           className="w-full rounded-md bg-primary px-4 py-2 text-sm font-medium text-primary-foreground shadow hover:bg-primary/90 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
         >
-          Enviar invitaciÃ³n â†’
+          Enviar invitación →
         </button>
       </form>
 
@@ -382,4 +379,3 @@ function StepIndicator({ current, total }: { current: number; total: number }) {
     </div>
   )
 }
-
