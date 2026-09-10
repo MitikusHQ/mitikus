@@ -128,6 +128,47 @@ export async function getEmployees(workspaceId: string) {
   })
 }
 
+export async function inviteEmployee(
+  employeeId: string,
+  workspaceId: string,
+  email: string,
+): Promise<{ ok: true; link: string } | { ok: false; error: string }> {
+  try {
+    const user = await requireUser()
+    if (!can(user, 'manage_members')) return { ok: false, error: 'Sin permisos (se requiere rol Admin o superior)' }
+
+    const TTL_MS = 7 * 24 * 60 * 60 * 1000
+    const invitation = await db.orgInvitation.create({
+      data: {
+        orgId: user.orgId,
+        email: email.trim().toLowerCase(),
+        role: 'EDITOR',
+        expiresAt: new Date(Date.now() + TTL_MS),
+        createdBy: user.id,
+      },
+    })
+
+    const appUrl = process.env.NEXT_PUBLIC_APP_URL ?? 'https://app.mitikus.com'
+    const link = `${appUrl}/invite/${invitation.token}`
+
+    const { sendInvitationLinkEmail } = await import('@/lib/email')
+    const org = await db.organization.findUnique({ where: { id: user.orgId }, select: { name: true } })
+    void sendInvitationLinkEmail({
+      to: email.trim().toLowerCase(),
+      orgName: org?.name ?? 'tu equipo',
+      inviteUrl: link,
+      expiresAt: invitation.expiresAt,
+    }).catch(() => null)
+
+    revalidatePath(`/workspace/${workspaceId}/employees/${employeeId}`)
+    return { ok: true, link }
+  } catch (e) {
+    if ((e as { digest?: string })?.digest?.startsWith('NEXT_REDIRECT')) throw e
+    const msg = e instanceof Error ? e.message : 'Error inesperado al enviar la invitación'
+    return { ok: false, error: msg }
+  }
+}
+
 export async function getEmployee(employeeId: string, workspaceId: string) {
   await requireUser()
 

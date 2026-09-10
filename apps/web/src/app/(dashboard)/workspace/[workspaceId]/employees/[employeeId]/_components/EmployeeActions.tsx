@@ -2,18 +2,21 @@
 
 import { useState, useTransition } from 'react'
 import { useRouter } from 'next/navigation'
-import { deactivateEmployee } from '@/app/actions/employees'
+import { deactivateEmployee, inviteEmployee } from '@/app/actions/employees'
 
 interface Props {
   employeeId: string
   workspaceId: string
   active: boolean
+  email?: string | null
 }
 
-export function EmployeeActions({ employeeId, workspaceId, active }: Props) {
+export function EmployeeActions({ employeeId, workspaceId, active, email }: Props) {
   const router = useRouter()
   const [confirm, setConfirm] = useState(false)
   const [isPending, startTransition] = useTransition()
+  const [inviteStatus, setInviteStatus] = useState<'idle' | 'sending' | 'sent' | 'error'>('idle')
+  const [inviteError, setInviteError] = useState<string | null>(null)
 
   if (!active) return null
 
@@ -24,8 +27,43 @@ export function EmployeeActions({ employeeId, workspaceId, active }: Props) {
     })
   }
 
+  async function handleInvite() {
+    if (!email) return
+    setInviteStatus('sending')
+    setInviteError(null)
+    const result = await inviteEmployee(employeeId, workspaceId, email)
+    if (result.ok) {
+      setInviteStatus('sent')
+    } else {
+      setInviteStatus('error')
+      setInviteError(result.error)
+    }
+  }
+
   return (
     <>
+      {email && inviteStatus !== 'sent' && (
+        <button
+          type="button"
+          onClick={handleInvite}
+          disabled={inviteStatus === 'sending'}
+          title={`Invitar ${email} al workspace`}
+          className="inline-flex items-center gap-2 border border-input px-3 py-2 rounded-lg text-sm hover:bg-muted transition-colors disabled:opacity-60"
+        >
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden>
+            <path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/>
+            <line x1="19" y1="8" x2="19" y2="14"/><line x1="22" y1="11" x2="16" y2="11"/>
+          </svg>
+          {inviteStatus === 'sending' ? 'Enviando...' : 'Invitar al workspace'}
+        </button>
+      )}
+      {inviteStatus === 'sent' && (
+        <span className="text-xs text-emerald-600 font-medium px-3 py-2">✓ Invitación enviada</span>
+      )}
+      {inviteStatus === 'error' && inviteError && (
+        <span className="text-xs text-destructive px-3 py-2">{inviteError}</span>
+      )}
+
       <button
         type="button"
         onClick={() => setConfirm(true)}

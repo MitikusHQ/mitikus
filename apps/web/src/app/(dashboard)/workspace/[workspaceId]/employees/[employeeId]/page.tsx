@@ -77,7 +77,7 @@ export default async function EmployeePage({ params }: Props) {
             </svg>
             Editar
           </Link>
-          <EmployeeActions employeeId={employeeId} workspaceId={workspaceId} active={employee.active} />
+          <EmployeeActions employeeId={employeeId} workspaceId={workspaceId} active={employee.active} email={employee.email} />
         </div>
       </div>
 
