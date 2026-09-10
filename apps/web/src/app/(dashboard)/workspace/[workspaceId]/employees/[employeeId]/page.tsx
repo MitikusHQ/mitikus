@@ -209,7 +209,7 @@ function Row({ label, value }: { label: string; value: string | null | undefined
   return (
     <div className="flex items-start justify-between gap-4 text-sm">
       <span className="text-muted-foreground shrink-0">{label}</span>
-      <span className="text-right font-medium">{value || '—'}</span>
+      <span className="text-right font-medium min-w-0 break-all">{value || '—'}</span>
     </div>
   )
 }
