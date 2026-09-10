@@ -1,4 +1,5 @@
 import { PDFDocument, StandardFonts, rgb } from 'pdf-lib'
+import QRCode from 'qrcode'
 import { db } from '@/lib/db'
 import type { MailAttachment } from '@/lib/mail/smtp-client'
 
@@ -225,7 +226,22 @@ export async function buildInvoicePdfAttachment(workspaceId: string, invoiceId: 
     }
   }
 
-  draw('Generado por MITIKUS - mitikus.com', 230, 48, 8, false, rgb(0.58, 0.64, 0.72))
+  // QR Verifactu — obligatorio en facturas emitidas (RD 1007/2023)
+  if (invoice.qrUrl) {
+    try {
+      const qrDataUrl = await QRCode.toDataURL(invoice.qrUrl, { width: 80, margin: 1 })
+      const qrPng = Buffer.from(qrDataUrl.split(',')[1]!, 'base64')
+      const qrImage = await pdf.embedPng(qrPng)
+      const qrSize = 72
+      const qrX = PAGE_WIDTH - MARGIN - qrSize
+      page.drawImage(qrImage, { x: qrX, y: 14, width: qrSize, height: qrSize })
+      draw('Verifactu', qrX + 16, 6, 7, false, rgb(0.39, 0.45, 0.55))
+    } catch {
+      // No bloqueamos la generación del PDF si el QR falla
+    }
+  }
+
+  draw('Generado por MITIKUS - mitikus.com', 200, 48, 8, false, rgb(0.58, 0.64, 0.72))
 
   const bytes = await pdf.save()
   return {
