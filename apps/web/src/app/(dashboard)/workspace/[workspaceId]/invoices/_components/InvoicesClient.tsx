@@ -405,6 +405,43 @@ export function InvoicesClient({ workspaceId, initialInvoices, clients, defaultP
                     {selected.notes}
                   </div>
                 )}
+
+                {/* Verifactu — solo si la factura ya fue emitida */}
+                {selected.huella && (
+                  <div className="mt-4 rounded-lg border border-border bg-muted/20 p-3 space-y-2">
+                    <div className="flex items-center gap-1.5">
+                      <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="text-green-600 dark:text-green-400 shrink-0">
+                        <polyline points="20 6 9 17 4 12"/>
+                      </svg>
+                      <span className="text-xs font-semibold text-foreground">Verifactu — RD 1007/2023</span>
+                    </div>
+                    <div className="space-y-1">
+                      <p className="text-[10px] text-muted-foreground font-mono break-all leading-relaxed select-all">
+                        {selected.huella}
+                      </p>
+                      {selected.fechaGeneracion && (
+                        <p className="text-[10px] text-muted-foreground">
+                          Generado: {new Date(selected.fechaGeneracion).toLocaleString(locale)}
+                        </p>
+                      )}
+                    </div>
+                    {selected.qrUrl && (
+                      <a
+                        href={selected.qrUrl}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="inline-flex items-center gap-1 text-[10px] text-primary hover:underline"
+                      >
+                        <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                          <path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"/>
+                          <polyline points="15 3 21 3 21 9"/><line x1="10" y1="14" x2="21" y2="3"/>
+                        </svg>
+                        Verificar en la AEAT
+                      </a>
+                    )}
+                  </div>
+                )}
+
                 {selected.mailMessages.length > 0 && (
                   <div className="mt-4 rounded-lg border border-border bg-muted/20 p-3">
                     <div className="mb-3 flex items-center justify-between gap-3">
