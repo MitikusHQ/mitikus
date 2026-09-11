@@ -35,7 +35,7 @@ export async function POST(
 
     await resend.emails.send({
       from:    'MITIKUS Support <notificaciones@mitikus.com>',
-      to:      'hola@mitikus.com',
+      to:      'soporte@mitikus.com',
       replyTo: user.email,
       subject: `[Soporte] ${subject}`,
       html: `
