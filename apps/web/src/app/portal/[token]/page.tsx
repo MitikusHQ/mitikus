@@ -29,7 +29,7 @@ export default async function ClientPortalPage({ params }: Props) {
     ? { workspaceId: client.workspaceId, clientEmail: client.email }
     : { workspaceId: client.workspaceId, clientName: client.name }
 
-  const [contracts, sharedDocs] = await Promise.all([
+  const [contracts, sharedDocs, invoices] = await Promise.all([
     db.contract.findMany({
       where: contractsWhere,
       select: {
@@ -48,6 +48,12 @@ export default async function ClientPortalPage({ params }: Props) {
           orderBy: { createdAt: 'desc' },
         })
       : Promise.resolve([]),
+    db.invoice.findMany({
+      where: { workspaceId: client.workspaceId, clientId: client.id, status: { not: 'borrador' } },
+      select: { id: true, number: true, status: true, total: true, currency: true, date: true, dueDate: true },
+      orderBy: { date: 'desc' },
+      take: 50,
+    }),
   ])
 
   const pendingContracts = contracts.filter((c) => c.status === 'SENT')
@@ -102,7 +108,7 @@ export default async function ClientPortalPage({ params }: Props) {
         )}
 
         {/* Sin pendientes */}
-        {pendingContracts.length === 0 && contracts.length === 0 && sharedDocs.length === 0 && (
+        {pendingContracts.length === 0 && contracts.length === 0 && sharedDocs.length === 0 && invoices.length === 0 && (
           <div className="rounded-xl border border-dashed p-10 text-center space-y-2">
             <p className="font-medium text-sm">Nada pendiente por ahora</p>
             <p className="text-xs text-muted-foreground">Cuando {client.workspace.name} comparta algo contigo, aparecerá aquí.</p>
@@ -131,6 +137,48 @@ export default async function ClientPortalPage({ params }: Props) {
                   )}
                 </div>
               ))}
+            </div>
+          </section>
+        )}
+
+        {/* Facturas */}
+        {invoices.length > 0 && (
+          <section className="space-y-3">
+            <h2 className="text-base font-semibold">Facturas</h2>
+            <div className="divide-y divide-border rounded-xl border bg-card overflow-hidden">
+              {invoices.map((inv) => {
+                const statusInfo = {
+                  enviada: { label: 'Enviada', cls: 'bg-amber-100 text-amber-800 dark:bg-amber-900/30 dark:text-amber-400' },
+                  pagada:  { label: 'Pagada',  cls: 'bg-green-100 text-green-800 dark:bg-green-900/30 dark:text-green-400' },
+                  vencida: { label: 'Vencida', cls: 'bg-red-100 text-red-800 dark:bg-red-900/30 dark:text-red-400' },
+                  cancelada: { label: 'Cancelada', cls: 'bg-muted text-muted-foreground' },
+                }[inv.status] ?? { label: inv.status, cls: 'bg-muted text-muted-foreground' }
+                return (
+                  <div key={inv.id} className="flex items-center gap-3 px-5 py-3">
+                    <span className="text-lg shrink-0">🧾</span>
+                    <div className="flex-1 min-w-0">
+                      <p className="text-sm font-medium">{inv.number}</p>
+                      <p className="text-xs text-muted-foreground">
+                        {formatDate(inv.date)}{inv.dueDate ? ` · Vence: ${formatDate(inv.dueDate)}` : ''}
+                      </p>
+                    </div>
+                    <p className="text-sm font-semibold tabular-nums shrink-0">
+                      {inv.total.toLocaleString('es-ES', { minimumFractionDigits: 2 })} {inv.currency}
+                    </p>
+                    <span className={`text-[10px] px-1.5 py-0.5 rounded shrink-0 ${statusInfo.cls}`}>
+                      {statusInfo.label}
+                    </span>
+                    <a
+                      href={`/api/portal/${token}/invoice/${inv.id}`}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="shrink-0 rounded-md border border-input bg-card px-3 py-1.5 text-xs font-medium hover:bg-accent transition-colors"
+                    >
+                      Ver PDF
+                    </a>
+                  </div>
+                )
+              })}
             </div>
           </section>
         )}

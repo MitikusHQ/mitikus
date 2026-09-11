@@ -31,6 +31,7 @@ export interface WorkspaceMailMessage {
   clientType: string | null
   lastError: string | null
   isRead: boolean
+  tag: string | null
   sentAt: string | null
   createdAt: string
 }
@@ -94,6 +95,7 @@ function mapMessage(message: {
   invoiceId: string | null
   lastError: string | null
   isRead: boolean
+  tag: string | null
   sentAt: Date | null
   createdAt: Date
   invoice: { number: string } | null
@@ -120,6 +122,7 @@ function mapMessage(message: {
     clientType: client?.clientType ?? null,
     lastError: message.lastError,
     isRead: message.isRead,
+    tag: message.tag ?? null,
     sentAt: message.sentAt?.toISOString() ?? null,
     createdAt: message.createdAt.toISOString(),
   }

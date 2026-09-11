@@ -5,6 +5,7 @@ import type { MailFolder, WorkspaceMailMessage } from '@/app/actions/mail'
 import { deleteMailMessagePermanently, getMailboxMessages, markMailAsRead, moveMailMessageToTrash, saveWorkspaceMailDraft, sendWorkspaceMail, syncMailboxForWorkspace } from '@/app/actions/mail'
 import { getDashboardTranslations } from '@/i18n/dashboard-translations'
 import type { Locale } from '@/i18n/config'
+import { TAG_COLORS, TAG_LABELS, type MailTag } from '@/lib/mail/mail-tagger'
 
 interface MailContact {
   id: string
@@ -500,6 +501,11 @@ export function MailboxClient({ workspaceId, initialMessages, initialToEmail = '
                   <div className={`mt-1 truncate text-sm ${unread ? 'font-medium' : ''}`}>{message.subject || t.mailNoSubject}</div>
                   <div className="mt-1 flex items-center gap-2 text-xs text-muted-foreground">
                     <span className={`rounded-full px-2 py-0.5 ${statusClass(message.status)}`}>{STATUS_LABELS[message.status] ?? message.status}</span>
+                    {message.tag && message.direction === 'inbound' && (
+                      <span className={`rounded-full px-2 py-0.5 ${TAG_COLORS[message.tag as MailTag] ?? TAG_COLORS.otro}`}>
+                        {TAG_LABELS[message.tag as MailTag] ?? message.tag}
+                      </span>
+                    )}
                     {message.invoiceNumber && <span>{t.mailInvoiceBadge} {message.invoiceNumber}</span>}
                   </div>
                   <ClientContextPopover message={message} position={index === 0 ? 'bottom' : 'top'} />

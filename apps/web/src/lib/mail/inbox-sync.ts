@@ -1,5 +1,6 @@
 import { db } from '@/lib/db'
 import { fetchInboxMessages, fetchInboxMessagesWithConfig, type WorkspaceImapConfig } from './imap-client'
+import { tagMailMessage } from './mail-tagger'
 
 function normalizeEmail(value: string | null | undefined) {
   return value?.trim().toLowerCase() ?? null
@@ -121,6 +122,9 @@ export async function syncInboxForWorkspace(workspaceId: string, orgId: string, 
           })
         : null
 
+      const trimmedBody = trimBody(message.body)
+      const tag = tagMailMessage({ subject: message.subject, body: trimmedBody, fromEmail: message.fromEmail })
+
       await db.mailMessage.create({
         data: {
           workspaceId,
@@ -133,7 +137,7 @@ export async function syncInboxForWorkspace(workspaceId: string, orgId: string, 
           fromName: message.fromName || message.fromEmail || 'Remitente',
           replyTo: null,
           subject: message.subject,
-          body: trimBody(message.body),
+          body: trimmedBody,
           status: 'received',
           provider: 'mitikus-imap',
           externalMessageId: message.messageId,
@@ -141,6 +145,7 @@ export async function syncInboxForWorkspace(workspaceId: string, orgId: string, 
           imapUid: message.uid,
           rawHeaders: message.headers,
           sentAt: message.date,
+          tag,
         },
       })
       imported += 1
