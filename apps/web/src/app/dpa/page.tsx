@@ -144,7 +144,7 @@ export default function DpaPage() {
           <p>
             El cliente puede solicitar la exportación de sus datos en cualquier momento durante la vigencia
             del contrato a través del panel de administración o contactando con{' '}
-            <a href="mailto:privacidad@mitikus.com" className="underline hover:text-foreground">privacidad@mitikus.com</a>.
+            <a href="mailto:soporte@mitikus.com" className="underline hover:text-foreground">soporte@mitikus.com</a>.
           </p>
         </Section>
 
@@ -152,7 +152,7 @@ export default function DpaPage() {
           <p>
             Para cualquier consulta relativa a este DPA, notificación de brechas o ejercicio de derechos,
             contacta con nosotros en{' '}
-            <a href="mailto:privacidad@mitikus.com" className="underline hover:text-foreground">privacidad@mitikus.com</a>.
+            <a href="mailto:soporte@mitikus.com" className="underline hover:text-foreground">soporte@mitikus.com</a>.
           </p>
           <p>
             Si el cliente considera que el tratamiento no se ajusta a la normativa, tiene derecho a presentar

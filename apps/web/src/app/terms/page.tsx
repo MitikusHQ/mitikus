@@ -52,8 +52,8 @@ export default function TermsPage() {
             </li>
             <li>
               Debes notificarnos inmediatamente cualquier uso no autorizado de tu cuenta en{' '}
-              <a href="mailto:hola@mitikus.com" className="text-primary hover:underline">
-                hola@mitikus.com
+              <a href="mailto:soporte@mitikus.com" className="text-primary hover:underline">
+                soporte@mitikus.com
               </a>
               .
             </li>
@@ -191,8 +191,8 @@ export default function TermsPage() {
         <Section title="13. Contacto">
           <p className="text-sm leading-relaxed">
             Para cualquier pregunta sobre estos Términos, escríbenos a{' '}
-            <a href="mailto:hola@mitikus.com" className="text-primary hover:underline">
-              hola@mitikus.com
+            <a href="mailto:soporte@mitikus.com" className="text-primary hover:underline">
+              soporte@mitikus.com
             </a>
             .
           </p>

@@ -29,8 +29,8 @@ export default function PrivacyPage() {
             El responsable del tratamiento de los datos personales recogidos a través de{' '}
             <strong>mitikus.com</strong> es <strong>MITIKUS</strong> (en adelante, «nosotros»).
             Puedes contactarnos en{' '}
-            <a href="mailto:hola@mitikus.com" className="text-primary hover:underline">
-              hola@mitikus.com
+            <a href="mailto:soporte@mitikus.com" className="text-primary hover:underline">
+              soporte@mitikus.com
             </a>
             .
           </p>
@@ -113,8 +113,8 @@ export default function PrivacyPage() {
           </p>
           <p className="text-sm mt-2">
             Para ejercer cualquier derecho escríbenos a{' '}
-            <a href="mailto:hola@mitikus.com" className="text-primary hover:underline">
-              hola@mitikus.com
+            <a href="mailto:soporte@mitikus.com" className="text-primary hover:underline">
+              soporte@mitikus.com
             </a>
             .
           </p>

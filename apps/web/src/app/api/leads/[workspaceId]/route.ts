@@ -37,7 +37,7 @@ export async function POST(
   const ownerEmail = workspace.org.users[0]?.email
   if (ownerEmail && resend) {
     await resend.emails.send({
-      from: 'MITIKUS <noreply@mitikus.com>',
+      from: 'MITIKUS <notificaciones@mitikus.com>',
       to: ownerEmail,
       subject: `Nuevo lead: ${lead.name}`,
       html: `

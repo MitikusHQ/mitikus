@@ -104,7 +104,7 @@ export async function POST(req: Request) {
               </p>
               <p style="margin-top:24px;font-size:12px;color:#94a3b8;text-align:center">
                 Para cualquier consulta sobre tus datos, escríbenos a
-                <a href="mailto:privacidad@mitikus.com" style="color:#94a3b8">privacidad@mitikus.com</a>
+                <a href="mailto:soporte@mitikus.com" style="color:#94a3b8">soporte@mitikus.com</a>
               </p>
             </div>
           </div>

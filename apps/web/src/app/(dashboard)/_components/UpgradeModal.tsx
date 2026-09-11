@@ -67,7 +67,7 @@ export function UpgradeModal({ onClose, reason = 'limit' }: Props) {
         <div className="space-y-2">
           {reason === 'blocked' ? (
             <a
-              href="mailto:hola@mitikus.com?subject=Solicitud%20de%20acceso%20beta"
+              href="mailto:soporte@mitikus.com?subject=Solicitud%20de%20acceso%20beta"
               className="block w-full text-center rounded-lg bg-primary text-primary-foreground font-medium py-2.5 text-sm hover:bg-primary/90 transition-colors"
             >
               Contactar al equipo

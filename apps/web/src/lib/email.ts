@@ -30,7 +30,7 @@ export async function sendTagNotificationEmail({
 
   const resend = new Resend(process.env.RESEND_API_KEY)
   await resend.emails.send({
-    from: 'MITIKUS <noreply@mitikus.com>',
+    from: 'MITIKUS <notificaciones@mitikus.com>',
     to,
     subject: `${taggerName} te ha etiquetado en una tarea`,
     html: `
@@ -71,7 +71,7 @@ export async function sendFiscalReminderEmail({
   const resend = new Resend(process.env.RESEND_API_KEY)
   const urgency = daysLeft <= 3 ? '🔴' : '⚠️'
   await resend.emails.send({
-    from: 'MITIKUS Fiscal <noreply@mitikus.com>',
+    from: 'MITIKUS Fiscal <notificaciones@mitikus.com>',
     to,
     subject: `${urgency} ${titulo} vence en ${daysLeft} días — Modelo ${modelo}`,
     html: `
@@ -166,7 +166,7 @@ export async function sendContractInviteEmail({
   if (!process.env.RESEND_API_KEY) return
   const resend = new Resend(process.env.RESEND_API_KEY)
   await resend.emails.send({
-    from:    'MITIKUS <noreply@mitikus.com>',
+    from:    'MITIKUS <notificaciones@mitikus.com>',
     to,
     subject: `${workspaceName} te envía un contrato para firmar`,
     html: `
@@ -197,7 +197,7 @@ export async function sendContractSignedEmail({
   if (!process.env.RESEND_API_KEY) return
   const resend = new Resend(process.env.RESEND_API_KEY)
   await resend.emails.send({
-    from:    'MITIKUS <noreply@mitikus.com>',
+    from:    'MITIKUS <notificaciones@mitikus.com>',
     to,
     subject: `Contrato firmado — ${contractTitle}`,
     html: `
@@ -314,7 +314,7 @@ export async function sendContractOtpEmail({
   const resend = new Resend(process.env.RESEND_API_KEY)
 
   await resend.emails.send({
-    from:    'MITIKUS <noreply@mitikus.com>',
+    from:    'MITIKUS <notificaciones@mitikus.com>',
     to,
     subject: `Tu código de verificación: ${code}`,
     html: `
@@ -824,7 +824,7 @@ export async function sendStorageAlertEmail({
     : `El workspace <strong>${workspaceName}</strong> ha usado <strong>${usedGB.toFixed(2)} GB</strong> de ${limitGB} GB disponibles. Considera liberar espacio pronto.`
 
   await resend.emails.send({
-    from: 'MITIKUS <noreply@mitikus.com>',
+    from: 'MITIKUS <notificaciones@mitikus.com>',
     to,
     subject,
     html: `
@@ -867,7 +867,7 @@ export async function sendPaymentFailedEmail({
   const greeting = userName ? `Hola ${userName},` : 'Hola,'
 
   await resend.emails.send({
-    from: 'MITIKUS <noreply@mitikus.com>',
+    from: 'MITIKUS <notificaciones@mitikus.com>',
     to,
     subject: `⚠️ No se pudo cobrar tu suscripción MITIKUS`,
     html: `

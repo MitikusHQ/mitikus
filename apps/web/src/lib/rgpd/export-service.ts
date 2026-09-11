@@ -147,7 +147,7 @@ export async function generateOrgExportZip(orgId: string): Promise<Buffer> {
     '  brain_memory.json  — entradas de memoria del Brain (si las hay)',
     '',
     'Los archivos binarios subidos no se incluyen en este ZIP.',
-    'Contacto: privacidad@mitikus.com',
+    'Contacto: soporte@mitikus.com',
   ].join('\n'))
 
   return zip.generateAsync({ type: 'nodebuffer', compression: 'DEFLATE' })

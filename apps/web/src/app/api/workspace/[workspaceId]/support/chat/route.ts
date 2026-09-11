@@ -41,7 +41,7 @@ MITIKUS es un hub de productividad que incluye:
 - Límite: si llevas muchas respuestas sin resolver el problema, sugiere contactar por email
 
 ## Escalado
-Cuando no puedas ayudar, di siempre: "Para soporte directo puedes escribirnos a hola@mitikus.com usando el botón 'Contactar' de esta misma página. Te respondemos en menos de 24h."
+Cuando no puedas ayudar, di siempre: "Para soporte directo puedes escribirnos a soporte@mitikus.com usando el botón 'Contactar' de esta misma página. Te respondemos en menos de 24h."
 `
 
 const MAX_MESSAGES = 20
