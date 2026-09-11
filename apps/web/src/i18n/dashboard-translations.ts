@@ -37,6 +37,16 @@ export interface DashboardTranslations {
   descEmployees: string
   descPayroll: string
   descLeaves: string
+  employeesTitle: string
+  employeesSubtitle: string
+  payrollTitle: string
+  payrollSubtitle: string
+  leavesTitle: string
+  leavesSubtitle: string
+  docsTitle: string
+  docsSubtitle: string
+  sheetsTitle: string
+  sheetsSubtitle: string
   // Nav descriptions
   descToday: string
   descCopilot: string
@@ -1844,6 +1854,16 @@ const en: DashboardTranslations = {
   descEmployees: 'Manage your team, contracts and payroll settings',
   descPayroll: 'Generate and approve monthly payrolls',
   descLeaves: 'Manage vacation, sick leave and absences',
+  employeesTitle: 'Employees',
+  employeesSubtitle: 'Manage your team and payroll settings',
+  payrollTitle: 'Payroll',
+  payrollSubtitle: 'Generate and approve monthly payrolls',
+  leavesTitle: 'Time Off',
+  leavesSubtitle: 'Manage vacation, sick leave and absences',
+  docsTitle: 'Documentation',
+  docsSubtitle: 'Workspace knowledge base',
+  sheetsTitle: 'Spreadsheets',
+  sheetsSubtitle: 'Upload existing .xlsx files or create from scratch',
   descToday: 'Your pending tasks and team activity today',
   descCopilot: 'Your strategic advisor — share your goals and it helps you plan them',
   descBrain: 'Query the workspace memory — documents, goals and decisions',
@@ -3638,6 +3658,16 @@ const es: DashboardTranslations = {
   descEmployees: 'Gestiona tu equipo, contratos y configuración de nóminas',
   descPayroll: 'Genera y aprueba nóminas mensuales',
   descLeaves: 'Gestiona vacaciones, bajas y ausencias',
+  employeesTitle: 'Empleados',
+  employeesSubtitle: 'Gestiona tu equipo y configuración de nóminas',
+  payrollTitle: 'Nóminas',
+  payrollSubtitle: 'Generación y aprobación de nóminas mensuales',
+  leavesTitle: 'Ausencias y vacaciones',
+  leavesSubtitle: 'Gestión de solicitudes de ausencia y calendario laboral',
+  docsTitle: 'Documentación',
+  docsSubtitle: 'Base de conocimiento del workspace',
+  sheetsTitle: 'Hojas de cálculo',
+  sheetsSubtitle: 'Sube .xlsx existentes o crea hojas desde cero',
   descToday: 'Tus tareas pendientes y actividad del equipo de hoy',
   descCopilot: 'Tu asesor estratégico — cuéntale tus objetivos y te ayuda a planificarlos',
   descBrain: 'Consulta la memoria del workspace — documentos, objetivos y decisiones',

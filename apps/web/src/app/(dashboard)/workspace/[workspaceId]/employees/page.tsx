@@ -1,5 +1,7 @@
 import { getEmployees } from '@/app/actions/employees'
 import Link from 'next/link'
+import { getLocale } from '@/i18n/locale'
+import { getDashboardTranslations } from '@/i18n/dashboard-translations'
 
 interface Props {
   params: Promise<{ workspaceId: string }>
@@ -15,15 +17,16 @@ const contractLabels: Record<string, string> = {
 }
 
 export default async function EmployeesPage({ params }: Props) {
-  const { workspaceId } = await params
+  const [{ workspaceId }, locale] = await Promise.all([params, getLocale()])
+  const t = getDashboardTranslations(locale)
   const employees = await getEmployees(workspaceId).catch(() => [])
 
   return (
     <div className="p-6 max-w-6xl mx-auto">
       <div className="flex items-center justify-between mb-6">
         <div>
-          <h1 className="text-2xl font-bold">Empleados</h1>
-          <p className="text-muted-foreground text-sm mt-1">Gestiona tu equipo y configuración de nóminas</p>
+          <h1 className="text-2xl font-bold">{t.employeesTitle}</h1>
+          <p className="text-muted-foreground text-sm mt-1">{t.employeesSubtitle}</p>
         </div>
         <Link
           href={`/workspace/${workspaceId}/employees/new`}
