@@ -243,7 +243,7 @@ export default async function HomePage() {
               <ul className="space-y-2 text-sm text-muted-foreground">
                 {landing.arkosBullets.map((item) => (
                   <li key={item} className="flex items-start gap-2">
-                    <span className=”text-primary mt-0.5”>✓</span>
+                    <span className="text-primary mt-0.5">✓</span>
                     <span>{item}</span>
                   </li>
                 ))}
@@ -270,7 +270,7 @@ export default async function HomePage() {
             <ul className="space-y-2 text-sm text-muted-foreground">
               {landing.teamBullets.map((item) => (
                 <li key={item} className="flex items-start gap-2">
-                  <span className=”text-primary mt-0.5”>✓</span>
+                  <span className="text-primary mt-0.5">✓</span>
                   <span>{item}</span>
                 </li>
               ))}
@@ -456,7 +456,7 @@ function MockupArkos() {
         <div className="w-2.5 h-2.5 rounded-full bg-red-400/60" />
         <div className="w-2.5 h-2.5 rounded-full bg-yellow-400/60" />
         <div className="w-2.5 h-2.5 rounded-full bg-green-400/60" />
-        <span className=”text-xs text-muted-foreground ml-2”>Arkos — asistente IA</span>
+        <span className="text-xs text-muted-foreground ml-2">Arkos — asistente IA</span>
       </div>
       <div className="p-4 flex flex-col gap-3 min-h-[220px]">
         <div className="bg-muted rounded-lg p-3 text-xs text-muted-foreground max-w-[88%]">
@@ -492,7 +492,7 @@ function MockupTeam() {
         <div className="w-2.5 h-2.5 rounded-full bg-red-400/60" />
         <div className="w-2.5 h-2.5 rounded-full bg-yellow-400/60" />
         <div className="w-2.5 h-2.5 rounded-full bg-green-400/60" />
-        <span className=”text-xs text-muted-foreground ml-2”>Organización — equipo</span>
+        <span className="text-xs text-muted-foreground ml-2">Organización — equipo</span>
       </div>
       <div className="p-4 space-y-2.5">
         {members.map((m) => (
@@ -543,7 +543,7 @@ function ToolCard({ icon, title, text }: { icon: string; title: string; text: st
 function BenefitItem({ title, text }: { title: string; text: string }) {
   return (
     <div className="rounded-lg border bg-card p-5">
-      <p className=”font-semibold text-sm mb-1”>✓ {title}</p>
+      <p className="font-semibold text-sm mb-1">✓ {title}</p>
       <p className="text-xs text-muted-foreground leading-relaxed">{text}</p>
     </div>
   )
