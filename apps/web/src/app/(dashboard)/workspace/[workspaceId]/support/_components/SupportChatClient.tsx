@@ -30,21 +30,31 @@ function useSessionMessages(workspaceId: string) {
   return { messages, persist }
 }
 
-function ContactModal({ onClose }: { onClose: () => void }) {
+function ContactModal({ workspaceId, onClose }: { workspaceId: string; onClose: () => void }) {
   const [subject, setSubject] = useState('')
   const [body, setBody] = useState('')
   const [sent, setSent] = useState(false)
   const [sending, setSending] = useState(false)
+  const [error, setError] = useState<string | null>(null)
 
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault()
     if (!subject.trim() || !body.trim()) return
     setSending(true)
-    // Abre el cliente de correo con los datos prellenados
-    const mailto = `mailto:hola@mitikus.com?subject=${encodeURIComponent(subject)}&body=${encodeURIComponent(body)}`
-    window.open(mailto, '_blank')
-    setSent(true)
-    setSending(false)
+    setError(null)
+    try {
+      const res = await fetch(`/api/workspace/${workspaceId}/support/contact`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ subject: subject.trim(), message: body.trim() }),
+      })
+      if (!res.ok) throw new Error()
+      setSent(true)
+    } catch {
+      setError('No se pudo enviar el mensaje. Inténtalo de nuevo.')
+    } finally {
+      setSending(false)
+    }
   }
 
   return (
@@ -57,9 +67,9 @@ function ContactModal({ onClose }: { onClose: () => void }) {
                 <polyline points="20 6 9 17 4 12"/>
               </svg>
             </div>
-            <p className="font-semibold text-sm">Mensaje preparado</p>
+            <p className="font-semibold text-sm">Mensaje enviado</p>
             <p className="text-xs text-muted-foreground max-w-xs">
-              Se ha abierto tu cliente de correo con el mensaje listo para enviar a <strong>hola@mitikus.com</strong>. Te responderemos en menos de 24h.
+              Hemos recibido tu mensaje. Te responderemos en menos de 24h.
             </p>
             <button
               onClick={onClose}
@@ -80,7 +90,7 @@ function ContactModal({ onClose }: { onClose: () => void }) {
             </div>
 
             <p className="text-xs text-muted-foreground -mt-1">
-              Te prepararemos un borrador listo para enviar a <strong>hola@mitikus.com</strong>
+              Tu mensaje llegará directamente a nuestro equipo
             </p>
 
             <form onSubmit={handleSubmit} className="flex flex-col gap-3">
@@ -106,12 +116,15 @@ function ContactModal({ onClose }: { onClose: () => void }) {
                   className="rounded-lg border border-input bg-background px-3 py-2 text-sm placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-ring resize-none"
                 />
               </div>
+              {error && (
+                <p className="text-xs text-destructive">{error}</p>
+              )}
               <button
                 type="submit"
                 disabled={!subject.trim() || !body.trim() || sending}
                 className="rounded-xl bg-primary px-4 py-2 text-sm font-medium text-primary-foreground shadow hover:bg-primary/90 disabled:opacity-40 disabled:cursor-not-allowed transition-colors"
               >
-                Abrir en mi correo →
+                {sending ? 'Enviando…' : 'Enviar mensaje →'}
               </button>
             </form>
           </>
@@ -195,7 +208,7 @@ export function SupportChatClient({ workspaceId }: { workspaceId: string }) {
 
   return (
     <>
-      {showContact && <ContactModal onClose={() => setShowContact(false)} />}
+      {showContact && <ContactModal workspaceId={workspaceId} onClose={() => setShowContact(false)} />}
 
       <div className="flex flex-col h-full">
         {/* Header */}
