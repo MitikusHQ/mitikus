@@ -1817,6 +1817,29 @@ export interface DashboardTranslations {
   usageRemainingText: string
   usageDailyRunsToday: string
   usageDailyRunsMonth: string
+  // Team management
+  teamSectionTitle: string
+  teamSectionSubtitle: string
+  teamMembersTitle: string
+  teamPendingTitle: string
+  teamInviteTitle: string
+  teamRoleOwner: string
+  teamRoleAdmin: string
+  teamRoleEditor: string
+  teamRoleViewer: string
+  teamActionRemove: string
+  teamActionCopyLink: string
+  teamActionRevoke: string
+  teamActionInvite: string
+  teamInvitePlaceholder: string
+  teamExpired: string
+  teamExpires: string
+  teamOpenLink: string
+  teamLoading: string
+  teamConfirmRemove: string
+  teamInviteError: string
+  teamConnError: string
+  teamInviting: string
 }
 
 const en: DashboardTranslations = {
@@ -3621,6 +3644,29 @@ const en: DashboardTranslations = {
   usageRemainingText: 'You can generate {personal} more tools today (personal limit) and {workspace} in this workspace.',
   usageDailyRunsToday: 'Runs today',
   usageDailyRunsMonth: 'Runs this month',
+  // Team management
+  teamSectionTitle: 'Team',
+  teamSectionSubtitle: 'Manage your organisation members and invite new people.',
+  teamMembersTitle: 'Team members',
+  teamPendingTitle: 'Pending invitations',
+  teamInviteTitle: 'Invite someone',
+  teamRoleOwner: 'Owner',
+  teamRoleAdmin: 'Administrator',
+  teamRoleEditor: 'Consultant',
+  teamRoleViewer: 'Reader',
+  teamActionRemove: 'Remove',
+  teamActionCopyLink: 'Copy link',
+  teamActionRevoke: 'Revoke',
+  teamActionInvite: 'Invite',
+  teamInvitePlaceholder: 'Email (optional — leave blank to generate a link)',
+  teamExpired: '⚠ Expired',
+  teamExpires: 'Expires',
+  teamOpenLink: 'Open link',
+  teamLoading: 'Loading…',
+  teamConfirmRemove: 'Remove this team member?',
+  teamInviteError: 'Error creating invitation',
+  teamConnError: 'Connection error',
+  teamInviting: '…',
 }
 
 const es: DashboardTranslations = {
@@ -5425,6 +5471,29 @@ const es: DashboardTranslations = {
   usageRemainingText: 'Puedes generar {personal} herramientas más hoy (límite personal) y {workspace} en este workspace.',
   usageDailyRunsToday: 'Ejecuciones hoy',
   usageDailyRunsMonth: 'Ejecuciones este mes',
+  // Team management
+  teamSectionTitle: 'Equipo',
+  teamSectionSubtitle: 'Gestiona los miembros de tu organización e invita a nuevas personas.',
+  teamMembersTitle: 'Miembros del equipo',
+  teamPendingTitle: 'Invitaciones pendientes',
+  teamInviteTitle: 'Invitar a alguien',
+  teamRoleOwner: 'Propietario',
+  teamRoleAdmin: 'Administrador',
+  teamRoleEditor: 'Consultor',
+  teamRoleViewer: 'Lector',
+  teamActionRemove: 'Eliminar',
+  teamActionCopyLink: 'Copiar enlace',
+  teamActionRevoke: 'Revocar',
+  teamActionInvite: 'Invitar',
+  teamInvitePlaceholder: 'Email (opcional — si lo dejas vacío se genera un enlace)',
+  teamExpired: '⚠ Caducada',
+  teamExpires: 'Caduca',
+  teamOpenLink: 'Enlace abierto',
+  teamLoading: 'Cargando…',
+  teamConfirmRemove: '¿Eliminar este miembro del equipo?',
+  teamInviteError: 'Error al crear invitación',
+  teamConnError: 'Error de conexión',
+  teamInviting: '…',
 }
 
 const fr: DashboardTranslations = {
@@ -7348,11 +7417,43 @@ const hrFallback: Pick<DashboardTranslations, 'groupHR' | 'navEmployees' | 'navP
   descLeads: 'Contacts captured via your forms webhook',
 }
 
+const teamFallback: Pick<DashboardTranslations,
+  'teamSectionTitle' | 'teamSectionSubtitle' | 'teamMembersTitle' | 'teamPendingTitle' | 'teamInviteTitle' |
+  'teamRoleOwner' | 'teamRoleAdmin' | 'teamRoleEditor' | 'teamRoleViewer' |
+  'teamActionRemove' | 'teamActionCopyLink' | 'teamActionRevoke' | 'teamActionInvite' |
+  'teamInvitePlaceholder' | 'teamExpired' | 'teamExpires' | 'teamOpenLink' | 'teamLoading' |
+  'teamConfirmRemove' | 'teamInviteError' | 'teamConnError' | 'teamInviting'
+> = {
+  teamSectionTitle: 'Team',
+  teamSectionSubtitle: 'Manage your organisation members and invite new people.',
+  teamMembersTitle: 'Team members',
+  teamPendingTitle: 'Pending invitations',
+  teamInviteTitle: 'Invite someone',
+  teamRoleOwner: 'Owner',
+  teamRoleAdmin: 'Administrator',
+  teamRoleEditor: 'Consultant',
+  teamRoleViewer: 'Reader',
+  teamActionRemove: 'Remove',
+  teamActionCopyLink: 'Copy link',
+  teamActionRevoke: 'Revoke',
+  teamActionInvite: 'Invite',
+  teamInvitePlaceholder: 'Email (optional — leave blank to generate a link)',
+  teamExpired: '⚠ Expired',
+  teamExpires: 'Expires',
+  teamOpenLink: 'Open link',
+  teamLoading: 'Loading…',
+  teamConfirmRemove: 'Remove this team member?',
+  teamInviteError: 'Error creating invitation',
+  teamConnError: 'Connection error',
+  teamInviting: '…',
+}
+
 export function getDashboardTranslations(locale: Locale): DashboardTranslations {
   const base = translations[locale] ?? en
   return {
     ...downloadFallback,
     ...hrFallback,
+    ...teamFallback,
     ...base,
     ...(todayLocaleOverrides[locale] ?? {}),
     ...(toolsLocaleOverrides[locale] ?? {}),

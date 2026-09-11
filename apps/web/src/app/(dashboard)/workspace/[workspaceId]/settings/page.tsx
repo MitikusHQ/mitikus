@@ -67,12 +67,13 @@ export default async function WorkspaceSettingsPage({ params }: Props) {
       </div>
 
       <div>
-        <h2 className="text-xl font-bold mb-1">Equipo</h2>
-        <p className="text-muted-foreground text-sm mb-6">Gestiona los miembros de tu organización e invita a nuevas personas.</p>
+        <h2 className="text-xl font-bold mb-1">{t.teamSectionTitle}</h2>
+        <p className="text-muted-foreground text-sm mb-6">{t.teamSectionSubtitle}</p>
         <TeamPanel
           currentUserId={user.id}
           currentRole={user.role}
           canManage={can(user, 'manage_members')}
+          t={t}
         />
       </div>
     </div>
