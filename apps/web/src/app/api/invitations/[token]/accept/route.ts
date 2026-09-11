@@ -3,6 +3,7 @@ import { requireUser } from '@/lib/auth'
 import { db } from '@/lib/db'
 import { audit } from '@/lib/audit'
 import { sendInviteWelcomeEmail } from '@/lib/email'
+import { checkPlanLimit } from '@/lib/billing/check-plan-limit'
 
 export const runtime = 'nodejs'
 
@@ -31,6 +32,12 @@ export async function POST(
     }
     if (invitation.email !== null && invitation.email !== user.email.toLowerCase()) {
       return NextResponse.json({ error: 'Esta invitación no está dirigida a tu cuenta' }, { status: 403 })
+    }
+
+    // Verificar que el plan de la org destino aún admite más usuarios en el momento de aceptar
+    const limitCheck = await checkPlanLimit(invitation.orgId, 'maxUsers')
+    if (!limitCheck.allowed) {
+      return NextResponse.json({ error: 'La organización ha alcanzado el límite de usuarios de su plan.' }, { status: 402 })
     }
 
     const previousOrgId = user.orgId
