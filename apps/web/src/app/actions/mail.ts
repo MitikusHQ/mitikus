@@ -30,6 +30,7 @@ export interface WorkspaceMailMessage {
   clientSector: string | null
   clientType: string | null
   lastError: string | null
+  isRead: boolean
   sentAt: string | null
   createdAt: string
 }
@@ -92,6 +93,7 @@ function mapMessage(message: {
   provider: string
   invoiceId: string | null
   lastError: string | null
+  isRead: boolean
   sentAt: Date | null
   createdAt: Date
   invoice: { number: string } | null
@@ -117,6 +119,7 @@ function mapMessage(message: {
     clientSector: client?.sector ?? null,
     clientType: client?.clientType ?? null,
     lastError: message.lastError,
+    isRead: message.isRead,
     sentAt: message.sentAt?.toISOString() ?? null,
     createdAt: message.createdAt.toISOString(),
   }
@@ -307,6 +310,14 @@ export async function deleteMailMessagePermanently(workspaceId: string, messageI
   })
   revalidatePath(`/workspace/${workspaceId}/mail`)
   return { ok: true as const }
+}
+
+export async function markMailAsRead(workspaceId: string, messageId: string, isRead: boolean) {
+  await getWorkspaceContext(workspaceId)
+  await db.mailMessage.updateMany({
+    where: { id: messageId, workspaceId },
+    data: { isRead },
+  })
 }
 
 export async function syncMailboxForWorkspace(workspaceId: string) {
