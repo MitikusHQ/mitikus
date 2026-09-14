@@ -1,4 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server'
+import { createHash } from 'crypto'
 import { auth } from '@clerk/nextjs/server'
 import { db } from '@/lib/db'
 
@@ -35,7 +36,10 @@ export async function GET(req: NextRequest, { params }: Params): Promise<NextRes
       internalSignedAt:  true,
       clientSignedAt:    true,
       clientName:        true,
+      clientEmail:       true,
       clientIp:          true,
+      pdfHash:           true,
+      otpVerifiedAt:     true,
       creator:           { select: { name: true, email: true } },
     },
   })
@@ -108,8 +112,57 @@ export async function GET(req: NextRequest, { params }: Params): Promise<NextRes
     thickness: 0.5, color: rgb(0.5, 0.5, 0.5),
   })
 
+  // Sección de auditoría criptográfica
+  signPage.drawLine({
+    start: { x: 50, y: 580 }, end: { x: 545, y: 580 },
+    thickness: 0.5, color: rgb(0.85, 0.85, 0.85),
+  })
+  signPage.drawText('Registro de auditoría', {
+    x: 50, y: 560, size: 10, font: fontBold, color: rgb(0.3, 0.3, 0.3),
+  })
+
+  // Hash del documento original
+  const currentHash = createHash('sha256').update(contract.pdfData).digest('hex')
+  const storedHash  = contract.pdfHash ?? currentHash
+  const hashMatch   = storedHash === currentHash
+
+  signPage.drawText('Hash SHA-256 del documento original:', {
+    x: 50, y: 540, size: 8, font: fontBold, color: rgb(0.4, 0.4, 0.4),
+  })
+  // Dividir hash en dos líneas (64 chars)
+  signPage.drawText(storedHash.slice(0, 32), {
+    x: 50, y: 528, size: 7.5, font, color: rgb(0.2, 0.2, 0.2),
+  })
+  signPage.drawText(storedHash.slice(32), {
+    x: 50, y: 517, size: 7.5, font, color: rgb(0.2, 0.2, 0.2),
+  })
+
+  const integrityLabel = hashMatch ? '✓ Integridad verificada — el documento no ha sido alterado' : '⚠ Hash no coincide'
+  const integrityColor = hashMatch ? rgb(0.1, 0.55, 0.2) : rgb(0.8, 0.1, 0.1)
+  signPage.drawText(integrityLabel, {
+    x: 50, y: 503, size: 8, font: fontBold, color: integrityColor,
+  })
+
+  // Datos del firmante
+  const rows: [string, string][] = [
+    ['Firmante',       contract.clientName  ?? '—'],
+    ['Email',          contract.clientEmail ?? '—'],
+    ['IP de firma',    contract.clientIp    ?? '—'],
+    ['OTP verificado', contract.otpVerifiedAt ? `Sí · ${contract.otpVerifiedAt.toISOString()}` : 'No requerido'],
+    ['Fecha de firma', contract.clientSignedAt ? contract.clientSignedAt.toISOString() : '—'],
+  ]
+  let rowY = 483
+  for (const [label, value] of rows) {
+    signPage.drawText(`${label}:`, { x: 50,  y: rowY, size: 8, font: fontBold, color: rgb(0.4, 0.4, 0.4) })
+    signPage.drawText(value,       { x: 160, y: rowY, size: 8, font,           color: rgb(0.15, 0.15, 0.15) })
+    rowY -= 14
+  }
+
   signPage.drawText('Documento generado por MITIKUS · mitikus.com', {
     x: 50, y: 40, size: 8, font, color: rgb(0.7, 0.7, 0.7),
+  })
+  signPage.drawText(`Generado: ${new Date().toISOString()}`, {
+    x: 50, y: 28, size: 7, font, color: rgb(0.75, 0.75, 0.75),
   })
 
   const pdfBytes = await pdfDoc.save()

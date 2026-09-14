@@ -3,7 +3,7 @@
 import { auth } from '@clerk/nextjs/server'
 import { db } from '@/lib/db'
 import { revalidatePath } from 'next/cache'
-import { randomInt } from 'crypto'
+import { randomInt, createHash } from 'crypto'
 import bcrypt from 'bcryptjs'
 import { logActivity } from './activity'
 import { assertCan } from '@/lib/permissions'
@@ -242,6 +242,7 @@ export async function signClientContract(
       workspaceId:   true,
       createdBy:     true,
       otpVerifiedAt: true,
+      pdfData:       true,
       creator:       { select: { email: true, name: true } },
     },
   })
@@ -256,6 +257,9 @@ export async function signClientContract(
   if (!base64) throw new Error('Invalid signature data URL')
   const buffer = Buffer.from(base64, 'base64')
 
+  // SHA-256 del PDF original — prueba que el documento no fue alterado
+  const pdfHash = createHash('sha256').update(contract.pdfData).digest('hex')
+
   await db.contract.update({
     where: { shareToken },
     data:  {
@@ -263,6 +267,7 @@ export async function signClientContract(
       clientAccepted:  accepted,
       clientSignedAt:  new Date(),
       clientIp,
+      pdfHash,
       status:          'SIGNED',
     },
   })

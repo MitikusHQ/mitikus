@@ -1752,6 +1752,7 @@ model Contract {
   clientAccepted    Boolean        @default(false)
   clientSignedAt    DateTime?
   clientIp          String?
+  pdfHash           String?
   otpCode           String?
   otpExpiresAt      DateTime?
   otpAttempts       Int            @default(0)

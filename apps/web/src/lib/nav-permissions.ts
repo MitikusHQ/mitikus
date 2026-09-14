@@ -20,6 +20,8 @@ export const NAV_DEFAULTS: Record<OrgRole, NavSection[]> = {
 }
 
 export function getNavSections(role: OrgRole, navPermissions: string[]): NavSection[] {
+  // OWNER and ADMIN always get everything regardless of stored navPermissions
+  if (role === 'OWNER' || role === 'ADMIN') return [...NAV_SECTIONS]
   if (navPermissions.length > 0) {
     return navPermissions.filter((s): s is NavSection => NAV_SECTIONS.includes(s as NavSection))
   }
