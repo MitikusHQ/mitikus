@@ -12,7 +12,7 @@ export async function buildWorkspaceFilesZip(workspaceId: string) {
   })
   if (!workspace) throw new Error('Workspace no encontrado')
 
-  const [files, folders] = await Promise.all([
+  const [files, folders, contracts] = await Promise.all([
     db.workspaceFile.findMany({
       where: { workspaceId },
       select: { id: true, name: true, url: true, folderId: true },
@@ -20,6 +20,10 @@ export async function buildWorkspaceFilesZip(workspaceId: string) {
     db.folder.findMany({
       where: { workspaceId },
       select: { id: true, name: true, parentId: true },
+    }),
+    db.contract.findMany({
+      where: { workspaceId },
+      select: { id: true, title: true, status: true, signedPdfData: true, pdfData: true },
     }),
   ])
 
@@ -48,9 +52,20 @@ export async function buildWorkspaceFilesZip(workspaceId: string) {
     }),
   )
 
+  // Añadir contratos al ZIP
+  const contractsFolder = zip.folder('contratos')!
+  for (const contract of contracts) {
+    const safeName = safeExportName(contract.title)
+    const pdfData = contract.signedPdfData ?? contract.pdfData
+    if (pdfData) {
+      const suffix = contract.signedPdfData ? '-firmado' : '-borrador'
+      contractsFolder.file(`${safeName}${suffix}.pdf`, pdfData)
+    }
+  }
+
   const buffer = await zip.generateAsync({ type: 'nodebuffer', compression: 'DEFLATE' })
   return {
     buffer,
-    filename: `MITIKUS-${safeExportName(workspace.name)}-archivos.zip`,
+    filename: `MITIKUS-${safeExportName(workspace.name)}-export.zip`,
   }
 }

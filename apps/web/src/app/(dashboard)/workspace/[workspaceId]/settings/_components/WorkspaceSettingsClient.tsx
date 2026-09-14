@@ -131,6 +131,7 @@ export function WorkspaceSettingsClient({
   const [restrictCreation, setRestrictCreation] = useState(workspace.restrictCreationToAdmins)
   const [permSaving, setPermSaving] = useState(false)
   const [permSaved, setPermSaved] = useState(false)
+  const [exporting, setExporting] = useState(false)
   const isOwner = userRole === 'OWNER'
   const logoFrame = LOGO_CROP_REFERENCE_FRAME
   const logoSafeZoom = Math.max(1, logoCrop.zoom)
@@ -555,6 +556,45 @@ export function WorkspaceSettingsClient({
             {permSaved && <p className="text-xs text-green-600 dark:text-green-400 mt-1">{t.wsPermSaved}</p>}
           </div>
         </label>
+      </section>
+
+      {/* Export ZIP */}
+      <section className="rounded-xl border bg-card p-6 space-y-3">
+        <div>
+          <h2 className="font-semibold text-sm">{locale === 'es' ? 'Exportar datos' : 'Export data'}</h2>
+          <p className="text-xs text-muted-foreground mt-0.5">
+            {locale === 'es'
+              ? 'Descarga todos los archivos y contratos del workspace en un ZIP.'
+              : 'Download all workspace files and contracts as a ZIP archive.'}
+          </p>
+        </div>
+        <button
+          type="button"
+          disabled={exporting}
+          onClick={async () => {
+            setExporting(true)
+            try {
+              const res = await fetch(`/api/workspace/${workspace.id}/files/export`)
+              if (!res.ok) throw new Error('Error al exportar')
+              const blob = await res.blob()
+              const url = URL.createObjectURL(blob)
+              const a = document.createElement('a')
+              const cd = res.headers.get('content-disposition') ?? ''
+              const match = cd.match(/filename="(.+?)"/)
+              a.download = match?.[1] ?? 'mitikus-export.zip'
+              a.href = url
+              a.click()
+              URL.revokeObjectURL(url)
+            } finally {
+              setExporting(false)
+            }
+          }}
+          className="px-4 py-2 rounded-md border border-border text-sm font-medium hover:bg-muted/50 transition-colors disabled:opacity-60 flex items-center gap-2"
+        >
+          {exporting
+            ? (locale === 'es' ? 'Generando ZIP…' : 'Generating ZIP…')
+            : (locale === 'es' ? 'Descargar ZIP' : 'Download ZIP')}
+        </button>
       </section>
 
       {/* Save */}
