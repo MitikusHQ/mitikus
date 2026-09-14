@@ -74,11 +74,17 @@ export default async function WorkspaceLayout({ children, params }: Props) {
     },
   ].filter(Boolean) as NavItem[]
 
-  // Acordeón Trabajo — Leads, Herramientas, Flujos (secundarios)
+  // Acordeón Trabajo — Leads, Herramientas, Flujos, Contratos (secundarios)
   const workSecondary: NavItem[] = [
     show('leads') && { label: t.navLeads, href: `${base}/leads`, icon: Icons.leads, description: t.descLeads },
     show('tools') && { label: t.navTools, href: `${base}/tools`, icon: Icons.tools, description: t.descTools },
     show('workflows') && { label: t.navWorkflows, href: `${base}/workflows`, icon: Icons.workflows, description: t.descWorkflows },
+    (show('studio') || user.role === 'OWNER' || user.role === 'ADMIN') && {
+      label: locale === 'es' ? 'Contratos' : 'Contracts',
+      href: `${base}/contracts`,
+      icon: Icons.office,
+      description: locale === 'es' ? 'Gestión de contratos con clientes' : 'Client contract management',
+    },
   ].filter(Boolean) as NavItem[]
 
   // Clientes y Tareas siempre visibles (capa 1 de trabajo)
