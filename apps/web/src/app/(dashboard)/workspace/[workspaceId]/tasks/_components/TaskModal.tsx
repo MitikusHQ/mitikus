@@ -3,6 +3,7 @@
 import { useState, useTransition, useEffect } from 'react'
 import type { TaskData, TaskFormOptions } from '@/app/actions/tasks'
 import { createTask, updateTask, tagUser, untagUser, getTaskFormOptions, generateShareToken } from '@/app/actions/tasks'
+import { MentionInput } from '@/components/MentionInput'
 
 interface Props {
   workspaceId: string
@@ -117,10 +118,12 @@ export function TaskModal({ workspaceId, task, onClose, onSaved }: Props) {
 
           <div>
             <label className="text-xs text-muted-foreground mb-1 block">Descripción</label>
-            <textarea
+            <MentionInput
               value={description}
-              onChange={(e) => setDescription(e.target.value)}
-              rows={3}
+              onChange={setDescription}
+              members={options?.members ?? []}
+              multiline
+              placeholder="Detalles de la tarea... (@nombre para mencionar)"
               className="w-full px-3 py-2 rounded-md border border-input bg-background text-sm resize-none focus:outline-none focus:ring-2 focus:ring-ring"
             />
           </div>

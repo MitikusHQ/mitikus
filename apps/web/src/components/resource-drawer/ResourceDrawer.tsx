@@ -6,6 +6,7 @@ import { getComments, addComment, deleteComment } from '@/app/actions/comments'
 import { getActivity } from '@/app/actions/activity'
 import type { ActivityData } from '@/app/actions/activity'
 import type { CommentData, ResourceType } from '@/app/actions/comments'
+import { MentionInput, type MentionMember } from '@/components/MentionInput'
 
 interface Props {
   open:          boolean
@@ -29,6 +30,7 @@ export function ResourceDrawer({
   const [replyTo,  setReplyTo]  = useState<string | null>(null)
   const [loading,  setLoading]  = useState(false)
   const [sending,  setSending]  = useState(false)
+  const [members,  setMembers]  = useState<MentionMember[]>([])
   const bottomRef = useRef<HTMLDivElement>(null)
 
   useEffect(() => {
@@ -37,9 +39,11 @@ export function ResourceDrawer({
     Promise.all([
       getComments(workspaceId, resourceType, resourceId),
       getActivity(workspaceId, resourceType, resourceId),
-    ]).then(([c, a]) => {
+      fetch(`/api/workspace/${workspaceId}/members`).then((r) => r.ok ? r.json() : []),
+    ]).then(([c, a, m]) => {
       setComments(c)
       setActivity(a)
+      setMembers(Array.isArray(m) ? m : (m.members ?? []))
     }).finally(() => setLoading(false))
   }, [open, workspaceId, resourceType, resourceId])
 
@@ -167,13 +171,13 @@ export function ResourceDrawer({
                     </div>
                   ))}
                   {replyTo === cm.id && (
-                    <div className="ml-6 flex gap-1">
-                      <input
-                        autoFocus
+                    <div className="ml-6 flex gap-1 items-end">
+                      <MentionInput
                         value={input}
-                        onChange={(e) => setInput(e.target.value)}
-                        onKeyDown={(e) => { if (e.key === 'Enter') void handleSend() }}
+                        onChange={setInput}
+                        members={members}
                         placeholder="Responder..."
+                        onKeyDown={(e) => { if (e.key === 'Enter') void handleSend() }}
                         className="flex-1 text-xs rounded border border-input bg-background px-2 py-1 focus:outline-none focus:ring-1 focus:ring-ring"
                       />
                       <button
@@ -224,12 +228,13 @@ export function ResourceDrawer({
 
         {/* Input — solo en tab comments y sin replyTo activo */}
         {tab === 'comments' && !replyTo && (
-          <div className="border-t p-3 flex gap-2">
-            <input
+          <div className="border-t p-3 flex gap-2 items-end">
+            <MentionInput
               value={input}
-              onChange={(e) => setInput(e.target.value)}
-              onKeyDown={(e) => { if (e.key === 'Enter') void handleSend() }}
+              onChange={setInput}
+              members={members}
               placeholder="Comentar... (@nombre para mencionar)"
+              onKeyDown={(e) => { if (e.key === 'Enter') void handleSend() }}
               className="flex-1 text-xs rounded border border-input bg-background px-3 py-2 focus:outline-none focus:ring-1 focus:ring-ring"
             />
             <button
