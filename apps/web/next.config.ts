@@ -61,10 +61,18 @@ const nextConfig: NextConfig = {
 
     // @protools/import-engine usa module: "NodeNext" y extensiones .js en imports TypeScript.
     // Webpack no resuelve .js → .ts automáticamente, así que lo habilitamos aquí.
+    // Note: .mjs excluded — the alias breaks pdfjs-dist ESM bundling.
     config.resolve.extensionAlias = {
       '.js': ['.ts', '.tsx', '.js'],
-      '.mjs': ['.mts', '.mjs'],
     }
+
+    // pdfjs-dist ships ESM .mjs files; mark them as javascript/auto so webpack
+    // does not treat them as strict ES modules and avoids the
+    // "Object.defineProperty called on non-object" error.
+    config.module.rules.push({
+      test:    /node_modules[\\/]pdfjs-dist[\\/].*\.mjs$/,
+      type:    'javascript/auto',
+    })
 
     return config
   },

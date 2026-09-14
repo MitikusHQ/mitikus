@@ -1,10 +1,7 @@
 'use client'
 
-import { useState, useCallback } from 'react'
+import { useState, useEffect, useRef } from 'react'
 import { useRouter } from 'next/navigation'
-import { Document, Page, pdfjs } from 'react-pdf'
-import 'react-pdf/dist/Page/AnnotationLayer.css'
-import 'react-pdf/dist/Page/TextLayer.css'
 import { Buffer } from 'buffer'
 import { SignatureCanvas } from '@/components/signature-canvas'
 import { SendToClientModal } from './SendToClientModal'
@@ -12,8 +9,6 @@ import { signInternalContract, sendContractToClient } from '@/app/actions/contra
 import type { ContractDetail } from '@/app/actions/contracts'
 import type { Locale } from '@/i18n/config'
 import { getDashboardTranslations } from '@/i18n/dashboard-translations'
-
-pdfjs.GlobalWorkerOptions.workerSrc = '/pdf.worker.min.js'
 
 interface Props {
   contract:    ContractDetail
@@ -35,15 +30,22 @@ export function ContractViewerClient({ contract, workspaceId, locale }: Props) {
     SIGNED: t.contractsStatusSigned,
   }
   const router = useRouter()
-  const [numPages,       setNumPages]       = useState<number>(0)
-  const [isSavingSig,    setIsSavingSig]    = useState(false)
-  const [isSending,      setIsSending]      = useState(false)
-  const [showSendModal,  setShowSendModal]  = useState(false)
-  const [sigError,       setSigError]       = useState<string | null>(null)
-  const [sendError,      setSendError]      = useState<string | null>(null)
+  const [isSavingSig,   setIsSavingSig]   = useState(false)
+  const [isSending,     setIsSending]     = useState(false)
+  const [showSendModal, setShowSendModal] = useState(false)
+  const [sigError,      setSigError]      = useState<string | null>(null)
+  const [sendError,     setSendError]     = useState<string | null>(null)
+  const [pdfUrl,        setPdfUrl]        = useState<string | null>(null)
+  const urlRef = useRef<string | null>(null)
 
-  const pdfBytes = new Uint8Array(contract.pdfDataArray)
-  const pdfFile  = { data: pdfBytes }
+  useEffect(() => {
+    const bytes = new Uint8Array(contract.pdfDataArray)
+    const blob  = new Blob([bytes], { type: 'application/pdf' })
+    const url   = URL.createObjectURL(blob)
+    urlRef.current = url
+    setPdfUrl(url)
+    return () => URL.revokeObjectURL(url)
+  }, [contract.pdfDataArray])
 
   const internalSigDataUrl = contract.internalSignatureArray
     ? `data:image/png;base64,${Buffer.from(contract.internalSignatureArray).toString('base64')}`
@@ -83,10 +85,6 @@ export function ContractViewerClient({ contract, workspaceId, locale }: Props) {
     }
   }
 
-  const onDocumentLoadSuccess = useCallback(({ numPages }: { numPages: number }) => {
-    setNumPages(numPages)
-  }, [])
-
   return (
     <div className="flex flex-col h-full">
       {/* Header */}
@@ -123,22 +121,19 @@ export function ContractViewerClient({ contract, workspaceId, locale }: Props) {
 
       {/* Body */}
       <div className="flex flex-1 overflow-hidden">
-        {/* PDF viewer */}
-        <div className="flex-1 overflow-auto p-4 bg-muted/30">
-          <Document
-            file={pdfFile}
-            onLoadSuccess={onDocumentLoadSuccess}
-            className="flex flex-col items-center gap-4"
-          >
-            {Array.from({ length: numPages }, (_, i) => (
-              <Page
-                key={i + 1}
-                pageNumber={i + 1}
-                width={Math.min(700, typeof window !== 'undefined' ? window.innerWidth - 340 : 700)}
-                className="shadow-md"
-              />
-            ))}
-          </Document>
+        {/* PDF viewer — iframe with blob URL, no pdfjs dependency */}
+        <div className="flex-1 overflow-hidden bg-muted/30">
+          {pdfUrl ? (
+            <iframe
+              src={pdfUrl}
+              className="w-full h-full border-0"
+              title={contract.title}
+            />
+          ) : (
+            <div className="flex items-center justify-center h-full text-sm text-muted-foreground">
+              Cargando PDF…
+            </div>
+          )}
         </div>
 
         {/* Signature panel */}

@@ -623,21 +623,22 @@ export function OnboardingModal({ open, onClose }: Props) {
   const isLast = current === total - 1
 
   return (
-    <div
-      className="fixed inset-0 z-50 flex items-center justify-center p-4"
-      role="dialog"
-      aria-modal="true"
-      aria-label="Tour de bienvenida MITIKUS"
-    >
-      {/* Backdrop */}
+    <>
+      {/* Backdrop — stacking context propio, separado del modal */}
       <div
-        className="absolute inset-0 bg-black/50 backdrop-blur-sm"
+        className="fixed inset-0 z-50 bg-black/60"
         onClick={close}
         aria-hidden
       />
 
-      {/* Modal */}
-      <div className="relative z-10 w-full max-w-[720px] bg-background border border-border rounded-2xl overflow-hidden shadow-2xl">
+      {/* Modal — stacking context propio, sin interferencia del blur */}
+      <div
+        className="fixed inset-0 z-[51] flex items-center justify-center p-4 pointer-events-none"
+        role="dialog"
+        aria-modal="true"
+        aria-label="Tour de bienvenida MITIKUS"
+      >
+      <div className="pointer-events-auto w-full max-w-[720px] bg-white dark:bg-zinc-900 border border-border rounded-2xl overflow-hidden shadow-2xl">
 
         {/* Progress bar */}
         <div className="h-0.5 bg-muted">
@@ -692,7 +693,7 @@ export function OnboardingModal({ open, onClose }: Props) {
               {slide.title}
             </h2>
 
-            <p className="text-sm text-muted-foreground leading-relaxed">
+            <p className="text-sm text-foreground/75 leading-relaxed">
               {slide.desc}
             </p>
 
@@ -700,7 +701,7 @@ export function OnboardingModal({ open, onClose }: Props) {
               {slide.tips.map((tip, i) => (
                 <div
                   key={i}
-                  className="flex items-start gap-2.5 text-xs text-muted-foreground bg-muted/50 border border-border rounded-lg px-3 py-2"
+                  className="flex items-start gap-2.5 text-xs text-foreground/65 bg-muted/50 border border-border rounded-lg px-3 py-2"
                 >
                   <span className="shrink-0 mt-0.5">{tip.icon}</span>
                   <span className="leading-relaxed">{tip.text}</span>
@@ -761,7 +762,8 @@ export function OnboardingModal({ open, onClose }: Props) {
           </div>
         </div>
       </div>
-    </div>
+      </div>
+    </>
   )
 }
 

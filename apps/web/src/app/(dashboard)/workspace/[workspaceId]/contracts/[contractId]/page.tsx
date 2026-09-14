@@ -17,7 +17,7 @@ export default async function ContractPage({ params }: Props) {
 
   let contract
   try {
-    contract = await getContract(workspaceId, contractId)
+    contract = await getContract(contractId, workspaceId)
   } catch {
     notFound()
   }

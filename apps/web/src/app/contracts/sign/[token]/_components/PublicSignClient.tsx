@@ -1,13 +1,8 @@
 'use client'
 
-import { useState, useCallback } from 'react'
-import { Document, Page, pdfjs } from 'react-pdf'
-import 'react-pdf/dist/Page/AnnotationLayer.css'
-import 'react-pdf/dist/Page/TextLayer.css'
+import { useState, useEffect, useRef } from 'react'
 import { SignatureCanvas } from '@/components/signature-canvas'
 import { signClientContract } from '@/app/actions/contracts'
-
-pdfjs.GlobalWorkerOptions.workerSrc = '/pdf.worker.min.js'
 
 interface Props {
   shareToken:    string
@@ -17,12 +12,20 @@ interface Props {
 }
 
 export function PublicSignClient({ shareToken, contractTitle, pdfDataArray, workspaceName }: Props) {
-  const [numPages,  setNumPages]  = useState(0)
   const [isSigning, setIsSigning] = useState(false)
   const [signed,    setSigned]    = useState(false)
   const [error,     setError]     = useState<string | null>(null)
+  const [pdfUrl,    setPdfUrl]    = useState<string | null>(null)
+  const urlRef = useRef<string | null>(null)
 
-  const pdfFile = { data: new Uint8Array(pdfDataArray) }
+  useEffect(() => {
+    const bytes = new Uint8Array(pdfDataArray)
+    const blob  = new Blob([bytes], { type: 'application/pdf' })
+    const url   = URL.createObjectURL(blob)
+    urlRef.current = url
+    setPdfUrl(url)
+    return () => URL.revokeObjectURL(url)
+  }, [pdfDataArray])
 
   async function handleSign(signatureDataUrl: string) {
     setIsSigning(true)
@@ -30,16 +33,13 @@ export function PublicSignClient({ shareToken, contractTitle, pdfDataArray, work
     try {
       await signClientContract(shareToken, signatureDataUrl, true, '')
       setSigned(true)
-    } catch {
-      setError('Error al guardar la firma. Inténtalo de nuevo.')
+    } catch (err) {
+      const msg = err instanceof Error ? err.message : 'Error desconocido'
+      setError(`Error al guardar la firma: ${msg}`)
     } finally {
       setIsSigning(false)
     }
   }
-
-  const onDocumentLoadSuccess = useCallback(({ numPages }: { numPages: number }) => {
-    setNumPages(numPages)
-  }, [])
 
   if (signed) {
     return (
@@ -71,29 +71,30 @@ export function PublicSignClient({ shareToken, contractTitle, pdfDataArray, work
         <h1 className="text-xl font-semibold mb-6">{contractTitle}</h1>
 
         <div className="flex flex-col lg:flex-row gap-8">
-          {/* PDF viewer */}
-          <div className="flex-1 min-w-0">
-            <Document
-              file={pdfFile}
-              onLoadSuccess={onDocumentLoadSuccess}
-              className="flex flex-col items-center gap-4"
-            >
-              {Array.from({ length: numPages }, (_, i) => (
-                <Page
-                  key={i + 1}
-                  pageNumber={i + 1}
-                  width={Math.min(600, typeof window !== 'undefined' ? window.innerWidth - 80 : 600)}
-                  className="shadow-md max-w-full"
-                />
-              ))}
-            </Document>
+          {/* PDF viewer — iframe + blob URL, sin pdfjs */}
+          <div className="flex-1 min-w-0 min-h-[500px] bg-muted/30 rounded-lg overflow-hidden">
+            {pdfUrl ? (
+              <iframe
+                src={pdfUrl}
+                className="w-full h-full min-h-[500px] border-0"
+                title={contractTitle}
+              />
+            ) : (
+              <div className="flex items-center justify-center h-64 text-sm text-muted-foreground">
+                Cargando PDF…
+              </div>
+            )}
           </div>
 
           {/* Signature panel */}
           <div className="lg:w-72 shrink-0">
             <div className="sticky top-8 border rounded-lg p-4 space-y-4">
               <h2 className="text-sm font-semibold">Tu firma</h2>
-              {error && <p className="text-xs text-destructive">{error}</p>}
+              {error && (
+                <p className="text-xs text-destructive bg-destructive/10 p-2 rounded">
+                  {error}
+                </p>
+              )}
               {isSigning ? (
                 <p className="text-sm text-muted-foreground">Guardando firma...</p>
               ) : (

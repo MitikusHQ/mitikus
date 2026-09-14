@@ -21,9 +21,21 @@ export function SignatureCanvas({ onSave, disabled, existingSignature, label }: 
   }
 
   function handleSave() {
-    if (!canvasRef.current || canvasRef.current.isEmpty()) return
-    const dataUrl = canvasRef.current.getTrimmedCanvas().toDataURL('image/png')
-    onSave(dataUrl)
+    if (!canvasRef.current) return
+    if (isEmpty) return
+    try {
+      // toDataURL() on the lib is more stable than getTrimmedCanvas() in prod builds
+      const dataUrl = (canvasRef.current as unknown as { toDataURL: (type: string) => string }).toDataURL('image/png')
+      if (dataUrl && dataUrl !== 'data:,') { onSave(dataUrl); return }
+    } catch { /* fall through */ }
+    try {
+      const trimmed = canvasRef.current.getTrimmedCanvas()
+      onSave(trimmed.toDataURL('image/png'))
+    } catch { /* fall through */ }
+    try {
+      const el = (canvasRef.current as unknown as { canvas: HTMLCanvasElement }).canvas
+      if (el) onSave(el.toDataURL('image/png'))
+    } catch { /* ignore */ }
   }
 
   if (existingSignature) {
