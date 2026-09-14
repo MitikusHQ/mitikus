@@ -197,16 +197,11 @@ export async function getTaskFormOptions(workspaceId: string): Promise<TaskFormO
   return { members, objectives, clients }
 }
 
-export async function getNotifications(workspaceId: string): Promise<NotificationData[]> {
+export async function getNotifications(_workspaceId: string): Promise<NotificationData[]> {
   const userId = await getAuthUserId()
+  // Org-level: devuelve todas las notificaciones del usuario, sin importar workspace
   const notifications = await db.notification.findMany({
-    where: {
-      userId,
-      OR: [
-        { task: { workspaceId } },
-        { workspaceId },
-      ],
-    },
+    where: { userId },
     include: { task: { select: { title: true } } },
     orderBy: { createdAt: 'desc' },
     take: 30,
@@ -224,17 +219,11 @@ export async function getNotifications(workspaceId: string): Promise<Notificatio
   }))
 }
 
-export async function getUnreadCount(workspaceId: string): Promise<number> {
+export async function getUnreadCount(_workspaceId: string): Promise<number> {
   const userId = await getAuthUserId()
+  // Org-level: cuenta no leídas sin filtro de workspace
   return db.notification.count({
-    where: {
-      userId,
-      readAt: null,
-      OR: [
-        { task: { workspaceId } },
-        { workspaceId },
-      ],
-    },
+    where: { userId, readAt: null },
   })
 }
 
@@ -412,17 +401,10 @@ export async function markNotificationRead(notificationId: string): Promise<void
   })
 }
 
-export async function markAllNotificationsRead(workspaceId: string): Promise<void> {
+export async function markAllNotificationsRead(_workspaceId: string): Promise<void> {
   const userId = await getAuthUserId()
   await db.notification.updateMany({
-    where: {
-      userId,
-      readAt: null,
-      OR: [
-        { task: { workspaceId } },
-        { workspaceId },
-      ],
-    },
+    where: { userId, readAt: null },
     data: { readAt: new Date() },
   })
 }

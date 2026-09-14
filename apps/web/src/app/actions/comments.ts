@@ -3,6 +3,7 @@
 import { auth } from '@clerk/nextjs/server'
 import { db } from '@/lib/db'
 import { revalidatePath } from 'next/cache'
+import { createNotification } from '@/lib/notifications'
 
 export type ResourceType = 'document' | 'contract' | 'notebook' | 'presentation' | 'pdf'
 
@@ -98,9 +99,17 @@ export async function addComment(
     if (mentionedUsers.length > 0) {
       const { sendMentionEmail } = await import('@/lib/email')
       const resourceUrl = buildResourceUrl(workspaceId, resourceType, resourceId)
+      const resourceLabel: Record<ResourceType, string> = {
+        document:     'un documento',
+        contract:     'un contrato',
+        notebook:     'un notebook',
+        presentation: 'una presentación',
+        pdf:          'un PDF',
+      }
       await Promise.all(
-        mentionedUsers.map((u) =>
-          sendMentionEmail({
+        mentionedUsers.map(async (u) => {
+          // Email
+          await sendMentionEmail({
             to:           u.email,
             mentionedName: u.name ?? 'Usuario',
             authorName:   user.name ?? 'Un compañero',
@@ -108,7 +117,15 @@ export async function addComment(
             resourceUrl,
             resourceType,
           })
-        )
+          // Notificación en BD (visible en la campana, funciona cross-workspace)
+          await createNotification({
+            userId:      u.id,
+            type:        'tagged',
+            message:     `${user.name ?? 'Un compañero'} te mencionó en ${resourceLabel[resourceType]}`,
+            link:        resourceUrl,
+            workspaceId,
+          })
+        })
       )
     }
   }
