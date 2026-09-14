@@ -178,6 +178,7 @@ export function ResourceDrawer({
                         members={members}
                         placeholder="Responder..."
                         onKeyDown={(e) => { if (e.key === 'Enter') void handleSend() }}
+                        dropdownPosition="below"
                         className="flex-1 text-xs rounded border border-input bg-background px-2 py-1 focus:outline-none focus:ring-1 focus:ring-ring"
                       />
                       <button
@@ -265,7 +266,13 @@ function CommentBubble({
         <span className="font-medium">{comment.authorName}</span>
         <span className="text-muted-foreground/60 text-[10px]">{formatRelative(comment.createdAt)}</span>
       </div>
-      <p className="text-foreground/80 leading-relaxed">{comment.content}</p>
+      <p className="text-foreground/80 leading-relaxed">
+        {comment.content.split(/(@[\w\s]+?)(?=\s|$|[,.])/g).map((part, i) =>
+          part.startsWith('@')
+            ? <strong key={i} className="text-primary font-medium">{part}</strong>
+            : part
+        )}
+      </p>
       <div className="flex gap-2 mt-1 opacity-0 group-hover:opacity-100 transition-opacity">
         {onReply && (
           <button onClick={onReply} className="text-[10px] text-muted-foreground hover:text-foreground">

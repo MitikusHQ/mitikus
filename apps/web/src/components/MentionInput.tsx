@@ -24,6 +24,7 @@ interface Props {
   className?: string
   onKeyDown?: (e: KeyboardEvent<HTMLInputElement | HTMLTextAreaElement>) => void
   disabled?: boolean
+  dropdownPosition?: 'above' | 'below'
 }
 
 // Returns the @query being typed at the current cursor position, or null
@@ -42,6 +43,7 @@ export function MentionInput({
   className,
   onKeyDown,
   disabled,
+  dropdownPosition = 'above',
 }: Props) {
   const [query, setQuery]           = useState<string | null>(null)
   const [selected, setSelected]     = useState(0)
@@ -142,7 +144,9 @@ export function MentionInput({
       {suggestions.length > 0 && (
         <ul
           role="listbox"
-          className="absolute z-50 bottom-full mb-1 left-0 w-56 bg-card border border-border rounded-lg shadow-lg overflow-hidden"
+          className={`absolute z-50 left-0 w-56 bg-card border border-border rounded-lg shadow-lg overflow-hidden ${
+            dropdownPosition === 'above' ? 'bottom-full mb-1' : 'top-full mt-1'
+          }`}
         >
           {suggestions.map((m, i) => (
             <li
