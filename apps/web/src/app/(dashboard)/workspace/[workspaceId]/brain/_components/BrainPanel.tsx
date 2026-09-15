@@ -17,6 +17,8 @@ interface Props {
   onNavigateToFull?: () => void
   onOpenMemorySource?: (memoryId: string) => void
   locale: Locale
+  queriesUsed?: number
+  queriesLimit?: number
 }
 
 const SOURCE_TYPE_COLORS: Record<BrainFragment['type'], string> = {
@@ -30,7 +32,7 @@ const SOURCE_TYPE_COLORS: Record<BrainFragment['type'], string> = {
   task:         'bg-rose-500/10 text-rose-600 dark:text-rose-300',
 }
 
-export function BrainPanel({ workspaceId, compact = false, onNavigateToFull, onOpenMemorySource, locale }: Props) {
+export function BrainPanel({ workspaceId, compact = false, onNavigateToFull, onOpenMemorySource, locale, queriesUsed: initialUsed = 0, queriesLimit = 0 }: Props) {
   const t = getDashboardTranslations(locale)
   const quickActions = [
     { label: t.brainQuickWhatNow, query: t.brainQuickWhatNowQuery },
@@ -54,7 +56,12 @@ export function BrainPanel({ workspaceId, compact = false, onNavigateToFull, onO
   const [error, setError] = useState<string | null>(null)
   const [limitReached, setLimitReached] = useState(false)
   const [copied, setCopied] = useState(false)
+  const [queriesUsed, setQueriesUsed] = useState(initialUsed)
   const inputRef = useRef<HTMLInputElement>(null)
+
+  const isUnlimited = queriesLimit === 0 || queriesLimit >= 999999
+  const queriesLeft = isUnlimited ? Infinity : queriesLimit - queriesUsed
+  const showQuotaWarning = !isUnlimited && queriesLimit > 0 && queriesLeft / queriesLimit < 0.2
 
   async function handleSubmit(q: string) {
     const trimmed = q.trim()
@@ -80,6 +87,7 @@ export function BrainPanel({ workspaceId, compact = false, onNavigateToFull, onO
         }
       } else {
         setResult(data as BrainResult)
+        setQueriesUsed((n) => n + 1)
       }
     } catch {
       setError(t.brainConnectionError)
@@ -138,6 +146,16 @@ export function BrainPanel({ workspaceId, compact = false, onNavigateToFull, onO
           )}
         </button>
       </div>
+
+      {showQuotaWarning && (
+        <p className="text-xs text-amber-600 dark:text-amber-400 flex items-center gap-1.5">
+          <svg width="12" height="12" viewBox="0 0 12 12" fill="currentColor" aria-hidden>
+            <path d="M6 1L11 10H1L6 1Z" fillOpacity=".15" stroke="currentColor" strokeWidth="1"/>
+            <path d="M6 5v2M6 8.5v.5" stroke="currentColor" strokeWidth="1.2" strokeLinecap="round"/>
+          </svg>
+          {queriesLeft <= 0 ? 'Has agotado las consultas Brain de este mes' : `${queriesLeft} consulta${queriesLeft === 1 ? '' : 's'} restante${queriesLeft === 1 ? '' : 's'} este mes`}
+        </p>
+      )}
 
       {!result && !loading && (
         <div className="flex flex-wrap gap-2">

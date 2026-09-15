@@ -12,12 +12,14 @@ import { getDashboardTranslations } from "@/i18n/dashboard-translations";
 interface Props {
   workspaceId: string;
   locale: Locale;
+  queriesUsed: number;
+  queriesLimit: number;
 }
 
 type Tab = "cloud" | "local" | "history" | "memory";
 const VALID_TABS = new Set<Tab>(["cloud", "local", "history", "memory"]);
 
-export function BrainTabs({ workspaceId, locale }: Props) {
+export function BrainTabs({ workspaceId, locale, queriesUsed, queriesLimit }: Props) {
   const t = getDashboardTranslations(locale);
   const [tab, setTab] = useState<Tab>("cloud");
   const [focusedMemoryId, setFocusedMemoryId] = useState<string | null>(null);
@@ -134,6 +136,8 @@ export function BrainTabs({ workspaceId, locale }: Props) {
             compact={false}
             onOpenMemorySource={openMemorySource}
             locale={locale}
+            queriesUsed={queriesUsed}
+            queriesLimit={queriesLimit}
           />
         )}
         {tab === "local" && (
