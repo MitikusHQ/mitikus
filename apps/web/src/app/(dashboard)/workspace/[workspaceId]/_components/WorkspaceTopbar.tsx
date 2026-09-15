@@ -111,7 +111,7 @@ export function WorkspaceTopbar({ workspaceId, workspaceName, userAvatarUrl, loc
 
   return (
     <header
-      className="h-14 shrink-0 border-b border-border bg-card flex items-center justify-between px-4 gap-4"
+      className="h-14 shrink-0 border-b border-border bg-card flex items-center justify-between px-4 gap-4 shadow-[0_1px_4px_rgba(0,0,0,0.04)] dark:shadow-[0_1px_4px_rgba(0,0,0,0.2)]"
       role="banner"
     >
       {/* Left: sidebar toggle + breadcrumb */}
@@ -133,7 +133,7 @@ export function WorkspaceTopbar({ workspaceId, workspaceName, userAvatarUrl, loc
                 <span className="text-muted-foreground/40 shrink-0">{Icons.chevronRight}</span>
               )}
               {i === breadcrumbs.length - 1 ? (
-                <span className="font-medium text-foreground truncate">{crumb.label}</span>
+                <span className="font-semibold text-foreground truncate">{crumb.label}</span>
               ) : (
                 <Link
                   href={crumb.href}

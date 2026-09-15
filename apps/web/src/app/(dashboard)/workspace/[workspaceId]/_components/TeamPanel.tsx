@@ -26,6 +26,13 @@ interface Message {
   sender: { id: string; name: string | null; email: string }
 }
 
+interface OrgMsg {
+  id: string
+  content: string
+  createdAt: string
+  sender: { id: string; name: string | null; email: string; avatarUrl: string | null }
+}
+
 interface TeamEvent {
   id: string
   type: string
@@ -142,6 +149,13 @@ export function TeamPanel({ onClose, myId, locale }: Props) {
   const [draft, setDraft] = useState('')
   const [sending, setSending] = useState(false)
   const messagesEndRef = useRef<HTMLDivElement>(null)
+
+  // General channel state
+  const [activeTab, setActiveTab] = useState<'team' | 'general'>('team')
+  const [orgMessages, setOrgMessages] = useState<OrgMsg[]>([])
+  const [orgDraft, setOrgDraft] = useState('')
+  const [orgSending, setOrgSending] = useState(false)
+  const orgFeedRef = useRef<HTMLDivElement>(null)
 
   // WebRTC call state
   const [callState, setCallState] = useState<'idle' | 'incoming' | 'calling' | 'connected'>('idle')
@@ -285,6 +299,39 @@ export function TeamPanel({ onClose, myId, locale }: Props) {
     })
     await loadMessages(activeConvId)
     setSending(false)
+  }
+
+  // ─── Org General channel ───────────────────────────────────────────────────
+  const loadOrgFeed = useCallback(async () => {
+    const res = await fetch('/api/org/feed')
+    if (!res.ok) return
+    const data = await res.json() as { messages: OrgMsg[] }
+    setOrgMessages(data.messages)
+  }, [])
+
+  useEffect(() => {
+    if (activeTab !== 'general') return
+    void loadOrgFeed()
+    const interval = setInterval(loadOrgFeed, 10000)
+    return () => clearInterval(interval)
+  }, [activeTab, loadOrgFeed])
+
+  async function sendOrgMessage() {
+    if (!orgDraft.trim() || orgSending) return
+    setOrgSending(true)
+    const content = orgDraft.trim()
+    setOrgDraft('')
+    const res = await fetch('/api/org/feed', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ content }),
+    })
+    if (res.ok) {
+      const data = await res.json() as { message: OrgMsg }
+      setOrgMessages((prev) => [...prev, data.message])
+      setTimeout(() => orgFeedRef.current?.scrollIntoView({ behavior: 'smooth' }), 50)
+    }
+    setOrgSending(false)
   }
 
   // ─── WebRTC helpers ────────────────────────────────────────────────────────
@@ -458,10 +505,23 @@ export function TeamPanel({ onClose, myId, locale }: Props) {
       )}
 
       {/* Panel lateral */}
-      <div className="flex flex-col h-full w-72 shrink-0 border-l bg-card text-card-foreground">
+      <div className="flex flex-col h-full w-72 shrink-0 border-l border-border bg-sidebar text-sidebar-foreground">
         {/* Header */}
-        <div className="flex items-center justify-between px-4 py-3 border-b shrink-0">
-          <span className="font-semibold text-sm">Equipo</span>
+        <div className="flex items-center justify-between px-4 py-3 border-b border-border shrink-0">
+          <div className="flex gap-1">
+            <button
+              onClick={() => setActiveTab('general')}
+              className={`text-xs px-2 py-1 rounded transition-colors ${activeTab === 'general' ? 'bg-primary/10 text-primary font-medium' : 'text-muted-foreground hover:text-foreground'}`}
+            >
+              General
+            </button>
+            <button
+              onClick={() => setActiveTab('team')}
+              className={`text-xs px-2 py-1 rounded transition-colors ${activeTab === 'team' ? 'bg-primary/10 text-primary font-medium' : 'text-muted-foreground hover:text-foreground'}`}
+            >
+              Equipo
+            </button>
+          </div>
           <div className="flex items-center gap-2">
             <select
               value={myStatus}
@@ -484,8 +544,73 @@ export function TeamPanel({ onClose, myId, locale }: Props) {
           </div>
         </div>
 
-        {/* Body: member list or chat */}
-        {!activeConvId ? (
+        {/* Body: general feed, member list, or chat */}
+        {activeTab === 'general' ? (
+          <>
+            <div className="flex-1 overflow-y-auto p-3 space-y-3">
+              {orgMessages.length === 0 && (
+                <p className="text-xs text-muted-foreground text-center py-8">
+                  Canal general de la organización. ¡Sé el primero en escribir!
+                </p>
+              )}
+              {orgMessages.map((msg) => {
+                const isMe = msg.sender.id === myId
+                return (
+                  <div key={msg.id} className={`flex gap-2 ${isMe ? 'flex-row-reverse' : 'flex-row'}`}>
+                    {!isMe && (
+                      msg.sender.avatarUrl ? (
+                        <img src={msg.sender.avatarUrl} alt={msg.sender.name ?? msg.sender.email} className="w-7 h-7 rounded-full object-cover shrink-0" />
+                      ) : (
+                        <span className={`w-7 h-7 rounded-full shrink-0 flex items-center justify-center text-[11px] font-semibold text-white ${avatarColor(msg.sender.id)}`}>
+                          {initials(msg.sender.name, msg.sender.email)}
+                        </span>
+                      )
+                    )}
+                    <div className={`max-w-[75%] ${isMe ? 'items-end' : 'items-start'} flex flex-col gap-0.5`}>
+                      {!isMe && (
+                        <span className="text-[10px] text-muted-foreground px-1">
+                          {msg.sender.name ?? msg.sender.email}
+                        </span>
+                      )}
+                      <div className={`rounded-2xl px-3 py-2 text-sm ${isMe ? 'bg-primary text-primary-foreground rounded-br-sm' : 'bg-muted text-foreground rounded-bl-sm'}`}>
+                        <p className="break-words">{msg.content}</p>
+                        <p className={`text-[10px] mt-1 ${isMe ? 'text-primary-foreground/70' : 'text-muted-foreground'}`}>
+                          {new Date(msg.createdAt).toLocaleTimeString('es-ES', { hour: '2-digit', minute: '2-digit' })}
+                        </p>
+                      </div>
+                    </div>
+                  </div>
+                )
+              })}
+              <div ref={orgFeedRef} />
+            </div>
+            <div className="shrink-0 border-t px-3 py-2 flex items-end gap-2">
+              <textarea
+                value={orgDraft}
+                onChange={(e) => setOrgDraft(e.target.value)}
+                onKeyDown={(e) => {
+                  if (e.key === 'Enter' && !e.shiftKey) {
+                    e.preventDefault()
+                    void sendOrgMessage()
+                  }
+                }}
+                placeholder="Escribe en General… (Enter para enviar)"
+                rows={1}
+                className="flex-1 resize-none rounded-lg border border-input bg-background px-3 py-2 text-sm focus:outline-none focus:ring-1 focus:ring-ring placeholder:text-muted-foreground"
+                style={{ minHeight: '36px', maxHeight: '120px' }}
+              />
+              <button
+                onClick={() => void sendOrgMessage()}
+                disabled={!orgDraft.trim() || orgSending}
+                className="shrink-0 p-2 rounded-lg bg-primary text-primary-foreground disabled:opacity-40 hover:bg-primary/90 transition-colors"
+              >
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                  <path d="M22 2 11 13M22 2 15 22l-4-9-9-4 20-7z" />
+                </svg>
+              </button>
+            </div>
+          </>
+        ) : !activeConvId ? (
           <div className="flex-1 overflow-y-auto py-2">
             {members.length === 0 && (
               <p className="text-xs text-muted-foreground px-4 py-6 text-center">Cargando compañeros…</p>
@@ -493,7 +618,7 @@ export function TeamPanel({ onClose, myId, locale }: Props) {
             {members.map((m) => (
               <div
                 key={m.id}
-                className="flex items-center gap-3 px-4 py-2.5 hover:bg-muted/50 transition-colors"
+                className="flex items-center gap-3 px-4 py-2.5 hover:bg-muted/20 transition-colors"
               >
                 <Avatar id={m.id} name={m.name} email={m.email} avatarUrl={m.avatarUrl} status={m.status} statusLabel={presenceLabel(m.status)} />
                 <div className="flex-1 min-w-0">

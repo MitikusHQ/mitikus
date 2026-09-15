@@ -84,7 +84,7 @@ export function TaskRow({ task, workspaceId, onEdit, locale }: Props) {
   }
 
   return (
-    <div className={`flex items-center gap-3 px-4 py-2.5 border-b border-border hover:bg-muted/40 transition-colors group ${isPending ? 'opacity-50 pointer-events-none' : ''}`}>
+    <div className={`flex items-center gap-3 px-4 py-3 border-b border-border hover:bg-muted/20 transition-colors group ${isPending ? 'opacity-50 pointer-events-none' : ''}`}>
       <button
         onClick={toggleDone}
         aria-label={isDone ? t.tasksMarkPending : t.tasksMarkDone}
@@ -97,7 +97,7 @@ export function TaskRow({ task, workspaceId, onEdit, locale }: Props) {
         )}
       </button>
 
-      <div className={`w-2 h-2 rounded-full shrink-0 ${PRIORITY_DOT[task.priority] ?? 'bg-muted-foreground/30'}`}
+      <div className={`w-1.5 h-1.5 rounded-full shrink-0 ${PRIORITY_DOT[task.priority] ?? 'bg-muted-foreground/30'}`}
         title={PRIORITY_LABEL[task.priority]} />
 
       <span className={`flex-1 text-sm truncate ${isDone ? 'line-through text-muted-foreground' : ''}`}>
@@ -124,7 +124,7 @@ export function TaskRow({ task, workspaceId, onEdit, locale }: Props) {
       )}
 
       {(task.objectiveLabel || task.clientName) && (
-        <span className="text-[10px] text-muted-foreground bg-muted border border-border rounded px-1.5 py-0.5 whitespace-nowrap hidden sm:block">
+        <span className="text-[10px] text-muted-foreground/70 bg-muted/60 rounded-md px-1.5 py-0.5 whitespace-nowrap hidden sm:block">
           {task.objectiveLabel ?? task.clientName}
         </span>
       )}

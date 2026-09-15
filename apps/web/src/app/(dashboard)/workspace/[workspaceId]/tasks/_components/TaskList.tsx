@@ -70,7 +70,7 @@ export function TaskList({ workspaceId, userId, initialTasks, initialFilters, lo
   return (
     <>
       <div className="flex items-center justify-between mb-4">
-        <h1 className="text-xl font-semibold">{t.tasksTitle}</h1>
+        <h1 className="text-2xl font-bold tracking-tight">{t.tasksTitle}</h1>
         <button
           onClick={() => setEditingTask(null)}
           className="flex items-center gap-1.5 h-9 px-3 rounded-lg bg-primary text-primary-foreground text-sm font-medium hover:bg-primary/90 transition-colors"

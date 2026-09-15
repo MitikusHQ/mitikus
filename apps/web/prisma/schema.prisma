@@ -149,6 +149,7 @@ model Organization {
   brainQueries BrainQuery[]
   memoryItems  MemoryItem[]
   mailMessages MailMessage[]
+  orgMessages  OrgMessage[]
 
   @@map("organizations")
 }
@@ -322,6 +323,7 @@ model User {
   brainQueries         BrainQuery[]
   memoryItems          MemoryItem[]
   mailMessages         MailMessage[]
+  orgMessages          OrgMessage[]
 
   @@index([orgId])
   @@map("users")
@@ -1831,6 +1833,22 @@ model Notification {
   @@index([userId, readAt])
   @@index([userId, createdAt])
   @@map("notifications")
+}
+
+// Canal general de org — visible desde cualquier workspace
+model OrgMessage {
+  id        String   @id @default(cuid())
+  orgId     String
+  senderId  String
+  content   String   @db.Text
+  createdAt DateTime @default(now())
+  editedAt  DateTime?
+
+  org    Organization @relation(fields: [orgId], references: [id], onDelete: Cascade)
+  sender User         @relation(fields: [senderId], references: [id], onDelete: Cascade)
+
+  @@index([orgId, createdAt])
+  @@map("org_messages")
 }
 
 // ============================================================

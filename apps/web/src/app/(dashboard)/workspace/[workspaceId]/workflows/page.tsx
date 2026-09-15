@@ -64,21 +64,21 @@ function WorkflowCard({ workflow, workspaceId, t, locale }: { workflow: Workflow
       </div>
 
       <div className="grid grid-cols-3 gap-2 text-xs">
-        <div className="rounded-lg bg-muted/50 px-2.5 py-2 text-center">
-          <div className="font-semibold text-foreground">{workflow.nodeCount}</div>
-          <div className="text-muted-foreground mt-0.5">{t.workflowsSteps}</div>
+        <div className="rounded-md bg-muted/40 px-2.5 py-2 text-center">
+          <div className="font-semibold tabular-nums text-foreground">{workflow.nodeCount}</div>
+          <div className="text-muted-foreground/70 mt-0.5">{t.workflowsSteps}</div>
         </div>
-        <div className="rounded-lg bg-muted/50 px-2.5 py-2 text-center">
-          <div className="font-semibold text-foreground">{workflow.executionCount}</div>
-          <div className="text-muted-foreground mt-0.5">{t.workflowsExecutions}</div>
+        <div className="rounded-md bg-muted/40 px-2.5 py-2 text-center">
+          <div className="font-semibold tabular-nums text-foreground">{workflow.executionCount}</div>
+          <div className="text-muted-foreground/70 mt-0.5">{t.workflowsExecutions}</div>
         </div>
-        <div className="rounded-lg bg-muted/50 px-2.5 py-2 text-center">
+        <div className="rounded-md bg-muted/40 px-2.5 py-2 text-center">
           <div className="font-semibold text-foreground text-[11px]">
             {workflow.lastExecutionAt
               ? new Intl.DateTimeFormat(locale, { day: '2-digit', month: 'short' }).format(new Date(workflow.lastExecutionAt))
               : '—'}
           </div>
-          <div className="text-muted-foreground mt-0.5">{t.workflowsLastRun}</div>
+          <div className="text-muted-foreground/70 mt-0.5">{t.workflowsLastRun}</div>
         </div>
       </div>
     </Link>
@@ -98,7 +98,7 @@ export default async function WorkflowsPage({ params }: Props) {
     <div className="max-w-6xl mx-auto px-6 py-8 space-y-6">
       <div className="flex items-center justify-between">
         <div>
-          <h1 className="text-xl font-semibold">{t.workflowsTitle}</h1>
+          <h1 className="text-2xl font-bold tracking-tight">{t.workflowsTitle}</h1>
           <p className="text-xs text-muted-foreground mt-0.5">{t.workflowsSubtitle}</p>
         </div>
         <Link
@@ -110,7 +110,7 @@ export default async function WorkflowsPage({ params }: Props) {
       </div>
       {/* Cómo funciona */}
       <div className="rounded-xl border bg-muted/30 px-6 py-5">
-        <p className="text-xs font-semibold uppercase tracking-widest text-muted-foreground/60 mb-4">{t.workflowsHowItWorksTitle}</p>
+        <p className="text-xs font-semibold uppercase tracking-wide text-muted-foreground/60 mb-4">{t.workflowsHowItWorksTitle}</p>
         <div className="grid gap-4 sm:grid-cols-3">
           <div className="flex gap-3">
             <div className="w-8 h-8 rounded-lg bg-primary/10 flex items-center justify-center text-base shrink-0">1</div>
@@ -140,7 +140,7 @@ export default async function WorkflowsPage({ params }: Props) {
       <div>
         <div className="flex items-center justify-between mb-4">
           <div>
-            <h2 className="text-base font-semibold">{t.workflowsTemplatesTitle}</h2>
+            <h2 className="text-base font-semibold tracking-tight">{t.workflowsTemplatesTitle}</h2>
             <p className="text-xs text-muted-foreground mt-0.5">{t.workflowsTemplatesSubtitle}</p>
           </div>
         </div>
@@ -154,7 +154,7 @@ export default async function WorkflowsPage({ params }: Props) {
       {/* Mis Flows */}
       <div>
         <div className="flex items-center justify-between mb-4">
-          <h2 className="text-base font-semibold">
+          <h2 className="text-base font-semibold tracking-tight">
             {t.workflowsMyWorkflows}
             {workflows.length > 0 && (
               <span className="ml-2 text-xs font-normal text-muted-foreground">

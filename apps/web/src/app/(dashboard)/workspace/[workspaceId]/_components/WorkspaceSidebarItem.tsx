@@ -79,11 +79,11 @@ export function WorkspaceSidebarItem({ item, collapsed = false }: Props) {
           onClick={() => setOpen((p) => !p)}
           title={collapsed ? item.label : item.description}
           className={cn(
-            'w-full flex items-center gap-3 px-3 py-2 rounded-md text-sm transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring',
-            collapsed && 'justify-center px-2',
+            'w-full flex items-center gap-2.5 py-[7px] rounded-md text-sm transition-all duration-150 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring',
+            collapsed ? 'justify-center px-2' : 'px-3',
             anyChildActive
-              ? 'text-primary font-medium'
-              : 'text-muted-foreground hover:text-foreground hover:bg-muted/60',
+              ? 'text-primary font-medium bg-primary/5'
+              : 'text-muted-foreground hover:text-foreground hover:bg-muted/50',
           )}
         >
           <span className={cn('shrink-0', anyChildActive ? 'text-primary' : 'text-muted-foreground')}>
@@ -116,21 +116,21 @@ export function WorkspaceSidebarItem({ item, collapsed = false }: Props) {
       aria-current={isActive ? 'page' : undefined}
       title={collapsed ? item.label : item.description}
       className={cn(
-        'flex items-center gap-3 px-3 py-2 rounded-md text-sm transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring',
-        collapsed && 'justify-center px-2',
+        'flex items-center gap-2.5 py-[7px] rounded-md text-sm transition-all duration-150 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring',
+        collapsed ? 'justify-center px-2' : 'px-3',
         isActive
-          ? 'bg-primary/10 text-primary font-medium'
-          : 'text-muted-foreground hover:text-foreground hover:bg-muted/60',
+          ? cn('bg-primary/10 text-primary font-medium', !collapsed && 'border-l-2 border-primary pl-[10px]')
+          : 'text-muted-foreground hover:text-foreground hover:bg-muted/50',
       )}
     >
-      <span className={cn('shrink-0', isActive ? 'text-primary' : 'text-muted-foreground')}>
+      <span className={cn('shrink-0', isActive ? 'text-primary' : 'text-muted-foreground group-hover:text-foreground')}>
         {item.icon}
       </span>
       {!collapsed && (
         <>
           <span className="flex-1 truncate">{item.label}</span>
           {item.badge && (
-            <span className="text-[10px] font-semibold px-1.5 py-0.5 rounded-full bg-primary/10 text-primary shrink-0">
+            <span className="text-[10px] font-semibold px-1.5 py-0.5 rounded-full bg-primary/15 text-primary shrink-0 tabular-nums">
               {item.badge}
             </span>
           )}

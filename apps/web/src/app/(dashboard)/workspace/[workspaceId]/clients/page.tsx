@@ -42,7 +42,7 @@ export default async function ClientsPage({ params }: Props) {
     <div className="max-w-5xl mx-auto px-6 py-8">
       <div className="flex items-center justify-between mb-8">
         <div>
-          <h1 className="text-xl font-semibold">{t.clientsTitle}</h1>
+          <h1 className="text-2xl font-bold tracking-tight">{t.clientsTitle}</h1>
           <p className="text-xs text-muted-foreground mt-0.5">{t.clientsDescription}</p>
         </div>
         <Link
@@ -73,18 +73,18 @@ export default async function ClientsPage({ params }: Props) {
             </Link>
           </div>
         ) : (
-          <div className="rounded-lg border divide-y">
+          <div className="rounded-xl border border-border divide-y divide-border overflow-hidden">
             {clients.map((client) => (
-              <div key={client.id} className="px-5 py-4 flex items-center justify-between">
+              <div key={client.id} className="px-5 py-4 flex items-center justify-between hover:bg-muted/20 transition-colors group">
                 <div className="space-y-0.5 min-w-0">
                   <Link
                     href={`/workspace/${workspaceId}/clients/${client.id}`}
-                    className="font-medium text-sm hover:text-primary transition-colors"
+                    className="font-semibold text-sm hover:text-primary transition-colors"
                   >
                     {client.name}
                   </Link>
                   <div className="flex items-center gap-2 text-xs text-muted-foreground">
-                    <span className="rounded-full bg-muted px-2 py-0.5 text-[10px] font-medium text-muted-foreground">
+                    <span className="rounded-md bg-muted/60 px-1.5 py-0.5 text-[10px] font-medium text-muted-foreground">
                       {typeLabels[client.clientType] ?? t.clientsTypeClient}
                     </span>
                     {client.contactName && <span>{t.clientsContactPrefix}: {client.contactName}</span>}
@@ -97,13 +97,13 @@ export default async function ClientsPage({ params }: Props) {
                 <div className="flex items-center gap-4 shrink-0 ml-4">
                   <Link
                     href={`/workspace/${workspaceId}/clients/${client.id}`}
-                    className="text-xs text-muted-foreground hover:text-foreground transition-colors"
+                    className="text-xs text-muted-foreground opacity-0 group-hover:opacity-100 hover:text-foreground transition-all"
                   >
                     {t.clientsViewDossier}
                   </Link>
                   <Link
                     href={`/workspace/${workspaceId}/clients/${client.id}/edit`}
-                    className="text-xs text-primary hover:underline"
+                    className="text-xs text-primary opacity-70 hover:opacity-100 transition-opacity"
                   >
                     {t.clientsEdit}
                   </Link>

@@ -160,14 +160,14 @@ export default async function MissionsPage({ params, searchParams }: Props) {
               <Link
                 key={obj.id}
                 href={`${base}/missions/${obj.id}`}
-                className="block rounded-xl border bg-card p-5 hover:border-primary/40 transition-colors group"
+                className="block rounded-xl border border-border bg-card p-5 hover:border-primary/40 hover:shadow-sm transition-all group"
               >
                 <div className="flex items-start justify-between gap-4">
                   <div className="flex-1 min-w-0 space-y-2">
                     {/* Título + badges */}
                     <div className="flex items-center gap-2 flex-wrap">
                       <span
-                        className={`shrink-0 text-[10px] font-semibold px-2 py-0.5 rounded-full ${STATUS_STYLES[obj.status] ?? 'bg-muted text-muted-foreground'}`}
+                        className={`shrink-0 text-[10px] font-semibold px-2 py-0.5 rounded-md ${STATUS_STYLES[obj.status] ?? 'bg-muted text-muted-foreground'}`}
                       >
                         {statusText[obj.status] ?? obj.status}
                       </span>
@@ -177,7 +177,7 @@ export default async function MissionsPage({ params, searchParams }: Props) {
                         </span>
                       )}
                       {obj.client && (
-                        <span className="text-[10px] text-muted-foreground bg-muted px-2 py-0.5 rounded-full">
+                        <span className="text-[10px] text-muted-foreground bg-muted/60 px-1.5 py-0.5 rounded-md">
                           {obj.client.name}
                         </span>
                       )}

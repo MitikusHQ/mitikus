@@ -70,7 +70,7 @@ function AnalyticsDashboard({ data, workspaceId, t }: { data: WorkspaceAnalytics
       {/* Header */}
       <div className="flex items-start justify-between gap-4 flex-wrap">
         <div>
-          <h1 className="text-xl font-semibold">{t.analyticsTitle}</h1>
+          <h1 className="text-2xl font-bold tracking-tight">{t.analyticsTitle}</h1>
           <p className="text-xs text-muted-foreground mt-0.5">
             {t.analyticsSubtitle}
           </p>
