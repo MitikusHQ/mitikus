@@ -99,7 +99,7 @@ export function ProfileClient({ name, email, avatarUrl, jobTitle, role, locale }
                 value={displayName}
                 onChange={e => setDisplayName(e.target.value)}
                 onKeyDown={e => e.key === 'Enter' && handleSaveName()}
-                placeholder="Tu nombre"
+                placeholder="Nombre y apellidos"
                 maxLength={80}
                 className="flex-1 rounded-md border border-border bg-background px-3 py-1.5 text-sm placeholder:text-muted-foreground/50 focus:outline-none focus:ring-2 focus:ring-ring"
               />
