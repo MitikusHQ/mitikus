@@ -4,7 +4,7 @@ import { useEffect, useState } from 'react'
 import { useRouter } from 'next/navigation'
 import { ImageUploader } from '@/app/_components/ImageUploader'
 import { updateWorkspaceBranding } from '@/app/actions/branding'
-import { testEmailSettings, updateEmailSettings } from '@/app/actions/fiscal'
+import { testEmailSettings, updateEmailSettings, updateCompanyLocation } from '@/app/actions/fiscal'
 import { updateWorkspacePermissionSettings } from '@/app/actions/workspace-settings'
 import type { OrgRole } from '@prisma/client'
 import { LOGO_CROP_REFERENCE_FRAME, getLogoImageStyle, getLogoTextStyle } from '@/lib/logo-crop'
@@ -41,6 +41,10 @@ interface Workspace {
     imapPort: number | null
     imapSecure: boolean
     imapUser: string | null
+    sector: string | null
+    subsector: string | null
+    city: string | null
+    country: string | null
   } | null
 }
 
@@ -128,6 +132,15 @@ export function WorkspaceSettingsClient({
   const [emailSaved, setEmailSaved] = useState(false)
   const [emailTestOk, setEmailTestOk] = useState(false)
   const [emailError, setEmailError] = useState<string | null>(null)
+  const [locationSettings, setLocationSettings] = useState({
+    sector: workspace.companyProfile?.sector ?? '',
+    subsector: workspace.companyProfile?.subsector ?? '',
+    city: workspace.companyProfile?.city ?? '',
+    country: workspace.companyProfile?.country ?? '',
+  })
+  const [locationSaving, setLocationSaving] = useState(false)
+  const [locationSaved, setLocationSaved] = useState(false)
+  const [locationError, setLocationError] = useState<string | null>(null)
   const [restrictCreation, setRestrictCreation] = useState(workspace.restrictCreationToAdmins)
   const [permSaving, setPermSaving] = useState(false)
   const [permSaved, setPermSaved] = useState(false)
@@ -285,9 +298,9 @@ export function WorkspaceSettingsClient({
   return (
     <div className="space-y-8">
       {/* Logo */}
-      <section className="rounded-xl border bg-card p-6 space-y-4">
+      <section className="rounded-xl border border-border bg-card p-6 space-y-4">
         <div>
-          <h2 className="font-semibold text-sm">{t.wsLogoSection}</h2>
+          <h2 className="font-semibold text-base tracking-tight">{t.wsLogoSection}</h2>
           <p className="text-xs text-muted-foreground mt-0.5">{t.wsLogoDesc}</p>
         </div>
         <ImageUploader
@@ -370,7 +383,7 @@ export function WorkspaceSettingsClient({
       {/* Email & sending */}
       <section className="rounded-xl border bg-card p-6 space-y-5">
         <div>
-          <h2 className="font-semibold text-sm">{t.wsEmailSection}</h2>
+          <h2 className="font-semibold text-base tracking-tight">{t.wsEmailSection}</h2>
           <p className="text-xs text-muted-foreground mt-0.5">{t.wsEmailDesc}</p>
         </div>
 
@@ -507,7 +520,7 @@ export function WorkspaceSettingsClient({
       {/* Workspace name */}
       <section className="rounded-xl border bg-card p-6 space-y-4">
         <div>
-          <h2 className="font-semibold text-sm">{t.wsNameSection}</h2>
+          <h2 className="font-semibold text-base tracking-tight">{t.wsNameSection}</h2>
           <p className="text-xs text-muted-foreground mt-0.5">{t.wsNameDesc}</p>
         </div>
         <input type="text" value={name} onChange={(e) => setName(e.target.value)} maxLength={60} className="w-full rounded-md border border-input bg-background px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-primary" />
@@ -516,7 +529,7 @@ export function WorkspaceSettingsClient({
       {/* Brand colour */}
       <section className="rounded-xl border bg-card p-6 space-y-4">
         <div>
-          <h2 className="font-semibold text-sm">{t.wsBrandColorSection}</h2>
+          <h2 className="font-semibold text-base tracking-tight">{t.wsBrandColorSection}</h2>
           <p className="text-xs text-muted-foreground mt-0.5">{t.wsBrandColorDesc}</p>
         </div>
         <div className="flex flex-wrap gap-2">
@@ -533,10 +546,101 @@ export function WorkspaceSettingsClient({
         </div>
       </section>
 
+      {/* Company sector & location */}
+      <section className="rounded-xl border bg-card p-6 space-y-4">
+        <div>
+          <h2 className="font-semibold text-base tracking-tight">
+            {locale === 'es' ? 'Sector y localización' : 'Sector & location'}
+          </h2>
+          <p className="text-xs text-muted-foreground mt-0.5">
+            {locale === 'es'
+              ? 'Necesario para mostrar noticias relevantes en Mi día.'
+              : 'Used to show relevant news in Today view.'}
+          </p>
+        </div>
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+          <div className="space-y-1">
+            <label className="text-xs font-medium text-muted-foreground uppercase tracking-wide">
+              {locale === 'es' ? 'Sector' : 'Sector'}
+            </label>
+            <input
+              type="text"
+              value={locationSettings.sector}
+              onChange={(e) => setLocationSettings((s) => ({ ...s, sector: e.target.value }))}
+              placeholder={locale === 'es' ? 'ej. Tecnología, Marketing...' : 'e.g. Technology, Marketing...'}
+              className="w-full rounded-md border border-border bg-background px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-primary/50"
+            />
+          </div>
+          <div className="space-y-1">
+            <label className="text-xs font-medium text-muted-foreground uppercase tracking-wide">
+              {locale === 'es' ? 'Subsector' : 'Subsector'}
+            </label>
+            <input
+              type="text"
+              value={locationSettings.subsector}
+              onChange={(e) => setLocationSettings((s) => ({ ...s, subsector: e.target.value }))}
+              placeholder={locale === 'es' ? 'ej. SaaS, E-commerce...' : 'e.g. SaaS, E-commerce...'}
+              className="w-full rounded-md border border-border bg-background px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-primary/50"
+            />
+          </div>
+          <div className="space-y-1">
+            <label className="text-xs font-medium text-muted-foreground uppercase tracking-wide">
+              {locale === 'es' ? 'Ciudad' : 'City'}
+            </label>
+            <input
+              type="text"
+              value={locationSettings.city}
+              onChange={(e) => setLocationSettings((s) => ({ ...s, city: e.target.value }))}
+              placeholder={locale === 'es' ? 'ej. Madrid, Barcelona...' : 'e.g. Madrid, Barcelona...'}
+              className="w-full rounded-md border border-border bg-background px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-primary/50"
+            />
+          </div>
+          <div className="space-y-1">
+            <label className="text-xs font-medium text-muted-foreground uppercase tracking-wide">
+              {locale === 'es' ? 'País' : 'Country'}
+            </label>
+            <input
+              type="text"
+              value={locationSettings.country}
+              onChange={(e) => setLocationSettings((s) => ({ ...s, country: e.target.value }))}
+              placeholder={locale === 'es' ? 'ej. España, México...' : 'e.g. Spain, Mexico...'}
+              className="w-full rounded-md border border-border bg-background px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-primary/50"
+            />
+          </div>
+        </div>
+        <div className="flex items-center gap-3 pt-1">
+          <button
+            type="button"
+            disabled={locationSaving}
+            onClick={async () => {
+              setLocationSaving(true)
+              setLocationError(null)
+              try {
+                await updateCompanyLocation(workspace.id, locationSettings)
+                setLocationSaved(true)
+                setTimeout(() => setLocationSaved(false), 2000)
+              } catch {
+                setLocationError(locale === 'es' ? 'Error al guardar' : 'Save failed')
+              } finally {
+                setLocationSaving(false)
+              }
+            }}
+            className="px-4 py-2 rounded-md bg-primary text-primary-foreground text-sm font-medium hover:bg-primary/90 transition-colors disabled:opacity-60"
+          >
+            {locationSaving
+              ? (locale === 'es' ? 'Guardando…' : 'Saving…')
+              : locationSaved
+              ? (locale === 'es' ? '✓ Guardado' : '✓ Saved')
+              : (locale === 'es' ? 'Guardar' : 'Save')}
+          </button>
+          {locationError && <p className="text-xs text-red-600 dark:text-red-400">{locationError}</p>}
+        </div>
+      </section>
+
       {/* Creation permissions */}
       <section className="rounded-xl border bg-card p-6 space-y-4">
         <div>
-          <h2 className="font-semibold text-sm">{t.wsPermSection}</h2>
+          <h2 className="font-semibold text-base tracking-tight">{t.wsPermSection}</h2>
           <p className="text-xs text-muted-foreground mt-0.5">{t.wsPermDesc}</p>
         </div>
         <label className={`flex items-start gap-3 rounded-lg border border-border px-4 py-3 ${isOwner ? 'cursor-pointer hover:bg-muted/50 transition-colors' : 'opacity-60 cursor-not-allowed'}`}>
@@ -561,7 +665,7 @@ export function WorkspaceSettingsClient({
       {/* Export ZIP */}
       <section className="rounded-xl border bg-card p-6 space-y-3">
         <div>
-          <h2 className="font-semibold text-sm">{locale === 'es' ? 'Exportar datos' : 'Export data'}</h2>
+          <h2 className="font-semibold text-base tracking-tight">{locale === 'es' ? 'Exportar datos' : 'Export data'}</h2>
           <p className="text-xs text-muted-foreground mt-0.5">
             {locale === 'es'
               ? 'Descarga todos los archivos y contratos del workspace en un ZIP.'

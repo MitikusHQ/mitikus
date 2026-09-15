@@ -187,6 +187,30 @@ export async function updateEmailSettings(workspaceId: string, input: EmailSetti
   return { ok: true as const }
 }
 
+export async function updateCompanyLocation(workspaceId: string, input: {
+  sector: string
+  subsector: string
+  city: string
+  country: string
+}) {
+  const user = await requireUser()
+  assertCan(user, 'manage_fiscal_settings')
+
+  await db.companyProfile.upsert({
+    where: { workspaceId },
+    create: { workspaceId, sector: input.sector || null, subsector: input.subsector || null, city: input.city || null, country: input.country || null },
+    update: { sector: input.sector || null, subsector: input.subsector || null, city: input.city || null, country: input.country || null },
+  })
+
+  // Invalidar caché de noticias para que se recarguen con los nuevos datos
+  try {
+    const { newsCache } = await import('@/app/api/today/news/cache')
+    newsCache.delete(workspaceId)
+  } catch { /* en build/edge no importa */ }
+
+  return { ok: true as const }
+}
+
 export async function testEmailSettings(workspaceId: string, input: EmailSettingsInput) {
   const user = await requireUser()
   assertCan(user, 'manage_fiscal_settings')
