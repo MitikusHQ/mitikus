@@ -54,6 +54,12 @@ export function DailyBriefBlock({ workspaceId }: Props) {
   const [drawerOpen, setDrawerOpen] = useState(false)
   const [activeTab, setActiveTab] = useState<NewsArticle['scope']>('sector')
 
+  function openDrawer(preferTab: NewsArticle['scope']) {
+    const scopesWithNews = new Set(articles.map((a) => a.scope))
+    setActiveTab(scopesWithNews.has(preferTab) ? preferTab : (([...scopesWithNews][0] ?? 'national') as NewsArticle['scope']))
+    setDrawerOpen(true)
+  }
+
   useEffect(() => {
     fetch(`/api/today/news?workspaceId=${workspaceId}`)
       .then((r) => r.json())
@@ -101,7 +107,7 @@ export function DailyBriefBlock({ workspaceId }: Props) {
             Noticias del día
           </p>
           <button
-            onClick={() => { setActiveTab('sector'); setDrawerOpen(true) }}
+            onClick={() => openDrawer('sector')}
             className="text-[11px] text-primary/70 hover:text-primary transition-colors"
           >
             Ver todas ({articles.length}) →

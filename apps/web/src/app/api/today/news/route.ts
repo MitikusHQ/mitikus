@@ -115,7 +115,8 @@ export async function GET(req: NextRequest) {
     return NextResponse.json({ articles: [], noSector: true })
   }
 
-  const sectorQuery = [profile.sector, profile.subsector].filter(Boolean).join(' ')
+  // Usar solo el sector como query principal — combinar con subsector da consultas demasiado específicas
+  const sectorQuery = profile.sector!
   const community = cityToCommunity(profile.city)
   const glCode = normalize(profile.country ?? 'es') === 'espana' || normalize(profile.country ?? '') === 'spain' || (profile.country?.toUpperCase() ?? 'ES') === 'ES'
     ? 'ES'
