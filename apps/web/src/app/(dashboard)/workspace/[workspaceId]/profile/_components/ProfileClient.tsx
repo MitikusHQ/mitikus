@@ -3,7 +3,7 @@
 import { useState } from 'react'
 import { useRouter } from 'next/navigation'
 import { ImageUploader } from '@/app/_components/ImageUploader'
-import { updateUserAvatar, updateUserJobTitle } from '@/app/actions/branding'
+import { updateUserAvatar, updateUserJobTitle, updateUserName } from '@/app/actions/branding'
 import { getDashboardTranslations } from '@/i18n/dashboard-translations'
 import type { Locale } from '@/i18n/config'
 
@@ -28,9 +28,21 @@ export function ProfileClient({ name, email, avatarUrl, jobTitle, role, locale }
 
   const router = useRouter()
   const [savedAvatar, setSavedAvatar] = useState(false)
+  const [displayName, setDisplayName] = useState(name !== email ? name : '')
+  const [savingName, setSavingName] = useState(false)
+  const [savedName, setSavedName] = useState(false)
   const [title, setTitle] = useState(jobTitle ?? '')
   const [savingTitle, setSavingTitle] = useState(false)
   const [savedTitle, setSavedTitle] = useState(false)
+
+  async function handleSaveName() {
+    setSavingName(true)
+    await updateUserName(displayName)
+    setSavingName(false)
+    setSavedName(true)
+    setTimeout(() => setSavedName(false), 2000)
+    router.refresh()
+  }
 
   async function handleAvatarUploaded(url: string) {
     await updateUserAvatar(url)
@@ -76,9 +88,30 @@ export function ProfileClient({ name, email, avatarUrl, jobTitle, role, locale }
         <h2 className="font-semibold text-sm">{t.profileInfoSection}</h2>
 
         <div className="grid gap-0 text-sm divide-y divide-border">
-          <div className="flex justify-between py-3">
-            <span className="text-muted-foreground">{t.profileName}</span>
-            <span>{name}</span>
+          <div className="py-3">
+            <div className="flex items-center justify-between mb-2">
+              <span className="text-muted-foreground">{t.profileName}</span>
+              {savedName && <span className="text-xs text-green-600">{t.profileSaved}</span>}
+            </div>
+            <div className="flex gap-2">
+              <input
+                type="text"
+                value={displayName}
+                onChange={e => setDisplayName(e.target.value)}
+                onKeyDown={e => e.key === 'Enter' && handleSaveName()}
+                placeholder="Tu nombre"
+                maxLength={80}
+                className="flex-1 rounded-md border border-border bg-background px-3 py-1.5 text-sm placeholder:text-muted-foreground/50 focus:outline-none focus:ring-2 focus:ring-ring"
+              />
+              <button
+                type="button"
+                onClick={handleSaveName}
+                disabled={savingName}
+                className="rounded-md bg-primary px-3 py-1.5 text-xs font-medium text-primary-foreground hover:bg-primary/90 transition-colors disabled:opacity-50"
+              >
+                {savingName ? t.profileSaving : t.profileSave}
+              </button>
+            </div>
           </div>
 
           <div className="flex justify-between py-3">
