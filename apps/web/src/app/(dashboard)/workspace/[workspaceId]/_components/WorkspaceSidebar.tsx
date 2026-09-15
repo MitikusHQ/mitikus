@@ -43,10 +43,11 @@ export function WorkspaceSidebar({ workspaceId, workspaceName, workspaceLogoUrl,
   return (
     <aside
       className={cn(
-        'grid h-full min-h-0 max-h-full grid-rows-[auto_minmax(0,1fr)_auto] overflow-hidden bg-card border-r border-border transition-all duration-200 shrink-0',
+        'grid h-full min-h-0 max-h-full grid-rows-[auto_minmax(0,1fr)_auto] overflow-hidden bg-sidebar border-r border-border transition-all duration-200 shrink-0',
         collapsed ? 'w-14' : 'w-60',
       )}
       aria-label="Navegación del workspace"
+      suppressHydrationWarning
     >
       {/* Logo / Workspace name */}
       <div className={cn(
@@ -114,13 +115,16 @@ export function WorkspaceSidebar({ workspaceId, workspaceName, workspaceLogoUrl,
       </div>
 
       {/* Navigation */}
-      <nav className="min-h-0 overflow-y-auto px-2 py-3 space-y-5">
+      <nav className="min-h-0 overflow-y-auto px-2 py-3">
         {navGroups.map((group, gi) => {
           const isLastGroup = gi === navGroups.length - 1
           return (
             <div key={gi}>
+              {gi > 0 && (
+                <hr className={cn('my-2 border-border/60', collapsed ? 'mx-1' : 'mx-2')} />
+              )}
               {group.label && !collapsed && (
-                <p className="px-3 mb-1 text-[10px] font-semibold uppercase tracking-widest text-muted-foreground/60">
+                <p className="px-3 mb-1 text-[10px] font-semibold uppercase tracking-wide text-muted-foreground/50">
                   {group.label}
                 </p>
               )}
@@ -160,7 +164,7 @@ export function WorkspaceSidebar({ workspaceId, workspaceName, workspaceLogoUrl,
 
       {/* Footer — solo "Powered by MITIKUS" */}
       <div className={cn(
-        'border-t border-border bg-card',
+        'border-t border-border/60 bg-sidebar',
         collapsed
           ? 'flex justify-center px-2 py-3'
           : 'px-3 py-3',
