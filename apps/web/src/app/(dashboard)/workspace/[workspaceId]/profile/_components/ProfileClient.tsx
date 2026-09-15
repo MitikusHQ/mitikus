@@ -28,7 +28,10 @@ export function ProfileClient({ name, email, avatarUrl, jobTitle, role, locale }
 
   const router = useRouter()
   const [savedAvatar, setSavedAvatar] = useState(false)
-  const [displayName, setDisplayName] = useState(name !== email ? name : '')
+  const storedName = name !== email ? name : ''
+  const nameParts = storedName.split(' ')
+  const [firstName, setFirstName] = useState(nameParts[0] ?? '')
+  const [lastName, setLastName] = useState(nameParts.slice(1).join(' '))
   const [savingName, setSavingName] = useState(false)
   const [savedName, setSavedName] = useState(false)
   const [title, setTitle] = useState(jobTitle ?? '')
@@ -37,7 +40,8 @@ export function ProfileClient({ name, email, avatarUrl, jobTitle, role, locale }
 
   async function handleSaveName() {
     setSavingName(true)
-    await updateUserName(displayName)
+    const combined = [firstName.trim(), lastName.trim()].filter(Boolean).join(' ')
+    await updateUserName(combined)
     setSavingName(false)
     setSavedName(true)
     setTimeout(() => setSavedName(false), 2000)
@@ -96,11 +100,20 @@ export function ProfileClient({ name, email, avatarUrl, jobTitle, role, locale }
             <div className="flex gap-2">
               <input
                 type="text"
-                value={displayName}
-                onChange={e => setDisplayName(e.target.value)}
+                value={firstName}
+                onChange={e => setFirstName(e.target.value)}
                 onKeyDown={e => e.key === 'Enter' && handleSaveName()}
-                placeholder="Nombre y apellidos"
-                maxLength={80}
+                placeholder="Nombre"
+                maxLength={40}
+                className="flex-1 rounded-md border border-border bg-background px-3 py-1.5 text-sm placeholder:text-muted-foreground/50 focus:outline-none focus:ring-2 focus:ring-ring"
+              />
+              <input
+                type="text"
+                value={lastName}
+                onChange={e => setLastName(e.target.value)}
+                onKeyDown={e => e.key === 'Enter' && handleSaveName()}
+                placeholder="Apellidos"
+                maxLength={60}
                 className="flex-1 rounded-md border border-border bg-background px-3 py-1.5 text-sm placeholder:text-muted-foreground/50 focus:outline-none focus:ring-2 focus:ring-ring"
               />
               <button
