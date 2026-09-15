@@ -61,15 +61,17 @@ async function fetchGoogleNewsRSS(
   const ceid = `${gl}:${hl}`
   const rssUrl = `https://news.google.com/rss/search?q=${encodeURIComponent(query)}&hl=${hl}&gl=${gl}&ceid=${ceid}`
   // rss2json proxea el RSS a través de sus servidores (evita bloqueo de IPs de datacenter)
-  const proxyUrl = `https://api.rss2json.com/v1/api.json?rss_url=${encodeURIComponent(rssUrl)}&count=${options.pageSize ?? 8}`
+  const proxyUrl = `https://api.rss2json.com/v1/api.json?rss_url=${encodeURIComponent(rssUrl)}`
 
   try {
     const res = await fetch(proxyUrl, { next: { revalidate: 0 }, signal: AbortSignal.timeout(8000) })
     if (!res.ok) return []
     const data = await res.json() as Rss2JsonResponse
     if (data.status !== 'ok' || !Array.isArray(data.items)) return []
+    const pageSize = options.pageSize ?? 8
     return data.items
       .filter((i) => i.title && !String(i.title).startsWith('[Removed]'))
+      .slice(0, pageSize)
       .map((i) => {
         let publishedAt = new Date().toISOString()
         const d = new Date(i.pubDate)
