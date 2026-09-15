@@ -1,8 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { auth } from '@clerk/nextjs/server'
 import { db } from '@/lib/db'
-import { XMLParser } from 'fast-xml-parser'
-
 import { newsCache } from './cache'
 import type { NewsArticle } from './cache'
 
@@ -41,7 +39,18 @@ function cityToCommunity(city: string | null): string | null {
   return CITY_TO_COMMUNITY[normalize(city)] ?? null
 }
 
-const xmlParser = new XMLParser({ ignoreAttributes: false, attributeNamePrefix: '@_' })
+interface Rss2JsonItem {
+  title: string
+  link: string
+  pubDate: string
+  author?: string
+  description?: string
+}
+
+interface Rss2JsonResponse {
+  status: string
+  items: Rss2JsonItem[]
+}
 
 async function fetchGoogleNewsRSS(
   query: string,
@@ -50,34 +59,26 @@ async function fetchGoogleNewsRSS(
   const hl = options.hl ?? 'es'
   const gl = options.gl ?? 'ES'
   const ceid = `${gl}:${hl}`
-  const q = encodeURIComponent(query)
-  const url = `https://news.google.com/rss/search?q=${q}&hl=${hl}&gl=${gl}&ceid=${ceid}`
+  const rssUrl = `https://news.google.com/rss/search?q=${encodeURIComponent(query)}&hl=${hl}&gl=${gl}&ceid=${ceid}`
+  // rss2json proxea el RSS a través de sus servidores (evita bloqueo de IPs de datacenter)
+  const proxyUrl = `https://api.rss2json.com/v1/api.json?rss_url=${encodeURIComponent(rssUrl)}&count=${options.pageSize ?? 8}`
 
   try {
-    const res = await fetch(url, {
-      headers: { 'User-Agent': 'Mozilla/5.0 (compatible; MITIKUS/1.0)' },
-      next: { revalidate: 0 },
-    })
+    const res = await fetch(proxyUrl, { next: { revalidate: 0 }, signal: AbortSignal.timeout(8000) })
     if (!res.ok) return []
-    const xml = await res.text()
-    const parsed = xmlParser.parse(xml)
-    const items: Array<{ title: string; link: string; pubDate?: string; source?: { '#text'?: string; '@_url'?: string } | string }> =
-      parsed?.rss?.channel?.item ?? []
-    const arr = Array.isArray(items) ? items : [items]
-    return arr
-      .slice(0, options.pageSize ?? 3)
+    const data = await res.json() as Rss2JsonResponse
+    if (data.status !== 'ok' || !Array.isArray(data.items)) return []
+    return data.items
       .filter((i) => i.title && !String(i.title).startsWith('[Removed]'))
       .map((i) => {
         let publishedAt = new Date().toISOString()
-        if (i.pubDate) {
-          const d = new Date(String(i.pubDate))
-          if (!isNaN(d.getTime())) publishedAt = d.toISOString()
-        }
+        const d = new Date(i.pubDate)
+        if (!isNaN(d.getTime())) publishedAt = d.toISOString()
         return {
           title: String(i.title).replace(/ - [^-]+$/, ''),
           description: null,
           url: String(i.link),
-          source: typeof i.source === 'object' ? (i.source?.['#text'] ?? '') : String(i.source ?? ''),
+          source: String(i.author ?? ''),
           publishedAt,
           scope: 'sector' as const,
         }
