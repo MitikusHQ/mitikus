@@ -19,7 +19,7 @@ const STATUS_CONFIG = {
   pending:  { color: 'bg-amber-100 text-amber-800 dark:bg-amber-900/30 dark:text-amber-400' },
   approved: { color: 'bg-green-100 text-green-800 dark:bg-green-900/30 dark:text-green-400' },
   rejected: { color: 'bg-red-100 text-red-800 dark:bg-red-900/30 dark:text-red-400' },
-  on_hold:  { color: 'bg-gray-100 text-gray-600 dark:bg-gray-800 dark:text-gray-400' },
+  on_hold:  { color: 'bg-muted text-muted-foreground' },
 }
 
 function defaultStatusLabels(t: DashboardTranslations) {

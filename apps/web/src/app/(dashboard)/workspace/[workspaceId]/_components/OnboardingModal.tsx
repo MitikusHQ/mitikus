@@ -638,7 +638,7 @@ export function OnboardingModal({ open, onClose }: Props) {
         aria-modal="true"
         aria-label="Tour de bienvenida MITIKUS"
       >
-      <div className="pointer-events-auto w-full max-w-[720px] bg-white dark:bg-zinc-900 border border-border rounded-2xl overflow-hidden shadow-2xl">
+      <div className="pointer-events-auto w-full max-w-[720px] bg-card border border-border rounded-2xl overflow-hidden shadow-2xl">
 
         {/* Progress bar */}
         <div className="h-0.5 bg-muted">

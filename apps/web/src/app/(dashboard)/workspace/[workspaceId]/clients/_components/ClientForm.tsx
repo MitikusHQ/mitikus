@@ -66,7 +66,7 @@ export function ClientForm({ workspaceId, client, locale }: Props) {
           name="clientType"
           value={clientType}
           onChange={(e) => setClientType(e.target.value)}
-          className="w-full rounded-md border border-input bg-background px-3 py-2 text-sm shadow-sm focus:outline-none focus:ring-2 focus:ring-ring"
+          className="w-full rounded-md border border-input bg-background px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-ring"
         >
           {clientTypeOptions.map((type) => (
             <option key={type.value} value={type.value}>
@@ -88,7 +88,7 @@ export function ClientForm({ workspaceId, client, locale }: Props) {
           autoFocus={!client}
           defaultValue={client?.name ?? ''}
           placeholder={selectedType.namePlaceholder}
-          className="w-full rounded-md border border-input bg-background px-3 py-2 text-sm shadow-sm placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-ring"
+          className="w-full rounded-md border border-input bg-background px-3 py-2 text-sm placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-ring"
         />
       </div>
 
@@ -102,7 +102,7 @@ export function ClientForm({ workspaceId, client, locale }: Props) {
           type="text"
           defaultValue={client?.contactName ?? ''}
           placeholder={selectedType.contactPlaceholder}
-          className="w-full rounded-md border border-input bg-background px-3 py-2 text-sm shadow-sm placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-ring"
+          className="w-full rounded-md border border-input bg-background px-3 py-2 text-sm placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-ring"
         />
         <p className="text-xs text-muted-foreground">
           {t.clientsContactHelp}
@@ -119,7 +119,7 @@ export function ClientForm({ workspaceId, client, locale }: Props) {
           type="email"
           defaultValue={client?.email ?? ''}
           placeholder="contacto@empresa.com"
-          className="w-full rounded-md border border-input bg-background px-3 py-2 text-sm shadow-sm placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-ring"
+          className="w-full rounded-md border border-input bg-background px-3 py-2 text-sm placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-ring"
         />
       </div>
 
@@ -133,7 +133,7 @@ export function ClientForm({ workspaceId, client, locale }: Props) {
           type="text"
           defaultValue={client?.phone ?? ''}
           placeholder="+34 600 000 000"
-          className="w-full rounded-md border border-input bg-background px-3 py-2 text-sm shadow-sm placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-ring"
+          className="w-full rounded-md border border-input bg-background px-3 py-2 text-sm placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-ring"
         />
       </div>
 
@@ -155,7 +155,7 @@ export function ClientForm({ workspaceId, client, locale }: Props) {
               type="text"
               defaultValue={client?.taxId ?? ''}
               placeholder="12345678Z o B12345678"
-              className="w-full rounded-md border border-input bg-background px-3 py-2 text-sm shadow-sm placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-ring"
+              className="w-full rounded-md border border-input bg-background px-3 py-2 text-sm placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-ring"
             />
           </div>
           <div className="space-y-1">
@@ -168,7 +168,7 @@ export function ClientForm({ workspaceId, client, locale }: Props) {
               type="text"
               defaultValue={client?.country ?? t.clientsDefaultCountry}
               placeholder={t.clientsDefaultCountry}
-              className="w-full rounded-md border border-input bg-background px-3 py-2 text-sm shadow-sm placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-ring"
+              className="w-full rounded-md border border-input bg-background px-3 py-2 text-sm placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-ring"
             />
           </div>
           <div className="space-y-1 sm:col-span-2">
@@ -181,7 +181,7 @@ export function ClientForm({ workspaceId, client, locale }: Props) {
               type="text"
               defaultValue={client?.fiscalAddress ?? ''}
               placeholder={t.clientsFiscalAddressPlaceholder}
-              className="w-full rounded-md border border-input bg-background px-3 py-2 text-sm shadow-sm placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-ring"
+              className="w-full rounded-md border border-input bg-background px-3 py-2 text-sm placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-ring"
             />
           </div>
           <div className="space-y-1">
@@ -194,7 +194,7 @@ export function ClientForm({ workspaceId, client, locale }: Props) {
               type="text"
               defaultValue={client?.postalCode ?? ''}
               placeholder="28001"
-              className="w-full rounded-md border border-input bg-background px-3 py-2 text-sm shadow-sm placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-ring"
+              className="w-full rounded-md border border-input bg-background px-3 py-2 text-sm placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-ring"
             />
           </div>
           <div className="space-y-1">
@@ -207,7 +207,7 @@ export function ClientForm({ workspaceId, client, locale }: Props) {
               type="text"
               defaultValue={client?.city ?? ''}
               placeholder="Madrid"
-              className="w-full rounded-md border border-input bg-background px-3 py-2 text-sm shadow-sm placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-ring"
+              className="w-full rounded-md border border-input bg-background px-3 py-2 text-sm placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-ring"
             />
           </div>
           <div className="space-y-1 sm:col-span-2">
@@ -220,7 +220,7 @@ export function ClientForm({ workspaceId, client, locale }: Props) {
               type="text"
               defaultValue={client?.province ?? ''}
               placeholder="Madrid"
-              className="w-full rounded-md border border-input bg-background px-3 py-2 text-sm shadow-sm placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-ring"
+              className="w-full rounded-md border border-input bg-background px-3 py-2 text-sm placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-ring"
             />
           </div>
         </div>
@@ -236,7 +236,7 @@ export function ClientForm({ workspaceId, client, locale }: Props) {
           type="text"
           defaultValue={client?.sector ?? ''}
           placeholder={t.clientsSectorPlaceholder}
-          className="w-full rounded-md border border-input bg-background px-3 py-2 text-sm shadow-sm placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-ring"
+          className="w-full rounded-md border border-input bg-background px-3 py-2 text-sm placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-ring"
         />
       </div>
 
@@ -250,7 +250,7 @@ export function ClientForm({ workspaceId, client, locale }: Props) {
           rows={3}
           defaultValue={client?.notes ?? ''}
           placeholder={t.clientsNotesPlaceholder}
-          className="w-full rounded-md border border-input bg-background px-3 py-2 text-sm shadow-sm placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-ring resize-none"
+          className="w-full rounded-md border border-input bg-background px-3 py-2 text-sm placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-ring resize-none"
         />
       </div>
 

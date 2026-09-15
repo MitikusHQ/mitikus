@@ -256,7 +256,7 @@ export default async function ToolRunnerPage({ params }: Props) {
                         pending:  'bg-amber-100 text-amber-800 dark:bg-amber-900/30 dark:text-amber-400',
                         approved: 'bg-green-100 text-green-800 dark:bg-green-900/30 dark:text-green-400',
                         rejected: 'bg-red-100 text-red-800 dark:bg-red-900/30 dark:text-red-400',
-                        on_hold:  'bg-gray-100 text-gray-600 dark:bg-gray-800 dark:text-gray-400',
+                        on_hold:  'bg-muted text-muted-foreground',
                       }
                       const approvalLabel: Record<string, string> = {
                         pending: t.toolApprovalPending, approved: t.toolApprovalApproved, rejected: t.toolApprovalRejected, on_hold: t.toolApprovalOnHold,

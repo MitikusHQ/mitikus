@@ -47,11 +47,11 @@ export function InvoicesClient({ workspaceId, initialInvoices, clients, defaultP
   const [emitError, setEmitError]         = useState<string | null>(null)
 
   const STATUS_LABELS: Record<string, { label: string; color: string }> = {
-    borrador:  { label: t.invoicesStatusDraft,     color: 'bg-gray-100 text-gray-600 dark:bg-gray-800 dark:text-gray-400' },
+    borrador:  { label: t.invoicesStatusDraft,     color: 'bg-muted text-muted-foreground' },
     enviada:   { label: t.invoicesStatusSent,      color: 'bg-amber-100 text-amber-700 dark:bg-amber-900/30 dark:text-amber-400' },
     pagada:    { label: t.invoicesStatusPaid,      color: 'bg-emerald-100 text-emerald-700 dark:bg-emerald-900/30 dark:text-emerald-400' },
     vencida:   { label: t.invoicesStatusOverdue,   color: 'bg-red-100 text-red-700 dark:bg-red-900/30 dark:text-red-400' },
-    cancelada: { label: t.invoicesStatusCancelled, color: 'bg-gray-100 text-gray-500 dark:bg-gray-800 dark:text-gray-500' },
+    cancelada: { label: t.invoicesStatusCancelled, color: 'bg-muted text-muted-foreground/70' },
   }
 
   // Stats

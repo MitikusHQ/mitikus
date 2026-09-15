@@ -88,7 +88,7 @@ function ClientContextPopover({ message, position = 'top' }: { message: Workspac
   const text = details.map(([label, value]) => `${label}: ${value}`).join(' · ')
 
   return (
-    <div className={`pointer-events-none absolute left-3 right-3 z-30 hidden rounded-sm border border-slate-400 bg-white px-2 py-1 text-[11px] leading-4 text-slate-950 shadow-sm group-hover:block ${position === 'bottom' ? 'top-full mt-1' : 'bottom-full mb-1'}`}>
+    <div className={`pointer-events-none absolute left-3 right-3 z-30 hidden rounded-sm border border-border bg-card px-2 py-1 text-[11px] leading-4 text-foreground shadow-md group-hover:block ${position === 'bottom' ? 'top-full mt-1' : 'bottom-full mb-1'}`}>
       {text}
     </div>
   )
@@ -140,7 +140,7 @@ function RecipientInput({
         autoComplete="off"
       />
       {focused && suggestions.length > 0 && (
-        <div className="absolute left-0 right-0 top-full z-50 mt-2 overflow-hidden rounded-md border border-slate-200 bg-white text-slate-950 shadow-xl">
+        <div className="absolute left-0 right-0 top-full z-50 mt-2 overflow-hidden rounded-md border border-border bg-card text-foreground shadow-xl">
           {suggestions.map((contact) => (
             <button
               key={contact.id}
@@ -150,10 +150,10 @@ function RecipientInput({
                 onChange(contact.email)
                 setFocused(false)
               }}
-              className="block w-full border-b border-slate-100 bg-white px-3 py-2 text-left last:border-b-0 hover:bg-slate-50"
+              className="block w-full border-b border-border bg-card px-3 py-2 text-left last:border-b-0 hover:bg-muted/50"
             >
               <span className="block truncate text-sm font-medium">{contactLabel(contact)}</span>
-              <span className="block truncate text-xs text-slate-500">{contact.email}</span>
+              <span className="block truncate text-xs text-muted-foreground">{contact.email}</span>
             </button>
           ))}
         </div>
@@ -437,7 +437,7 @@ export function MailboxClient({ workspaceId, initialMessages, initialToEmail = '
       {error && <div className="rounded-md border border-red-200 bg-red-50 px-3 py-2 text-sm text-red-700 dark:border-red-900 dark:bg-red-950/30 dark:text-red-300">{error}</div>}
 
       {composeOpen && (
-        <div className="rounded-lg border bg-card p-4 shadow-sm">
+        <div className="rounded-lg border bg-card p-4">
           <div className="mb-4 flex items-center justify-between">
             <h2 className="text-base font-semibold">{t.mailNewMessage}</h2>
             <button type="button" onClick={() => setComposeOpen(false)} className="text-sm text-muted-foreground hover:text-foreground">{t.mailClose}</button>

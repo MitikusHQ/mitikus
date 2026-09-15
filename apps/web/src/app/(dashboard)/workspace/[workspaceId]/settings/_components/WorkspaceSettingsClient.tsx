@@ -647,7 +647,7 @@ export function WorkspaceSettingsClient({
           <div className="relative mt-0.5 shrink-0">
             <input type="checkbox" checked={restrictCreation} disabled={!isOwner || permSaving} onChange={(e) => handlePermSave(e.target.checked)} className="peer sr-only" />
             <div className={`h-5 w-9 rounded-full transition-colors ${restrictCreation ? 'bg-primary' : 'bg-muted-foreground/30'}`} />
-            <div className={`absolute top-0.5 left-0.5 h-4 w-4 rounded-full bg-white shadow transition-transform ${restrictCreation ? 'translate-x-4' : 'translate-x-0'}`} />
+            <div className={`absolute top-0.5 left-0.5 h-4 w-4 rounded-full bg-background shadow transition-transform ${restrictCreation ? 'translate-x-4' : 'translate-x-0'}`} />
           </div>
           <div>
             <span className="text-sm font-medium">{t.wsPermOnlyAdmins}</span>
