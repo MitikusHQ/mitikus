@@ -83,6 +83,8 @@ function playMsgSound(ctx: AudioContext) {
 export function ChatBubbleBar({ myId }: { myId: string }) {
   const [members, setMembers] = useState<Member[]>([])
   const [chats, setChats] = useState<ChatWindow[]>([])
+  // Unread count for conversations not yet opened as a chat window (keyed by senderId)
+  const [pendingUnread, setPendingUnread] = useState<Record<string, number>>({})
   const lastEventTime = useRef(new Date().toISOString())
   const audioCtxRef = useRef<AudioContext | null>(null)
   const msgEndRefs = useRef<Record<string, HTMLDivElement | null>>({})
@@ -112,9 +114,16 @@ export function ChatBubbleBar({ myId }: { myId: string }) {
         for (const ev of data.events) {
           if (ev.type !== 'new_message') continue
           const convId = String(ev.payload['conversationId'])
+          const senderId = String(ev.payload['senderId'] ?? '')
           setChats(prev => {
             const idx = prev.findIndex(c => c.convId === convId)
-            if (idx === -1) return prev
+            if (idx === -1) {
+              // Conversation not open — track pending unread by sender
+              if (senderId && senderId !== myId) {
+                setPendingUnread(p => ({ ...p, [senderId]: (p[senderId] ?? 0) + 1 }))
+              }
+              return prev
+            }
             return prev.map(c =>
               c.convId === convId
                 ? { ...c, unread: c.minimized ? c.unread + 1 : c.unread }
@@ -153,6 +162,8 @@ export function ChatBubbleBar({ myId }: { myId: string }) {
   }
 
   async function openChat(member: Member) {
+    // Clear pending unread badge for this member
+    setPendingUnread(prev => { const next = { ...prev }; delete next[member.id]; return next })
     const existing = chats.find(c => c.member.id === member.id)
     if (existing) {
       setChats(prev => prev.map(c =>
@@ -290,7 +301,8 @@ export function ChatBubbleBar({ myId }: { myId: string }) {
       <div className="flex items-center gap-2 pb-1.5">
         {members.map(member => {
           const chat = chats.find(c => c.member.id === member.id)
-          const hasUnread = (chat?.unread ?? 0) > 0
+          const unreadCount = (chat?.unread ?? 0) + (pendingUnread[member.id] ?? 0)
+          const hasUnread = unreadCount > 0
           const isOpen = !!chat && !chat.minimized
 
           return (
@@ -330,7 +342,7 @@ export function ChatBubbleBar({ myId }: { myId: string }) {
               {/* Unread badge */}
               {hasUnread && (
                 <span className="absolute -top-1 -right-1 bg-primary text-primary-foreground text-[9px] font-bold rounded-full min-w-[16px] h-4 flex items-center justify-center px-1 animate-bounce shadow">
-                  {chat!.unread > 9 ? '9+' : chat!.unread}
+                  {unreadCount > 9 ? '9+' : unreadCount}
                 </span>
               )}
             </button>

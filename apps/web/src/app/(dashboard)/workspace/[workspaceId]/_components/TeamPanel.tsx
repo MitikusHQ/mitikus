@@ -186,6 +186,8 @@ export function TeamPanel({ onClose, myId, locale, pendingCall, onPendingCallHan
   const remoteStreamRef = useRef<MediaStream | null>(null)
   const localVideoRef = useRef<HTMLVideoElement>(null)
   const remoteVideoRef = useRef<HTMLVideoElement>(null)
+  // ICE candidates queued before remoteDescription is set
+  const iceCandidateQueueRef = useRef<RTCIceCandidateInit[]>([])
 
   // Assign stream srcObjects after DOM elements render (refs are null before callState changes)
   useEffect(() => {
@@ -265,13 +267,17 @@ export function TeamPanel({ onClose, myId, locale, pendingCall, onPendingCallHan
 
     if (ev.type === 'call_answer' && pcRef.current) {
       await pcRef.current.setRemoteDescription(p['answer'] as RTCSessionDescriptionInit)
+      await drainIceCandidates()
       return
     }
 
-    if (ev.type === 'call_ice' && pcRef.current) {
-      try {
-        await pcRef.current.addIceCandidate(p['candidate'] as RTCIceCandidateInit)
-      } catch { /* ignore */ }
+    if (ev.type === 'call_ice') {
+      const candidate = p['candidate'] as RTCIceCandidateInit
+      if (pcRef.current?.remoteDescription) {
+        try { await pcRef.current.addIceCandidate(candidate) } catch { /* ignore */ }
+      } else {
+        iceCandidateQueueRef.current.push(candidate)
+      }
       return
     }
 
@@ -350,6 +356,14 @@ export function TeamPanel({ onClose, myId, locale, pendingCall, onPendingCallHan
   }
 
   // ─── WebRTC helpers ────────────────────────────────────────────────────────
+
+  async function drainIceCandidates() {
+    if (!pcRef.current) return
+    const queue = iceCandidateQueueRef.current.splice(0)
+    for (const candidate of queue) {
+      try { await pcRef.current.addIceCandidate(candidate) } catch { /* ignore */ }
+    }
+  }
 
   async function signal(targetUserId: string, type: string, payload: Record<string, unknown>) {
     await fetch('/api/team/signal', {
@@ -465,6 +479,7 @@ export function TeamPanel({ onClose, myId, locale, pendingCall, onPendingCallHan
 
     console.log('[WebRTC] createAnswer, senders:', pc.getSenders().length)
     await pc.setRemoteDescription(savedOffer)
+    await drainIceCandidates()
     const answer = await pc.createAnswer()
     await pc.setLocalDescription(answer)
     await signal(savedPeerId, 'call_answer', { answer })
@@ -496,6 +511,7 @@ export function TeamPanel({ onClose, myId, locale, pendingCall, onPendingCallHan
     }
     console.log('[WebRTC] acceptCallWith, senders:', pc.getSenders().length, 'stream tracks:', stream?.getTracks().length ?? 0)
     await pc.setRemoteDescription(call.offer)
+    await drainIceCandidates()
     const answer = await pc.createAnswer()
     await pc.setLocalDescription(answer)
     await signal(call.fromUserId, 'call_answer', { answer })
@@ -515,6 +531,7 @@ export function TeamPanel({ onClose, myId, locale, pendingCall, onPendingCallHan
     }
     pcRef.current?.close()
     pcRef.current = null
+    iceCandidateQueueRef.current = []
     localStreamRef.current?.getTracks().forEach((t) => t.stop())
     localStreamRef.current = null
     remoteStreamRef.current = null
