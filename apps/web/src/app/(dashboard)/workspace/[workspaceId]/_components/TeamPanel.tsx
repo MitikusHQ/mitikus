@@ -40,10 +40,19 @@ interface TeamEvent {
   createdAt: string
 }
 
+type PendingCall = {
+  fromUserId: string
+  fromUserName: string | null
+  offer: RTCSessionDescriptionInit
+  mode: 'audio' | 'video'
+}
+
 interface Props {
   onClose: () => void
   myId: string
   locale: Locale
+  pendingCall?: PendingCall | null
+  onPendingCallHandled?: () => void
 }
 
 // ─── ICE config ──────────────────────────────────────────────────────────────
@@ -139,7 +148,7 @@ function PresenceDot({ status, statusLabel }: { status: PresenceStatus; statusLa
 
 // ─── Main component ───────────────────────────────────────────────────────────
 
-export function TeamPanel({ onClose, myId, locale }: Props) {
+export function TeamPanel({ onClose, myId, locale, pendingCall, onPendingCallHandled }: Props) {
   const t = getDashboardTranslations(locale)
   const [members, setMembers] = useState<Member[]>([])
   const [myStatus, setMyStatus] = useState<PresenceStatus>('AVAILABLE')
@@ -177,20 +186,19 @@ export function TeamPanel({ onClose, myId, locale }: Props) {
 
   // Polling cursor
   const lastEventTime = useRef(new Date().toISOString())
-  const autoAcceptRef = useRef(false)
-
-  // Handle incoming call accepted from TeamEventWatcher notification
+  // Auto-accept call that arrived while panel was closed (passed from TeamEventWatcher via prop)
   useEffect(() => {
-    function onIncomingCallAccept(e: Event) {
-      const detail = (e as CustomEvent<{ fromUserId: string; fromUserName: string | null; offer: RTCSessionDescriptionInit; mode: 'audio' | 'video' }>).detail
-      autoAcceptRef.current = true
-      setCallPeer({ id: detail.fromUserId, name: detail.fromUserName })
-      setCallMode(detail.mode)
-      setIncomingOffer(detail.offer)
-      setCallState('incoming')
-    }
-    window.addEventListener('incomingCallAccept', onIncomingCallAccept)
-    return () => window.removeEventListener('incomingCallAccept', onIncomingCallAccept)
+    if (!pendingCall) return
+    onPendingCallHandled?.()
+    setCallPeer({ id: pendingCall.fromUserId, name: pendingCall.fromUserName })
+    setCallMode(pendingCall.mode)
+    setIncomingOffer(pendingCall.offer)
+    setCallState('incoming')
+    // Slight delay so state is committed before acceptCall reads it
+    setTimeout(() => {
+      void acceptCallWith(pendingCall)
+    }, 100)
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [])
 
   // Sync myStatus with PresenceHeartbeat (topbar manages actual PATCH calls)
@@ -415,14 +423,19 @@ export function TeamPanel({ onClose, myId, locale }: Props) {
     setIncomingOffer(null)
   }
 
-  // Auto-accept when triggered from floating notification
-  // eslint-disable-next-line react-hooks/exhaustive-deps
-  useEffect(() => {
-    if (callState === 'incoming' && autoAcceptRef.current) {
-      autoAcceptRef.current = false
-      void acceptCall()
-    }
-  }, [callState, incomingOffer, callPeer])
+  async function acceptCallWith(call: PendingCall) {
+    setCallState('connected')
+    const stream = await navigator.mediaDevices.getUserMedia({ audio: true, video: call.mode === 'video' })
+    localStreamRef.current = stream
+    if (localVideoRef.current) localVideoRef.current.srcObject = stream
+    const pc = createPeerConnection(call.fromUserId)
+    stream.getTracks().forEach((t) => pc.addTrack(t, stream))
+    await pc.setRemoteDescription(call.offer)
+    const answer = await pc.createAnswer()
+    await pc.setLocalDescription(answer)
+    await signal(call.fromUserId, 'call_answer', { answer })
+    setIncomingOffer(null)
+  }
 
   function rejectCall() {
     if (callPeer) void signal(callPeer.id, 'call_reject', {})

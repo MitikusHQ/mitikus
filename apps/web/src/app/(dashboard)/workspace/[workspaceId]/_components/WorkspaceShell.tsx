@@ -1,6 +1,7 @@
 'use client'
 
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useCallback } from 'react'
+import type { IncomingCall } from './TeamEventWatcher'
 import dynamic from 'next/dynamic'
 import { usePathname, useRouter } from 'next/navigation'
 import { cn } from '@/lib/utils'
@@ -56,6 +57,11 @@ export function WorkspaceShell({ workspaceId, workspaceName, workspaceLogoUrl, w
   const [mobileOpen, setMobileOpen] = useState(false)
   const [teamPanelOpen, setTeamPanelOpen] = useState(false)
   const [unreadMessages, setUnreadMessages] = useState(0)
+  const [pendingCall, setPendingCall] = useState<IncomingCall | null>(null)
+  const handleAcceptCall = useCallback((call: IncomingCall) => {
+    setPendingCall(call)
+    setTeamPanelOpen(true)
+  }, [])
   const [onboardingOpen, setOnboardingOpen] = useState(false)
   const [onboardingIsFirstTime, setOnboardingIsFirstTime] = useState(false)
   const isFullscreen = useIsFullscreen(workspaceId)
@@ -190,6 +196,8 @@ export function WorkspaceShell({ workspaceId, workspaceName, workspaceLogoUrl, w
               myId={myId}
               onClose={() => setTeamPanelOpen(false)}
               locale={locale}
+              pendingCall={pendingCall}
+              onPendingCallHandled={() => setPendingCall(null)}
             />
           )}
         </div>
@@ -210,7 +218,7 @@ export function WorkspaceShell({ workspaceId, workspaceName, workspaceLogoUrl, w
 
       <TeamEventWatcher
         teamPanelOpen={teamPanelOpen}
-        onOpenTeamPanel={() => setTeamPanelOpen(true)}
+        onAcceptCall={handleAcceptCall}
         onUnreadChange={setUnreadMessages}
       />
     </div>
