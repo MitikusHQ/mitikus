@@ -371,11 +371,18 @@ export function TeamPanel({ onClose, myId, locale, pendingCall, onPendingCallHan
       }
     }
     pc.ontrack = (e) => {
-      if (remoteVideoRef.current) {
-        remoteVideoRef.current.srcObject = e.streams[0] ?? null
+      console.log('[WebRTC] ontrack:', e.track.kind, 'streams:', e.streams.length)
+      if (remoteVideoRef.current && e.streams[0]) {
+        remoteVideoRef.current.srcObject = e.streams[0]
+        // Force play (needed on mobile)
+        void remoteVideoRef.current.play().catch(() => {/* autoplay policy — user must interact */})
       }
     }
+    pc.oniceconnectionstatechange = () => {
+      console.log('[WebRTC] ICE state:', pc.iceConnectionState)
+    }
     pc.onconnectionstatechange = () => {
+      console.log('[WebRTC] connection state:', pc.connectionState)
       if (pc.connectionState === 'connected') setCallState('connected')
       if (['failed', 'disconnected', 'closed'].includes(pc.connectionState)) endCall()
     }
@@ -387,15 +394,24 @@ export function TeamPanel({ onClose, myId, locale, pendingCall, onPendingCallHan
     if (callState !== 'idle') return
     setCallError(null)
 
-    // getUserMedia FIRST — must be synchronous with user gesture
+    // getUserMedia FIRST — must be within user gesture
     let stream: MediaStream | null = null
     try {
-      stream = await navigator.mediaDevices.getUserMedia({
-        audio: true,
-        video: mode === 'video',
-      })
-    } catch {
-      setCallError('Sin acceso al micrófono — llamando en modo escucha')
+      stream = await navigator.mediaDevices.getUserMedia({ audio: true, video: mode === 'video' })
+    } catch (err1) {
+      console.warn('[WebRTC] getUserMedia full failed:', (err1 as DOMException).name, (err1 as DOMException).message)
+      try {
+        stream = await navigator.mediaDevices.getUserMedia({ audio: true })
+      } catch (err2) {
+        console.warn('[WebRTC] getUserMedia audio-only failed:', (err2 as DOMException).name)
+        try {
+          stream = await navigator.mediaDevices.getUserMedia({ audio: { echoCancellation: false, noiseSuppression: false } })
+        } catch (err3) {
+          const name = (err3 as DOMException).name
+          console.error('[WebRTC] all getUserMedia failed:', name, (err3 as DOMException).message)
+          setCallError(`Sin micrófono (${name}) — llamando en modo escucha`)
+        }
+      }
     }
 
     setCallPeer(peer)
@@ -415,6 +431,7 @@ export function TeamPanel({ onClose, myId, locale, pendingCall, onPendingCallHan
       if (mode === 'video') pc.addTransceiver('video', { direction: 'recvonly' })
     }
 
+    console.log('[WebRTC] createOffer, senders:', pc.getSenders().length, 'transceivers:', pc.getTransceivers().length)
     const offer = await pc.createOffer()
     await pc.setLocalDescription(offer)
     await signal(peer.id, 'call_offer', { offer, mode })
@@ -424,16 +441,21 @@ export function TeamPanel({ onClose, myId, locale, pendingCall, onPendingCallHan
     if (!callPeer || !incomingOffer) return
     setCallError(null)
 
-    // getUserMedia FIRST — must be synchronous with user gesture
+    // getUserMedia FIRST — must be within user gesture
     let stream: MediaStream | null = null
     try {
-      stream = await navigator.mediaDevices.getUserMedia({
-        audio: true,
-        video: callMode === 'video',
-      })
-    } catch {
-      setCallError('Sin acceso al micrófono — aceptando en modo escucha')
+      stream = await navigator.mediaDevices.getUserMedia({ audio: true, video: callMode === 'video' })
+    } catch (err1) {
+      console.warn('[WebRTC] acceptCall getUserMedia failed:', (err1 as DOMException).name)
+      try {
+        stream = await navigator.mediaDevices.getUserMedia({ audio: true })
+      } catch (err2) {
+        const name = (err2 as DOMException).name
+        console.error('[WebRTC] acceptCall all failed:', name)
+        setCallError(`Sin micrófono (${name}) — aceptando en modo escucha`)
+      }
     }
+
     setCallState('connected')
     if (stream) {
       localStreamRef.current = stream
@@ -447,6 +469,7 @@ export function TeamPanel({ onClose, myId, locale, pendingCall, onPendingCallHan
       stream.getTracks().forEach((t) => pc.addTrack(t, stream!))
     }
 
+    console.log('[WebRTC] createAnswer, senders:', pc.getSenders().length)
     await pc.setRemoteDescription(savedOffer)
     const answer = await pc.createAnswer()
     await pc.setLocalDescription(answer)
@@ -456,15 +479,17 @@ export function TeamPanel({ onClose, myId, locale, pendingCall, onPendingCallHan
 
   async function acceptCallWith(call: PendingCall) {
     setCallError(null)
-    // Use stream pre-acquired on button click in TeamEventWatcher (preserves user gesture)
-    let stream: MediaStream | null = call.localStream ?? null
-    if (stream === undefined) {
-      // Fallback: try getUserMedia here (may fail if no user gesture)
+    // Use stream pre-acquired in TeamEventWatcher click (user gesture preserved)
+    // localStream === undefined → not provided; null → failed; MediaStream → success
+    let stream: MediaStream | null = null
+    if (call.localStream !== undefined) {
+      stream = call.localStream
+    } else {
       try {
         stream = await navigator.mediaDevices.getUserMedia({ audio: true, video: call.mode === 'video' })
-      } catch {
-        setCallError('Sin acceso al micrófono — aceptando en modo escucha')
-        stream = null
+      } catch (err) {
+        console.error('[WebRTC] acceptCallWith getUserMedia failed:', (err as DOMException).name)
+        setCallError(`Sin micrófono (${(err as DOMException).name}) — modo escucha`)
       }
     }
     setCallState('connected')
@@ -476,6 +501,7 @@ export function TeamPanel({ onClose, myId, locale, pendingCall, onPendingCallHan
     if (stream) {
       stream.getTracks().forEach((t) => pc.addTrack(t, stream!))
     }
+    console.log('[WebRTC] acceptCallWith, senders:', pc.getSenders().length, 'stream tracks:', stream?.getTracks().length ?? 0)
     await pc.setRemoteDescription(call.offer)
     const answer = await pc.createAnswer()
     await pc.setLocalDescription(answer)
