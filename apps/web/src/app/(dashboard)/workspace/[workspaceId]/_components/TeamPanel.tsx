@@ -45,6 +45,7 @@ type PendingCall = {
   fromUserName: string | null
   offer: RTCSessionDescriptionInit
   mode: 'audio' | 'video'
+  localStream?: MediaStream | null
 }
 
 interface Props {
@@ -455,11 +456,16 @@ export function TeamPanel({ onClose, myId, locale, pendingCall, onPendingCallHan
 
   async function acceptCallWith(call: PendingCall) {
     setCallError(null)
-    let stream: MediaStream | null = null
-    try {
-      stream = await navigator.mediaDevices.getUserMedia({ audio: true, video: call.mode === 'video' })
-    } catch {
-      setCallError('Sin acceso al micrófono — aceptando en modo escucha')
+    // Use stream pre-acquired on button click in TeamEventWatcher (preserves user gesture)
+    let stream: MediaStream | null = call.localStream ?? null
+    if (stream === undefined) {
+      // Fallback: try getUserMedia here (may fail if no user gesture)
+      try {
+        stream = await navigator.mediaDevices.getUserMedia({ audio: true, video: call.mode === 'video' })
+      } catch {
+        setCallError('Sin acceso al micrófono — aceptando en modo escucha')
+        stream = null
+      }
     }
     setCallState('connected')
     if (stream) {

@@ -7,6 +7,7 @@ export type IncomingCall = {
   fromUserName: string | null
   offer: RTCSessionDescriptionInit
   mode: 'audio' | 'video'
+  localStream?: MediaStream | null
 }
 
 interface Props {
@@ -145,7 +146,15 @@ export function TeamEventWatcher({ teamPanelOpen, onAcceptCall, onUnreadChange }
     if (!incomingCall) return
     const call = incomingCall
     setIncomingCall(null)
-    onAcceptCall(call)
+    // getUserMedia HERE — this click IS the user gesture
+    void navigator.mediaDevices.getUserMedia({
+      audio: true,
+      video: call.mode === 'video',
+    }).then(stream => {
+      onAcceptCall({ ...call, localStream: stream })
+    }).catch(() => {
+      onAcceptCall({ ...call, localStream: null })
+    })
   }
 
   if (!incomingCall) return null
