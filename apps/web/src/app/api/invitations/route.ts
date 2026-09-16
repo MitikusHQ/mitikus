@@ -56,7 +56,7 @@ export async function POST(req: NextRequest) {
       metadata: { role, email },
     })
 
-    const appUrl = process.env.NEXT_PUBLIC_APP_URL ?? 'https://app.mitikus.com'
+    const appUrl = process.env.APP_URL ?? process.env.NEXT_PUBLIC_APP_URL ?? 'https://mitikus.com'
     const link = `${appUrl}/invite/${invitation.token}`
 
     if (email) {
