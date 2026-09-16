@@ -395,10 +395,11 @@ export function TeamPanel({ onClose, myId, locale, pendingCall, onPendingCallHan
         audio: true,
         video: mode === 'video',
       })
-    } catch {
+    } catch (err) {
       setCallState('idle')
       setCallPeer(null)
-      setCallError('No se pudo acceder al micrófono' + (mode === 'video' ? '/cámara' : '') + '. Comprueba los permisos del navegador.')
+      const name = err instanceof DOMException ? err.name : 'Error'
+      setCallError(`Error de dispositivo (${name}): ${err instanceof Error ? err.message : String(err)}`)
       return
     }
     localStreamRef.current = stream
@@ -422,11 +423,12 @@ export function TeamPanel({ onClose, myId, locale, pendingCall, onPendingCallHan
         audio: true,
         video: callMode === 'video',
       })
-    } catch {
+    } catch (err) {
       setCallState('idle')
       setCallPeer(null)
       setIncomingOffer(null)
-      setCallError('No se pudo acceder al micrófono' + (callMode === 'video' ? '/cámara' : '') + '. Comprueba los permisos del navegador.')
+      const name = err instanceof DOMException ? err.name : 'Error'
+      setCallError(`Error de dispositivo (${name}): ${err instanceof Error ? err.message : String(err)}`)
       return
     }
     setCallState('connected')
@@ -450,11 +452,12 @@ export function TeamPanel({ onClose, myId, locale, pendingCall, onPendingCallHan
     let stream: MediaStream
     try {
       stream = await navigator.mediaDevices.getUserMedia({ audio: true, video: call.mode === 'video' })
-    } catch {
+    } catch (err) {
       setCallState('idle')
       setCallPeer(null)
       setIncomingOffer(null)
-      setCallError('No se pudo acceder al micrófono' + (call.mode === 'video' ? '/cámara' : '') + '. Comprueba los permisos del navegador.')
+      const name = err instanceof DOMException ? err.name : 'Error'
+      setCallError(`Error de dispositivo (${name}): ${err instanceof Error ? err.message : String(err)}`)
       return
     }
     setCallState('connected')
