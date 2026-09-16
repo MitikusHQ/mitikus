@@ -389,24 +389,23 @@ export function TeamPanel({ onClose, myId, locale, pendingCall, onPendingCallHan
     setCallState('calling')
     setCallError(null)
 
-    let stream: MediaStream
+    let stream: MediaStream | null = null
     try {
       stream = await navigator.mediaDevices.getUserMedia({
         audio: true,
         video: mode === 'video',
       })
-    } catch (err) {
-      setCallState('idle')
-      setCallPeer(null)
-      const name = err instanceof DOMException ? err.name : 'Error'
-      setCallError(`Error de dispositivo (${name}): ${err instanceof Error ? err.message : String(err)}`)
-      return
+    } catch {
+      setCallError('Sin acceso al micrófono — llamando en modo escucha')
     }
-    localStreamRef.current = stream
-    if (localVideoRef.current) localVideoRef.current.srcObject = stream
+
+    if (stream) {
+      localStreamRef.current = stream
+      if (localVideoRef.current) localVideoRef.current.srcObject = stream
+    }
 
     const pc = createPeerConnection(peer.id)
-    stream.getTracks().forEach((t) => pc.addTrack(t, stream))
+    if (stream) stream.getTracks().forEach((t) => pc.addTrack(t, stream!))
 
     const offer = await pc.createOffer()
     await pc.setLocalDescription(offer)
@@ -417,28 +416,25 @@ export function TeamPanel({ onClose, myId, locale, pendingCall, onPendingCallHan
     if (!callPeer || !incomingOffer) return
     setCallError(null)
 
-    let stream: MediaStream
+    let stream: MediaStream | null = null
     try {
       stream = await navigator.mediaDevices.getUserMedia({
         audio: true,
         video: callMode === 'video',
       })
-    } catch (err) {
-      setCallState('idle')
-      setCallPeer(null)
-      setIncomingOffer(null)
-      const name = err instanceof DOMException ? err.name : 'Error'
-      setCallError(`Error de dispositivo (${name}): ${err instanceof Error ? err.message : String(err)}`)
-      return
+    } catch {
+      setCallError('Sin acceso al micrófono — aceptando en modo escucha')
     }
     setCallState('connected')
-    localStreamRef.current = stream
-    if (localVideoRef.current) localVideoRef.current.srcObject = stream
+    if (stream) {
+      localStreamRef.current = stream
+      if (localVideoRef.current) localVideoRef.current.srcObject = stream
+    }
 
     const savedOffer = incomingOffer
     const savedPeerId = callPeer.id
     const pc = createPeerConnection(savedPeerId)
-    stream.getTracks().forEach((t) => pc.addTrack(t, stream))
+    if (stream) stream.getTracks().forEach((t) => pc.addTrack(t, stream!))
 
     await pc.setRemoteDescription(savedOffer)
     const answer = await pc.createAnswer()
@@ -449,22 +445,19 @@ export function TeamPanel({ onClose, myId, locale, pendingCall, onPendingCallHan
 
   async function acceptCallWith(call: PendingCall) {
     setCallError(null)
-    let stream: MediaStream
+    let stream: MediaStream | null = null
     try {
       stream = await navigator.mediaDevices.getUserMedia({ audio: true, video: call.mode === 'video' })
-    } catch (err) {
-      setCallState('idle')
-      setCallPeer(null)
-      setIncomingOffer(null)
-      const name = err instanceof DOMException ? err.name : 'Error'
-      setCallError(`Error de dispositivo (${name}): ${err instanceof Error ? err.message : String(err)}`)
-      return
+    } catch {
+      setCallError('Sin acceso al micrófono — aceptando en modo escucha')
     }
     setCallState('connected')
-    localStreamRef.current = stream
-    if (localVideoRef.current) localVideoRef.current.srcObject = stream
+    if (stream) {
+      localStreamRef.current = stream
+      if (localVideoRef.current) localVideoRef.current.srcObject = stream
+    }
     const pc = createPeerConnection(call.fromUserId)
-    stream.getTracks().forEach((t) => pc.addTrack(t, stream))
+    if (stream) stream.getTracks().forEach((t) => pc.addTrack(t, stream!))
     await pc.setRemoteDescription(call.offer)
     const answer = await pc.createAnswer()
     await pc.setLocalDescription(answer)
