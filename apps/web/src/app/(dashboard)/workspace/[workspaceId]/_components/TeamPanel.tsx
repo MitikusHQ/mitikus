@@ -183,8 +183,21 @@ export function TeamPanel({ onClose, myId, locale, pendingCall, onPendingCallHan
 
   const pcRef = useRef<RTCPeerConnection | null>(null)
   const localStreamRef = useRef<MediaStream | null>(null)
+  const remoteStreamRef = useRef<MediaStream | null>(null)
   const localVideoRef = useRef<HTMLVideoElement>(null)
   const remoteVideoRef = useRef<HTMLVideoElement>(null)
+
+  // Assign stream srcObjects after DOM elements render (refs are null before callState changes)
+  useEffect(() => {
+    if (callState === 'idle') return
+    if (localVideoRef.current && localStreamRef.current) {
+      localVideoRef.current.srcObject = localStreamRef.current
+    }
+    if (remoteVideoRef.current && remoteStreamRef.current) {
+      remoteVideoRef.current.srcObject = remoteStreamRef.current
+      void remoteVideoRef.current.play().catch(() => {/* blocked by autoplay policy */})
+    }
+  }, [callState, callMode])
 
   // Polling cursor
   const lastEventTime = useRef(new Date().toISOString())
@@ -372,10 +385,12 @@ export function TeamPanel({ onClose, myId, locale, pendingCall, onPendingCallHan
     }
     pc.ontrack = (e) => {
       console.log('[WebRTC] ontrack:', e.track.kind, 'streams:', e.streams.length)
-      if (remoteVideoRef.current && e.streams[0]) {
-        remoteVideoRef.current.srcObject = e.streams[0]
-        // Force play (needed on mobile)
-        void remoteVideoRef.current.play().catch(() => {/* autoplay policy — user must interact */})
+      if (e.streams[0]) {
+        remoteStreamRef.current = e.streams[0]
+        if (remoteVideoRef.current) {
+          remoteVideoRef.current.srcObject = e.streams[0]
+          void remoteVideoRef.current.play().catch(() => {/* autoplay policy */})
+        }
       }
     }
     pc.oniceconnectionstatechange = () => {
@@ -414,14 +429,12 @@ export function TeamPanel({ onClose, myId, locale, pendingCall, onPendingCallHan
       }
     }
 
+    // Store in ref first; useEffect assigns to <video> after DOM renders
+    if (stream) localStreamRef.current = stream
+
     setCallPeer(peer)
     setCallMode(mode)
     setCallState('calling')
-
-    if (stream) {
-      localStreamRef.current = stream
-      if (localVideoRef.current) localVideoRef.current.srcObject = stream
-    }
 
     const pc = createPeerConnection(peer.id)
     if (stream) {
@@ -456,11 +469,9 @@ export function TeamPanel({ onClose, myId, locale, pendingCall, onPendingCallHan
       }
     }
 
+    // Store in ref first; useEffect assigns to <video> after DOM renders
+    if (stream) localStreamRef.current = stream
     setCallState('connected')
-    if (stream) {
-      localStreamRef.current = stream
-      if (localVideoRef.current) localVideoRef.current.srcObject = stream
-    }
 
     const savedOffer = incomingOffer
     const savedPeerId = callPeer.id
@@ -492,11 +503,10 @@ export function TeamPanel({ onClose, myId, locale, pendingCall, onPendingCallHan
         setCallError(`Sin micrófono (${(err as DOMException).name}) — modo escucha`)
       }
     }
+    // Store in ref first; useEffect assigns to <video> after DOM renders
+    if (stream) localStreamRef.current = stream
     setCallState('connected')
-    if (stream) {
-      localStreamRef.current = stream
-      if (localVideoRef.current) localVideoRef.current.srcObject = stream
-    }
+
     const pc = createPeerConnection(call.fromUserId)
     if (stream) {
       stream.getTracks().forEach((t) => pc.addTrack(t, stream!))
@@ -524,6 +534,7 @@ export function TeamPanel({ onClose, myId, locale, pendingCall, onPendingCallHan
     pcRef.current = null
     localStreamRef.current?.getTracks().forEach((t) => t.stop())
     localStreamRef.current = null
+    remoteStreamRef.current = null
     if (localVideoRef.current) localVideoRef.current.srcObject = null
     if (remoteVideoRef.current) remoteVideoRef.current.srcObject = null
     setCallState('idle')
