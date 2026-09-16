@@ -7,6 +7,7 @@ import { LocaleSelector } from '@/app/(dashboard)/_components/LocaleSelector'
 import { Icons } from './WorkspaceIcons'
 import { GlobalSearch } from './GlobalSearch'
 import { NotificationBell } from './NotificationBell'
+import { PresenceHeartbeat } from './PresenceHeartbeat'
 import type { Locale } from '@/i18n/config'
 import { getDashboardTranslations } from '@/i18n/dashboard-translations'
 import type { DashboardTranslations } from '@/i18n/dashboard-translations'
@@ -183,6 +184,7 @@ export function WorkspaceTopbar({ workspaceId, workspaceName, userAvatarUrl, loc
             <path d="M12 17h.01"/>
           </svg>
         </button>
+        <PresenceHeartbeat />
         <LocaleSelector currentLocale={locale} />
         <NotificationBell workspaceId={workspaceId} />
         <UserNav avatarUrl={userAvatarUrl} workspaceId={workspaceId} />

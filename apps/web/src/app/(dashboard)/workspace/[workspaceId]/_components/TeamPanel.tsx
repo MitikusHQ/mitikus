@@ -178,25 +178,15 @@ export function TeamPanel({ onClose, myId, locale }: Props) {
   // Polling cursor
   const lastEventTime = useRef(new Date().toISOString())
 
-  // ─── Presence: set AVAILABLE on mount, OFFLINE on unmount ─────────────────
+  // Sync myStatus with PresenceHeartbeat (topbar manages actual PATCH calls)
   useEffect(() => {
-    void patchPresence('AVAILABLE')
-    return () => { void patchPresence('OFFLINE') }
-  // eslint-disable-next-line react-hooks/exhaustive-deps
+    function onPresenceChange(e: Event) {
+      const ev = e as CustomEvent<{ status: PresenceStatus }>
+      setMyStatus(ev.detail.status)
+    }
+    window.addEventListener('presenceChange', onPresenceChange)
+    return () => window.removeEventListener('presenceChange', onPresenceChange)
   }, [])
-
-  async function patchPresence(status: PresenceStatus) {
-    await fetch('/api/team/presence', {
-      method: 'PATCH',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ status }),
-    })
-  }
-
-  async function changeMyStatus(status: PresenceStatus) {
-    setMyStatus(status)
-    await patchPresence(status)
-  }
 
   // ─── Fetch members ─────────────────────────────────────────────────────────
   const fetchMembers = useCallback(async () => {
@@ -241,6 +231,10 @@ export function TeamPanel({ onClose, myId, locale }: Props) {
 
     if (ev.type === 'call_offer') {
       if (callState !== 'idle') return
+      if (myStatus === 'BUSY' || myStatus === 'IN_MEETING') {
+        void signal(String(p['fromUserId']), 'call_reject', {})
+        return
+      }
       setCallPeer({ id: String(p['fromUserId']), name: p['fromUserName'] as string | null })
       setCallMode((p['mode'] as 'audio' | 'video') ?? 'audio')
       setIncomingOffer(p['offer'] as RTCSessionDescriptionInit)
@@ -428,12 +422,6 @@ export function TeamPanel({ onClose, myId, locale }: Props) {
     setIncomingOffer(null)
   }
 
-  const STATUS_OPTIONS: Array<{ value: PresenceStatus; label: string }> = [
-    { value: 'AVAILABLE', label: t.teamStatusAvailable },
-    { value: 'BUSY', label: t.teamStatusBusy },
-    { value: 'IN_MEETING', label: t.teamStatusInMeeting },
-  ]
-
   // ─── Render ────────────────────────────────────────────────────────────────
 
   return (
@@ -523,15 +511,6 @@ export function TeamPanel({ onClose, myId, locale }: Props) {
             </button>
           </div>
           <div className="flex items-center gap-2">
-            <select
-              value={myStatus}
-              onChange={(e) => void changeMyStatus(e.target.value as PresenceStatus)}
-              className="text-xs rounded border border-input bg-background px-2 py-1 focus:outline-none focus:ring-1 focus:ring-ring"
-            >
-              {STATUS_OPTIONS.map((o) => (
-                <option key={o.value} value={o.value}>{o.label}</option>
-              ))}
-            </select>
             <button
               onClick={onClose}
               className="p-1.5 rounded hover:bg-muted text-muted-foreground hover:text-foreground transition-colors"
