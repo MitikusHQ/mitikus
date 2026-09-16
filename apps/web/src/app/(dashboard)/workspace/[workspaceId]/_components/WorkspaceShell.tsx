@@ -14,6 +14,7 @@ import { getDashboardTranslations } from '@/i18n/dashboard-translations'
 
 const TeamPanel = dynamic(() => import('./TeamPanel').then((m) => ({ default: m.TeamPanel })), { ssr: false })
 const TeamEventWatcher = dynamic(() => import('./TeamEventWatcher').then((m) => ({ default: m.TeamEventWatcher })), { ssr: false })
+const ChatBubbleBar = dynamic(() => import('./ChatBubbleBar').then((m) => ({ default: m.ChatBubbleBar })), { ssr: false })
 const OnboardingModal = dynamic(() => import('./OnboardingModal').then((m) => ({ default: m.OnboardingModal })), { ssr: false })
 const BrainOverlay = dynamic(() => import('@/components/BrainOverlay').then((m) => ({ default: m.BrainOverlay })), { ssr: false })
 
@@ -221,6 +222,8 @@ export function WorkspaceShell({ workspaceId, workspaceName, workspaceLogoUrl, w
         onAcceptCall={handleAcceptCall}
         onUnreadChange={setUnreadMessages}
       />
+
+      <ChatBubbleBar myId={myId} />
     </div>
   )
 }

@@ -21,23 +21,27 @@ function createAudioCtx(): AudioContext | null {
 }
 
 function playRing(ctx: AudioContext, stopped: { current: boolean }) {
-  function beep(freq: number, start: number, duration: number) {
+  function tone(freq: number, start: number, dur: number, vol = 0.22) {
     const osc = ctx.createOscillator()
-    const gain = ctx.createGain()
-    osc.connect(gain)
-    gain.connect(ctx.destination)
+    const g = ctx.createGain()
+    osc.connect(g); g.connect(ctx.destination)
     osc.type = 'sine'
     osc.frequency.value = freq
-    gain.gain.setValueAtTime(0.18, ctx.currentTime + start)
-    gain.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + start + duration)
+    g.gain.setValueAtTime(0, ctx.currentTime + start)
+    g.gain.linearRampToValueAtTime(vol, ctx.currentTime + start + 0.02)
+    g.gain.setValueAtTime(vol, ctx.currentTime + start + dur - 0.03)
+    g.gain.linearRampToValueAtTime(0, ctx.currentTime + start + dur)
     osc.start(ctx.currentTime + start)
-    osc.stop(ctx.currentTime + start + duration)
+    osc.stop(ctx.currentTime + start + dur)
   }
   function ring() {
     if (stopped.current) return
-    beep(880, 0, 0.15)
-    beep(880, 0.2, 0.15)
-    setTimeout(() => { if (!stopped.current) ring() }, 1800)
+    // Classic double-ring pattern
+    tone(480, 0,    0.4)
+    tone(620, 0,    0.4)
+    tone(480, 0.5,  0.4)
+    tone(620, 0.5,  0.4)
+    setTimeout(() => { if (!stopped.current) ring() }, 3000)
   }
   ring()
 }
@@ -151,14 +155,14 @@ export function TeamEventWatcher({ teamPanelOpen, onAcceptCall, onUnreadChange }
 
   return (
     <>
-      {/* Full-screen dim flash effect */}
-      <div className="fixed inset-0 z-[75] pointer-events-none animate-pulse bg-primary/5" />
+      {/* Pulsing border flash on the screen edge */}
+      <div className="fixed inset-0 z-[75] pointer-events-none rounded-none border-4 border-green-500/40 animate-pulse" />
 
-      {/* Floating call card */}
-      <div className="fixed bottom-8 left-1/2 -translate-x-1/2 z-[80]">
+      {/* Call notification — bottom-right corner */}
+      <div className="fixed bottom-16 right-4 z-[80]">
         {/* Outer glow ring */}
-        <div className="absolute inset-0 rounded-3xl bg-green-500/20 animate-ping" style={{ animationDuration: '1.2s' }} />
-        <div className="relative flex items-center gap-4 bg-card border-2 border-green-500/60 rounded-3xl shadow-[0_0_40px_rgba(34,197,94,0.35)] px-5 py-4 min-w-[320px] max-w-[400px]">
+        <div className="absolute inset-0 rounded-2xl bg-green-500/20 animate-ping" style={{ animationDuration: '1.2s' }} />
+        <div className="relative flex items-center gap-3 bg-card border-2 border-green-500/60 rounded-2xl shadow-[0_0_32px_rgba(34,197,94,0.4)] px-4 py-3 min-w-[280px] max-w-[340px]">
 
           {/* Avatar with pulsing ring */}
           <div className="relative shrink-0">
