@@ -405,7 +405,12 @@ export function TeamPanel({ onClose, myId, locale, pendingCall, onPendingCallHan
     }
 
     const pc = createPeerConnection(peer.id)
-    if (stream) stream.getTracks().forEach((t) => pc.addTrack(t, stream!))
+    if (stream) {
+      stream.getTracks().forEach((t) => pc.addTrack(t, stream!))
+    } else {
+      pc.addTransceiver('audio', { direction: 'recvonly' })
+      if (mode === 'video') pc.addTransceiver('video', { direction: 'recvonly' })
+    }
 
     const offer = await pc.createOffer()
     await pc.setLocalDescription(offer)
@@ -434,7 +439,9 @@ export function TeamPanel({ onClose, myId, locale, pendingCall, onPendingCallHan
     const savedOffer = incomingOffer
     const savedPeerId = callPeer.id
     const pc = createPeerConnection(savedPeerId)
-    if (stream) stream.getTracks().forEach((t) => pc.addTrack(t, stream!))
+    if (stream) {
+      stream.getTracks().forEach((t) => pc.addTrack(t, stream!))
+    }
 
     await pc.setRemoteDescription(savedOffer)
     const answer = await pc.createAnswer()
@@ -457,7 +464,9 @@ export function TeamPanel({ onClose, myId, locale, pendingCall, onPendingCallHan
       if (localVideoRef.current) localVideoRef.current.srcObject = stream
     }
     const pc = createPeerConnection(call.fromUserId)
-    if (stream) stream.getTracks().forEach((t) => pc.addTrack(t, stream!))
+    if (stream) {
+      stream.getTracks().forEach((t) => pc.addTrack(t, stream!))
+    }
     await pc.setRemoteDescription(call.offer)
     const answer = await pc.createAnswer()
     await pc.setLocalDescription(answer)
