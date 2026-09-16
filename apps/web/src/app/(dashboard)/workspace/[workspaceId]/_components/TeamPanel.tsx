@@ -384,11 +384,9 @@ export function TeamPanel({ onClose, myId, locale, pendingCall, onPendingCallHan
 
   async function startCall(peer: Member, mode: 'audio' | 'video') {
     if (callState !== 'idle') return
-    setCallPeer(peer)
-    setCallMode(mode)
-    setCallState('calling')
     setCallError(null)
 
+    // getUserMedia FIRST — must be synchronous with user gesture
     let stream: MediaStream | null = null
     try {
       stream = await navigator.mediaDevices.getUserMedia({
@@ -398,6 +396,10 @@ export function TeamPanel({ onClose, myId, locale, pendingCall, onPendingCallHan
     } catch {
       setCallError('Sin acceso al micrófono — llamando en modo escucha')
     }
+
+    setCallPeer(peer)
+    setCallMode(mode)
+    setCallState('calling')
 
     if (stream) {
       localStreamRef.current = stream
@@ -421,6 +423,7 @@ export function TeamPanel({ onClose, myId, locale, pendingCall, onPendingCallHan
     if (!callPeer || !incomingOffer) return
     setCallError(null)
 
+    // getUserMedia FIRST — must be synchronous with user gesture
     let stream: MediaStream | null = null
     try {
       stream = await navigator.mediaDevices.getUserMedia({
