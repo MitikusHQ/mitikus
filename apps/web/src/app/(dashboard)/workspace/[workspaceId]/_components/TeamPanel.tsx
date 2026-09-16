@@ -171,6 +171,7 @@ export function TeamPanel({ onClose, myId, locale, pendingCall, onPendingCallHan
   const [callPeer, setCallPeer] = useState<{ id: string; name: string | null } | null>(null)
   const [callMode, setCallMode] = useState<'audio' | 'video'>('audio')
   const [incomingOffer, setIncomingOffer] = useState<RTCSessionDescriptionInit | null>(null)
+  const [callError, setCallError] = useState<string | null>(null)
 
   function presenceLabel(status: PresenceStatus) {
     if (status === 'OFFLINE') return t.teamStatusOffline
@@ -227,7 +228,7 @@ export function TeamPanel({ onClose, myId, locale, pendingCall, onPendingCallHan
 
   // ─── Events polling ────────────────────────────────────────────────────────
   const pollEvents = useCallback(async () => {
-    const res = await fetch(`/api/team/events?since=${lastEventTime.current}`)
+    const res = await fetch(`/api/team/events?since=${encodeURIComponent(lastEventTime.current)}`)
     if (!res.ok) return
     const data = await res.json() as { events: TeamEvent[]; serverTime: string }
     lastEventTime.current = data.serverTime
@@ -386,11 +387,20 @@ export function TeamPanel({ onClose, myId, locale, pendingCall, onPendingCallHan
     setCallPeer(peer)
     setCallMode(mode)
     setCallState('calling')
+    setCallError(null)
 
-    const stream = await navigator.mediaDevices.getUserMedia({
-      audio: true,
-      video: mode === 'video',
-    })
+    let stream: MediaStream
+    try {
+      stream = await navigator.mediaDevices.getUserMedia({
+        audio: true,
+        video: mode === 'video',
+      })
+    } catch {
+      setCallState('idle')
+      setCallPeer(null)
+      setCallError('No se pudo acceder al micrófono' + (mode === 'video' ? '/cámara' : '') + '. Comprueba los permisos del navegador.')
+      return
+    }
     localStreamRef.current = stream
     if (localVideoRef.current) localVideoRef.current.srcObject = stream
 
@@ -404,28 +414,50 @@ export function TeamPanel({ onClose, myId, locale, pendingCall, onPendingCallHan
 
   async function acceptCall() {
     if (!callPeer || !incomingOffer) return
-    setCallState('connected')
+    setCallError(null)
 
-    const stream = await navigator.mediaDevices.getUserMedia({
-      audio: true,
-      video: callMode === 'video',
-    })
+    let stream: MediaStream
+    try {
+      stream = await navigator.mediaDevices.getUserMedia({
+        audio: true,
+        video: callMode === 'video',
+      })
+    } catch {
+      setCallState('idle')
+      setCallPeer(null)
+      setIncomingOffer(null)
+      setCallError('No se pudo acceder al micrófono' + (callMode === 'video' ? '/cámara' : '') + '. Comprueba los permisos del navegador.')
+      return
+    }
+    setCallState('connected')
     localStreamRef.current = stream
     if (localVideoRef.current) localVideoRef.current.srcObject = stream
 
-    const pc = createPeerConnection(callPeer.id)
+    const savedOffer = incomingOffer
+    const savedPeerId = callPeer.id
+    const pc = createPeerConnection(savedPeerId)
     stream.getTracks().forEach((t) => pc.addTrack(t, stream))
 
-    await pc.setRemoteDescription(incomingOffer)
+    await pc.setRemoteDescription(savedOffer)
     const answer = await pc.createAnswer()
     await pc.setLocalDescription(answer)
-    await signal(callPeer.id, 'call_answer', { answer })
+    await signal(savedPeerId, 'call_answer', { answer })
     setIncomingOffer(null)
   }
 
   async function acceptCallWith(call: PendingCall) {
+    setCallError(null)
+    let stream: MediaStream
+    try {
+      stream = await navigator.mediaDevices.getUserMedia({ audio: true, video: call.mode === 'video' })
+    } catch {
+      setCallState('idle')
+      setCallPeer(null)
+      setIncomingOffer(null)
+      setCallError('No se pudo acceder al micrófono' + (call.mode === 'video' ? '/cámara' : '') + '. Comprueba los permisos del navegador.')
+      return
+    }
     setCallState('connected')
-    const stream = await navigator.mediaDevices.getUserMedia({ audio: true, video: call.mode === 'video' })
     localStreamRef.current = stream
     if (localVideoRef.current) localVideoRef.current.srcObject = stream
     const pc = createPeerConnection(call.fromUserId)
@@ -463,6 +495,15 @@ export function TeamPanel({ onClose, myId, locale, pendingCall, onPendingCallHan
 
   return (
     <>
+      {/* Error de llamada */}
+      {callError && (
+        <div className="fixed bottom-6 left-1/2 -translate-x-1/2 z-[90] bg-destructive text-destructive-foreground text-sm px-4 py-3 rounded-xl shadow-lg max-w-sm text-center flex items-center gap-2">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" aria-hidden><circle cx="12" cy="12" r="10"/><path d="M12 8v4m0 4h.01"/></svg>
+          {callError}
+          <button onClick={() => setCallError(null)} className="ml-2 opacity-70 hover:opacity-100" aria-label="Cerrar">✕</button>
+        </div>
+      )}
+
       {/* Overlay de videollamada (siempre renderizado, oculto si idle) */}
       {callState !== 'idle' && (
         <div className="fixed inset-0 z-[60] bg-black/90 flex flex-col items-center justify-center gap-4">
