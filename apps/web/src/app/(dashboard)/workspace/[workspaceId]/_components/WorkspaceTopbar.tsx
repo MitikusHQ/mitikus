@@ -22,6 +22,7 @@ interface Props {
   teamPanelOpen: boolean
   onToggleTeamPanel: () => void
   onOpenOnboarding: () => void
+  unreadMessages?: number
 }
 
 function makeSectionLabels(t: DashboardTranslations): Array<{ segment: string; label: string }> {
@@ -106,7 +107,7 @@ function resolveSubLabel(segments: string[], t: DashboardTranslations): string |
   return labels[last] ?? null
 }
 
-export function WorkspaceTopbar({ workspaceId, workspaceName, userAvatarUrl, locale, onToggleSidebar, sidebarCollapsed, teamPanelOpen, onToggleTeamPanel, onOpenOnboarding }: Props) {
+export function WorkspaceTopbar({ workspaceId, workspaceName, userAvatarUrl, locale, onToggleSidebar, sidebarCollapsed, teamPanelOpen, onToggleTeamPanel, onOpenOnboarding, unreadMessages = 0 }: Props) {
   const t = getDashboardTranslations(locale)
   const breadcrumbs = useBreadcrumb(workspaceId, workspaceName, t)
 
@@ -163,13 +164,19 @@ export function WorkspaceTopbar({ workspaceId, workspaceName, userAvatarUrl, loc
           onClick={onToggleTeamPanel}
           aria-label={teamPanelOpen ? t.closeTeamPanel : t.openTeamPanel}
           aria-pressed={teamPanelOpen}
-          className={`p-2 rounded-md transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring ${
+          className={`relative p-2 rounded-md transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring ${
             teamPanelOpen
               ? 'bg-primary/10 text-primary'
               : 'text-muted-foreground hover:text-foreground hover:bg-muted'
           }`}
         >
           {Icons.team}
+          {unreadMessages > 0 && !teamPanelOpen && (
+            <span className="absolute top-1 right-1 flex h-2 w-2">
+              <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-primary opacity-75" />
+              <span className="relative inline-flex rounded-full h-2 w-2 bg-primary" />
+            </span>
+          )}
         </button>
         <button
           type="button"

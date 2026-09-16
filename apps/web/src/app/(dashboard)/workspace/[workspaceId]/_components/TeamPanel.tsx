@@ -177,6 +177,21 @@ export function TeamPanel({ onClose, myId, locale }: Props) {
 
   // Polling cursor
   const lastEventTime = useRef(new Date().toISOString())
+  const autoAcceptRef = useRef(false)
+
+  // Handle incoming call accepted from TeamEventWatcher notification
+  useEffect(() => {
+    function onIncomingCallAccept(e: Event) {
+      const detail = (e as CustomEvent<{ fromUserId: string; fromUserName: string | null; offer: RTCSessionDescriptionInit; mode: 'audio' | 'video' }>).detail
+      autoAcceptRef.current = true
+      setCallPeer({ id: detail.fromUserId, name: detail.fromUserName })
+      setCallMode(detail.mode)
+      setIncomingOffer(detail.offer)
+      setCallState('incoming')
+    }
+    window.addEventListener('incomingCallAccept', onIncomingCallAccept)
+    return () => window.removeEventListener('incomingCallAccept', onIncomingCallAccept)
+  }, [])
 
   // Sync myStatus with PresenceHeartbeat (topbar manages actual PATCH calls)
   useEffect(() => {
@@ -399,6 +414,15 @@ export function TeamPanel({ onClose, myId, locale }: Props) {
     await signal(callPeer.id, 'call_answer', { answer })
     setIncomingOffer(null)
   }
+
+  // Auto-accept when triggered from floating notification
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  useEffect(() => {
+    if (callState === 'incoming' && autoAcceptRef.current) {
+      autoAcceptRef.current = false
+      void acceptCall()
+    }
+  }, [callState, incomingOffer, callPeer])
 
   function rejectCall() {
     if (callPeer) void signal(callPeer.id, 'call_reject', {})

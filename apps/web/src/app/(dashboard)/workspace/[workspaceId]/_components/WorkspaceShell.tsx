@@ -12,6 +12,7 @@ import type { Locale } from '@/i18n/config'
 import { getDashboardTranslations } from '@/i18n/dashboard-translations'
 
 const TeamPanel = dynamic(() => import('./TeamPanel').then((m) => ({ default: m.TeamPanel })), { ssr: false })
+const TeamEventWatcher = dynamic(() => import('./TeamEventWatcher').then((m) => ({ default: m.TeamEventWatcher })), { ssr: false })
 const OnboardingModal = dynamic(() => import('./OnboardingModal').then((m) => ({ default: m.OnboardingModal })), { ssr: false })
 const BrainOverlay = dynamic(() => import('@/components/BrainOverlay').then((m) => ({ default: m.BrainOverlay })), { ssr: false })
 
@@ -54,6 +55,7 @@ export function WorkspaceShell({ workspaceId, workspaceName, workspaceLogoUrl, w
   const [sidebarCollapsed, setSidebarCollapsed] = useState(false)
   const [mobileOpen, setMobileOpen] = useState(false)
   const [teamPanelOpen, setTeamPanelOpen] = useState(false)
+  const [unreadMessages, setUnreadMessages] = useState(0)
   const [onboardingOpen, setOnboardingOpen] = useState(false)
   const [onboardingIsFirstTime, setOnboardingIsFirstTime] = useState(false)
   const isFullscreen = useIsFullscreen(workspaceId)
@@ -150,6 +152,7 @@ export function WorkspaceShell({ workspaceId, workspaceName, workspaceLogoUrl, w
           sidebarCollapsed={sidebarCollapsed}
           teamPanelOpen={teamPanelOpen}
           onToggleTeamPanel={() => setTeamPanelOpen((p) => !p)}
+          unreadMessages={unreadMessages}
           onOpenOnboarding={() => setOnboardingOpen(true)}
         />
 
@@ -204,6 +207,12 @@ export function WorkspaceShell({ workspaceId, workspaceName, workspaceLogoUrl, w
       />
 
       <BrainOverlay workspaceId={workspaceId} />
+
+      <TeamEventWatcher
+        teamPanelOpen={teamPanelOpen}
+        onOpenTeamPanel={() => setTeamPanelOpen(true)}
+        onUnreadChange={setUnreadMessages}
+      />
     </div>
   )
 }
