@@ -9,7 +9,7 @@ function buildRatelimit(): Ratelimit | null {
         url: process.env.UPSTASH_REDIS_REST_URL,
         token: process.env.UPSTASH_REDIS_REST_TOKEN,
       }),
-      limiter: Ratelimit.slidingWindow(60, '60 s'),
+      limiter: Ratelimit.slidingWindow(300, '60 s'),
       analytics: false,
       prefix: 'mitikus_rl',
     })

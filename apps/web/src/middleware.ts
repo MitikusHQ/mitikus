@@ -46,6 +46,7 @@ const isRateLimitExempt = createRouteMatcher([
   '/api/webhooks/(.*)',
   '/api/leads',
   '/api/cron/(.*)',
+  '/api/team/(.*)',   // polling interno cada 1s — no es riesgo de abuso
 ])
 const isRateLimitReadExempt = createRouteMatcher([
   '/api/workspace/(.*)/brain/history',
