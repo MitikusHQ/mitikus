@@ -66,7 +66,7 @@ export async function POST(req: NextRequest) {
         orgName: org?.name ?? 'tu equipo',
         inviteUrl: link,
         expiresAt: invitation.expiresAt,
-      }).catch(() => null)
+      }).catch((err) => console.error('[invitation-email-error]', err))
     }
 
     return NextResponse.json({ token: invitation.token, link, expiresAt: invitation.expiresAt })
