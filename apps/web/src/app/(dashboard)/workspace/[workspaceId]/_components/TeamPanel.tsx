@@ -201,20 +201,16 @@ export function TeamPanel({ onClose, myId, locale, pendingCall, onPendingCallHan
 
   // Polling cursor
   const lastEventTime = useRef(new Date().toISOString())
-  // Auto-accept call that arrived while panel was closed (passed from TeamEventWatcher via prop)
+  // Accept call passed from TeamEventWatcher (stream pre-acquired on Accept click)
   useEffect(() => {
     if (!pendingCall) return
     onPendingCallHandled?.()
     setCallPeer({ id: pendingCall.fromUserId, name: pendingCall.fromUserName })
     setCallMode(pendingCall.mode)
     setIncomingOffer(pendingCall.offer)
-    setCallState('incoming')
-    // Slight delay so state is committed before acceptCall reads it
-    setTimeout(() => {
-      void acceptCallWith(pendingCall)
-    }, 100)
+    void acceptCallWith(pendingCall)
   // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [])
+  }, [pendingCall])
 
   // Sync myStatus with PresenceHeartbeat (topbar manages actual PATCH calls)
   useEffect(() => {
@@ -264,19 +260,6 @@ export function TeamPanel({ onClose, myId, locale, pendingCall, onPendingCallHan
       if (activeConvId && p['conversationId'] === activeConvId) {
         await loadMessages(activeConvId)
       }
-      return
-    }
-
-    if (ev.type === 'call_offer') {
-      if (callState !== 'idle') return
-      if (myStatus === 'BUSY' || myStatus === 'IN_MEETING') {
-        void signal(String(p['fromUserId']), 'call_reject', {})
-        return
-      }
-      setCallPeer({ id: String(p['fromUserId']), name: p['fromUserName'] as string | null })
-      setCallMode((p['mode'] as 'audio' | 'video') ?? 'audio')
-      setIncomingOffer(p['offer'] as RTCSessionDescriptionInit)
-      setCallState('incoming')
       return
     }
 

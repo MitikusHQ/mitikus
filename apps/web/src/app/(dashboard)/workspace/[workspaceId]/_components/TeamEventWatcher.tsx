@@ -82,13 +82,16 @@ export function TeamEventWatcher({ teamPanelOpen, onAcceptCall, onUnreadChange }
     return () => { ringStopped.current = true }
   }, [incomingCall])
 
+  // Reset unread when panel opens
   useEffect(() => {
     if (teamPanelOpen) {
       unreadRef.current = 0
       onUnreadChange(0)
-      return
     }
+  }, [teamPanelOpen, onUnreadChange])
 
+  // Always poll — call events must arrive even when panel is open
+  useEffect(() => {
     async function poll() {
       try {
         const res = await fetch(`/api/team/events?since=${encodeURIComponent(lastEventTime.current)}`)
@@ -110,15 +113,15 @@ export function TeamEventWatcher({ teamPanelOpen, onAcceptCall, onUnreadChange }
               mode: (p['mode'] as 'audio' | 'video') ?? 'audio',
             })
           }
-          if (ev.type === 'new_message') newMsgs++
           if (ev.type === 'call_hangup' || ev.type === 'call_reject') {
             setIncomingCall(null)
           }
+          // Count messages only when panel is closed
+          if (ev.type === 'new_message' && !teamPanelOpen) newMsgs++
         }
         if (newMsgs > 0) {
           unreadRef.current += newMsgs
           onUnreadChange(unreadRef.current)
-          // Play message sound
           if (!audioCtxRef.current) audioCtxRef.current = createAudioCtx()
           if (audioCtxRef.current) {
             if (audioCtxRef.current.state === 'suspended') void audioCtxRef.current.resume()
@@ -130,6 +133,7 @@ export function TeamEventWatcher({ teamPanelOpen, onAcceptCall, onUnreadChange }
 
     const interval = setInterval(() => void poll(), 2000)
     return () => clearInterval(interval)
+  // teamPanelOpen in dep so message-count logic updates when panel toggles
   }, [teamPanelOpen, onUnreadChange])
 
   function rejectCall() {
