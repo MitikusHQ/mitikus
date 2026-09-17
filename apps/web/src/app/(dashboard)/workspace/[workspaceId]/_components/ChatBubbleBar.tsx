@@ -45,10 +45,24 @@ interface ChatWindow {
 const ICE_SERVERS: RTCIceServer[] = [
   { urls: 'stun:stun.l.google.com:19302' },
   { urls: 'stun:stun1.l.google.com:19302' },
+  { urls: 'stun:stun2.l.google.com:19302' },
+  { urls: 'stun:stun3.l.google.com:19302' },
   { urls: 'turn:openrelay.metered.ca:80', username: 'openrelayproject', credential: 'openrelayproject' },
   { urls: 'turn:openrelay.metered.ca:443', username: 'openrelayproject', credential: 'openrelayproject' },
   { urls: 'turns:openrelay.metered.ca:443', username: 'openrelayproject', credential: 'openrelayproject' },
+  { urls: 'turn:relay1.expressturn.com:3478', username: 'efIJ36UQPVZFB7CNCQ', credential: 'ExFqCO14xwwAW2DF' },
 ]
+
+// Wait for ICE gathering to complete so SDP contains all candidates (vanilla ICE — no trickle)
+async function waitForIceGathering(pc: RTCPeerConnection, timeoutMs = 5000): Promise<void> {
+  if (pc.iceGatheringState === 'complete') return
+  return new Promise<void>(resolve => {
+    const done = () => { pc.removeEventListener('icegatheringstatechange', onState); resolve() }
+    const onState = () => { if (pc.iceGatheringState === 'complete') done() }
+    pc.addEventListener('icegatheringstatechange', onState)
+    setTimeout(done, timeoutMs)
+  })
+}
 
 interface WebRTCCall {
   peer: { id: string; name: string | null }
@@ -187,18 +201,22 @@ function CallOverlay({ call, onSignal, onRegisterHandler, onHangup }: {
     onRegisterHandler(async (type, payload) => {
       const pc = pcRef.current
       if (type === 'call_answer' && pc) {
-        await pc.setRemoteDescription(new RTCSessionDescription(payload['answer'] as RTCSessionDescriptionInit))
-        for (const c of pendingIce.current) await pc.addIceCandidate(new RTCIceCandidate(c))
-        pendingIce.current = []
-        setStatus('connected')
-      }
-      if (type === 'call_ice') {
-        const cand = payload['candidate'] as RTCIceCandidateInit
-        if (pc?.remoteDescription) {
-          await pc.addIceCandidate(new RTCIceCandidate(cand))
-        } else {
-          pendingIce.current.push(cand)
+        try {
+          await pc.setRemoteDescription(new RTCSessionDescription(payload['answer'] as RTCSessionDescriptionInit))
+        } catch (e) {
+          console.error('[WebRTC] setRemoteDescription failed', e)
         }
+      }
+      // call_ice kept for backwards compat but vanilla ICE embeds candidates in SDP
+      if (type === 'call_ice' && pc) {
+        const cand = payload['candidate'] as RTCIceCandidateInit
+        try {
+          if (pc.remoteDescription) {
+            await pc.addIceCandidate(new RTCIceCandidate(cand))
+          } else {
+            pendingIce.current.push(cand)
+          }
+        } catch { /* ignore late candidates */ }
       }
       if (type === 'call_hangup' || type === 'call_reject') {
         cleanup(); onHangup()
@@ -218,6 +236,8 @@ function CallOverlay({ call, onSignal, onRegisterHandler, onHangup }: {
       if (localVideoRef.current) localVideoRef.current.srcObject = stream
       const offer = await pc.createOffer()
       await pc.setLocalDescription(offer)
+      // Wait for all ICE candidates before sending offer (vanilla ICE — more reliable than trickle)
+      await waitForIceGathering(pc)
       await onSignal('call_offer', { offer: pc.localDescription, mode: call.mode })
     }
     void start()
@@ -236,12 +256,11 @@ function CallOverlay({ call, onSignal, onRegisterHandler, onHangup }: {
       stream.getTracks().forEach(t => pc.addTrack(t, stream))
       if (localVideoRef.current) localVideoRef.current.srcObject = stream
       await pc.setRemoteDescription(new RTCSessionDescription(call.offer!))
-      for (const c of pendingIce.current) await pc.addIceCandidate(new RTCIceCandidate(c))
-      pendingIce.current = []
       const ans = await pc.createAnswer()
       await pc.setLocalDescription(ans)
+      // Wait for all ICE candidates before sending answer
+      await waitForIceGathering(pc)
       await onSignal('call_answer', { answer: pc.localDescription })
-      setStatus('connected')
     }
     void answer()
   // eslint-disable-next-line react-hooks/exhaustive-deps
