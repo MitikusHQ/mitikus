@@ -537,7 +537,7 @@ function CallOverlay({ call, onSignal, onRegisterHandler, onHangup, sharedAudioC
 
       {call.mode === 'video' ? (
         <div className="flex-1 relative bg-zinc-950">
-          <video ref={remoteVideoRef} autoPlay playsInline className="w-full h-full object-cover" />
+          <video ref={remoteVideoRef} autoPlay playsInline className="w-full h-full object-contain" />
           <video ref={localVideoRef} autoPlay playsInline muted
             className="absolute bottom-4 right-4 w-36 h-24 rounded-xl object-cover border-2 border-zinc-700 bg-zinc-800" />
         </div>
