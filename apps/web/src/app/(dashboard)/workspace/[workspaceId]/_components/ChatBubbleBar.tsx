@@ -204,10 +204,16 @@ function CallOverlay({ call, onSignal, onRegisterHandler, onHangup }: {
       if (pc.connectionState === 'failed') { cleanup(); onHangup() }
     }
     pc.ontrack = ev => {
-      const stream = ev.streams[0]
-      if (!stream) return
-      if (remoteVideoRef.current) remoteVideoRef.current.srcObject = stream
-      if (remoteAudioRef.current) remoteAudioRef.current.srcObject = stream
+      // Use the first stream, or build one from the track if streams is empty
+      const stream = ev.streams[0] ?? new MediaStream([ev.track])
+      if (remoteVideoRef.current) {
+        remoteVideoRef.current.srcObject = stream
+        void remoteVideoRef.current.play().catch(() => {})
+      }
+      if (remoteAudioRef.current) {
+        remoteAudioRef.current.srcObject = stream
+        void remoteAudioRef.current.play().catch(() => {})
+      }
       setStatus('connected')
     }
     // Timeout: if not connected in 20s, show failure
@@ -392,6 +398,9 @@ export function ChatBubbleBar({ myId }: { myId: string }) {
   const openingRef = useRef<Set<string>>(new Set())
   const fileInputRefs = useRef<Record<string, HTMLInputElement | null>>({})
   const callSignalHandlerRef = useRef<SignalHandler | null>(null)
+  // Queue for signals that arrive before the handler is registered
+  const callSignalQueueRef = useRef<Array<{ type: string; payload: Record<string, unknown> }>>([])
+  const inCallRef = useRef(false)
 
   // Load team members
   useEffect(() => {
@@ -466,11 +475,19 @@ export function ChatBubbleBar({ myId }: { myId: string }) {
             const { offer, fromUserId, fromUserName, mode } = ev.payload as {
               offer: RTCSessionDescriptionInit; fromUserId: string; fromUserName: string | null; mode: 'audio' | 'video'
             }
+            inCallRef.current = true
+            callSignalQueueRef.current = []
+            callSignalHandlerRef.current = null
             setWebrtcCall({ peer: { id: fromUserId, name: fromUserName }, mode, incoming: true, offer })
             continue
           }
           if (ev.type === 'call_answer' || ev.type === 'call_ice' || ev.type === 'call_hangup' || ev.type === 'call_reject') {
-            callSignalHandlerRef.current?.(ev.type, ev.payload)
+            if (callSignalHandlerRef.current) {
+              void callSignalHandlerRef.current(ev.type, ev.payload)
+            } else if (ev.type === 'call_answer' || ev.type === 'call_ice') {
+              // Handler not ready yet — queue and replay when it registers
+              callSignalQueueRef.current.push({ type: ev.type, payload: ev.payload })
+            }
             if (ev.type === 'call_hangup' || ev.type === 'call_reject') setWebrtcCall(null)
             continue
           }
@@ -516,8 +533,17 @@ export function ChatBubbleBar({ myId }: { myId: string }) {
         }
       } catch { /* ignore */ }
     }
-    const id = setInterval(poll, 2000)
-    return () => clearInterval(id)
+    let tid: ReturnType<typeof setTimeout>
+    let active = true
+    const schedule = () => {
+      if (!active) return
+      tid = setTimeout(async () => {
+        await poll()
+        schedule()
+      }, inCallRef.current ? 500 : 2000)
+    }
+    schedule()
+    return () => { active = false; clearTimeout(tid) }
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [])
 
@@ -602,6 +628,9 @@ export function ChatBubbleBar({ myId }: { myId: string }) {
   }
 
   function startCall(peer: Member, mode: 'audio' | 'video') {
+    inCallRef.current = true
+    callSignalQueueRef.current = []
+    callSignalHandlerRef.current = null
     setWebrtcCall({ peer: { id: peer.id, name: peer.name }, mode, incoming: false })
   }
 
@@ -626,8 +655,18 @@ export function ChatBubbleBar({ myId }: { myId: string }) {
         <CallOverlay
           call={webrtcCall}
           onSignal={(type, payload) => sendSignal(webrtcCall.peer.id, type, payload)}
-          onRegisterHandler={handler => { callSignalHandlerRef.current = handler }}
-          onHangup={() => setWebrtcCall(null)}
+          onRegisterHandler={handler => {
+            callSignalHandlerRef.current = handler
+            // Drain any signals that arrived before the handler was ready
+            const queued = callSignalQueueRef.current.splice(0)
+            for (const sig of queued) void handler(sig.type, sig.payload)
+          }}
+          onHangup={() => {
+            inCallRef.current = false
+            callSignalHandlerRef.current = null
+            callSignalQueueRef.current = []
+            setWebrtcCall(null)
+          }}
         />
       )}
 
