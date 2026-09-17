@@ -305,13 +305,11 @@ function CallOverlay({ call, onSignal, onRegisterHandler, onHangup, sharedAudioC
 
     const attachRemoteStream = () => {
       const stream = remoteStreamRef.current
-      if (remoteVideoRef.current) {
+      if (remoteVideoRef.current && remoteVideoRef.current.srcObject !== stream) {
         remoteVideoRef.current.srcObject = stream
-        remoteVideoRef.current.play().catch(e => addLog(`vid play ERR: ${e}`))
       }
-      if (remoteAudioRef.current) {
+      if (remoteAudioRef.current && remoteAudioRef.current.srcObject !== stream) {
         remoteAudioRef.current.srcObject = stream
-        remoteAudioRef.current.play().catch(e => addLog(`aud play ERR: ${e}`))
       }
     }
 
