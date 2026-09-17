@@ -58,23 +58,8 @@ export function WorkspaceShell({ workspaceId, workspaceName, workspaceLogoUrl, w
   const [mobileOpen, setMobileOpen] = useState(false)
   const [teamPanelOpen, setTeamPanelOpen] = useState(false)
   const [unreadMessages, setUnreadMessages] = useState(0)
-  const [pendingCall, setPendingCall] = useState<IncomingCall | null>(null)
-  const handleAcceptCall = useCallback((call: IncomingCall) => {
-    setPendingCall(call)
-    setTeamPanelOpen(true)
-  }, [])
-  const [bubbleCallRequest, setBubbleCallRequest] = useState<{ peerId: string; mode: 'audio' | 'video' } | null>(null)
-
-  // Listen for call requests initiated from ChatBubbleBar chat windows
-  useEffect(() => {
-    function onBubbleCall(e: Event) {
-      const { peerId, mode } = (e as CustomEvent<{ peerId: string; mode: 'audio' | 'video' }>).detail
-      setBubbleCallRequest({ peerId, mode })
-      setTeamPanelOpen(true)
-    }
-    window.addEventListener('mitikus:bubble-call', onBubbleCall)
-    return () => window.removeEventListener('mitikus:bubble-call', onBubbleCall)
-  }, [])
+  // Calls are handled entirely by ChatBubbleBar's CallOverlay — no routing needed here
+  const handleAcceptCall = useCallback((_call: IncomingCall) => { /* no-op */ }, [])
   const [onboardingOpen, setOnboardingOpen] = useState(false)
   const [onboardingIsFirstTime, setOnboardingIsFirstTime] = useState(false)
   const isFullscreen = useIsFullscreen(workspaceId)
@@ -209,10 +194,8 @@ export function WorkspaceShell({ workspaceId, workspaceName, workspaceLogoUrl, w
               myId={myId}
               onClose={() => setTeamPanelOpen(false)}
               locale={locale}
-              pendingCall={pendingCall}
-              onPendingCallHandled={() => setPendingCall(null)}
-              bubbleCallRequest={bubbleCallRequest}
-              onBubbleCallHandled={() => setBubbleCallRequest(null)}
+              pendingCall={null}
+              bubbleCallRequest={null}
             />
           )}
         </div>
