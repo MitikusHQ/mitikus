@@ -200,6 +200,7 @@ function CallOverlay({ call, onSignal, onRegisterHandler, onHangup, sharedAudioC
   const remoteAudioRef = useRef<HTMLAudioElement>(null)
   const pcRef = useRef<RTCPeerConnection | null>(null)
   const streamRef = useRef<MediaStream | null>(null)
+  const remoteStreamRef = useRef<MediaStream | null>(null)
   const pendingIce = useRef<RTCIceCandidateInit[]>([])
   const connectTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null)
   const toneStoppedRef = useRef(true)
@@ -265,12 +266,39 @@ function CallOverlay({ call, onSignal, onRegisterHandler, onHangup, sharedAudioC
     }
     pc.onicegatheringstatechange = () => {
       addLog(`gather: ${pc.iceGatheringState}`)
+      if (pc.iceGatheringState === 'complete') {
+        // Log candidate type summary to diagnose TURN relay
+        void pc.getStats().then(stats => {
+          const counts: Record<string, number> = {}
+          stats.forEach(r => {
+            if (r.type === 'local-candidate') {
+              const key = `${(r as RTCIceCandidateStats).candidateType}/${(r as RTCIceCandidateStats).protocol}`
+              counts[key] = (counts[key] ?? 0) + 1
+            }
+          })
+          addLog(`gather done: ${JSON.stringify(counts)}`)
+        })
+      }
     }
+    const attachRemoteStream = (stream: MediaStream) => {
+      remoteStreamRef.current = stream
+      if (remoteVideoRef.current) {
+        remoteVideoRef.current.srcObject = stream
+        remoteVideoRef.current.play().catch(e => addLog(`vid play ERR: ${e}`))
+      }
+      if (remoteAudioRef.current) {
+        remoteAudioRef.current.srcObject = stream
+        remoteAudioRef.current.play().catch(e => addLog(`aud play ERR: ${e}`))
+      }
+    }
+
     pc.oniceconnectionstatechange = () => {
       setIceState(pc.iceConnectionState)
       addLog(`ice: ${pc.iceConnectionState}`)
       if (pc.iceConnectionState === 'connected' || pc.iceConnectionState === 'completed') {
         stopTone(); setStatus('connected')
+        // Re-attach stream when ICE confirms connected (autoplay may have failed earlier)
+        if (remoteStreamRef.current) attachRemoteStream(remoteStreamRef.current)
       }
       if (pc.iceConnectionState === 'failed') setStatus('failed')
     }
@@ -281,9 +309,8 @@ function CallOverlay({ call, onSignal, onRegisterHandler, onHangup, sharedAudioC
     }
     pc.ontrack = ev => {
       const stream = ev.streams[0] ?? new MediaStream([ev.track])
-      if (remoteVideoRef.current) { remoteVideoRef.current.srcObject = stream; void remoteVideoRef.current.play().catch(() => {}) }
-      if (remoteAudioRef.current) { remoteAudioRef.current.srcObject = stream; void remoteAudioRef.current.play().catch(() => {}) }
-      addLog(`track: ${ev.track.kind}`)
+      addLog(`track: ${ev.track.kind} vidRef=${!!remoteVideoRef.current} audRef=${!!remoteAudioRef.current}`)
+      attachRemoteStream(stream)
       // Do NOT setStatus('connected') here — ontrack fires when SDP is parsed,
       // before ICE connects. Wait for oniceconnectionstatechange.
     }

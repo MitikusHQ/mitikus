@@ -5,6 +5,9 @@ const STATIC_FALLBACK: RTCIceServer[] = [
   { urls: 'stun:stun.l.google.com:19302' },
   { urls: 'stun:stun1.l.google.com:19302' },
   { urls: 'stun:stun.cloudflare.com:3478' },
+  // numb.viagenie.ca — free community TURN (alternative to overloaded openrelay)
+  { urls: 'turn:numb.viagenie.ca', username: 'webrtc@live.com', credential: 'muazkh' },
+  // openrelay — multiple transport/port combos in case one allocation works
   { urls: 'turn:openrelay.metered.ca:80', username: 'openrelayproject', credential: 'openrelayproject' },
   { urls: 'turn:openrelay.metered.ca:80?transport=tcp', username: 'openrelayproject', credential: 'openrelayproject' },
   { urls: 'turn:openrelay.metered.ca:443', username: 'openrelayproject', credential: 'openrelayproject' },
@@ -15,7 +18,7 @@ const STATIC_FALLBACK: RTCIceServer[] = [
 
 // GET /api/team/ice-servers
 // Returns ICE server config including TURN credentials.
-// Fetches fresh credentials from metered.ca API; falls back to static list.
+// Fetches fresh credentials from metered.ca API when METERED_TURN_API_KEY is set; falls back to static list.
 export async function GET() {
   const { userId } = await auth()
   if (!userId) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
