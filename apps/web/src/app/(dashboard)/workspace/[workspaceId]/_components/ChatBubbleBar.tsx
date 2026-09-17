@@ -127,7 +127,7 @@ export function ChatBubbleBar({ myId }: { myId: string }) {
     const res = await fetch('/api/team/conversations', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ participantId: member.id }),
+      body: JSON.stringify({ peerId: member.id }),
     })
     if (!res.ok) return
     const data = await res.json() as { conversationId: string }
