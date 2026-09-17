@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useEffect, useRef } from 'react'
+import React, { useState, useEffect, useRef } from 'react'
 
 type Status = 'OFFLINE' | 'AVAILABLE' | 'BUSY' | 'IN_MEETING'
 
@@ -53,16 +53,6 @@ const ICE_SERVERS: RTCIceServer[] = [
   { urls: 'turn:relay1.expressturn.com:3478', username: 'efIJ36UQPVZFB7CNCQ', credential: 'ExFqCO14xwwAW2DF' },
 ]
 
-// Wait for ICE gathering to complete so SDP contains all candidates (vanilla ICE — no trickle)
-async function waitForIceGathering(pc: RTCPeerConnection, timeoutMs = 5000): Promise<void> {
-  if (pc.iceGatheringState === 'complete') return
-  return new Promise<void>(resolve => {
-    const done = () => { pc.removeEventListener('icegatheringstatechange', onState); resolve() }
-    const onState = () => { if (pc.iceGatheringState === 'complete') done() }
-    pc.addEventListener('icegatheringstatechange', onState)
-    setTimeout(done, timeoutMs)
-  })
-}
 
 interface WebRTCCall {
   peer: { id: string; name: string | null }
@@ -183,18 +173,19 @@ function playRingback(ctx: AudioContext, stopped: { current: boolean }) {
 
 type SignalHandler = (type: string, payload: Record<string, unknown>) => void
 
-function CallOverlay({ call, onSignal, onRegisterHandler, onHangup }: {
+function CallOverlay({ call, onSignal, onRegisterHandler, onHangup, sharedAudioCtx }: {
   call: WebRTCCall
   onSignal: (type: string, payload: Record<string, unknown>) => Promise<void>
   onRegisterHandler: (handler: SignalHandler) => void
   onHangup: () => void
+  sharedAudioCtx: React.MutableRefObject<AudioContext | null>
 }) {
   const [accepted, setAccepted] = useState(!call.incoming)
   const [status, setStatus] = useState<'ringing' | 'connecting' | 'connected' | 'failed'>(
     call.incoming ? 'ringing' : 'connecting'
   )
   const [iceState, setIceState] = useState<string>('new')
-  const [debugMsg, setDebugMsg] = useState<string>('')
+  const [sigLog, setSigLog] = useState<string[]>([])
   const [muted, setMuted] = useState(false)
   const [videoOff, setVideoOff] = useState(false)
   const localVideoRef = useRef<HTMLVideoElement>(null)
@@ -204,8 +195,13 @@ function CallOverlay({ call, onSignal, onRegisterHandler, onHangup }: {
   const streamRef = useRef<MediaStream | null>(null)
   const pendingIce = useRef<RTCIceCandidateInit[]>([])
   const connectTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null)
-  const toneCtxRef = useRef<AudioContext | null>(null)
   const toneStoppedRef = useRef(true)
+
+  function addLog(msg: string) {
+    const ts = new Date().toISOString().slice(11, 19)
+    setSigLog(prev => [...prev.slice(-4), `${ts} ${msg}`])
+    console.log(`[MITIKUS-CALL] ${msg}`)
+  }
 
   function stopTone() {
     toneStoppedRef.current = true
@@ -220,33 +216,28 @@ function CallOverlay({ call, onSignal, onRegisterHandler, onHangup }: {
     streamRef.current = null
   }
 
-  // Play ring for incoming calls while ringing
+  // Ring / ringback tones using sharedAudioCtx (already initialized by parent)
   useEffect(() => {
-    if (status !== 'ringing') { stopTone(); return }
-    toneStoppedRef.current = false
-    if (!toneCtxRef.current) toneCtxRef.current = createAudioCtx()
-    const ctx = toneCtxRef.current
-    if (ctx) {
-      if (ctx.state === 'suspended') void ctx.resume()
-      playRing(ctx, toneStoppedRef)
+    const playTone = async () => {
+      let ctx = sharedAudioCtx.current
+      if (!ctx) { ctx = createAudioCtx(); sharedAudioCtx.current = ctx }
+      if (!ctx) return
+      try { if (ctx.state === 'suspended') await ctx.resume() } catch { return }
+      toneStoppedRef.current = false
+      if (status === 'ringing') {
+        playRing(ctx, toneStoppedRef)
+      } else if (!call.incoming && status === 'connecting') {
+        playRingback(ctx, toneStoppedRef)
+      }
+    }
+    if (status === 'ringing' || (!call.incoming && status === 'connecting')) {
+      void playTone()
+    } else {
+      stopTone()
     }
     return stopTone
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [status])
-
-  // Play ringback for outgoing calls while connecting
-  useEffect(() => {
-    if (call.incoming || status !== 'connecting') { stopTone(); return }
-    toneStoppedRef.current = false
-    if (!toneCtxRef.current) toneCtxRef.current = createAudioCtx()
-    const ctx = toneCtxRef.current
-    if (ctx) {
-      if (ctx.state === 'suspended') void ctx.resume()
-      playRingback(ctx, toneStoppedRef)
-    }
-    return stopTone
-  // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [status, call.incoming])
 
   function hangup() {
     cleanup()
@@ -254,78 +245,73 @@ function CallOverlay({ call, onSignal, onRegisterHandler, onHangup }: {
     onHangup()
   }
 
-  async function buildPC(): Promise<RTCPeerConnection> {
+  function buildPC(): RTCPeerConnection {
     const pc = new RTCPeerConnection({ iceServers: ICE_SERVERS })
     pcRef.current = pc
 
+    // Trickle ICE: send candidates as they arrive
     pc.onicecandidate = ({ candidate }) => {
       if (candidate) {
-        setDebugMsg(`ICE cand: ${candidate.type} ${candidate.protocol}`)
+        addLog(`cand: ${candidate.type}/${candidate.protocol}`)
         void onSignal('call_ice', { candidate: candidate.toJSON() })
       }
     }
     pc.onicegatheringstatechange = () => {
-      setDebugMsg(`Gathering: ${pc.iceGatheringState}`)
+      addLog(`gathering: ${pc.iceGatheringState}`)
     }
     pc.oniceconnectionstatechange = () => {
       setIceState(pc.iceConnectionState)
-      setDebugMsg(`ICE: ${pc.iceConnectionState}`)
+      addLog(`ice: ${pc.iceConnectionState}`)
       if (pc.iceConnectionState === 'connected' || pc.iceConnectionState === 'completed') {
-        setStatus('connected')
+        stopTone(); setStatus('connected')
       }
-      if (pc.iceConnectionState === 'failed') {
-        setStatus('failed')
-      }
+      if (pc.iceConnectionState === 'failed') setStatus('failed')
     }
     pc.onconnectionstatechange = () => {
-      setDebugMsg(`Conn: ${pc.connectionState}`)
-      if (pc.connectionState === 'connected') setStatus('connected')
+      addLog(`conn: ${pc.connectionState}`)
+      if (pc.connectionState === 'connected') { stopTone(); setStatus('connected') }
       if (pc.connectionState === 'failed') { cleanup(); onHangup() }
     }
     pc.ontrack = ev => {
-      // Use the first stream, or build one from the track if streams is empty
       const stream = ev.streams[0] ?? new MediaStream([ev.track])
-      if (remoteVideoRef.current) {
-        remoteVideoRef.current.srcObject = stream
-        void remoteVideoRef.current.play().catch(() => {})
-      }
-      if (remoteAudioRef.current) {
-        remoteAudioRef.current.srcObject = stream
-        void remoteAudioRef.current.play().catch(() => {})
-      }
-      setStatus('connected')
+      if (remoteVideoRef.current) { remoteVideoRef.current.srcObject = stream; void remoteVideoRef.current.play().catch(() => {}) }
+      if (remoteAudioRef.current) { remoteAudioRef.current.srcObject = stream; void remoteAudioRef.current.play().catch(() => {}) }
+      stopTone(); setStatus('connected')
     }
-    // Timeout: if not connected in 20s, show failure
     connectTimeoutRef.current = setTimeout(() => {
       if (pcRef.current && pcRef.current.connectionState !== 'connected') {
         setStatus('failed')
-        setDebugMsg(`Timeout. ICE: ${pcRef.current.iceConnectionState}`)
+        addLog(`timeout — ice: ${pcRef.current?.iceConnectionState}`)
       }
-    }, 20000)
+    }, 30000)
     return pc
   }
 
-  // Register incoming signal handler with parent
+  // Register signal handler — handles call_answer, call_ice, call_hangup
   useEffect(() => {
     onRegisterHandler(async (type, payload) => {
+      addLog(`rcv: ${type}`)
       const pc = pcRef.current
-      if (type === 'call_answer' && pc) {
+      if (type === 'call_answer') {
+        if (!pc) { addLog('ERR: pc null on answer'); return }
         try {
           await pc.setRemoteDescription(new RTCSessionDescription(payload['answer'] as RTCSessionDescriptionInit))
+          addLog(`setRemote OK — flush ${pendingIce.current.length} queued`)
+          // Flush ICE candidates that arrived before setRemoteDescription
+          for (const cand of pendingIce.current.splice(0)) {
+            await pc.addIceCandidate(new RTCIceCandidate(cand)).catch(() => {})
+          }
         } catch (e) {
-          console.error('[WebRTC] setRemoteDescription failed', e)
+          addLog(`setRemote ERR: ${e instanceof Error ? e.message : String(e)}`)
         }
       }
-      // call_ice kept for backwards compat but vanilla ICE embeds candidates in SDP
       if (type === 'call_ice' && pc) {
         const cand = payload['candidate'] as RTCIceCandidateInit
-        try {
-          if (pc.remoteDescription) {
-            await pc.addIceCandidate(new RTCIceCandidate(cand))
-          } else {
-            pendingIce.current.push(cand)
-          }
-        } catch { /* ignore late candidates */ }
+        if (pc.remoteDescription) {
+          await pc.addIceCandidate(new RTCIceCandidate(cand)).catch(() => {})
+        } else {
+          pendingIce.current.push(cand)
+        }
       }
       if (type === 'call_hangup' || type === 'call_reject') {
         cleanup(); onHangup()
@@ -334,25 +320,26 @@ function CallOverlay({ call, onSignal, onRegisterHandler, onHangup }: {
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [])
 
-  // Outgoing: create offer on mount
+  // Outgoing: create offer immediately (trickle ICE — no wait for gathering)
   useEffect(() => {
     if (call.incoming) return
     async function start() {
       try {
-        const pc = await buildPC()
+        const pc = buildPC()
+        addLog('start: getUserMedia')
         const stream = await navigator.mediaDevices.getUserMedia({ audio: true, video: call.mode === 'video' })
         streamRef.current = stream
         stream.getTracks().forEach(t => pc.addTrack(t, stream))
         if (localVideoRef.current) localVideoRef.current.srcObject = stream
         const offer = await pc.createOffer()
         await pc.setLocalDescription(offer)
-        // Wait for all ICE candidates before sending offer (vanilla ICE — more reliable than trickle)
-        await waitForIceGathering(pc)
+        addLog('sending offer')
+        // Send offer immediately — ICE candidates flow via call_ice (trickle)
         await onSignal('call_offer', { offer: pc.localDescription, mode: call.mode })
+        addLog('offer sent')
       } catch (e) {
-        console.error('[WebRTC] start() failed', e)
+        addLog(`start ERR: ${e instanceof Error ? e.message : String(e)}`)
         setStatus('failed')
-        setDebugMsg(`Error: ${e instanceof Error ? e.message : String(e)}`)
       }
     }
     void start()
@@ -366,21 +353,27 @@ function CallOverlay({ call, onSignal, onRegisterHandler, onHangup }: {
     async function answer() {
       try {
         setStatus('connecting')
-        const pc = await buildPC()
+        const pc = buildPC()
+        addLog('answer: getUserMedia')
         const stream = await navigator.mediaDevices.getUserMedia({ audio: true, video: call.mode === 'video' })
         streamRef.current = stream
         stream.getTracks().forEach(t => pc.addTrack(t, stream))
         if (localVideoRef.current) localVideoRef.current.srcObject = stream
+        addLog('setRemoteDesc (offer)')
         await pc.setRemoteDescription(new RTCSessionDescription(call.offer!))
         const ans = await pc.createAnswer()
         await pc.setLocalDescription(ans)
-        // Wait for all ICE candidates before sending answer
-        await waitForIceGathering(pc)
+        // Flush any ICE candidates that arrived before setRemoteDescription
+        addLog(`flush ${pendingIce.current.length} queued cands`)
+        for (const cand of pendingIce.current.splice(0)) {
+          await pc.addIceCandidate(new RTCIceCandidate(cand)).catch(() => {})
+        }
+        addLog('sending answer')
         await onSignal('call_answer', { answer: pc.localDescription })
+        addLog('answer sent')
       } catch (e) {
-        console.error('[WebRTC] answer() failed', e)
+        addLog(`answer ERR: ${e instanceof Error ? e.message : String(e)}`)
         setStatus('failed')
-        setDebugMsg(`Error: ${e instanceof Error ? e.message : String(e)}`)
       }
     }
     void answer()
@@ -425,8 +418,10 @@ function CallOverlay({ call, onSignal, onRegisterHandler, onHangup }: {
             <p className="text-zinc-400 text-xs">
               {status === 'connecting' ? `Conectando… [${iceState}]` : status === 'connected' ? 'En llamada' : status === 'failed' ? '❌ Sin conexión' : 'Llamando…'}
             </p>
-            {(status === 'connecting' || status === 'failed') && debugMsg && (
-              <p className="text-zinc-500 text-[10px]">{debugMsg}</p>
+            {sigLog.length > 0 && (
+              <div className="text-zinc-600 text-[9px] leading-tight max-w-[220px]">
+                {sigLog.map((l, i) => <div key={i}>{l}</div>)}
+              </div>
             )}
           </div>
         </div>
@@ -468,7 +463,7 @@ function CallOverlay({ call, onSignal, onRegisterHandler, onHangup }: {
             {initials(call.peer.name, call.peer.id)}
           </span>
           <p className="text-zinc-400 text-sm">
-            {status === 'connecting' ? 'Conectando…' : status === 'connected' ? 'En llamada de voz' : status === 'failed' ? '❌ Sin conexión' : 'Llamando…'}
+            {status === 'connecting' ? `Conectando… [${iceState}]` : status === 'connected' ? 'En llamada de voz' : status === 'failed' ? '❌ Sin conexión' : 'Llamando…'}
           </p>
           <audio ref={remoteAudioRef} autoPlay />
         </div>
@@ -758,6 +753,7 @@ export function ChatBubbleBar({ myId }: { myId: string }) {
             callSignalQueueRef.current = []
             setWebrtcCall(null)
           }}
+          sharedAudioCtx={audioCtxRef}
         />
       )}
 
