@@ -282,12 +282,17 @@ function CallOverlay({ call, onSignal, onRegisterHandler, onHangup, sharedAudioC
       // Do NOT setStatus('connected') here — ontrack fires when SDP is parsed,
       // before ICE connects. Wait for oniceconnectionstatechange.
     }
+    // Timeout: only mark failed if ICE was actually checking.
+    // If ice === 'new', the remote description hasn't been set yet (callee still answering)
+    // — don't show ❌, let the call stay in 'connecting' until ICE truly fails.
     connectTimeoutRef.current = setTimeout(() => {
-      if (pcRef.current && pcRef.current.connectionState !== 'connected') {
+      if (!pcRef.current) return
+      const ice = pcRef.current.iceConnectionState
+      addLog(`timeout — ice: ${ice}`)
+      if (ice !== 'new' && ice !== 'connected' && ice !== 'completed') {
         setStatus('failed')
-        addLog(`timeout — ice: ${pcRef.current?.iceConnectionState}`)
       }
-    }, 30000)
+    }, 60000)
     return pc
   }
 
