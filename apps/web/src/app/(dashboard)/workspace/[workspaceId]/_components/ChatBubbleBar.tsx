@@ -166,7 +166,8 @@ function CallOverlay({ call, onSignal, onRegisterHandler, onHangup }: {
     }
     pc.onconnectionstatechange = () => {
       if (pc.connectionState === 'connected') setStatus('connected')
-      if (pc.connectionState === 'failed' || pc.connectionState === 'disconnected') {
+      // Only close on 'failed' — 'disconnected' is transient during ICE renegotiation
+      if (pc.connectionState === 'failed') {
         cleanup(); onHangup()
       }
     }
@@ -175,6 +176,8 @@ function CallOverlay({ call, onSignal, onRegisterHandler, onHangup }: {
       if (!stream) return
       if (remoteVideoRef.current) remoteVideoRef.current.srcObject = stream
       if (remoteAudioRef.current) remoteAudioRef.current.srcObject = stream
+      // Remote track received = connection working, even if connectionState hasn't updated yet
+      setStatus('connected')
     }
     return pc
   }
