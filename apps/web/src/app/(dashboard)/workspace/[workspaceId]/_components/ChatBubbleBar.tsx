@@ -116,37 +116,69 @@ function playMsgSound(ctx: AudioContext) {
 
 // ─── Jitsi overlay ─────────────────────────────────────────────────────────────
 
+declare global {
+  interface Window {
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    JitsiMeetExternalAPI: new (domain: string, options: Record<string, unknown>) => any
+  }
+}
+
 function JitsiOverlay({ call, onHangup }: {
   call: JitsiCall
   onHangup: () => void
 }) {
   const [accepted, setAccepted] = useState(!call.incoming)
-
-  function accept() {
-    setAccepted(true)
-  }
+  const containerRef = useRef<HTMLDivElement>(null)
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  const apiRef = useRef<any>(null)
 
   useEffect(() => {
     if (!accepted) return
-    const params = new URLSearchParams({
-      config: JSON.stringify({
-        startWithAudioMuted: false,
-        startWithVideoMuted: call.mode === 'audio',
-        prejoinPageEnabled: false,
-        disableDeepLinking: true,
-      }),
-    })
-    const url = `https://meet.jit.si/${call.roomName}#userInfo.displayName="${encodeURIComponent(call.myName ?? 'Usuario MITIKUS')}"`
-    const win = window.open(url, '_blank', 'noopener')
-    if (!win) {
-      // fallback if popup blocked
-      window.location.href = url
+
+    function mountJitsi() {
+      if (!containerRef.current) return
+      apiRef.current = new window.JitsiMeetExternalAPI('meet.jit.si', {
+        roomName: call.roomName,
+        parentNode: containerRef.current,
+        userInfo: { displayName: call.myName ?? 'Usuario MITIKUS' },
+        configOverwrite: {
+          prejoinPageEnabled: false,
+          startWithAudioMuted: false,
+          startWithVideoMuted: call.mode === 'audio',
+          disableDeepLinking: true,
+          enableNoisyMicDetection: false,
+        },
+        interfaceConfigOverwrite: {
+          SHOW_JITSI_WATERMARK: false,
+          SHOW_WATERMARK_FOR_GUESTS: false,
+          TOOLBAR_BUTTONS: [
+            'microphone', 'camera', 'closedcaptions', 'desktop',
+            'fullscreen', 'fodeviceselection', 'hangup', 'chat',
+            'tileview', 'videoquality', 'filmstrip',
+          ],
+        },
+      })
+      apiRef.current.addEventListener('readyToClose', onHangup)
+      apiRef.current.addEventListener('videoConferenceLeft', onHangup)
     }
-    onHangup()
+
+    if (window.JitsiMeetExternalAPI) {
+      mountJitsi()
+    } else {
+      const script = document.createElement('script')
+      script.src = 'https://meet.jit.si/external_api.js'
+      script.async = true
+      script.onload = mountJitsi
+      document.head.appendChild(script)
+    }
+
+    return () => {
+      apiRef.current?.dispose?.()
+      apiRef.current = null
+    }
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [accepted])
 
-  // Incoming call — show accept/reject. Outgoing opens tab automatically via useEffect.
   if (!accepted) {
     return (
       <div className="fixed inset-0 z-[80] bg-black/80 flex items-center justify-center">
@@ -173,8 +205,20 @@ function JitsiOverlay({ call, onHangup }: {
     )
   }
 
-  // accepted=true → useEffect opens tab and calls onHangup → overlay unmounts
-  return null
+  return (
+    <div className="fixed inset-0 z-[80] bg-black flex flex-col">
+      <div className="flex items-center justify-between px-4 py-2 bg-zinc-900 shrink-0">
+        <span className="text-white text-sm font-medium">
+          {call.mode === 'video' ? '📹' : '📞'} {call.peer.name ?? call.peer.id}
+        </span>
+        <button onClick={onHangup}
+          className="px-3 py-1.5 rounded-lg bg-red-600 hover:bg-red-500 text-white text-sm font-medium">
+          Colgar
+        </button>
+      </div>
+      <div ref={containerRef} className="flex-1" />
+    </div>
+  )
 }
 
 // ─── Main component ────────────────────────────────────────────────────────────
