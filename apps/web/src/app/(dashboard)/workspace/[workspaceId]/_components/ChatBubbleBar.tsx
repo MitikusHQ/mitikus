@@ -135,6 +135,50 @@ function playMsgSound(ctx: AudioContext) {
   })
 }
 
+// Classic double-ring pattern for incoming calls
+function playRing(ctx: AudioContext, stopped: { current: boolean }) {
+  function tone(freq: number, start: number, dur: number, vol = 0.22) {
+    const osc = ctx.createOscillator()
+    const g = ctx.createGain()
+    osc.connect(g); g.connect(ctx.destination)
+    osc.type = 'sine'
+    osc.frequency.value = freq
+    g.gain.setValueAtTime(0, ctx.currentTime + start)
+    g.gain.linearRampToValueAtTime(vol, ctx.currentTime + start + 0.02)
+    g.gain.setValueAtTime(vol, ctx.currentTime + start + dur - 0.03)
+    g.gain.linearRampToValueAtTime(0, ctx.currentTime + start + dur)
+    osc.start(ctx.currentTime + start)
+    osc.stop(ctx.currentTime + start + dur)
+  }
+  function ring() {
+    if (stopped.current) return
+    tone(480, 0, 0.4); tone(620, 0, 0.4)
+    tone(480, 0.5, 0.4); tone(620, 0.5, 0.4)
+    setTimeout(() => { if (!stopped.current) ring() }, 3000)
+  }
+  ring()
+}
+
+// Slow beeping ringback tone for the caller while waiting
+function playRingback(ctx: AudioContext, stopped: { current: boolean }) {
+  function beep() {
+    if (stopped.current) return
+    const osc = ctx.createOscillator()
+    const g = ctx.createGain()
+    osc.connect(g); g.connect(ctx.destination)
+    osc.type = 'sine'
+    osc.frequency.value = 440
+    g.gain.setValueAtTime(0, ctx.currentTime)
+    g.gain.linearRampToValueAtTime(0.15, ctx.currentTime + 0.02)
+    g.gain.setValueAtTime(0.15, ctx.currentTime + 1.0)
+    g.gain.linearRampToValueAtTime(0, ctx.currentTime + 1.1)
+    osc.start(ctx.currentTime)
+    osc.stop(ctx.currentTime + 1.2)
+    setTimeout(() => { if (!stopped.current) beep() }, 3500)
+  }
+  beep()
+}
+
 // ─── WebRTC call overlay ───────────────────────────────────────────────────────
 
 type SignalHandler = (type: string, payload: Record<string, unknown>) => void
@@ -160,14 +204,49 @@ function CallOverlay({ call, onSignal, onRegisterHandler, onHangup }: {
   const streamRef = useRef<MediaStream | null>(null)
   const pendingIce = useRef<RTCIceCandidateInit[]>([])
   const connectTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null)
+  const toneCtxRef = useRef<AudioContext | null>(null)
+  const toneStoppedRef = useRef(true)
+
+  function stopTone() {
+    toneStoppedRef.current = true
+  }
 
   function cleanup() {
+    stopTone()
     if (connectTimeoutRef.current) { clearTimeout(connectTimeoutRef.current); connectTimeoutRef.current = null }
     pcRef.current?.close()
     pcRef.current = null
     streamRef.current?.getTracks().forEach(t => t.stop())
     streamRef.current = null
   }
+
+  // Play ring for incoming calls while ringing
+  useEffect(() => {
+    if (status !== 'ringing') { stopTone(); return }
+    toneStoppedRef.current = false
+    if (!toneCtxRef.current) toneCtxRef.current = createAudioCtx()
+    const ctx = toneCtxRef.current
+    if (ctx) {
+      if (ctx.state === 'suspended') void ctx.resume()
+      playRing(ctx, toneStoppedRef)
+    }
+    return stopTone
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [status])
+
+  // Play ringback for outgoing calls while connecting
+  useEffect(() => {
+    if (call.incoming || status !== 'connecting') { stopTone(); return }
+    toneStoppedRef.current = false
+    if (!toneCtxRef.current) toneCtxRef.current = createAudioCtx()
+    const ctx = toneCtxRef.current
+    if (ctx) {
+      if (ctx.state === 'suspended') void ctx.resume()
+      playRingback(ctx, toneStoppedRef)
+    }
+    return stopTone
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [status, call.incoming])
 
   function hangup() {
     cleanup()
@@ -259,16 +338,22 @@ function CallOverlay({ call, onSignal, onRegisterHandler, onHangup }: {
   useEffect(() => {
     if (call.incoming) return
     async function start() {
-      const pc = await buildPC()
-      const stream = await navigator.mediaDevices.getUserMedia({ audio: true, video: call.mode === 'video' })
-      streamRef.current = stream
-      stream.getTracks().forEach(t => pc.addTrack(t, stream))
-      if (localVideoRef.current) localVideoRef.current.srcObject = stream
-      const offer = await pc.createOffer()
-      await pc.setLocalDescription(offer)
-      // Wait for all ICE candidates before sending offer (vanilla ICE — more reliable than trickle)
-      await waitForIceGathering(pc)
-      await onSignal('call_offer', { offer: pc.localDescription, mode: call.mode })
+      try {
+        const pc = await buildPC()
+        const stream = await navigator.mediaDevices.getUserMedia({ audio: true, video: call.mode === 'video' })
+        streamRef.current = stream
+        stream.getTracks().forEach(t => pc.addTrack(t, stream))
+        if (localVideoRef.current) localVideoRef.current.srcObject = stream
+        const offer = await pc.createOffer()
+        await pc.setLocalDescription(offer)
+        // Wait for all ICE candidates before sending offer (vanilla ICE — more reliable than trickle)
+        await waitForIceGathering(pc)
+        await onSignal('call_offer', { offer: pc.localDescription, mode: call.mode })
+      } catch (e) {
+        console.error('[WebRTC] start() failed', e)
+        setStatus('failed')
+        setDebugMsg(`Error: ${e instanceof Error ? e.message : String(e)}`)
+      }
     }
     void start()
     return cleanup
@@ -279,18 +364,24 @@ function CallOverlay({ call, onSignal, onRegisterHandler, onHangup }: {
   useEffect(() => {
     if (!call.incoming || !accepted) return
     async function answer() {
-      setStatus('connecting')
-      const pc = await buildPC()
-      const stream = await navigator.mediaDevices.getUserMedia({ audio: true, video: call.mode === 'video' })
-      streamRef.current = stream
-      stream.getTracks().forEach(t => pc.addTrack(t, stream))
-      if (localVideoRef.current) localVideoRef.current.srcObject = stream
-      await pc.setRemoteDescription(new RTCSessionDescription(call.offer!))
-      const ans = await pc.createAnswer()
-      await pc.setLocalDescription(ans)
-      // Wait for all ICE candidates before sending answer
-      await waitForIceGathering(pc)
-      await onSignal('call_answer', { answer: pc.localDescription })
+      try {
+        setStatus('connecting')
+        const pc = await buildPC()
+        const stream = await navigator.mediaDevices.getUserMedia({ audio: true, video: call.mode === 'video' })
+        streamRef.current = stream
+        stream.getTracks().forEach(t => pc.addTrack(t, stream))
+        if (localVideoRef.current) localVideoRef.current.srcObject = stream
+        await pc.setRemoteDescription(new RTCSessionDescription(call.offer!))
+        const ans = await pc.createAnswer()
+        await pc.setLocalDescription(ans)
+        // Wait for all ICE candidates before sending answer
+        await waitForIceGathering(pc)
+        await onSignal('call_answer', { answer: pc.localDescription })
+      } catch (e) {
+        console.error('[WebRTC] answer() failed', e)
+        setStatus('failed')
+        setDebugMsg(`Error: ${e instanceof Error ? e.message : String(e)}`)
+      }
     }
     void answer()
   // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -377,7 +468,7 @@ function CallOverlay({ call, onSignal, onRegisterHandler, onHangup }: {
             {initials(call.peer.name, call.peer.id)}
           </span>
           <p className="text-zinc-400 text-sm">
-            {status === 'connecting' ? 'Conectando…' : status === 'connected' ? 'En llamada de voz' : 'Llamando…'}
+            {status === 'connecting' ? 'Conectando…' : status === 'connected' ? 'En llamada de voz' : status === 'failed' ? '❌ Sin conexión' : 'Llamando…'}
           </p>
           <audio ref={remoteAudioRef} autoPlay />
         </div>
