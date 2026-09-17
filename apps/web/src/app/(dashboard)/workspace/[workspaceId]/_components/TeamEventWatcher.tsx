@@ -104,18 +104,7 @@ export function TeamEventWatcher({ teamPanelOpen, onAcceptCall, onUnreadChange }
 
         let newMsgs = 0
         for (const ev of data.events) {
-          if (ev.type === 'call_offer') {
-            const p = ev.payload
-            setIncomingCall({
-              fromUserId: String(p['fromUserId']),
-              fromUserName: p['fromUserName'] as string | null,
-              offer: p['offer'] as RTCSessionDescriptionInit,
-              mode: (p['mode'] as 'audio' | 'video') ?? 'audio',
-            })
-          }
-          if (ev.type === 'call_hangup' || ev.type === 'call_reject') {
-            setIncomingCall(null)
-          }
+          // call_offer/hangup/reject handled entirely by ChatBubbleBar's CallOverlay
           // Count messages only when panel is closed
           if (ev.type === 'new_message' && !teamPanelOpen) newMsgs++
         }
