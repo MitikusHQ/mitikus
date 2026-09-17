@@ -42,22 +42,18 @@ interface ChatWindow {
 
 // ─── WebRTC call overlay ──────────────────────────────────────────────────────
 
-async function fetchIceServers(): Promise<RTCIceServer[]> {
+async function fetchIceServers(): Promise<{ servers: RTCIceServer[]; source: string }> {
   try {
     const r = await fetch('/api/team/ice-servers')
     if (r.ok) {
-      const data = await r.json() as { iceServers: RTCIceServer[] }
-      return data.iceServers
+      const data = await r.json() as { iceServers: RTCIceServer[]; source: string }
+      return { servers: data.iceServers, source: data.source }
     }
   } catch { /* fall through */ }
-  // Hardcoded fallback if endpoint fails
-  return [
-    { urls: 'stun:stun.l.google.com:19302' },
-    { urls: 'stun:stun.cloudflare.com:3478' },
-    { urls: 'turn:openrelay.metered.ca:80', username: 'openrelayproject', credential: 'openrelayproject' },
-    { urls: 'turn:openrelay.metered.ca:443?transport=tcp', username: 'openrelayproject', credential: 'openrelayproject' },
-    { urls: 'turns:openrelay.metered.ca:443', username: 'openrelayproject', credential: 'openrelayproject' },
-  ]
+  return {
+    servers: [{ urls: 'stun:stun.l.google.com:19302' }, { urls: 'stun:stun.cloudflare.com:3478' }],
+    source: 'fallback',
+  }
 }
 
 
@@ -370,8 +366,8 @@ function CallOverlay({ call, onSignal, onRegisterHandler, onHangup, sharedAudioC
     async function start() {
       try {
         addLog('start: fetching ICE servers')
-        const iceServers = await fetchIceServers()
-        addLog(`start: ${iceServers.length} ICE servers`)
+        const { servers: iceServers, source } = await fetchIceServers()
+        addLog(`start: ${iceServers.length} servers [${source}]`)
         const pc = buildPC(iceServers)
         addLog('start: getUserMedia')
         const stream = await navigator.mediaDevices.getUserMedia({ audio: true, video: call.mode === 'video' })
@@ -401,8 +397,8 @@ function CallOverlay({ call, onSignal, onRegisterHandler, onHangup, sharedAudioC
       try {
         setStatus('connecting')
         addLog('answer: fetching ICE servers')
-        const iceServers = await fetchIceServers()
-        addLog(`answer: ${iceServers.length} ICE servers`)
+        const { servers: iceServers, source } = await fetchIceServers()
+        addLog(`answer: ${iceServers.length} servers [${source}]`)
         const pc = buildPC(iceServers)
         addLog('answer: getUserMedia')
         const stream = await navigator.mediaDevices.getUserMedia({ audio: true, video: call.mode === 'video' })

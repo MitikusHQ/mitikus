@@ -1,46 +1,61 @@
 import { NextResponse } from 'next/server'
 import { auth } from '@clerk/nextjs/server'
 
-const STATIC_FALLBACK: RTCIceServer[] = [
+const STUN_ONLY: RTCIceServer[] = [
   { urls: 'stun:stun.l.google.com:19302' },
   { urls: 'stun:stun1.l.google.com:19302' },
   { urls: 'stun:stun.cloudflare.com:3478' },
-  // numb.viagenie.ca — free community TURN (alternative to overloaded openrelay)
-  { urls: 'turn:numb.viagenie.ca', username: 'webrtc@live.com', credential: 'muazkh' },
-  // openrelay — multiple transport/port combos in case one allocation works
-  { urls: 'turn:openrelay.metered.ca:80', username: 'openrelayproject', credential: 'openrelayproject' },
-  { urls: 'turn:openrelay.metered.ca:80?transport=tcp', username: 'openrelayproject', credential: 'openrelayproject' },
-  { urls: 'turn:openrelay.metered.ca:443', username: 'openrelayproject', credential: 'openrelayproject' },
-  { urls: 'turn:openrelay.metered.ca:443?transport=tcp', username: 'openrelayproject', credential: 'openrelayproject' },
-  { urls: 'turns:openrelay.metered.ca:443', username: 'openrelayproject', credential: 'openrelayproject' },
-  { urls: 'turns:openrelay.metered.ca:443?transport=tcp', username: 'openrelayproject', credential: 'openrelayproject' },
 ]
 
 // GET /api/team/ice-servers
-// Returns ICE server config including TURN credentials.
-// Fetches fresh credentials from metered.ca API when METERED_TURN_API_KEY is set; falls back to static list.
+// Returns ICE server list with TURN credentials.
+// Priority: Twilio > metered.ca > STUN-only fallback (no relay)
 export async function GET() {
   const { userId } = await auth()
   if (!userId) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
 
-  const apiKey = process.env.METERED_TURN_API_KEY
-  if (apiKey) {
+  // ── Option 1: Twilio Network Traversal Service ────────────────────────────
+  const twilioSid = process.env.TWILIO_ACCOUNT_SID
+  const twilioToken = process.env.TWILIO_AUTH_TOKEN
+  if (twilioSid && twilioToken) {
     try {
+      const credentials = Buffer.from(`${twilioSid}:${twilioToken}`).toString('base64')
       const r = await fetch(
-        `https://openrelay.metered.ca/api/v1/turn/credentials?apiKey=${apiKey}`,
-        { next: { revalidate: 3600 } }
+        `https://api.twilio.com/2010-04-01/Accounts/${twilioSid}/Tokens.json`,
+        {
+          method: 'POST',
+          headers: { Authorization: `Basic ${credentials}` },
+          next: { revalidate: 3600 },
+        }
       )
       if (r.ok) {
-        const servers = await r.json() as RTCIceServer[]
-        const withStun: RTCIceServer[] = [
-          { urls: 'stun:stun.l.google.com:19302' },
-          { urls: 'stun:stun.cloudflare.com:3478' },
-          ...servers,
-        ]
-        return NextResponse.json({ iceServers: withStun })
+        const data = await r.json() as { ice_servers: Array<{ urls: string; username?: string; credential?: string }> }
+        const iceServers: RTCIceServer[] = data.ice_servers.map(s => ({
+          urls: s.urls,
+          ...(s.username ? { username: s.username } : {}),
+          ...(s.credential ? { credential: s.credential } : {}),
+        }))
+        return NextResponse.json({ iceServers, source: 'twilio' })
       }
     } catch { /* fall through */ }
   }
 
-  return NextResponse.json({ iceServers: STATIC_FALLBACK })
+  // ── Option 2: metered.ca with API key ────────────────────────────────────
+  const meteredKey = process.env.METERED_TURN_API_KEY
+  const meteredApp = process.env.METERED_APP_NAME ?? 'openrelay'
+  if (meteredKey) {
+    try {
+      const r = await fetch(
+        `https://${meteredApp}.metered.live/api/v1/turn/credentials?apiKey=${meteredKey}`,
+        { next: { revalidate: 3600 } }
+      )
+      if (r.ok) {
+        const servers = await r.json() as RTCIceServer[]
+        return NextResponse.json({ iceServers: [...STUN_ONLY, ...servers], source: 'metered' })
+      }
+    } catch { /* fall through */ }
+  }
+
+  // ── Fallback: STUN only (no relay — cross-network calls will fail) ────────
+  return NextResponse.json({ iceServers: STUN_ONLY, source: 'stun-only' })
 }
