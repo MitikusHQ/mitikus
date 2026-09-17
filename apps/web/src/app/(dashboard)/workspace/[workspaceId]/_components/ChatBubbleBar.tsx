@@ -147,6 +147,7 @@ function JitsiOverlay({ call, myId, onHangup }: {
           startWithVideoMuted: call.mode === 'audio',
           prejoinPageEnabled: false,
           disableDeepLinking: true,
+          e2eeEnabled: true,
         },
         interfaceConfigOverwrite: {
           SHOW_JITSI_WATERMARK: false,
