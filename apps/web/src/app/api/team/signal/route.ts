@@ -5,7 +5,7 @@ import { z } from 'zod'
 
 const bodySchema = z.object({
   targetUserId: z.string(),
-  type: z.enum(['call_offer', 'call_answer', 'call_ice', 'call_hangup', 'call_reject']),
+  type: z.enum(['call_offer', 'call_answer', 'call_ice', 'call_hangup', 'call_reject', 'jitsi_call', 'jitsi_hangup']),
   payload: z.record(z.unknown()),
 })
 
