@@ -42,18 +42,23 @@ interface ChatWindow {
 
 // ─── WebRTC call overlay ──────────────────────────────────────────────────────
 
-const ICE_SERVERS: RTCIceServer[] = [
-  { urls: 'stun:stun.l.google.com:19302' },
-  { urls: 'stun:stun1.l.google.com:19302' },
-  { urls: 'stun:stun.cloudflare.com:3478' },
-  // OpenRelay free TURN — UDP + TCP + TLS variants for maximum NAT penetration
-  { urls: 'turn:openrelay.metered.ca:80', username: 'openrelayproject', credential: 'openrelayproject' },
-  { urls: 'turn:openrelay.metered.ca:80?transport=tcp', username: 'openrelayproject', credential: 'openrelayproject' },
-  { urls: 'turn:openrelay.metered.ca:443', username: 'openrelayproject', credential: 'openrelayproject' },
-  { urls: 'turn:openrelay.metered.ca:443?transport=tcp', username: 'openrelayproject', credential: 'openrelayproject' },
-  { urls: 'turns:openrelay.metered.ca:443', username: 'openrelayproject', credential: 'openrelayproject' },
-  { urls: 'turns:openrelay.metered.ca:443?transport=tcp', username: 'openrelayproject', credential: 'openrelayproject' },
-]
+async function fetchIceServers(): Promise<RTCIceServer[]> {
+  try {
+    const r = await fetch('/api/team/ice-servers')
+    if (r.ok) {
+      const data = await r.json() as { iceServers: RTCIceServer[] }
+      return data.iceServers
+    }
+  } catch { /* fall through */ }
+  // Hardcoded fallback if endpoint fails
+  return [
+    { urls: 'stun:stun.l.google.com:19302' },
+    { urls: 'stun:stun.cloudflare.com:3478' },
+    { urls: 'turn:openrelay.metered.ca:80', username: 'openrelayproject', credential: 'openrelayproject' },
+    { urls: 'turn:openrelay.metered.ca:443?transport=tcp', username: 'openrelayproject', credential: 'openrelayproject' },
+    { urls: 'turns:openrelay.metered.ca:443', username: 'openrelayproject', credential: 'openrelayproject' },
+  ]
+}
 
 
 interface WebRTCCall {
@@ -247,8 +252,8 @@ function CallOverlay({ call, onSignal, onRegisterHandler, onHangup, sharedAudioC
     onHangup()
   }
 
-  function buildPC(): RTCPeerConnection {
-    const pc = new RTCPeerConnection({ iceServers: ICE_SERVERS })
+  function buildPC(iceServers: RTCIceServer[]): RTCPeerConnection {
+    const pc = new RTCPeerConnection({ iceServers })
     pcRef.current = pc
 
     // Trickle ICE: send candidates as they arrive
@@ -336,7 +341,10 @@ function CallOverlay({ call, onSignal, onRegisterHandler, onHangup, sharedAudioC
     if (call.incoming) return
     async function start() {
       try {
-        const pc = buildPC()
+        addLog('start: fetching ICE servers')
+        const iceServers = await fetchIceServers()
+        addLog(`start: ${iceServers.length} ICE servers`)
+        const pc = buildPC(iceServers)
         addLog('start: getUserMedia')
         const stream = await navigator.mediaDevices.getUserMedia({ audio: true, video: call.mode === 'video' })
         streamRef.current = stream
@@ -364,7 +372,10 @@ function CallOverlay({ call, onSignal, onRegisterHandler, onHangup, sharedAudioC
     async function answer() {
       try {
         setStatus('connecting')
-        const pc = buildPC()
+        addLog('answer: fetching ICE servers')
+        const iceServers = await fetchIceServers()
+        addLog(`answer: ${iceServers.length} ICE servers`)
+        const pc = buildPC(iceServers)
         addLog('answer: getUserMedia')
         const stream = await navigator.mediaDevices.getUserMedia({ audio: true, video: call.mode === 'video' })
         streamRef.current = stream
