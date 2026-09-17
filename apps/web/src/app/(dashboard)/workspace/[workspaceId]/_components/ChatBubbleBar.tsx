@@ -135,7 +135,16 @@ function JitsiOverlay({ call, onHangup }: {
   useEffect(() => {
     if (!accepted) return
 
-    function mountJitsi() {
+    async function mountJitsi() {
+      // Request mic/camera permissions before mounting so Jitsi skips the prejoin screen
+      try {
+        const stream = await navigator.mediaDevices.getUserMedia({
+          audio: true,
+          video: call.mode === 'video',
+        })
+        stream.getTracks().forEach(t => t.stop())
+      } catch { /* permission denied — Jitsi will handle it */ }
+
       if (!containerRef.current) return
       apiRef.current = new window.JitsiMeetExternalAPI('meet.jit.si', {
         roomName: call.roomName,
@@ -163,12 +172,12 @@ function JitsiOverlay({ call, onHangup }: {
     }
 
     if (window.JitsiMeetExternalAPI) {
-      mountJitsi()
+      void mountJitsi()
     } else {
       const script = document.createElement('script')
       script.src = 'https://meet.jit.si/external_api.js'
       script.async = true
-      script.onload = mountJitsi
+      script.onload = () => { void mountJitsi() }
       document.head.appendChild(script)
     }
 
