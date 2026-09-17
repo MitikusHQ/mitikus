@@ -14,6 +14,10 @@ export async function GET(req: NextRequest) {
   const since = req.nextUrl.searchParams.get('since')
   const sinceDate = since ? new Date(since) : new Date(Date.now() - 5000)
 
+  // Capture serverTime BEFORE the DB query so any event created between the
+  // query start and this timestamp will be found on the next poll (not permanently missed).
+  const serverTime = new Date().toISOString()
+
   const events = await db.teamEvent.findMany({
     where: { targetUserId: user.id, createdAt: { gt: sinceDate } },
     orderBy: { createdAt: 'asc' },
@@ -25,5 +29,5 @@ export async function GET(req: NextRequest) {
     where: { createdAt: { lt: new Date(Date.now() - 5 * 60 * 1000) } },
   })
 
-  return NextResponse.json({ events, serverTime: new Date().toISOString() })
+  return NextResponse.json({ events, serverTime })
 }

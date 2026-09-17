@@ -45,12 +45,14 @@ interface ChatWindow {
 const ICE_SERVERS: RTCIceServer[] = [
   { urls: 'stun:stun.l.google.com:19302' },
   { urls: 'stun:stun1.l.google.com:19302' },
-  { urls: 'stun:stun2.l.google.com:19302' },
-  { urls: 'stun:stun3.l.google.com:19302' },
+  { urls: 'stun:stun.cloudflare.com:3478' },
+  // OpenRelay free TURN — UDP + TCP + TLS variants for maximum NAT penetration
   { urls: 'turn:openrelay.metered.ca:80', username: 'openrelayproject', credential: 'openrelayproject' },
+  { urls: 'turn:openrelay.metered.ca:80?transport=tcp', username: 'openrelayproject', credential: 'openrelayproject' },
   { urls: 'turn:openrelay.metered.ca:443', username: 'openrelayproject', credential: 'openrelayproject' },
+  { urls: 'turn:openrelay.metered.ca:443?transport=tcp', username: 'openrelayproject', credential: 'openrelayproject' },
   { urls: 'turns:openrelay.metered.ca:443', username: 'openrelayproject', credential: 'openrelayproject' },
-  { urls: 'turn:relay1.expressturn.com:3478', username: 'efIJ36UQPVZFB7CNCQ', credential: 'ExFqCO14xwwAW2DF' },
+  { urls: 'turns:openrelay.metered.ca:443?transport=tcp', username: 'openrelayproject', credential: 'openrelayproject' },
 ]
 
 
@@ -257,7 +259,7 @@ function CallOverlay({ call, onSignal, onRegisterHandler, onHangup, sharedAudioC
       }
     }
     pc.onicegatheringstatechange = () => {
-      addLog(`gathering: ${pc.iceGatheringState}`)
+      addLog(`gather: ${pc.iceGatheringState}`)
     }
     pc.oniceconnectionstatechange = () => {
       setIceState(pc.iceConnectionState)
@@ -276,7 +278,9 @@ function CallOverlay({ call, onSignal, onRegisterHandler, onHangup, sharedAudioC
       const stream = ev.streams[0] ?? new MediaStream([ev.track])
       if (remoteVideoRef.current) { remoteVideoRef.current.srcObject = stream; void remoteVideoRef.current.play().catch(() => {}) }
       if (remoteAudioRef.current) { remoteAudioRef.current.srcObject = stream; void remoteAudioRef.current.play().catch(() => {}) }
-      stopTone(); setStatus('connected')
+      addLog(`track: ${ev.track.kind}`)
+      // Do NOT setStatus('connected') here — ontrack fires when SDP is parsed,
+      // before ICE connects. Wait for oniceconnectionstatechange.
     }
     connectTimeoutRef.current = setTimeout(() => {
       if (pcRef.current && pcRef.current.connectionState !== 'connected') {
@@ -568,11 +572,15 @@ export function ChatBubbleBar({ myId }: { myId: string }) {
             continue
           }
           if (ev.type === 'call_answer' || ev.type === 'call_ice' || ev.type === 'call_hangup' || ev.type === 'call_reject') {
+            const ts = new Date().toISOString().slice(11, 19)
+            const hasHandler = !!callSignalHandlerRef.current
+            console.log(`[MITIKUS-POLL] ${ts} ev=${ev.type} handler=${hasHandler} inCall=${inCallRef.current}`)
             if (callSignalHandlerRef.current) {
               void callSignalHandlerRef.current(ev.type, ev.payload)
             } else if (ev.type === 'call_answer' || ev.type === 'call_ice') {
               // Handler not ready yet — queue and replay when it registers
               callSignalQueueRef.current.push({ type: ev.type, payload: ev.payload })
+              console.log(`[MITIKUS-POLL] ${ts} queued ${ev.type} (queue len: ${callSignalQueueRef.current.length})`)
             }
             if (ev.type === 'call_hangup' || ev.type === 'call_reject') setWebrtcCall(null)
             continue
