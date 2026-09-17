@@ -146,9 +146,11 @@ function CallOverlay({ call, onSignal, onRegisterHandler, onHangup }: {
   onHangup: () => void
 }) {
   const [accepted, setAccepted] = useState(!call.incoming)
-  const [status, setStatus] = useState<'ringing' | 'connecting' | 'connected'>(
+  const [status, setStatus] = useState<'ringing' | 'connecting' | 'connected' | 'failed'>(
     call.incoming ? 'ringing' : 'connecting'
   )
+  const [iceState, setIceState] = useState<string>('new')
+  const [debugMsg, setDebugMsg] = useState<string>('')
   const [muted, setMuted] = useState(false)
   const [videoOff, setVideoOff] = useState(false)
   const localVideoRef = useRef<HTMLVideoElement>(null)
@@ -157,8 +159,10 @@ function CallOverlay({ call, onSignal, onRegisterHandler, onHangup }: {
   const pcRef = useRef<RTCPeerConnection | null>(null)
   const streamRef = useRef<MediaStream | null>(null)
   const pendingIce = useRef<RTCIceCandidateInit[]>([])
+  const connectTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null)
 
   function cleanup() {
+    if (connectTimeoutRef.current) { clearTimeout(connectTimeoutRef.current); connectTimeoutRef.current = null }
     pcRef.current?.close()
     pcRef.current = null
     streamRef.current?.getTracks().forEach(t => t.stop())
@@ -176,23 +180,43 @@ function CallOverlay({ call, onSignal, onRegisterHandler, onHangup }: {
     pcRef.current = pc
 
     pc.onicecandidate = ({ candidate }) => {
-      if (candidate) void onSignal('call_ice', { candidate: candidate.toJSON() })
+      if (candidate) {
+        setDebugMsg(`ICE cand: ${candidate.type} ${candidate.protocol}`)
+        void onSignal('call_ice', { candidate: candidate.toJSON() })
+      }
+    }
+    pc.onicegatheringstatechange = () => {
+      setDebugMsg(`Gathering: ${pc.iceGatheringState}`)
+    }
+    pc.oniceconnectionstatechange = () => {
+      setIceState(pc.iceConnectionState)
+      setDebugMsg(`ICE: ${pc.iceConnectionState}`)
+      if (pc.iceConnectionState === 'connected' || pc.iceConnectionState === 'completed') {
+        setStatus('connected')
+      }
+      if (pc.iceConnectionState === 'failed') {
+        setStatus('failed')
+      }
     }
     pc.onconnectionstatechange = () => {
+      setDebugMsg(`Conn: ${pc.connectionState}`)
       if (pc.connectionState === 'connected') setStatus('connected')
-      // Only close on 'failed' — 'disconnected' is transient during ICE renegotiation
-      if (pc.connectionState === 'failed') {
-        cleanup(); onHangup()
-      }
+      if (pc.connectionState === 'failed') { cleanup(); onHangup() }
     }
     pc.ontrack = ev => {
       const stream = ev.streams[0]
       if (!stream) return
       if (remoteVideoRef.current) remoteVideoRef.current.srcObject = stream
       if (remoteAudioRef.current) remoteAudioRef.current.srcObject = stream
-      // Remote track received = connection working, even if connectionState hasn't updated yet
       setStatus('connected')
     }
+    // Timeout: if not connected in 20s, show failure
+    connectTimeoutRef.current = setTimeout(() => {
+      if (pcRef.current && pcRef.current.connectionState !== 'connected') {
+        setStatus('failed')
+        setDebugMsg(`Timeout. ICE: ${pcRef.current.iceConnectionState}`)
+      }
+    }, 20000)
     return pc
   }
 
@@ -302,8 +326,11 @@ function CallOverlay({ call, onSignal, onRegisterHandler, onHangup }: {
           <div>
             <p className="text-white text-sm font-medium">{call.peer.name ?? call.peer.id}</p>
             <p className="text-zinc-400 text-xs">
-              {status === 'connecting' ? 'Conectando…' : status === 'connected' ? 'En llamada' : 'Llamando…'}
+              {status === 'connecting' ? `Conectando… [${iceState}]` : status === 'connected' ? 'En llamada' : status === 'failed' ? '❌ Sin conexión' : 'Llamando…'}
             </p>
+            {(status === 'connecting' || status === 'failed') && debugMsg && (
+              <p className="text-zinc-500 text-[10px]">{debugMsg}</p>
+            )}
           </div>
         </div>
         <div className="flex items-center gap-2">
