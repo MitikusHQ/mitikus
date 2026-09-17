@@ -272,7 +272,8 @@ function CallOverlay({ call, onSignal, onRegisterHandler, onHangup, sharedAudioC
           const counts: Record<string, number> = {}
           stats.forEach(r => {
             if (r.type === 'local-candidate') {
-              const key = `${(r as RTCIceCandidateStats).candidateType}/${(r as RTCIceCandidateStats).protocol}`
+              const s = r as Record<string, unknown>
+              const key = `${s['candidateType'] as string}/${s['protocol'] as string}`
               counts[key] = (counts[key] ?? 0) + 1
             }
           })
