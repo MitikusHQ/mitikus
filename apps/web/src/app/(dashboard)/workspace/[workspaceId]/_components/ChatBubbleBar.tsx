@@ -42,17 +42,18 @@ interface ChatWindow {
 
 // ─── WebRTC call overlay ──────────────────────────────────────────────────────
 
-async function fetchIceServers(): Promise<{ servers: RTCIceServer[]; source: string }> {
+async function fetchIceServers(): Promise<{ servers: RTCIceServer[]; source: string; turnConfigured: boolean }> {
   try {
     const r = await fetch('/api/team/ice-servers')
     if (r.ok) {
-      const data = await r.json() as { iceServers: RTCIceServer[]; source: string }
-      return { servers: data.iceServers, source: data.source }
+      const data = await r.json() as { iceServers: RTCIceServer[]; source: string; turnConfigured: boolean }
+      return { servers: data.iceServers, source: data.source, turnConfigured: data.turnConfigured }
     }
   } catch { /* fall through */ }
   return {
     servers: [{ urls: 'stun:stun.l.google.com:19302' }, { urls: 'stun:stun.cloudflare.com:3478' }],
     source: 'fallback',
+    turnConfigured: false,
   }
 }
 
@@ -184,7 +185,7 @@ function CallOverlay({ call, onSignal, onRegisterHandler, onHangup, sharedAudioC
   sharedAudioCtx: React.MutableRefObject<AudioContext | null>
 }) {
   const [accepted, setAccepted] = useState(!call.incoming)
-  const [status, setStatus] = useState<'ringing' | 'connecting' | 'connected' | 'failed'>(
+  const [status, setStatus] = useState<'ringing' | 'connecting' | 'connected' | 'failed' | 'no-relay'>(
     call.incoming ? 'ringing' : 'connecting'
   )
   const [iceState, setIceState] = useState<string>('new')
@@ -196,10 +197,14 @@ function CallOverlay({ call, onSignal, onRegisterHandler, onHangup, sharedAudioC
   const remoteAudioRef = useRef<HTMLAudioElement>(null)
   const pcRef = useRef<RTCPeerConnection | null>(null)
   const streamRef = useRef<MediaStream | null>(null)
-  const remoteStreamRef = useRef<MediaStream | null>(null)
+  // Stable remote stream — tracks are added incrementally via ontrack
+  const remoteStreamRef = useRef<MediaStream>(new MediaStream())
   const pendingIce = useRef<RTCIceCandidateInit[]>([])
   const connectTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null)
   const toneStoppedRef = useRef(true)
+  // ICE candidate type flags for relay-absence detection
+  const sawRelayRef = useRef(false)
+  const sawSrflxRef = useRef(false)
 
   function addLog(msg: string) {
     const ts = new Date().toISOString().slice(11, 19)
@@ -218,6 +223,10 @@ function CallOverlay({ call, onSignal, onRegisterHandler, onHangup, sharedAudioC
     pcRef.current = null
     streamRef.current?.getTracks().forEach(t => t.stop())
     streamRef.current = null
+    // Reset remote stream for next call
+    remoteStreamRef.current = new MediaStream()
+    sawRelayRef.current = false
+    sawSrflxRef.current = false
   }
 
   // Ring / ringback tones using sharedAudioCtx (already initialized by parent)
@@ -250,20 +259,35 @@ function CallOverlay({ call, onSignal, onRegisterHandler, onHangup, sharedAudioC
   }
 
   function buildPC(iceServers: RTCIceServer[]): RTCPeerConnection {
-    const pc = new RTCPeerConnection({ iceServers })
+    const forceRelay = process.env.NEXT_PUBLIC_WEBRTC_FORCE_RELAY === 'true'
+    const pc = new RTCPeerConnection({
+      iceServers,
+      iceTransportPolicy: forceRelay ? 'relay' : 'all',
+    })
     pcRef.current = pc
 
-    // Trickle ICE: send candidates as they arrive
+    // Trickle ICE: track candidate types and send to remote
     pc.onicecandidate = ({ candidate }) => {
-      if (candidate) {
-        addLog(`cand: ${candidate.type}/${candidate.protocol}`)
-        void onSignal('call_ice', { candidate: candidate.toJSON() })
+      if (!candidate) return
+      const t = candidate.type
+      if (t === 'relay') sawRelayRef.current = true
+      if (t === 'srflx') sawSrflxRef.current = true
+      addLog(`cand: ${t}/${candidate.protocol}`)
+      void onSignal('call_ice', { candidate: candidate.toJSON() })
+    }
+
+    // Log TURN allocation errors explicitly
+    pc.onicecandidateerror = (ev) => {
+      const e = ev as RTCPeerConnectionIceErrorEvent
+      // 701 = no response from TURN; 600s = auth/protocol errors
+      if (e.errorCode >= 600 || e.errorCode === 701) {
+        addLog(`TURN ERR ${e.errorCode}: ${e.errorText} (${e.url})`)
       }
     }
+
     pc.onicegatheringstatechange = () => {
       addLog(`gather: ${pc.iceGatheringState}`)
       if (pc.iceGatheringState === 'complete') {
-        // Log candidate type summary to diagnose TURN relay
         void pc.getStats().then(stats => {
           const counts: Record<string, number> = {}
           stats.forEach(r => {
@@ -274,11 +298,13 @@ function CallOverlay({ call, onSignal, onRegisterHandler, onHangup, sharedAudioC
             }
           })
           addLog(`gather done: ${JSON.stringify(counts)}`)
+          if (!sawRelayRef.current) addLog('⚠ no relay cands — TURN not working')
         })
       }
     }
-    const attachRemoteStream = (stream: MediaStream) => {
-      remoteStreamRef.current = stream
+
+    const attachRemoteStream = () => {
+      const stream = remoteStreamRef.current
       if (remoteVideoRef.current) {
         remoteVideoRef.current.srcObject = stream
         remoteVideoRef.current.play().catch(e => addLog(`vid play ERR: ${e}`))
@@ -294,32 +320,42 @@ function CallOverlay({ call, onSignal, onRegisterHandler, onHangup, sharedAudioC
       addLog(`ice: ${pc.iceConnectionState}`)
       if (pc.iceConnectionState === 'connected' || pc.iceConnectionState === 'completed') {
         stopTone(); setStatus('connected')
-        // Re-attach stream when ICE confirms connected (autoplay may have failed earlier)
-        if (remoteStreamRef.current) attachRemoteStream(remoteStreamRef.current)
+        attachRemoteStream()
       }
-      if (pc.iceConnectionState === 'failed') setStatus('failed')
+      if (pc.iceConnectionState === 'failed') {
+        if (!sawRelayRef.current) {
+          setStatus('no-relay')
+        } else {
+          setStatus('failed')
+        }
+      }
+      // 'disconnected' is transient — don't close, let ICE recover
     }
     pc.onconnectionstatechange = () => {
       addLog(`conn: ${pc.connectionState}`)
       if (pc.connectionState === 'connected') { stopTone(); setStatus('connected') }
-      if (pc.connectionState === 'failed') { cleanup(); onHangup() }
+      if (pc.connectionState === 'failed') {
+        if (!sawRelayRef.current) setStatus('no-relay')
+        else { cleanup(); onHangup() }
+      }
     }
     pc.ontrack = ev => {
-      const stream = ev.streams[0] ?? new MediaStream([ev.track])
+      // Add track to the stable shared stream instead of replacing it
+      const stream = remoteStreamRef.current
+      if (!stream.getTracks().some(t => t.id === ev.track.id)) {
+        stream.addTrack(ev.track)
+      }
       addLog(`track: ${ev.track.kind} vidRef=${!!remoteVideoRef.current} audRef=${!!remoteAudioRef.current}`)
-      attachRemoteStream(stream)
-      // Do NOT setStatus('connected') here — ontrack fires when SDP is parsed,
-      // before ICE connects. Wait for oniceconnectionstatechange.
+      attachRemoteStream()
     }
-    // Timeout: only mark failed if ICE was actually checking.
-    // If ice === 'new', the remote description hasn't been set yet (callee still answering)
-    // — don't show ❌, let the call stay in 'connecting' until ICE truly fails.
+
     connectTimeoutRef.current = setTimeout(() => {
       if (!pcRef.current) return
       const ice = pcRef.current.iceConnectionState
       addLog(`timeout — ice: ${ice}`)
       if (ice !== 'new' && ice !== 'connected' && ice !== 'completed') {
-        setStatus('failed')
+        if (!sawRelayRef.current) setStatus('no-relay')
+        else setStatus('failed')
       }
     }, 60000)
     return pc
@@ -366,8 +402,8 @@ function CallOverlay({ call, onSignal, onRegisterHandler, onHangup, sharedAudioC
     async function start() {
       try {
         addLog('start: fetching ICE servers')
-        const { servers: iceServers, source } = await fetchIceServers()
-        addLog(`start: ${iceServers.length} servers [${source}]`)
+        const { servers: iceServers, source, turnConfigured } = await fetchIceServers()
+        addLog(`start: ${iceServers.length} servers [${source}] turn=${turnConfigured}`)
         const pc = buildPC(iceServers)
         addLog('start: getUserMedia')
         const stream = await navigator.mediaDevices.getUserMedia({ audio: true, video: call.mode === 'video' })
@@ -397,8 +433,8 @@ function CallOverlay({ call, onSignal, onRegisterHandler, onHangup, sharedAudioC
       try {
         setStatus('connecting')
         addLog('answer: fetching ICE servers')
-        const { servers: iceServers, source } = await fetchIceServers()
-        addLog(`answer: ${iceServers.length} servers [${source}]`)
+        const { servers: iceServers, source, turnConfigured } = await fetchIceServers()
+        addLog(`answer: ${iceServers.length} servers [${source}] turn=${turnConfigured}`)
         const pc = buildPC(iceServers)
         addLog('answer: getUserMedia')
         const stream = await navigator.mediaDevices.getUserMedia({ audio: true, video: call.mode === 'video' })
@@ -462,7 +498,11 @@ function CallOverlay({ call, onSignal, onRegisterHandler, onHangup, sharedAudioC
           <div>
             <p className="text-white text-sm font-medium">{call.peer.name ?? call.peer.id}</p>
             <p className="text-zinc-400 text-xs">
-              {status === 'connecting' ? `Conectando… [${iceState}]` : status === 'connected' ? 'En llamada' : status === 'failed' ? '❌ Sin conexión' : 'Llamando…'}
+              {status === 'ringing' ? 'Llamando…'
+                : status === 'connecting' ? `Buscando ruta de red… [${iceState}]`
+                : status === 'connected' ? 'En llamada'
+                : status === 'no-relay' ? '⚠ Red requiere relay TURN'
+                : '❌ Sin conexión'}
             </p>
             {sigLog.length > 0 && (
               <div className="text-zinc-600 text-[9px] leading-tight max-w-[220px]">
@@ -508,10 +548,21 @@ function CallOverlay({ call, onSignal, onRegisterHandler, onHangup, sharedAudioC
           <span className={`w-24 h-24 rounded-full flex items-center justify-center text-4xl font-bold text-white ${avatarColor(call.peer.id)}`}>
             {initials(call.peer.name, call.peer.id)}
           </span>
-          <p className="text-zinc-400 text-sm">
-            {status === 'connecting' ? `Conectando… [${iceState}]` : status === 'connected' ? 'En llamada de voz' : status === 'failed' ? '❌ Sin conexión' : 'Llamando…'}
-          </p>
-          <audio ref={remoteAudioRef} autoPlay />
+          {status === 'no-relay' ? (
+            <div className="flex flex-col items-center gap-3 max-w-xs text-center">
+              <p className="text-amber-400 text-sm font-medium">⚠ No se pudo conectar la llamada</p>
+              <p className="text-zinc-500 text-xs">La red requiere un servidor relay (TURN) para conectar entre distintas redes.</p>
+              <button onClick={hangup} className="px-4 py-1.5 rounded-full bg-red-600 hover:bg-red-500 text-white text-sm">Colgar</button>
+            </div>
+          ) : (
+            <p className="text-zinc-400 text-sm">
+              {status === 'ringing' ? 'Llamando…'
+                : status === 'connecting' ? `Buscando ruta de red… [${iceState}]`
+                : status === 'connected' ? 'En llamada de voz'
+                : '❌ Sin audio/vídeo'}
+            </p>
+          )}
+          <audio ref={remoteAudioRef} autoPlay playsInline />
         </div>
       )}
     </div>
