@@ -120,8 +120,6 @@ function JitsiOverlay({ call, onHangup }: {
   call: JitsiCall
   onHangup: () => void
 }) {
-  const containerRef = useRef<HTMLDivElement>(null)
-  const apiRef = useRef<unknown>(null)
   const [accepted, setAccepted] = useState(!call.incoming)
 
   function accept() {
@@ -130,64 +128,26 @@ function JitsiOverlay({ call, onHangup }: {
 
   useEffect(() => {
     if (!accepted) return
-    // Load Jitsi Meet External API
-    const scriptId = 'jitsi-api'
-    function startJitsi() {
-      if (!containerRef.current) return
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      const JitsiMeetExternalAPI = (window as any).JitsiMeetExternalAPI
-      if (!JitsiMeetExternalAPI) return
-      const api = new JitsiMeetExternalAPI('meet.jit.si', {
-        roomName: call.roomName,
-        parentNode: containerRef.current,
-        width: '100%',
-        height: '100%',
-        configOverwrite: {
-          startWithAudioMuted: false,
-          startWithVideoMuted: call.mode === 'audio',
-          prejoinPageEnabled: false,
-          disableDeepLinking: true,
-          disableInviteFunctions: true,
-          enableNoisyMicDetection: false,
-        },
-        interfaceConfigOverwrite: {
-          SHOW_JITSI_WATERMARK: false,
-          SHOW_WATERMARK_FOR_GUESTS: false,
-          TOOLBAR_BUTTONS: call.mode === 'audio'
-            ? ['microphone', 'hangup', 'chat']
-            : ['microphone', 'camera', 'hangup', 'chat', 'fullscreen'],
-        },
-        userInfo: { displayName: call.myName ?? 'Usuario MITIKUS' },
-      })
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      api.addEventListeners({ readyToClose: onHangup, videoConferenceLeft: onHangup } as any)
-      apiRef.current = api
+    const params = new URLSearchParams({
+      config: JSON.stringify({
+        startWithAudioMuted: false,
+        startWithVideoMuted: call.mode === 'audio',
+        prejoinPageEnabled: false,
+        disableDeepLinking: true,
+      }),
+    })
+    const url = `https://meet.jit.si/${call.roomName}#userInfo.displayName="${encodeURIComponent(call.myName ?? 'Usuario MITIKUS')}"`
+    const win = window.open(url, '_blank', 'noopener')
+    if (!win) {
+      // fallback if popup blocked
+      window.location.href = url
     }
-
-    if (!(window as unknown as Record<string, unknown>)['JitsiMeetExternalAPI']) {
-      if (!document.getElementById(scriptId)) {
-        const s = document.createElement('script')
-        s.id = scriptId
-        s.src = 'https://meet.jit.si/external_api.js'
-        s.onload = startJitsi
-        document.head.appendChild(s)
-      } else {
-        const existing = document.getElementById(scriptId)
-        if (existing) existing.addEventListener('load', startJitsi)
-      }
-    } else {
-      startJitsi()
-    }
-
-    return () => {
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      ;(apiRef.current as any)?.dispose?.()
-    }
+    onHangup()
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [accepted])
 
+  // Incoming call — show accept/reject. Outgoing opens tab automatically via useEffect.
   if (!accepted) {
-    // Incoming call screen
     return (
       <div className="fixed inset-0 z-[80] bg-black/80 flex items-center justify-center">
         <div className="bg-card rounded-2xl p-8 flex flex-col items-center gap-6 shadow-2xl">
@@ -204,7 +164,7 @@ function JitsiOverlay({ call, onHangup }: {
             <button onClick={onHangup}
               className="w-14 h-14 rounded-full bg-red-600 hover:bg-red-500 text-white flex items-center justify-center text-2xl"
               title="Rechazar">✕</button>
-            <button onClick={accept}
+            <button onClick={() => setAccepted(true)}
               className="w-14 h-14 rounded-full bg-green-600 hover:bg-green-500 text-white flex items-center justify-center text-2xl"
               title="Aceptar">✓</button>
           </div>
@@ -213,20 +173,8 @@ function JitsiOverlay({ call, onHangup }: {
     )
   }
 
-  return (
-    <div className="fixed inset-0 z-[80] bg-black flex flex-col">
-      <div className="flex items-center justify-between px-4 py-2 bg-zinc-900 shrink-0">
-        <span className="text-white text-sm font-medium">
-          {call.mode === 'video' ? '📹' : '📞'} {call.peer.name ?? call.peer.id}
-        </span>
-        <button onClick={onHangup}
-          className="px-3 py-1.5 rounded-lg bg-red-600 hover:bg-red-500 text-white text-sm font-medium">
-          Colgar
-        </button>
-      </div>
-      <div ref={containerRef} className="flex-1" />
-    </div>
-  )
+  // accepted=true → useEffect opens tab and calls onHangup → overlay unmounts
+  return null
 }
 
 // ─── Main component ────────────────────────────────────────────────────────────
