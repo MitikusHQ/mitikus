@@ -3,7 +3,7 @@ import { auth } from '@clerk/nextjs/server'
 import { db } from '@/lib/db'
 
 // GET /api/team/members
-// Returns all members of the current user's org with their presence
+// Returns all members of the current user's org with their presence, jobTitle and department
 export async function GET() {
   const { userId: clerkId } = await auth()
   if (!clerkId) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
@@ -21,9 +21,11 @@ export async function GET() {
       name: true,
       email: true,
       avatarUrl: true,
+      jobTitle: true,
+      department: true,
       presence: { select: { status: true, updatedAt: true } },
     },
-    orderBy: { name: 'asc' },
+    orderBy: [{ department: 'asc' }, { name: 'asc' }],
   })
 
   return NextResponse.json({
@@ -32,6 +34,8 @@ export async function GET() {
       name: m.name,
       email: m.email,
       avatarUrl: m.avatarUrl ?? null,
+      jobTitle: m.jobTitle ?? null,
+      department: m.department ?? null,
       isMe: m.id === me.id,
       status: m.presence?.status ?? 'OFFLINE',
       presenceUpdatedAt: m.presence?.updatedAt ?? null,

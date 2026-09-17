@@ -95,6 +95,51 @@ export function ChatBubbleBar({ myId }: { myId: string }) {
     return () => clearInterval(id)
   }, [])
 
+  // Open DM from TeamPanel click (mitikus:open-dm event)
+  useEffect(() => {
+    async function onOpenDm(e: Event) {
+      const member = (e as CustomEvent<{ member: Member }>).detail.member
+      if (!member || member.isMe) return
+      // Find existing open chat
+      setChats(prev => {
+        const existing = prev.find(c => c.member.id === member.id)
+        if (existing) {
+          // Restore if minimized
+          return prev.map(c => c.member.id === member.id ? { ...c, minimized: false } : c)
+        }
+        return prev
+      })
+      // If no existing chat, open a new one — find or create conversation
+      setChats(prev => {
+        if (prev.find(c => c.member.id === member.id)) return prev
+        // Trigger async open
+        openDmAsync(member)
+        return prev
+      })
+    }
+    window.addEventListener('mitikus:open-dm', onOpenDm)
+    return () => window.removeEventListener('mitikus:open-dm', onOpenDm)
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [])
+
+  async function openDmAsync(member: Member) {
+    // Create or find conversation
+    const res = await fetch('/api/team/conversations', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ participantId: member.id }),
+    })
+    if (!res.ok) return
+    const data = await res.json() as { conversationId: string }
+    const convId = data.conversationId
+    const messages = await loadMessages(convId)
+    setChats(prev => {
+      if (prev.find(c => c.member.id === member.id)) return prev
+      const kept = prev.slice(-2)
+      return [...kept, { member, convId, messages, unread: 0, minimized: false, draft: '', sending: false }]
+    })
+  }
+
   // Poll for new message events — auto-open chat window when message arrives
   useEffect(() => {
     async function poll() {
