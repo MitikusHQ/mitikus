@@ -268,7 +268,6 @@ model User {
   name      String?
   avatarUrl String?  // URL foto de perfil (Cloudinary)
   jobTitle   String?  // Cargo libre: "CEO", "Diseñadora", etc.
-  department String?  // Departamento: "Ventas", "Tech", "RRHH", etc.
   orgId      String
   role      OrgRole  @default(MEMBER)
   navPermissions String[] @default([]) // secciones habilitadas individualmente (vacío = usa defaults del rol)
