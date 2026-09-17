@@ -54,6 +54,8 @@ interface Props {
   locale: Locale
   pendingCall?: PendingCall | null
   onPendingCallHandled?: () => void
+  bubbleCallRequest?: { peerId: string; mode: 'audio' | 'video' } | null
+  onBubbleCallHandled?: () => void
 }
 
 // ─── ICE config ──────────────────────────────────────────────────────────────
@@ -149,7 +151,7 @@ function PresenceDot({ status, statusLabel }: { status: PresenceStatus; statusLa
 
 // ─── Main component ───────────────────────────────────────────────────────────
 
-export function TeamPanel({ onClose, myId, locale, pendingCall, onPendingCallHandled }: Props) {
+export function TeamPanel({ onClose, myId, locale, pendingCall, onPendingCallHandled, bubbleCallRequest, onBubbleCallHandled }: Props) {
   const t = getDashboardTranslations(locale)
   const [members, setMembers] = useState<Member[]>([])
   const [myStatus, setMyStatus] = useState<PresenceStatus>('AVAILABLE')
@@ -203,6 +205,16 @@ export function TeamPanel({ onClose, myId, locale, pendingCall, onPendingCallHan
 
   // Polling cursor
   const lastEventTime = useRef(new Date().toISOString())
+  // Start call requested from ChatBubbleBar (opens TeamPanel then auto-starts call)
+  useEffect(() => {
+    if (!bubbleCallRequest || members.length === 0) return
+    const peer = members.find(m => m.id === bubbleCallRequest.peerId)
+    if (!peer || peer.isMe) return
+    onBubbleCallHandled?.()
+    void startCall(peer, bubbleCallRequest.mode)
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [bubbleCallRequest, members])
+
   // Accept call passed from TeamEventWatcher (stream pre-acquired on Accept click)
   useEffect(() => {
     if (!pendingCall) return

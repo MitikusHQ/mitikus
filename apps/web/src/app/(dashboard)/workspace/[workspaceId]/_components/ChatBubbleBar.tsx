@@ -32,13 +32,6 @@ interface ChatWindow {
   sending: boolean
 }
 
-const PRESENCE_DOT: Record<Status, string> = {
-  OFFLINE: 'bg-zinc-400',
-  AVAILABLE: 'bg-green-500',
-  BUSY: 'bg-yellow-400',
-  IN_MEETING: 'bg-red-500',
-}
-
 const AVATAR_COLORS = [
   'bg-violet-500', 'bg-blue-500', 'bg-sky-500', 'bg-teal-500',
   'bg-emerald-500', 'bg-amber-500', 'bg-orange-500', 'bg-rose-500',
@@ -83,11 +76,11 @@ function playMsgSound(ctx: AudioContext) {
 export function ChatBubbleBar({ myId }: { myId: string }) {
   const [members, setMembers] = useState<Member[]>([])
   const [chats, setChats] = useState<ChatWindow[]>([])
-  // Unread count for conversations not yet opened as a chat window (keyed by senderId)
-  const [pendingUnread, setPendingUnread] = useState<Record<string, number>>({})
   const lastEventTime = useRef(new Date().toISOString())
   const audioCtxRef = useRef<AudioContext | null>(null)
   const msgEndRefs = useRef<Record<string, HTMLDivElement | null>>({})
+  // Track convIds we're currently auto-opening to avoid duplicates
+  const openingRef = useRef<Set<string>>(new Set())
 
   // Load team members
   useEffect(() => {
@@ -102,42 +95,56 @@ export function ChatBubbleBar({ myId }: { myId: string }) {
     return () => clearInterval(id)
   }, [])
 
-  // Poll for new message events
+  // Poll for new message events — auto-open chat window when message arrives
   useEffect(() => {
     async function poll() {
       try {
         const res = await fetch(`/api/team/events?since=${encodeURIComponent(lastEventTime.current)}`)
         if (!res.ok) return
-        const data = await res.json() as { events: Array<{ type: string; payload: Record<string, unknown> }>; serverTime: string }
+        const data = await res.json() as {
+          events: Array<{ type: string; payload: Record<string, unknown> }>
+          serverTime: string
+        }
         lastEventTime.current = data.serverTime
         let played = false
+
         for (const ev of data.events) {
           if (ev.type !== 'new_message') continue
           const convId = String(ev.payload['conversationId'])
           const senderId = String(ev.payload['senderId'] ?? '')
+
           setChats(prev => {
-            const idx = prev.findIndex(c => c.convId === convId)
-            if (idx === -1) {
-              // Conversation not open — track pending unread by sender
-              if (senderId && senderId !== myId) {
-                setPendingUnread(p => ({ ...p, [senderId]: (p[senderId] ?? 0) + 1 }))
-              }
-              return prev
+            const existing = prev.find(c => c.convId === convId)
+            if (existing) {
+              // Window already open — increment unread if minimized
+              return prev.map(c =>
+                c.convId === convId
+                  ? { ...c, unread: c.minimized ? c.unread + 1 : c.unread }
+                  : c
+              )
             }
-            return prev.map(c =>
-              c.convId === convId
-                ? { ...c, unread: c.minimized ? c.unread + 1 : c.unread }
-                : c
-            )
+            // No window yet — auto-open will be triggered below (return unchanged for now)
+            return prev
           })
-          // Reload messages for open chats
-          const openChat = chats.find(c => c.convId === convId)
-          if (openChat && !openChat.minimized) {
-            void loadMessages(convId).then(msgs => {
-              setChats(prev => prev.map(c => c.convId === convId ? { ...c, messages: msgs } : c))
-              setTimeout(() => msgEndRefs.current[convId]?.scrollIntoView({ behavior: 'smooth' }), 50)
+
+          // Auto-open: find member and open chat window
+          setChats(prev => {
+            const existing = prev.find(c => c.convId === convId)
+            if (existing || openingRef.current.has(convId)) return prev
+            // Find the sender in members
+            setMembers(currentMembers => {
+              const sender = currentMembers.find(m => m.id === senderId)
+              if (sender && !openingRef.current.has(convId)) {
+                openingRef.current.add(convId)
+                autoOpenChat(sender, convId).catch(() => {
+                  openingRef.current.delete(convId)
+                })
+              }
+              return currentMembers
             })
-          }
+            return prev
+          })
+
           if (!played) {
             played = true
             if (!audioCtxRef.current) audioCtxRef.current = createAudioCtx()
@@ -152,7 +159,7 @@ export function ChatBubbleBar({ myId }: { myId: string }) {
     const id = setInterval(poll, 2000)
     return () => clearInterval(id)
   // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [chats])
+  }, [])
 
   async function loadMessages(convId: string): Promise<Message[]> {
     const res = await fetch(`/api/team/conversations/${convId}/messages`)
@@ -161,30 +168,18 @@ export function ChatBubbleBar({ myId }: { myId: string }) {
     return data.messages
   }
 
-  async function openChat(member: Member) {
-    // Clear pending unread badge for this member
-    setPendingUnread(prev => { const next = { ...prev }; delete next[member.id]; return next })
-    const existing = chats.find(c => c.member.id === member.id)
-    if (existing) {
-      setChats(prev => prev.map(c =>
-        c.member.id === member.id ? { ...c, minimized: !c.minimized, unread: 0 } : c
-      ))
-      return
-    }
-    const res = await fetch('/api/team/conversations', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ peerId: member.id }),
-    })
-    if (!res.ok) return
-    const data = await res.json() as { conversationId: string }
-    const convId = data.conversationId
+  async function autoOpenChat(member: Member, convId: string) {
     const messages = await loadMessages(convId)
     setChats(prev => {
+      if (prev.find(c => c.convId === convId)) {
+        openingRef.current.delete(convId)
+        return prev
+      }
       const kept = prev.slice(-2)
-      return [...kept, { member, convId, messages, unread: 0, minimized: false, draft: '', sending: false }]
+      openingRef.current.delete(convId)
+      return [...kept, { member, convId, messages, unread: 1, minimized: false, draft: '', sending: false }]
     })
-    setTimeout(() => msgEndRefs.current[data.conversationId]?.scrollIntoView(), 80)
+    setTimeout(() => msgEndRefs.current[convId]?.scrollIntoView(), 80)
   }
 
   function closeChat(memberId: string) {
@@ -205,11 +200,14 @@ export function ChatBubbleBar({ myId }: { myId: string }) {
     setTimeout(() => msgEndRefs.current[chat.convId]?.scrollIntoView({ behavior: 'smooth' }), 50)
   }
 
-  if (members.length === 0) return null
+  function startCallFromBubble(peerId: string, mode: 'audio' | 'video') {
+    window.dispatchEvent(new CustomEvent('mitikus:bubble-call', { detail: { peerId, mode } }))
+  }
+
+  if (chats.length === 0) return null
 
   return (
     <div className="fixed bottom-0 right-3 z-[65] flex items-end gap-2">
-      {/* Open chat windows */}
       {chats.map(chat => (
         <div key={chat.member.id} className="flex flex-col" style={{ width: 288 }}>
           <div className="rounded-t-xl overflow-hidden shadow-2xl border border-border bg-card">
@@ -221,9 +219,18 @@ export function ChatBubbleBar({ myId }: { myId: string }) {
               ))}
               className="w-full flex items-center gap-2 px-3 py-2.5 bg-primary text-primary-foreground hover:bg-primary/90 transition-colors"
             >
-              <span className={`w-7 h-7 rounded-full ${avatarColor(chat.member.id)} flex items-center justify-center text-[11px] font-bold text-white shrink-0`}>
-                {initials(chat.member.name, chat.member.email)}
-              </span>
+              {/* Avatar */}
+              {chat.member.avatarUrl ? (
+                <img
+                  src={chat.member.avatarUrl}
+                  alt={chat.member.name ?? chat.member.email}
+                  className="w-7 h-7 rounded-full object-cover shrink-0"
+                />
+              ) : (
+                <span className={`w-7 h-7 rounded-full ${avatarColor(chat.member.id)} flex items-center justify-center text-[11px] font-bold text-white shrink-0`}>
+                  {initials(chat.member.name, chat.member.email)}
+                </span>
+              )}
               <span className="text-sm font-semibold truncate flex-1 text-left">
                 {chat.member.name ?? chat.member.email}
               </span>
@@ -232,12 +239,39 @@ export function ChatBubbleBar({ myId }: { myId: string }) {
                   {chat.unread}
                 </span>
               )}
+              {/* Call buttons */}
+              <span
+                role="button"
+                tabIndex={0}
+                onClick={e => { e.stopPropagation(); startCallFromBubble(chat.member.id, 'audio') }}
+                onKeyDown={e => { if (e.key === 'Enter') { e.stopPropagation(); startCallFromBubble(chat.member.id, 'audio') } }}
+                className="opacity-80 hover:opacity-100 p-0.5 shrink-0"
+                aria-label="Llamada"
+                title="Llamada de audio"
+              >
+                <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" aria-hidden>
+                  <path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07A19.5 19.5 0 0 1 4.69 12a19.79 19.79 0 0 1-3-8.63A2 2 0 0 1 3.77 1h3a2 2 0 0 1 2 1.72c.127.96.361 1.903.7 2.81a2 2 0 0 1-.45 2.11L7.91 8.69a16 16 0 0 0 6.29 6.29l1.06-1.06a2 2 0 0 1 2.11-.45c.907.339 1.85.573 2.81.7A2 2 0 0 1 22 16.92z" />
+                </svg>
+              </span>
+              <span
+                role="button"
+                tabIndex={0}
+                onClick={e => { e.stopPropagation(); startCallFromBubble(chat.member.id, 'video') }}
+                onKeyDown={e => { if (e.key === 'Enter') { e.stopPropagation(); startCallFromBubble(chat.member.id, 'video') } }}
+                className="opacity-80 hover:opacity-100 p-0.5 shrink-0"
+                aria-label="Videollamada"
+                title="Videollamada"
+              >
+                <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" aria-hidden>
+                  <polygon points="23 7 16 12 23 17 23 7" /><rect x="1" y="5" width="15" height="14" rx="2" />
+                </svg>
+              </span>
               <span
                 role="button"
                 tabIndex={0}
                 onClick={e => { e.stopPropagation(); closeChat(chat.member.id) }}
                 onKeyDown={e => { if (e.key === 'Enter') { e.stopPropagation(); closeChat(chat.member.id) } }}
-                className="opacity-60 hover:opacity-100 text-xs ml-1 shrink-0"
+                className="opacity-60 hover:opacity-100 text-xs ml-0.5 shrink-0"
                 aria-label="Cerrar chat"
               >✕</span>
             </button>
@@ -296,59 +330,6 @@ export function ChatBubbleBar({ myId }: { myId: string }) {
           </div>
         </div>
       ))}
-
-      {/* Avatar bubbles row */}
-      <div className="flex items-center gap-2 pb-1.5">
-        {members.map(member => {
-          const chat = chats.find(c => c.member.id === member.id)
-          const unreadCount = (chat?.unread ?? 0) + (pendingUnread[member.id] ?? 0)
-          const hasUnread = unreadCount > 0
-          const isOpen = !!chat && !chat.minimized
-
-          return (
-            <button
-              key={member.id}
-              type="button"
-              onClick={() => void openChat(member)}
-              title={member.name ?? member.email}
-              aria-label={`Chat con ${member.name ?? member.email}`}
-              className="relative group shrink-0"
-            >
-              {/* Outer pulse ring when unread */}
-              {hasUnread && (
-                <span className="absolute inset-[-3px] rounded-full border-2 border-primary animate-ping opacity-60" />
-              )}
-              {/* Active indicator */}
-              {isOpen && !hasUnread && (
-                <span className="absolute inset-[-2px] rounded-full border-2 border-primary opacity-70" />
-              )}
-
-              {/* Avatar */}
-              {member.avatarUrl ? (
-                <img
-                  src={member.avatarUrl}
-                  alt={member.name ?? member.email}
-                  className="w-11 h-11 rounded-full object-cover border-[3px] border-card shadow-lg group-hover:scale-105 transition-transform"
-                />
-              ) : (
-                <span className={`w-11 h-11 rounded-full ${avatarColor(member.id)} flex items-center justify-center text-sm font-bold text-white border-[3px] border-card shadow-lg group-hover:scale-105 transition-transform`}>
-                  {initials(member.name, member.email)}
-                </span>
-              )}
-
-              {/* Presence dot */}
-              <span className={`absolute bottom-0.5 right-0.5 w-3 h-3 rounded-full border-2 border-card ${PRESENCE_DOT[member.status]}`} />
-
-              {/* Unread badge */}
-              {hasUnread && (
-                <span className="absolute -top-1 -right-1 bg-primary text-primary-foreground text-[9px] font-bold rounded-full min-w-[16px] h-4 flex items-center justify-center px-1 animate-bounce shadow">
-                  {unreadCount > 9 ? '9+' : unreadCount}
-                </span>
-              )}
-            </button>
-          )
-        })}
-      </div>
     </div>
   )
 }

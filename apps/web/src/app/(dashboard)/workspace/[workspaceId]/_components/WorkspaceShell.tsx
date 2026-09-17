@@ -63,6 +63,18 @@ export function WorkspaceShell({ workspaceId, workspaceName, workspaceLogoUrl, w
     setPendingCall(call)
     setTeamPanelOpen(true)
   }, [])
+  const [bubbleCallRequest, setBubbleCallRequest] = useState<{ peerId: string; mode: 'audio' | 'video' } | null>(null)
+
+  // Listen for call requests initiated from ChatBubbleBar chat windows
+  useEffect(() => {
+    function onBubbleCall(e: Event) {
+      const { peerId, mode } = (e as CustomEvent<{ peerId: string; mode: 'audio' | 'video' }>).detail
+      setBubbleCallRequest({ peerId, mode })
+      setTeamPanelOpen(true)
+    }
+    window.addEventListener('mitikus:bubble-call', onBubbleCall)
+    return () => window.removeEventListener('mitikus:bubble-call', onBubbleCall)
+  }, [])
   const [onboardingOpen, setOnboardingOpen] = useState(false)
   const [onboardingIsFirstTime, setOnboardingIsFirstTime] = useState(false)
   const isFullscreen = useIsFullscreen(workspaceId)
@@ -199,6 +211,8 @@ export function WorkspaceShell({ workspaceId, workspaceName, workspaceLogoUrl, w
               locale={locale}
               pendingCall={pendingCall}
               onPendingCallHandled={() => setPendingCall(null)}
+              bubbleCallRequest={bubbleCallRequest}
+              onBubbleCallHandled={() => setBubbleCallRequest(null)}
             />
           )}
         </div>
