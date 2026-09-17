@@ -40,14 +40,21 @@ interface ChatWindow {
   sending: boolean
 }
 
-// ─── Jitsi call overlay ───────────────────────────────────────────────────────
+// ─── WebRTC call overlay ──────────────────────────────────────────────────────
 
-interface JitsiCall {
-  roomName: string
+const ICE_SERVERS: RTCIceServer[] = [
+  { urls: 'stun:stun.l.google.com:19302' },
+  { urls: 'stun:stun1.l.google.com:19302' },
+  { urls: 'turn:openrelay.metered.ca:80', username: 'openrelayproject', credential: 'openrelayproject' },
+  { urls: 'turn:openrelay.metered.ca:443', username: 'openrelayproject', credential: 'openrelayproject' },
+  { urls: 'turns:openrelay.metered.ca:443', username: 'openrelayproject', credential: 'openrelayproject' },
+]
+
+interface WebRTCCall {
   peer: { id: string; name: string | null }
-  myName: string | null
-  incoming: boolean
   mode: 'audio' | 'video'
+  incoming: boolean
+  offer?: RTCSessionDescriptionInit
 }
 
 const AVATAR_COLORS = [
@@ -114,21 +121,126 @@ function playMsgSound(ctx: AudioContext) {
   })
 }
 
-// ─── Jitsi overlay ─────────────────────────────────────────────────────────────
+// ─── WebRTC call overlay ───────────────────────────────────────────────────────
 
-function JitsiOverlay({ call, onHangup }: {
-  call: JitsiCall
+type SignalHandler = (type: string, payload: Record<string, unknown>) => void
+
+function CallOverlay({ call, onSignal, onRegisterHandler, onHangup }: {
+  call: WebRTCCall
+  onSignal: (type: string, payload: Record<string, unknown>) => Promise<void>
+  onRegisterHandler: (handler: SignalHandler) => void
   onHangup: () => void
 }) {
   const [accepted, setAccepted] = useState(!call.incoming)
+  const [status, setStatus] = useState<'ringing' | 'connecting' | 'connected'>(
+    call.incoming ? 'ringing' : 'connecting'
+  )
+  const [muted, setMuted] = useState(false)
+  const [videoOff, setVideoOff] = useState(false)
+  const localVideoRef = useRef<HTMLVideoElement>(null)
+  const remoteVideoRef = useRef<HTMLVideoElement>(null)
+  const remoteAudioRef = useRef<HTMLAudioElement>(null)
+  const pcRef = useRef<RTCPeerConnection | null>(null)
+  const streamRef = useRef<MediaStream | null>(null)
+  const pendingIce = useRef<RTCIceCandidateInit[]>([])
 
-  useEffect(() => {
-    if (!accepted) return
-    const name = encodeURIComponent(call.myName ?? 'Usuario MITIKUS')
-    const url = `https://meet.jit.si/${call.roomName}#userInfo.displayName="${name}"&config.prejoinPageEnabled=false&config.startWithVideoMuted=${call.mode === 'audio'}`
-    const win = window.open(url, '_blank', 'noopener')
-    if (!win) window.location.href = url
+  function cleanup() {
+    pcRef.current?.close()
+    pcRef.current = null
+    streamRef.current?.getTracks().forEach(t => t.stop())
+    streamRef.current = null
+  }
+
+  function hangup() {
+    cleanup()
+    void onSignal('call_hangup', {})
     onHangup()
+  }
+
+  async function buildPC(): Promise<RTCPeerConnection> {
+    const pc = new RTCPeerConnection({ iceServers: ICE_SERVERS })
+    pcRef.current = pc
+
+    pc.onicecandidate = ({ candidate }) => {
+      if (candidate) void onSignal('call_ice', { candidate: candidate.toJSON() })
+    }
+    pc.onconnectionstatechange = () => {
+      if (pc.connectionState === 'connected') setStatus('connected')
+      if (pc.connectionState === 'failed' || pc.connectionState === 'disconnected') {
+        cleanup(); onHangup()
+      }
+    }
+    pc.ontrack = ev => {
+      const stream = ev.streams[0]
+      if (!stream) return
+      if (remoteVideoRef.current) remoteVideoRef.current.srcObject = stream
+      if (remoteAudioRef.current) remoteAudioRef.current.srcObject = stream
+    }
+    return pc
+  }
+
+  // Register incoming signal handler with parent
+  useEffect(() => {
+    onRegisterHandler(async (type, payload) => {
+      const pc = pcRef.current
+      if (type === 'call_answer' && pc) {
+        await pc.setRemoteDescription(new RTCSessionDescription(payload['answer'] as RTCSessionDescriptionInit))
+        for (const c of pendingIce.current) await pc.addIceCandidate(new RTCIceCandidate(c))
+        pendingIce.current = []
+        setStatus('connected')
+      }
+      if (type === 'call_ice') {
+        const cand = payload['candidate'] as RTCIceCandidateInit
+        if (pc?.remoteDescription) {
+          await pc.addIceCandidate(new RTCIceCandidate(cand))
+        } else {
+          pendingIce.current.push(cand)
+        }
+      }
+      if (type === 'call_hangup' || type === 'call_reject') {
+        cleanup(); onHangup()
+      }
+    })
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [])
+
+  // Outgoing: create offer on mount
+  useEffect(() => {
+    if (call.incoming) return
+    async function start() {
+      const pc = await buildPC()
+      const stream = await navigator.mediaDevices.getUserMedia({ audio: true, video: call.mode === 'video' })
+      streamRef.current = stream
+      stream.getTracks().forEach(t => pc.addTrack(t, stream))
+      if (localVideoRef.current) localVideoRef.current.srcObject = stream
+      const offer = await pc.createOffer()
+      await pc.setLocalDescription(offer)
+      await onSignal('call_offer', { offer: pc.localDescription, mode: call.mode })
+    }
+    void start()
+    return cleanup
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [])
+
+  // Incoming: create answer when accepted
+  useEffect(() => {
+    if (!call.incoming || !accepted) return
+    async function answer() {
+      setStatus('connecting')
+      const pc = await buildPC()
+      const stream = await navigator.mediaDevices.getUserMedia({ audio: true, video: call.mode === 'video' })
+      streamRef.current = stream
+      stream.getTracks().forEach(t => pc.addTrack(t, stream))
+      if (localVideoRef.current) localVideoRef.current.srcObject = stream
+      await pc.setRemoteDescription(new RTCSessionDescription(call.offer!))
+      for (const c of pendingIce.current) await pc.addIceCandidate(new RTCIceCandidate(c))
+      pendingIce.current = []
+      const ans = await pc.createAnswer()
+      await pc.setLocalDescription(ans)
+      await onSignal('call_answer', { answer: pc.localDescription })
+      setStatus('connected')
+    }
+    void answer()
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [accepted])
 
@@ -141,12 +253,12 @@ function JitsiOverlay({ call, onHangup }: {
           </span>
           <div className="text-center">
             <p className="text-lg font-semibold">{call.peer.name ?? call.peer.id}</p>
-            <p className="text-sm text-muted-foreground mt-1">
+            <p className="text-sm text-muted-foreground mt-1 animate-pulse">
               {call.mode === 'video' ? 'Videollamada entrante' : 'Llamada de voz entrante'}
             </p>
           </div>
           <div className="flex gap-6">
-            <button onClick={onHangup}
+            <button onClick={hangup}
               className="w-14 h-14 rounded-full bg-red-600 hover:bg-red-500 text-white flex items-center justify-center text-2xl"
               title="Rechazar">✕</button>
             <button onClick={() => setAccepted(true)}
@@ -158,8 +270,65 @@ function JitsiOverlay({ call, onHangup }: {
     )
   }
 
-  // Tab opened by useEffect — overlay auto-closes
-  return null
+  return (
+    <div className="fixed inset-0 z-[80] bg-black flex flex-col">
+      <div className="flex items-center justify-between px-4 py-2.5 bg-zinc-900 shrink-0">
+        <div className="flex items-center gap-3">
+          <span className={`w-8 h-8 rounded-full flex items-center justify-center text-sm font-bold text-white ${avatarColor(call.peer.id)}`}>
+            {initials(call.peer.name, call.peer.id)}
+          </span>
+          <div>
+            <p className="text-white text-sm font-medium">{call.peer.name ?? call.peer.id}</p>
+            <p className="text-zinc-400 text-xs">
+              {status === 'connecting' ? 'Conectando…' : status === 'connected' ? 'En llamada' : 'Llamando…'}
+            </p>
+          </div>
+        </div>
+        <div className="flex items-center gap-2">
+          <button onClick={() => {
+            streamRef.current?.getAudioTracks().forEach(t => { t.enabled = muted })
+            setMuted(m => !m)
+          }}
+            className={`w-9 h-9 rounded-full flex items-center justify-center text-sm transition-colors ${muted ? 'bg-red-600' : 'bg-zinc-700 hover:bg-zinc-600'} text-white`}
+            title={muted ? 'Activar micro' : 'Silenciar'}>
+            {muted ? '🔇' : '🎤'}
+          </button>
+          {call.mode === 'video' && (
+            <button onClick={() => {
+              streamRef.current?.getVideoTracks().forEach(t => { t.enabled = videoOff })
+              setVideoOff(v => !v)
+            }}
+              className={`w-9 h-9 rounded-full flex items-center justify-center text-sm transition-colors ${videoOff ? 'bg-red-600' : 'bg-zinc-700 hover:bg-zinc-600'} text-white`}
+              title={videoOff ? 'Activar cámara' : 'Apagar cámara'}>
+              {videoOff ? '📷' : '📹'}
+            </button>
+          )}
+          <button onClick={hangup}
+            className="px-4 py-1.5 rounded-full bg-red-600 hover:bg-red-500 text-white text-sm font-medium">
+            Colgar
+          </button>
+        </div>
+      </div>
+
+      {call.mode === 'video' ? (
+        <div className="flex-1 relative bg-zinc-950">
+          <video ref={remoteVideoRef} autoPlay playsInline className="w-full h-full object-cover" />
+          <video ref={localVideoRef} autoPlay playsInline muted
+            className="absolute bottom-4 right-4 w-36 h-24 rounded-xl object-cover border-2 border-zinc-700 bg-zinc-800" />
+        </div>
+      ) : (
+        <div className="flex-1 flex flex-col items-center justify-center gap-4 bg-zinc-950">
+          <span className={`w-24 h-24 rounded-full flex items-center justify-center text-4xl font-bold text-white ${avatarColor(call.peer.id)}`}>
+            {initials(call.peer.name, call.peer.id)}
+          </span>
+          <p className="text-zinc-400 text-sm">
+            {status === 'connecting' ? 'Conectando…' : status === 'connected' ? 'En llamada de voz' : 'Llamando…'}
+          </p>
+          <audio ref={remoteAudioRef} autoPlay />
+        </div>
+      )}
+    </div>
+  )
 }
 
 // ─── Main component ────────────────────────────────────────────────────────────
@@ -167,12 +336,13 @@ function JitsiOverlay({ call, onHangup }: {
 export function ChatBubbleBar({ myId }: { myId: string }) {
   const [members, setMembers] = useState<Member[]>([])
   const [chats, setChats] = useState<ChatWindow[]>([])
-  const [jitsiCall, setJitsiCall] = useState<JitsiCall | null>(null)
+  const [webrtcCall, setWebrtcCall] = useState<WebRTCCall | null>(null)
   const lastEventTime = useRef(new Date().toISOString())
   const audioCtxRef = useRef<AudioContext | null>(null)
   const msgEndRefs = useRef<Record<string, HTMLDivElement | null>>({})
   const openingRef = useRef<Set<string>>(new Set())
   const fileInputRefs = useRef<Record<string, HTMLInputElement | null>>({})
+  const callSignalHandlerRef = useRef<SignalHandler | null>(null)
 
   // Load team members
   useEffect(() => {
@@ -242,26 +412,17 @@ export function ChatBubbleBar({ myId }: { myId: string }) {
         let played = false
 
         for (const ev of data.events) {
-          // Jitsi call invite
-          if (ev.type === 'jitsi_call') {
-            const { roomName, fromUserId, fromUserName, mode } = ev.payload as {
-              roomName: string; fromUserId: string; fromUserName: string | null; mode: 'audio' | 'video'
+          // WebRTC signaling
+          if (ev.type === 'call_offer') {
+            const { offer, fromUserId, fromUserName, mode } = ev.payload as {
+              offer: RTCSessionDescriptionInit; fromUserId: string; fromUserName: string | null; mode: 'audio' | 'video'
             }
-            setMembers(currentMembers => {
-              const me = currentMembers.find(m => m.id === myId) ?? null
-              setJitsiCall({
-                roomName,
-                peer: { id: fromUserId, name: fromUserName },
-                myName: me?.name ?? null,
-                incoming: true,
-                mode,
-              })
-              return currentMembers
-            })
+            setWebrtcCall({ peer: { id: fromUserId, name: fromUserName }, mode, incoming: true, offer })
             continue
           }
-          if (ev.type === 'jitsi_hangup') {
-            setJitsiCall(null)
+          if (ev.type === 'call_answer' || ev.type === 'call_ice' || ev.type === 'call_hangup' || ev.type === 'call_reject') {
+            callSignalHandlerRef.current?.(ev.type, ev.payload)
+            if (ev.type === 'call_hangup' || ev.type === 'call_reject') setWebrtcCall(null)
             continue
           }
 
@@ -381,9 +542,9 @@ export function ChatBubbleBar({ myId }: { myId: string }) {
     setTimeout(() => msgEndRefs.current[chat.convId]?.scrollIntoView({ behavior: 'smooth' }), 50)
   }
 
-  // ─── Jitsi call helpers ──────────────────────────────────────────────────────
+  // ─── WebRTC call helpers ─────────────────────────────────────────────────────
 
-  async function signalJitsi(targetUserId: string, type: 'jitsi_call' | 'jitsi_hangup', payload: Record<string, unknown> = {}) {
+  async function sendSignal(targetUserId: string, type: string, payload: Record<string, unknown> = {}) {
     await fetch('/api/team/signal', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
@@ -391,16 +552,8 @@ export function ChatBubbleBar({ myId }: { myId: string }) {
     })
   }
 
-  function startJitsiCall(peer: Member, mode: 'audio' | 'video') {
-    const roomName = `mitikus-${[myId, peer.id].sort().join('-')}-${Date.now()}`
-    const myMember = members.find(m => m.id === myId) ?? null
-    setJitsiCall({ roomName, peer: { id: peer.id, name: peer.name }, myName: myMember?.name ?? null, incoming: false, mode })
-    void signalJitsi(peer.id, 'jitsi_call', { roomName, mode })
-  }
-
-  function hangupJitsi(peerId?: string) {
-    if (peerId) void signalJitsi(peerId, 'jitsi_hangup', {})
-    setJitsiCall(null)
+  function startCall(peer: Member, mode: 'audio' | 'video') {
+    setWebrtcCall({ peer: { id: peer.id, name: peer.name }, mode, incoming: false })
   }
 
   // Listen for call requests from ChatBubble buttons (mitikus:bubble-call)
@@ -408,22 +561,24 @@ export function ChatBubbleBar({ myId }: { myId: string }) {
     function onBubbleCall(e: Event) {
       const { peerId, mode } = (e as CustomEvent<{ peerId: string; mode: 'audio' | 'video' }>).detail
       const peer = members.find(m => m.id === peerId)
-      if (peer) startJitsiCall(peer, mode)
+      if (peer) startCall(peer, mode)
     }
     window.addEventListener('mitikus:bubble-call', onBubbleCall)
     return () => window.removeEventListener('mitikus:bubble-call', onBubbleCall)
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [members])
 
-  if (chats.length === 0 && !jitsiCall) return null
+  if (chats.length === 0 && !webrtcCall) return null
 
   return (
     <>
-      {/* Jitsi call overlay */}
-      {jitsiCall && (
-        <JitsiOverlay
-          call={jitsiCall}
-          onHangup={() => hangupJitsi(jitsiCall.peer.id)}
+      {/* WebRTC call overlay */}
+      {webrtcCall && (
+        <CallOverlay
+          call={webrtcCall}
+          onSignal={(type, payload) => sendSignal(webrtcCall.peer.id, type, payload)}
+          onRegisterHandler={handler => { callSignalHandlerRef.current = handler }}
+          onHangup={() => setWebrtcCall(null)}
         />
       )}
 
@@ -463,7 +618,7 @@ export function ChatBubbleBar({ myId }: { myId: string }) {
                 {/* Audio call */}
                 <button
                   type="button"
-                  onClick={() => startJitsiCall(chat.member, 'audio')}
+                  onClick={() => startCall(chat.member, 'audio')}
                   className="opacity-80 hover:opacity-100 p-0.5 shrink-0"
                   title="Llamada de voz"
                 >
@@ -475,7 +630,7 @@ export function ChatBubbleBar({ myId }: { myId: string }) {
                 {/* Video call */}
                 <button
                   type="button"
-                  onClick={() => startJitsiCall(chat.member, 'video')}
+                  onClick={() => startCall(chat.member, 'video')}
                   className="opacity-80 hover:opacity-100 p-0.5 shrink-0"
                   title="Videollamada"
                 >
