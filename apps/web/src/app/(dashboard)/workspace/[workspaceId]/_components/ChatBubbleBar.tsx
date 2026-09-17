@@ -314,9 +314,11 @@ function CallOverlay({ call, onSignal, onRegisterHandler, onHangup, sharedAudioC
           addLog(`setRemote ERR: ${e instanceof Error ? e.message : String(e)}`)
         }
       }
-      if (type === 'call_ice' && pc) {
+      if (type === 'call_ice') {
         const cand = payload['candidate'] as RTCIceCandidateInit
-        if (pc.remoteDescription) {
+        // Buffer if pc is not built yet (null) OR remote description not set.
+        // This handles the race where call_ice arrives before answer() builds the PC.
+        if (pc?.remoteDescription) {
           await pc.addIceCandidate(new RTCIceCandidate(cand)).catch(() => {})
         } else {
           pendingIce.current.push(cand)
