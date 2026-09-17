@@ -45,6 +45,7 @@ interface ChatWindow {
 interface JitsiCall {
   roomName: string
   peer: { id: string; name: string | null }
+  myName: string | null
   incoming: boolean
   mode: 'audio' | 'video'
 }
@@ -115,9 +116,8 @@ function playMsgSound(ctx: AudioContext) {
 
 // ─── Jitsi overlay ─────────────────────────────────────────────────────────────
 
-function JitsiOverlay({ call, myId, onHangup }: {
+function JitsiOverlay({ call, onHangup }: {
   call: JitsiCall
-  myId: string
   onHangup: () => void
 }) {
   const containerRef = useRef<HTMLDivElement>(null)
@@ -147,7 +147,8 @@ function JitsiOverlay({ call, myId, onHangup }: {
           startWithVideoMuted: call.mode === 'audio',
           prejoinPageEnabled: false,
           disableDeepLinking: true,
-          e2eeEnabled: true,
+          disableInviteFunctions: true,
+          enableNoisyMicDetection: false,
         },
         interfaceConfigOverwrite: {
           SHOW_JITSI_WATERMARK: false,
@@ -156,7 +157,7 @@ function JitsiOverlay({ call, myId, onHangup }: {
             ? ['microphone', 'hangup', 'chat']
             : ['microphone', 'camera', 'hangup', 'chat', 'fullscreen'],
         },
-        userInfo: { displayName: 'Usuario MITIKUS' },
+        userInfo: { displayName: call.myName ?? 'Usuario MITIKUS' },
       })
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
       api.addEventListeners({ readyToClose: onHangup, videoConferenceLeft: onHangup } as any)
@@ -313,11 +314,16 @@ export function ChatBubbleBar({ myId }: { myId: string }) {
             const { roomName, fromUserId, fromUserName, mode } = ev.payload as {
               roomName: string; fromUserId: string; fromUserName: string | null; mode: 'audio' | 'video'
             }
-            setJitsiCall({
-              roomName,
-              peer: { id: fromUserId, name: fromUserName },
-              incoming: true,
-              mode,
+            setMembers(currentMembers => {
+              const me = currentMembers.find(m => m.id === myId) ?? null
+              setJitsiCall({
+                roomName,
+                peer: { id: fromUserId, name: fromUserName },
+                myName: me?.name ?? null,
+                incoming: true,
+                mode,
+              })
+              return currentMembers
             })
             continue
           }
@@ -454,7 +460,8 @@ export function ChatBubbleBar({ myId }: { myId: string }) {
 
   function startJitsiCall(peer: Member, mode: 'audio' | 'video') {
     const roomName = `mitikus-${[myId, peer.id].sort().join('-')}-${Date.now()}`
-    setJitsiCall({ roomName, peer: { id: peer.id, name: peer.name }, incoming: false, mode })
+    const myMember = members.find(m => m.id === myId) ?? null
+    setJitsiCall({ roomName, peer: { id: peer.id, name: peer.name }, myName: myMember?.name ?? null, incoming: false, mode })
     void signalJitsi(peer.id, 'jitsi_call', { roomName, mode })
   }
 
@@ -483,7 +490,6 @@ export function ChatBubbleBar({ myId }: { myId: string }) {
       {jitsiCall && (
         <JitsiOverlay
           call={jitsiCall}
-          myId={myId}
           onHangup={() => hangupJitsi(jitsiCall.peer.id)}
         />
       )}
