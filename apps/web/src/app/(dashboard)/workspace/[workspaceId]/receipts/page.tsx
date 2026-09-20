@@ -38,7 +38,6 @@ export default async function ReceiptsPage({ params }: Props) {
       </div>
       <div className="px-6 pt-6 pb-2 print:hidden">
         <h1 className="text-xl font-semibold">{t.receiptsTitle}</h1>
-        <p className="text-xs text-muted-foreground mt-0.5">{t.receiptsSubtitle}</p>
       </div>
       <ReceiptsClient workspaceId={workspaceId} initialReceipts={receipts} locale={locale} />
     </>

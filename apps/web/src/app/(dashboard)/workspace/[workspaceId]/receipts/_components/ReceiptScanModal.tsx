@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useCallback, useTransition } from 'react'
+import { useState, useCallback, useTransition, useRef } from 'react'
 import { createReceipt, type ReceiptData, type ReceiptItem } from '@/app/actions/receipts'
 import { getDashboardTranslations } from '@/i18n/dashboard-translations'
 import type { Locale } from '@/i18n/config'
@@ -46,6 +46,8 @@ export function ReceiptScanModal({ workspaceId, onClose, onSaved, locale }: Prop
   const [status, setStatus] = useState('pendiente')
   const [notes, setNotes] = useState('')
   const [, startTransition] = useTransition()
+  const galleryRef = useRef<HTMLInputElement>(null)
+  const cameraRef = useRef<HTMLInputElement>(null)
 
   const handleFile = useCallback(async (file: File) => {
     setError(null)
@@ -81,29 +83,12 @@ export function ReceiptScanModal({ workspaceId, onClose, onSaved, locale }: Prop
     }
   }, [workspaceId, t])
 
-  const openPicker = (capture?: 'environment') => {
-    const input = document.createElement('input')
-    input.type = 'file'
-    input.accept = 'image/*'
-    // Use property assignment (more reliable on iOS than setAttribute)
-    if (capture) (input as HTMLInputElement & { capture: string }).capture = capture
-    // Keep element in viewport at 0×0 — iOS Safari blocks clicks on off-screen inputs
-    input.style.cssText = 'position:fixed;top:0;left:0;width:0;height:0;opacity:0;overflow:hidden'
-    document.body.appendChild(input)
-
-    const cleanup = () => {
-      if (document.body.contains(input)) document.body.removeChild(input)
-    }
-    input.addEventListener('change', () => {
-      const file = input.files?.[0]
-      if (file) handleFile(file)
-      cleanup()
-    })
-    input.addEventListener('cancel', cleanup)
-
-    // Wait for DOM to settle before triggering (required on iOS Safari)
-    requestAnimationFrame(() => input.click())
-  }
+  const handleInputChange = useCallback((e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0]
+    if (file) handleFile(file)
+    // Reset so the same file can be re-selected later
+    e.target.value = ''
+  }, [handleFile])
 
   const handleDrop = (e: React.DragEvent) => {
     e.preventDefault()
@@ -127,6 +112,9 @@ export function ReceiptScanModal({ workspaceId, onClose, onSaved, locale }: Prop
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-sm p-4">
+      {/* Hidden real inputs — must be in DOM for WebView/iOS compatibility */}
+      <input ref={galleryRef} type="file" accept="image/*" className="sr-only" onChange={handleInputChange} />
+      <input ref={cameraRef} type="file" accept="image/*" capture="environment" className="sr-only" onChange={handleInputChange} />
       <div className="bg-background rounded-xl border shadow-xl w-full max-w-2xl max-h-[90vh] overflow-y-auto">
 
         {/* Header */}
@@ -147,7 +135,7 @@ export function ReceiptScanModal({ workspaceId, onClose, onSaved, locale }: Prop
               <div
                 onDrop={handleDrop}
                 onDragOver={(e) => e.preventDefault()}
-                onClick={() => !scanState.startsWith('scan') && openPicker()}
+                onClick={() => !scanState.startsWith('scan') && galleryRef.current?.click()}
                 className={`relative border-2 border-dashed rounded-xl p-10 text-center transition-colors cursor-pointer ${
                   scanState === 'scanning'
                     ? 'border-primary/40 bg-primary/5 cursor-not-allowed'
@@ -174,7 +162,7 @@ export function ReceiptScanModal({ workspaceId, onClose, onSaved, locale }: Prop
                     </div>
                     <div className="flex gap-2" onClick={(e) => e.stopPropagation()}>
                       <button
-                        onClick={() => openPicker()}
+                        onClick={() => galleryRef.current?.click()}
                         className="text-xs bg-primary text-primary-foreground px-3 py-1.5 rounded-md font-medium hover:opacity-90 transition-opacity flex items-center gap-1.5"
                       >
                         <svg className="w-3.5 h-3.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
@@ -184,7 +172,7 @@ export function ReceiptScanModal({ workspaceId, onClose, onSaved, locale }: Prop
                         {t.receiptsScanSelectBtn}
                       </button>
                       <button
-                        onClick={() => openPicker('environment')}
+                        onClick={() => cameraRef.current?.click()}
                         className="text-xs bg-muted border text-foreground px-3 py-1.5 rounded-md font-medium hover:bg-muted/80 transition-colors flex items-center gap-1.5"
                       >
                         <svg className="w-3.5 h-3.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">

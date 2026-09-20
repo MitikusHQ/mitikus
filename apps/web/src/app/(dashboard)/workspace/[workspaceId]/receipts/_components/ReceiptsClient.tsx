@@ -158,10 +158,7 @@ export function ReceiptsClient({ workspaceId, initialReceipts, locale }: Props) 
 
       {/* Header */}
       <div className="flex items-start justify-between">
-        <div>
-          <h1 className="text-xl font-semibold">{t.receiptsTitle}</h1>
-          <p className="text-sm text-muted-foreground mt-0.5">{t.receiptsSubtitle}</p>
-        </div>
+        <div />
         <div className="flex items-center gap-2">
           {receipts.length > 0 && (
             <button
