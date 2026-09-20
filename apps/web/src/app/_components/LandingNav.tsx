@@ -13,10 +13,18 @@ interface LandingNavProps {
 function DrumPicker({ options }: { options: { label: string; href: string }[] }) {
   const [idx, setIdx] = useState(0)
   const touchStartY = useRef<number | null>(null)
+  const lastToggle = useRef<number>(0)
+
+  const tryToggle = (dir: 1 | -1) => {
+    const now = Date.now()
+    if (now - lastToggle.current < 400) return
+    lastToggle.current = now
+    setIdx(i => (i + dir + options.length) % options.length)
+  }
 
   const handleWheel = (e: React.WheelEvent) => {
     e.preventDefault()
-    setIdx(i => (e.deltaY > 0 ? (i + 1) % options.length : (i - 1 + options.length) % options.length))
+    tryToggle(e.deltaY > 0 ? 1 : -1)
   }
 
   const handleTouchStart = (e: React.TouchEvent) => {
@@ -27,13 +35,13 @@ function DrumPicker({ options }: { options: { label: string; href: string }[] })
     if (touchStartY.current === null) return
     const endY = e.changedTouches[0]?.clientY ?? touchStartY.current
     const diff = touchStartY.current - endY
-    if (Math.abs(diff) > 10) {
-      setIdx(i => (diff > 0 ? (i + 1) % options.length : (i - 1 + options.length) % options.length))
+    touchStartY.current = null
+    if (Math.abs(diff) > 15) {
+      tryToggle(diff > 0 ? 1 : -1)
     } else {
       const href = options[idx]?.href
       if (href) window.location.href = href
     }
-    touchStartY.current = null
   }
 
   const currentLabel = options[idx]?.label ?? ''
@@ -44,7 +52,6 @@ function DrumPicker({ options }: { options: { label: string; href: string }[] })
       onWheel={handleWheel}
       onTouchStart={handleTouchStart}
       onTouchEnd={handleTouchEnd}
-      onClick={() => { if (touchStartY.current === null) { const href = options[idx]?.href; if (href) window.location.href = href } }}
       role="button"
       aria-label={currentLabel}
     >
