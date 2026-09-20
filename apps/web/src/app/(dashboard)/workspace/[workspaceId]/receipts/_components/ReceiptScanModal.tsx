@@ -49,12 +49,44 @@ export function ReceiptScanModal({ workspaceId, onClose, onSaved, locale }: Prop
   const galleryRef = useRef<HTMLInputElement>(null)
   const cameraRef = useRef<HTMLInputElement>(null)
 
+  // Resize image to max 1200px and compress to JPEG ~70% before upload/storage
+  const compressImage = (file: File): Promise<{ blob: Blob; dataUri: string }> =>
+    new Promise((resolve, reject) => {
+      const img = new Image()
+      const url = URL.createObjectURL(file)
+      img.onload = () => {
+        URL.revokeObjectURL(url)
+        const MAX = 1200
+        const scale = Math.min(1, MAX / Math.max(img.width, img.height))
+        const w = Math.round(img.width * scale)
+        const h = Math.round(img.height * scale)
+        const canvas = document.createElement('canvas')
+        canvas.width = w
+        canvas.height = h
+        canvas.getContext('2d')!.drawImage(img, 0, 0, w, h)
+        canvas.toBlob(
+          (blob) => {
+            if (!blob) { reject(new Error('compress failed')); return }
+            const reader = new FileReader()
+            reader.onload = () => resolve({ blob, dataUri: reader.result as string })
+            reader.onerror = reject
+            reader.readAsDataURL(blob)
+          },
+          'image/jpeg',
+          0.72,
+        )
+      }
+      img.onerror = reject
+      img.src = url
+    })
+
   const handleFile = useCallback(async (file: File) => {
     setError(null)
     setScanState('scanning')
     try {
+      const { blob, dataUri } = await compressImage(file)
       const form = new FormData()
-      form.append('image', file)
+      form.append('image', blob, 'receipt.jpg')
       const res = await fetch(`/api/workspace/${workspaceId}/receipts/scan`, {
         method: 'POST',
         body: form,
@@ -74,7 +106,7 @@ export function ReceiptScanModal({ workspaceId, onClose, onSaved, locale }: Prop
         currency:  json.currency ?? 'EUR',
         items:     json.items ?? [],
         category:  json.category ?? null,
-        imageData: json.imageData ?? null,
+        imageData: dataUri,   // use the already-compressed local version
       })
       setScanState('review')
     } catch {

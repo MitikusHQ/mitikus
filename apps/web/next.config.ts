@@ -22,6 +22,9 @@ const nextConfig: NextConfig = {
   transpilePackages: ['@protools/schema', '@protools/ui', '@protools/import-engine'],
   experimental: {
     optimizeCss: true,
+    serverActions: {
+      bodySizeLimit: '4mb',
+    },
   },
 
   images: {
