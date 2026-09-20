@@ -395,7 +395,7 @@ export function MailboxClient({ workspaceId, initialMessages, initialToEmail = '
   return (
     <div className="space-y-4">
       <div className="flex items-center gap-2 rounded-lg border bg-card p-3">
-        <div className="flex flex-1 items-center gap-1.5 overflow-x-auto scrollbar-none pb-0.5">
+        <div className="flex flex-1 min-w-0 items-center gap-1.5 overflow-x-auto scrollbar-none pb-0.5">
           {FOLDERS.map((item) => (
             <button
               key={item.id}

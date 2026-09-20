@@ -47,20 +47,6 @@ export function ReceiptScanModal({ workspaceId, onClose, onSaved, locale }: Prop
   const [notes, setNotes] = useState('')
   const [, startTransition] = useTransition()
 
-  const openPicker = (capture?: 'environment') => {
-    const input = document.createElement('input')
-    input.type = 'file'
-    input.accept = 'image/*'
-    if (capture) input.setAttribute('capture', capture)
-    input.onchange = () => {
-      const file = input.files?.[0]
-      if (file) handleFile(file)
-    }
-    document.body.appendChild(input)
-    input.click()
-    setTimeout(() => document.body.removeChild(input), 1000)
-  }
-
   const handleFile = useCallback(async (file: File) => {
     setError(null)
     setScanState('scanning')
@@ -95,6 +81,22 @@ export function ReceiptScanModal({ workspaceId, onClose, onSaved, locale }: Prop
     }
   }, [workspaceId, t])
 
+  const openPicker = (capture?: 'environment') => {
+    const input = document.createElement('input')
+    input.type = 'file'
+    input.accept = 'image/*'
+    input.style.position = 'fixed'
+    input.style.top = '-100px'
+    if (capture) input.setAttribute('capture', capture)
+    input.onchange = () => {
+      const file = input.files?.[0]
+      if (file) handleFile(file)
+      if (document.body.contains(input)) document.body.removeChild(input)
+    }
+    document.body.appendChild(input)
+    input.click()
+  }
+
   const handleDrop = (e: React.DragEvent) => {
     e.preventDefault()
     const file = e.dataTransfer.files[0]
@@ -121,10 +123,7 @@ export function ReceiptScanModal({ workspaceId, onClose, onSaved, locale }: Prop
 
         {/* Header */}
         <div className="flex items-center justify-between px-6 py-4 border-b">
-          <div>
-            <h2 className="font-semibold text-base">{t.receiptsScanTitle}</h2>
-            <p className="text-xs text-muted-foreground mt-0.5">{t.receiptsScanSubtitle}</p>
-          </div>
+          <h2 className="font-semibold text-base">{t.receiptsScanTitle}</h2>
           <button onClick={onClose} className="text-muted-foreground hover:text-foreground transition-colors p-1">
             <svg className="w-5 h-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
               <path d="M18 6 6 18M6 6l12 12"/>
