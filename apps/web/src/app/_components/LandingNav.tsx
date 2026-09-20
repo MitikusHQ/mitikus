@@ -102,7 +102,7 @@ export function LandingNav({ locale }: LandingNavProps) {
       {open && (
         <div
           id="mobile-menu"
-          className="md:hidden absolute top-full left-0 right-0 border-b bg-background/98 backdrop-blur-sm shadow-md px-6 py-4 flex flex-col gap-3"
+          className="md:hidden absolute top-full left-0 right-0 border-b border-t bg-background shadow-lg px-6 py-4 flex flex-col gap-3 z-50"
         >
           <div className="flex items-center gap-3">
             <LocaleSelector currentLocale={locale} />
