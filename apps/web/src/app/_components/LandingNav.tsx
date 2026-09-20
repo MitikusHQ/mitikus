@@ -35,6 +35,14 @@ export function LandingNav({ locale }: LandingNavProps) {
         </a>
       </nav>
 
+      {/* Iniciar sesión — visible en móvil */}
+      <a
+        href="/sign-in"
+        className="md:hidden text-sm font-medium border border-input px-3 py-1.5 rounded-md hover:bg-accent transition-colors whitespace-nowrap"
+      >
+        {signIn}
+      </a>
+
       {/* CTA siempre visible */}
       <a
         href="/sign-up"
