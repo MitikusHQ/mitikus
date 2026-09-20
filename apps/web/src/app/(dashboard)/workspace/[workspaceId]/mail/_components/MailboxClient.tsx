@@ -394,8 +394,8 @@ export function MailboxClient({ workspaceId, initialMessages, initialToEmail = '
 
   return (
     <div className="space-y-4">
-      <div className="flex items-center gap-2 overflow-x-auto rounded-lg border bg-card p-3">
-        <div className="flex min-w-0 flex-1 items-center gap-1.5">
+      <div className="flex items-center gap-2 rounded-lg border bg-card p-3">
+        <div className="flex flex-1 items-center gap-1.5 overflow-x-auto scrollbar-none pb-0.5">
           {FOLDERS.map((item) => (
             <button
               key={item.id}
@@ -407,7 +407,7 @@ export function MailboxClient({ workspaceId, initialMessages, initialToEmail = '
             </button>
           ))}
         </div>
-        <div className="ml-auto flex shrink-0 items-center gap-1.5">
+        <div className="flex shrink-0 items-center gap-1.5">
           <button type="button" onClick={handleSync} disabled={isPending} className="flex h-9 items-center gap-1.5 rounded-md border px-3 text-sm font-medium hover:bg-muted disabled:opacity-60">
             {isPending ? <span className="h-3.5 w-3.5 animate-spin rounded-full border-2 border-current border-t-transparent" /> : null}
             {t.mailRefresh}
