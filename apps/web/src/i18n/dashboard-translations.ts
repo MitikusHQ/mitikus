@@ -5358,7 +5358,7 @@ const es: DashboardTranslations = {
   // Receipts scan modal
   receiptsScanTitle: 'Escanear ticket / factura',
   receiptsScanSubtitle: 'La IA extrae automáticamente los datos de tu ticket o factura.',
-  receiptsScanAnalyzing: 'Analizando imagen con IA…',
+  receiptsScanAnalyzing: 'Analizando imagen…',
   receiptsScanAnalyzingHint: 'Esto puede tardar unos segundos.',
   receiptsScanUploadHint: 'Sube una foto de tu ticket o factura',
   receiptsScanFormats: 'JPG, PNG, WEBP — máx. 10 MB',
