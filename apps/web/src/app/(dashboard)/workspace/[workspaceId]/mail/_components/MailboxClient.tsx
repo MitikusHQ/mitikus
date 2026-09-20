@@ -394,25 +394,24 @@ export function MailboxClient({ workspaceId, initialMessages, initialToEmail = '
 
   return (
     <div className="space-y-4">
-      <div className="flex items-center gap-2 rounded-lg border bg-card p-3">
-        <div className="flex flex-1 min-w-0 items-center gap-1.5 overflow-x-auto scrollbar-none pb-0.5">
+      <div className="rounded-lg border bg-card p-3">
+        <div className="flex items-center gap-1.5 overflow-x-auto scrollbar-none">
           {FOLDERS.map((item) => (
             <button
               key={item.id}
               type="button"
               onClick={() => loadFolder(item.id)}
-              className={`h-10 shrink-0 whitespace-nowrap rounded-md px-2.5 text-sm font-medium transition ${folder === item.id ? 'bg-primary text-primary-foreground' : 'border bg-background hover:bg-muted'}`}
+              className={`h-9 shrink-0 whitespace-nowrap rounded-md px-2.5 text-sm font-medium transition ${folder === item.id ? 'bg-primary text-primary-foreground' : 'border bg-background hover:bg-muted'}`}
             >
               {item.label}
             </button>
           ))}
-        </div>
-        <div className="flex shrink-0 items-center gap-1.5">
-          <button type="button" onClick={handleSync} disabled={isPending} className="flex h-9 items-center gap-1.5 rounded-md border px-3 text-sm font-medium hover:bg-muted disabled:opacity-60">
+          <div className="flex-1" />
+          <button type="button" onClick={handleSync} disabled={isPending} className="flex h-9 shrink-0 items-center gap-1.5 rounded-md border px-3 text-sm font-medium hover:bg-muted disabled:opacity-60">
             {isPending ? <span className="h-3.5 w-3.5 animate-spin rounded-full border-2 border-current border-t-transparent" /> : null}
             {t.mailRefresh}
           </button>
-          <button type="button" onClick={() => { resetCompose(); setComposeOpen(true) }} className="flex h-9 items-center rounded-md bg-primary px-3 text-sm font-semibold text-primary-foreground hover:opacity-90">
+          <button type="button" onClick={() => { resetCompose(); setComposeOpen(true) }} className="flex h-9 shrink-0 items-center rounded-md bg-primary px-3 text-sm font-semibold text-primary-foreground hover:opacity-90">
             {t.mailCompose}
           </button>
         </div>
