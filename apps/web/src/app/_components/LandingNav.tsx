@@ -14,27 +14,29 @@ function DrumPicker({ options }: { options: { label: string; href: string }[] })
   const [idx, setIdx] = useState(0)
   const touchStartY = useRef<number | null>(null)
 
-  const toggle = () => setIdx(i => (i + 1) % options.length)
-
   const handleWheel = (e: React.WheelEvent) => {
     e.preventDefault()
     setIdx(i => (e.deltaY > 0 ? (i + 1) % options.length : (i - 1 + options.length) % options.length))
   }
 
   const handleTouchStart = (e: React.TouchEvent) => {
-    touchStartY.current = e.touches[0].clientY
+    touchStartY.current = e.touches[0]?.clientY ?? null
   }
 
   const handleTouchEnd = (e: React.TouchEvent) => {
     if (touchStartY.current === null) return
-    const diff = touchStartY.current - e.changedTouches[0].clientY
+    const endY = e.changedTouches[0]?.clientY ?? touchStartY.current
+    const diff = touchStartY.current - endY
     if (Math.abs(diff) > 10) {
       setIdx(i => (diff > 0 ? (i + 1) % options.length : (i - 1 + options.length) % options.length))
     } else {
-      window.location.href = options[idx].href
+      const href = options[idx]?.href
+      if (href) window.location.href = href
     }
     touchStartY.current = null
   }
+
+  const currentLabel = options[idx]?.label ?? ''
 
   return (
     <div
@@ -42,9 +44,9 @@ function DrumPicker({ options }: { options: { label: string; href: string }[] })
       onWheel={handleWheel}
       onTouchStart={handleTouchStart}
       onTouchEnd={handleTouchEnd}
-      onClick={() => { if (touchStartY.current === null) window.location.href = options[idx].href }}
+      onClick={() => { if (touchStartY.current === null) { const href = options[idx]?.href; if (href) window.location.href = href } }}
       role="button"
-      aria-label={options[idx].label}
+      aria-label={currentLabel}
     >
       {/* Chevrons hint */}
       <div className="absolute right-1.5 inset-y-0 flex flex-col justify-center gap-0 pointer-events-none z-10">
