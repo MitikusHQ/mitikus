@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useRef } from 'react'
+import { useState } from 'react'
 import { type Locale } from '@/i18n/config'
 import { getLandingTranslations } from '@/i18n/landing-translations'
 import { LocaleSelector } from '@/app/(dashboard)/_components/LocaleSelector'
@@ -12,68 +12,35 @@ interface LandingNavProps {
 
 function DrumPicker({ options }: { options: { label: string; href: string }[] }) {
   const [idx, setIdx] = useState(0)
-  const touchStartY = useRef<number | null>(null)
-  const lastToggle = useRef<number>(0)
-
-  const tryToggle = (dir: 1 | -1) => {
-    const now = Date.now()
-    if (now - lastToggle.current < 400) return
-    lastToggle.current = now
-    setIdx(i => (i + dir + options.length) % options.length)
-  }
-
-  const handleWheel = (e: React.WheelEvent) => {
-    e.preventDefault()
-    tryToggle(e.deltaY > 0 ? 1 : -1)
-  }
-
-  const handleTouchStart = (e: React.TouchEvent) => {
-    touchStartY.current = e.touches[0]?.clientY ?? null
-  }
-
-  const handleTouchEnd = (e: React.TouchEvent) => {
-    if (touchStartY.current === null) return
-    const endY = e.changedTouches[0]?.clientY ?? touchStartY.current
-    const diff = touchStartY.current - endY
-    touchStartY.current = null
-    if (Math.abs(diff) > 15) {
-      tryToggle(diff > 0 ? 1 : -1)
-    } else {
-      const href = options[idx]?.href
-      if (href) window.location.href = href
-    }
-  }
-
-  const currentLabel = options[idx]?.label ?? ''
+  const toggle = () => setIdx(i => (i + 1) % options.length)
+  const current = options[idx]
 
   return (
-    <div
-      className="md:hidden relative h-7 w-32 overflow-hidden border border-input rounded-md cursor-pointer select-none"
-      onWheel={handleWheel}
-      onTouchStart={handleTouchStart}
-      onTouchEnd={handleTouchEnd}
-      role="button"
-      aria-label={currentLabel}
-    >
-      {/* Chevrons hint */}
-      <div className="absolute right-1.5 inset-y-0 flex flex-col justify-center gap-0 pointer-events-none z-10">
-        <svg width="8" height="5" viewBox="0 0 8 5" className="text-muted-foreground/60 fill-current"><path d="M4 0L8 5H0z"/></svg>
-        <svg width="8" height="5" viewBox="0 0 8 5" className="text-muted-foreground/60 fill-current mt-0.5"><path d="M4 5L0 0h8z"/></svg>
-      </div>
-      {/* Sliding labels */}
-      <div
-        className="flex flex-col transition-transform duration-200 ease-out"
-        style={{ transform: `translateY(-${idx * 100}%)` }}
+    <div className="md:hidden flex items-center border border-input rounded-md overflow-hidden h-7 select-none">
+      {/* Label — tap para navegar */}
+      <a
+        href={current?.href ?? '#'}
+        className="flex-1 flex items-center px-2 text-xs font-medium whitespace-nowrap text-foreground h-full"
       >
-        {options.map(o => (
-          <div
-            key={o.href}
-            className="h-7 flex items-center px-2 pr-6 text-xs font-medium whitespace-nowrap text-foreground"
-          >
-            {o.label}
-          </div>
-        ))}
-      </div>
+        <span
+          key={idx}
+          className="animate-in fade-in slide-in-from-bottom-1 duration-150"
+        >
+          {current?.label}
+        </span>
+      </a>
+      {/* Botón toggle — tap para cambiar opción */}
+      <button
+        type="button"
+        onClick={toggle}
+        className="flex items-center justify-center w-6 h-full border-l border-input hover:bg-muted/60 transition-colors shrink-0"
+        aria-label="Cambiar opción"
+      >
+        <svg width="8" height="10" viewBox="0 0 8 10" className="fill-muted-foreground">
+          <path d="M4 0L7 4H1z"/>
+          <path d="M4 10L1 6h6z"/>
+        </svg>
+      </button>
     </div>
   )
 }
