@@ -85,16 +85,24 @@ export function ReceiptScanModal({ workspaceId, onClose, onSaved, locale }: Prop
     const input = document.createElement('input')
     input.type = 'file'
     input.accept = 'image/*'
-    input.style.position = 'fixed'
-    input.style.top = '-100px'
-    if (capture) input.setAttribute('capture', capture)
-    input.onchange = () => {
-      const file = input.files?.[0]
-      if (file) handleFile(file)
+    // Use property assignment (more reliable on iOS than setAttribute)
+    if (capture) (input as HTMLInputElement & { capture: string }).capture = capture
+    // Keep element in viewport at 0×0 — iOS Safari blocks clicks on off-screen inputs
+    input.style.cssText = 'position:fixed;top:0;left:0;width:0;height:0;opacity:0;overflow:hidden'
+    document.body.appendChild(input)
+
+    const cleanup = () => {
       if (document.body.contains(input)) document.body.removeChild(input)
     }
-    document.body.appendChild(input)
-    input.click()
+    input.addEventListener('change', () => {
+      const file = input.files?.[0]
+      if (file) handleFile(file)
+      cleanup()
+    })
+    input.addEventListener('cancel', cleanup)
+
+    // Wait for DOM to settle before triggering (required on iOS Safari)
+    requestAnimationFrame(() => input.click())
   }
 
   const handleDrop = (e: React.DragEvent) => {
