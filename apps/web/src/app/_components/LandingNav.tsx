@@ -38,7 +38,7 @@ export function LandingNav({ locale }: LandingNavProps) {
       {/* Iniciar sesión — visible en móvil */}
       <a
         href="/sign-in"
-        className="md:hidden text-sm font-medium border border-input px-3 py-1.5 rounded-md hover:bg-accent transition-colors whitespace-nowrap"
+        className="md:hidden text-xs font-medium border border-input px-2 py-1 rounded-md hover:bg-accent transition-colors whitespace-nowrap"
       >
         {signIn}
       </a>
@@ -46,7 +46,7 @@ export function LandingNav({ locale }: LandingNavProps) {
       {/* CTA siempre visible */}
       <a
         href="/sign-up"
-        className="text-sm font-medium bg-primary text-primary-foreground px-3 py-1.5 md:px-4 md:py-2 rounded-md hover:bg-primary/90 transition-colors whitespace-nowrap"
+        className="text-xs md:text-sm font-medium bg-primary text-primary-foreground px-2 py-1 md:px-4 md:py-2 rounded-md hover:bg-primary/90 transition-colors whitespace-nowrap"
       >
         {startFree}
       </a>
