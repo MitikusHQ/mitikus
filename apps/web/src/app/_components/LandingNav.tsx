@@ -1,6 +1,6 @@
 'use client'
 
-import { useState } from 'react'
+import { useState, useRef } from 'react'
 import { type Locale } from '@/i18n/config'
 import { getLandingTranslations } from '@/i18n/landing-translations'
 import { LocaleSelector } from '@/app/(dashboard)/_components/LocaleSelector'
@@ -8,6 +8,65 @@ import { ThemeToggle } from '@/app/(dashboard)/_components/ThemeToggle'
 
 interface LandingNavProps {
   locale: Locale
+}
+
+function DrumPicker({ options }: { options: { label: string; href: string }[] }) {
+  const [idx, setIdx] = useState(0)
+  const touchStartY = useRef<number | null>(null)
+
+  const toggle = () => setIdx(i => (i + 1) % options.length)
+
+  const handleWheel = (e: React.WheelEvent) => {
+    e.preventDefault()
+    setIdx(i => (e.deltaY > 0 ? (i + 1) % options.length : (i - 1 + options.length) % options.length))
+  }
+
+  const handleTouchStart = (e: React.TouchEvent) => {
+    touchStartY.current = e.touches[0].clientY
+  }
+
+  const handleTouchEnd = (e: React.TouchEvent) => {
+    if (touchStartY.current === null) return
+    const diff = touchStartY.current - e.changedTouches[0].clientY
+    if (Math.abs(diff) > 10) {
+      setIdx(i => (diff > 0 ? (i + 1) % options.length : (i - 1 + options.length) % options.length))
+    } else {
+      window.location.href = options[idx].href
+    }
+    touchStartY.current = null
+  }
+
+  return (
+    <div
+      className="md:hidden relative h-7 w-32 overflow-hidden border border-input rounded-md cursor-pointer select-none"
+      onWheel={handleWheel}
+      onTouchStart={handleTouchStart}
+      onTouchEnd={handleTouchEnd}
+      onClick={() => { if (touchStartY.current === null) window.location.href = options[idx].href }}
+      role="button"
+      aria-label={options[idx].label}
+    >
+      {/* Chevrons hint */}
+      <div className="absolute right-1.5 inset-y-0 flex flex-col justify-center gap-0 pointer-events-none z-10">
+        <svg width="8" height="5" viewBox="0 0 8 5" className="text-muted-foreground/60 fill-current"><path d="M4 0L8 5H0z"/></svg>
+        <svg width="8" height="5" viewBox="0 0 8 5" className="text-muted-foreground/60 fill-current mt-0.5"><path d="M4 5L0 0h8z"/></svg>
+      </div>
+      {/* Sliding labels */}
+      <div
+        className="flex flex-col transition-transform duration-200 ease-out"
+        style={{ transform: `translateY(-${idx * 100}%)` }}
+      >
+        {options.map(o => (
+          <div
+            key={o.href}
+            className="h-7 flex items-center px-2 pr-6 text-xs font-medium whitespace-nowrap text-foreground"
+          >
+            {o.label}
+          </div>
+        ))}
+      </div>
+    </div>
+  )
 }
 
 export function LandingNav({ locale }: LandingNavProps) {
@@ -35,18 +94,16 @@ export function LandingNav({ locale }: LandingNavProps) {
         </a>
       </nav>
 
-      {/* Iniciar sesión — visible en móvil */}
-      <a
-        href="/sign-in"
-        className="md:hidden text-xs font-medium border border-input px-2 py-1 rounded-md hover:bg-accent transition-colors whitespace-nowrap"
-      >
-        {signIn}
-      </a>
+      {/* Drum picker — solo móvil, reemplaza los dos botones */}
+      <DrumPicker options={[
+        { label: signIn, href: '/sign-in' },
+        { label: startFree, href: '/sign-up' },
+      ]} />
 
-      {/* CTA siempre visible */}
+      {/* CTA — solo desktop */}
       <a
         href="/sign-up"
-        className="text-xs md:text-sm font-medium bg-primary text-primary-foreground px-2 py-1 md:px-4 md:py-2 rounded-md hover:bg-primary/90 transition-colors whitespace-nowrap"
+        className="hidden md:inline-flex text-sm font-medium bg-primary text-primary-foreground px-4 py-2 rounded-md hover:bg-primary/90 transition-colors whitespace-nowrap"
       >
         {startFree}
       </a>
@@ -84,6 +141,13 @@ export function LandingNav({ locale }: LandingNavProps) {
             onClick={() => setOpen(false)}
           >
             {signIn}
+          </a>
+          <a
+            href="/sign-up"
+            className="text-sm font-medium bg-primary text-primary-foreground px-3 py-1.5 rounded-md hover:bg-primary/90 transition-colors text-center"
+            onClick={() => setOpen(false)}
+          >
+            {startFree}
           </a>
         </div>
       )}
