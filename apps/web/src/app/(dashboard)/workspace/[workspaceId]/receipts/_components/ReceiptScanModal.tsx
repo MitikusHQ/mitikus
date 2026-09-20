@@ -46,6 +46,7 @@ export function ReceiptScanModal({ workspaceId, onClose, onSaved, locale }: Prop
   const [status, setStatus] = useState('pendiente')
   const [notes, setNotes] = useState('')
   const fileRef = useRef<HTMLInputElement>(null)
+  const cameraRef = useRef<HTMLInputElement>(null)
   const [, startTransition] = useTransition()
 
   const handleFile = useCallback(async (file: File) => {
@@ -152,9 +153,28 @@ export function ReceiptScanModal({ workspaceId, onClose, onSaved, locale }: Prop
                       <p className="text-sm font-medium">{t.receiptsScanUploadHint}</p>
                       <p className="text-xs text-muted-foreground mt-0.5">{t.receiptsScanFormats}</p>
                     </div>
-                    <button className="text-xs bg-primary text-primary-foreground px-3 py-1.5 rounded-md font-medium hover:opacity-90 transition-opacity">
-                      {t.receiptsScanSelectBtn}
-                    </button>
+                    <div className="flex gap-2" onClick={(e) => e.stopPropagation()}>
+                      <button
+                        onClick={() => fileRef.current?.click()}
+                        className="text-xs bg-primary text-primary-foreground px-3 py-1.5 rounded-md font-medium hover:opacity-90 transition-opacity flex items-center gap-1.5"
+                      >
+                        <svg className="w-3.5 h-3.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                          <rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="8.5" cy="8.5" r="1.5"/>
+                          <polyline points="21,15 16,10 5,21"/>
+                        </svg>
+                        {t.receiptsScanSelectBtn}
+                      </button>
+                      <button
+                        onClick={() => cameraRef.current?.click()}
+                        className="text-xs bg-muted border text-foreground px-3 py-1.5 rounded-md font-medium hover:bg-muted/80 transition-colors flex items-center gap-1.5"
+                      >
+                        <svg className="w-3.5 h-3.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                          <path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z"/>
+                          <circle cx="12" cy="13" r="4"/>
+                        </svg>
+                        Cámara
+                      </button>
+                    </div>
                     <p className="text-xs text-muted-foreground">{t.receiptsScanDropHint}</p>
                   </div>
                 )}
@@ -163,6 +183,17 @@ export function ReceiptScanModal({ workspaceId, onClose, onSaved, locale }: Prop
                 ref={fileRef}
                 type="file"
                 accept="image/*"
+                className="hidden"
+                onChange={(e) => {
+                  const f = e.target.files?.[0]
+                  if (f) handleFile(f)
+                }}
+              />
+              <input
+                ref={cameraRef}
+                type="file"
+                accept="image/*"
+                {...{ capture: 'environment' }}
                 className="hidden"
                 onChange={(e) => {
                   const f = e.target.files?.[0]
