@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useRef, useCallback, useTransition } from 'react'
+import { useState, useCallback, useTransition } from 'react'
 import { createReceipt, type ReceiptData, type ReceiptItem } from '@/app/actions/receipts'
 import { getDashboardTranslations } from '@/i18n/dashboard-translations'
 import type { Locale } from '@/i18n/config'
@@ -45,9 +45,21 @@ export function ReceiptScanModal({ workspaceId, onClose, onSaved, locale }: Prop
   const [data, setData] = useState<ScannedData | null>(null)
   const [status, setStatus] = useState('pendiente')
   const [notes, setNotes] = useState('')
-  const fileRef = useRef<HTMLInputElement>(null)
-  const cameraRef = useRef<HTMLInputElement>(null)
   const [, startTransition] = useTransition()
+
+  const openPicker = (capture?: 'environment') => {
+    const input = document.createElement('input')
+    input.type = 'file'
+    input.accept = 'image/*'
+    if (capture) input.setAttribute('capture', capture)
+    input.onchange = () => {
+      const file = input.files?.[0]
+      if (file) handleFile(file)
+    }
+    document.body.appendChild(input)
+    input.click()
+    setTimeout(() => document.body.removeChild(input), 1000)
+  }
 
   const handleFile = useCallback(async (file: File) => {
     setError(null)
@@ -128,7 +140,7 @@ export function ReceiptScanModal({ workspaceId, onClose, onSaved, locale }: Prop
               <div
                 onDrop={handleDrop}
                 onDragOver={(e) => e.preventDefault()}
-                onClick={() => !scanState.startsWith('scan') && fileRef.current?.click()}
+                onClick={() => !scanState.startsWith('scan') && openPicker()}
                 className={`relative border-2 border-dashed rounded-xl p-10 text-center transition-colors cursor-pointer ${
                   scanState === 'scanning'
                     ? 'border-primary/40 bg-primary/5 cursor-not-allowed'
@@ -155,7 +167,7 @@ export function ReceiptScanModal({ workspaceId, onClose, onSaved, locale }: Prop
                     </div>
                     <div className="flex gap-2" onClick={(e) => e.stopPropagation()}>
                       <button
-                        onClick={() => fileRef.current?.click()}
+                        onClick={() => openPicker()}
                         className="text-xs bg-primary text-primary-foreground px-3 py-1.5 rounded-md font-medium hover:opacity-90 transition-opacity flex items-center gap-1.5"
                       >
                         <svg className="w-3.5 h-3.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
@@ -165,7 +177,7 @@ export function ReceiptScanModal({ workspaceId, onClose, onSaved, locale }: Prop
                         {t.receiptsScanSelectBtn}
                       </button>
                       <button
-                        onClick={() => cameraRef.current?.click()}
+                        onClick={() => openPicker('environment')}
                         className="text-xs bg-muted border text-foreground px-3 py-1.5 rounded-md font-medium hover:bg-muted/80 transition-colors flex items-center gap-1.5"
                       >
                         <svg className="w-3.5 h-3.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
@@ -179,27 +191,6 @@ export function ReceiptScanModal({ workspaceId, onClose, onSaved, locale }: Prop
                   </div>
                 )}
               </div>
-              <input
-                ref={fileRef}
-                type="file"
-                accept="image/*"
-                className="hidden"
-                onChange={(e) => {
-                  const f = e.target.files?.[0]
-                  if (f) handleFile(f)
-                }}
-              />
-              <input
-                ref={cameraRef}
-                type="file"
-                accept="image/*"
-                {...{ capture: 'environment' }}
-                className="hidden"
-                onChange={(e) => {
-                  const f = e.target.files?.[0]
-                  if (f) handleFile(f)
-                }}
-              />
               {error && (
                 <p className="mt-2 text-sm text-red-600 dark:text-red-400">{error}</p>
               )}
