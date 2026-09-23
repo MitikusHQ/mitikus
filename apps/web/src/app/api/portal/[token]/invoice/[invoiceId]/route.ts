@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { db } from '@/lib/db'
 import QRCode from 'qrcode'
+import { rateLimit } from '@/lib/rate-limit'
 
 function esc(s: string) {
   return s.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;')
@@ -27,9 +28,12 @@ function formatIban(iban: string) {
 }
 
 export async function GET(
-  _req: NextRequest,
+  req: NextRequest,
   { params }: { params: Promise<{ token: string; invoiceId: string }> },
 ) {
+  const limited = await rateLimit(req, 'portal-invoice', 30, 60)
+  if (limited) return limited
+
   const { token, invoiceId } = await params
 
   const client = await db.client.findUnique({
