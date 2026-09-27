@@ -92,7 +92,7 @@ export function NotificationBell({ workspaceId }: Props) {
       </button>
 
       {open && (
-        <div className="absolute right-0 top-full mt-1 w-80 bg-card border border-border rounded-xl shadow-xl z-50 overflow-hidden">
+        <div className="fixed left-3 right-3 top-32 z-50 max-h-[calc(100vh-9rem)] overflow-hidden rounded-xl border border-border bg-card shadow-xl sm:absolute sm:left-auto sm:right-0 sm:top-full sm:mt-1 sm:w-80 sm:max-h-none">
           <div className="flex items-center justify-between px-3 py-2.5 border-b border-border">
             <span className="text-sm font-medium">Notificaciones</span>
             {count > 0 && (
