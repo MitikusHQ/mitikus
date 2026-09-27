@@ -24,7 +24,9 @@ export function NotificationBell({ workspaceId }: Props) {
   const [count, setCount] = useState(0)
   const [open, setOpen] = useState(false)
   const [notifications, setNotifications] = useState<NotificationData[]>([])
+  const [pushStatus, setPushStatus] = useState<'idle' | 'unsupported' | 'disabled' | 'saving' | 'enabled' | 'error'>('idle')
   const panelRef = useRef<HTMLDivElement>(null)
+  const webPushPublicKey = process.env.NEXT_PUBLIC_WEB_PUSH_PUBLIC_KEY
 
   useEffect(() => {
     loadCount()
@@ -63,6 +65,56 @@ export function NotificationBell({ workspaceId }: Props) {
     setCount(0)
   }
 
+  function urlBase64ToUint8Array(base64String: string) {
+    const padding = '='.repeat((4 - base64String.length % 4) % 4)
+    const base64 = (base64String + padding).replace(/-/g, '+').replace(/_/g, '/')
+    const rawData = window.atob(base64)
+    const outputArray = new Uint8Array(rawData.length)
+    for (let i = 0; i < rawData.length; i += 1) outputArray[i] = rawData.charCodeAt(i)
+    return outputArray
+  }
+
+  async function enablePushNotifications() {
+    if (!webPushPublicKey) {
+      setPushStatus('disabled')
+      return
+    }
+    if (!('serviceWorker' in navigator) || !('PushManager' in window) || !('Notification' in window)) {
+      setPushStatus('unsupported')
+      return
+    }
+
+    setPushStatus('saving')
+    try {
+      const permission = await Notification.requestPermission()
+      if (permission !== 'granted') {
+        setPushStatus('disabled')
+        return
+      }
+
+      const registration = await navigator.serviceWorker.ready
+      const existing = await registration.pushManager.getSubscription()
+      const subscription = existing ?? await registration.pushManager.subscribe({
+        userVisibleOnly: true,
+        applicationServerKey: urlBase64ToUint8Array(webPushPublicKey),
+      })
+
+      const response = await fetch('/api/push/subscribe', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(subscription.toJSON()),
+      })
+
+      if (!response.ok) {
+        setPushStatus('error')
+        return
+      }
+      setPushStatus('enabled')
+    } catch {
+      setPushStatus('error')
+    }
+  }
+
   useEffect(() => {
     function handleClick(e: MouseEvent) {
       if (panelRef.current && !panelRef.current.contains(e.target as Node)) {
@@ -99,6 +151,30 @@ export function NotificationBell({ workspaceId }: Props) {
               <button onClick={handleMarkAll} className="text-xs text-muted-foreground hover:text-foreground">
                 Marcar todas como leídas
               </button>
+            )}
+          </div>
+
+          <div className="border-b border-border px-3 py-2.5">
+            <button
+              type="button"
+              onClick={enablePushNotifications}
+              disabled={pushStatus === 'saving' || pushStatus === 'enabled'}
+              className="w-full rounded-md border border-border px-3 py-2 text-left text-xs font-medium hover:bg-muted disabled:opacity-60"
+            >
+              {pushStatus === 'saving'
+                ? 'Activando notificaciones...'
+                : pushStatus === 'enabled'
+                  ? 'Notificaciones del dispositivo activadas'
+                  : 'Activar notificaciones en este dispositivo'}
+            </button>
+            {pushStatus === 'unsupported' && (
+              <p className="mt-1.5 text-[10px] text-muted-foreground">Este navegador no soporta notificaciones push.</p>
+            )}
+            {pushStatus === 'disabled' && (
+              <p className="mt-1.5 text-[10px] text-muted-foreground">Las notificaciones no están permitidas o falta configuración Web Push.</p>
+            )}
+            {pushStatus === 'error' && (
+              <p className="mt-1.5 text-[10px] text-red-500">No se pudo activar este dispositivo.</p>
             )}
           </div>
 
