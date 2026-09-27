@@ -15,9 +15,11 @@ import { DailyBriefBlock } from './_components/DailyBriefBlock'
 import { FiscalWidget } from './_components/FiscalWidget'
 import { InvoicesWidget } from './_components/InvoicesWidget'
 import { OnboardingChecklist } from './_components/OnboardingChecklist'
+import { CalendarWidget } from './_components/CalendarWidget'
 import { db } from '@/lib/db'
 import { getFiscalEvents, type LegalForm } from '@/lib/fiscal-calendar'
 import { getInvoices } from '@/app/actions/invoices'
+import { getCalendarItems } from '@/app/actions/calendar'
 import { getLocale } from '@/i18n/locale'
 import { getDashboardTranslations, type DashboardTranslations } from '@/i18n/dashboard-translations'
 import type { Locale } from '@/i18n/config'
@@ -42,6 +44,14 @@ function todayLabel(locale: Locale): string {
   })
 }
 
+function todayRange() {
+  const from = new Date()
+  from.setHours(0, 0, 0, 0)
+  const to = new Date(from)
+  to.setHours(23, 59, 59, 999)
+  return { from, to }
+}
+
 function statusLabels(t: DashboardTranslations): Record<string, { label: string; className: string }> {
   return {
     PENDING:   { label: t.todayStatusQueued,    className: 'bg-muted text-muted-foreground' },
@@ -62,10 +72,12 @@ function cleanDisplayName(value: unknown): string | null {
 export default async function TodayPage({ params }: Props) {
   const [{ workspaceId }, user, locale, clerkUser] = await Promise.all([params, requireUser(), getLocale(), currentUser()])
   const t = getDashboardTranslations(locale)
-  const [data, todayEntry, myTasks, contracts, notebooks, fiscalProfile, invoices, onboardingCounts] = await Promise.all([
+  const calendarRange = todayRange()
+  const [data, todayEntry, myTasks, todayCalendarItems, contracts, notebooks, fiscalProfile, invoices, onboardingCounts] = await Promise.all([
     getTodayData(workspaceId, user.id),
     getTodayEntry(workspaceId, user.id),
     getMyTasks(workspaceId, user.id),
+    getCalendarItems(workspaceId, calendarRange.from.toISOString(), calendarRange.to.toISOString()),
     getPendingContracts(workspaceId),
     getNotebooks(workspaceId),
     db.companyProfile.findUnique({ where: { workspaceId }, select: { legalForm: true, country: true } }),
@@ -159,6 +171,8 @@ export default async function TodayPage({ params }: Props) {
         </div>
         <ClockWidget workspaceId={workspaceId} initialEntry={todayEntry} locale={locale} />
       </div>
+
+      <CalendarWidget workspaceId={workspaceId} items={todayCalendarItems} locale={locale} />
 
       {myTasks.length > 0 && (
         <section>
