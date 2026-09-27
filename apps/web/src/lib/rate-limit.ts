@@ -1,34 +1,43 @@
-import { Ratelimit } from '@upstash/ratelimit'
-import { Redis } from '@upstash/redis'
 import { NextResponse } from 'next/server'
 
-function makeRedis() {
-  const url   = process.env.UPSTASH_REDIS_REST_URL
+function getUpstashConfig() {
+  const url = process.env.UPSTASH_REDIS_REST_URL?.replace(/\/$/, '')
   const token = process.env.UPSTASH_REDIS_REST_TOKEN
   if (!url || !token) return null
-  return new Redis({ url, token })
-}
-
-const redis = makeRedis()
-
-// Límites por contexto
-const limiters: Record<string, Ratelimit | null> = {}
-
-function getLimiter(key: string, requests: number, windowSeconds: number): Ratelimit | null {
-  if (!redis) return null
-  if (!limiters[key]) {
-    limiters[key] = new Ratelimit({
-      redis,
-      limiter: Ratelimit.slidingWindow(requests, `${windowSeconds} s`),
-      prefix: `mitikus:rl:${key}`,
-    })
-  }
-  return limiters[key]
+  return { url, token }
 }
 
 function getIp(req: Request): string {
   const xff = (req as { headers: Headers }).headers.get('x-forwarded-for')
   return xff?.split(',')[0]?.trim() ?? '127.0.0.1'
+}
+
+function sanitizeKeyPart(value: string) {
+  return value.replace(/[^a-zA-Z0-9:_@.-]/g, '_').slice(0, 160)
+}
+
+async function incrementFixedWindow(key: string, windowSeconds: number) {
+  const config = getUpstashConfig()
+  if (!config) return null
+
+  const response = await fetch(`${config.url}/pipeline`, {
+    method: 'POST',
+    headers: {
+      Authorization: `Bearer ${config.token}`,
+      'Content-Type': 'application/json',
+    },
+    body: JSON.stringify([
+      ['INCR', key],
+      ['EXPIRE', key, windowSeconds],
+    ]),
+    cache: 'no-store',
+  })
+
+  if (!response.ok) return null
+
+  const data = await response.json() as Array<{ result?: unknown }>
+  const count = Number(data[0]?.result ?? 0)
+  return Number.isFinite(count) ? count : null
 }
 
 /**
@@ -44,25 +53,28 @@ export async function rateLimit(
   windowSeconds: number,
   identifier?: string,
 ): Promise<NextResponse | null> {
-  const limiter = getLimiter(context, requests, windowSeconds)
-  if (!limiter) return null  // sin Redis → fail-open
-
   const id = identifier ?? getIp(req)
-  const { success, limit, remaining, reset } = await limiter.limit(id)
+  const windowId = Math.floor(Date.now() / (windowSeconds * 1000))
+  const reset = (windowId + 1) * windowSeconds * 1000
+  const key = `mitikus:rl:${sanitizeKeyPart(context)}:${sanitizeKeyPart(id)}:${windowId}`
+  const count = await incrementFixedWindow(key, windowSeconds)
 
-  if (!success) {
+  if (count === null) return null // sin Redis o error temporal -> fail-open
+
+  if (count > requests) {
     return NextResponse.json(
       { error: 'Demasiadas peticiones. Inténtalo de nuevo más tarde.' },
       {
         status: 429,
         headers: {
-          'X-RateLimit-Limit':     String(limit),
-          'X-RateLimit-Remaining': String(remaining),
+          'X-RateLimit-Limit':     String(requests),
+          'X-RateLimit-Remaining': '0',
           'X-RateLimit-Reset':     String(reset),
           'Retry-After':           String(Math.ceil((reset - Date.now()) / 1000)),
         },
       },
     )
   }
+
   return null
 }
