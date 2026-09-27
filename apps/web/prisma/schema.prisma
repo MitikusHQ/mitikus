@@ -308,6 +308,8 @@ model User {
   tasksCreated         Task[]                @relation("TaskCreator")
   taskTagged           TaskTag[]             @relation("TaskTagged")
   taskTagsMade         TaskTag[]             @relation("TaskTagger")
+  calendarEventsCreated CalendarEvent[]      @relation("CalendarEventCreator")
+  calendarEventsAssigned CalendarEvent[]     @relation("CalendarEventAssignee")
   notifications        Notification[]
   documentsUploaded    Document[]
   spreadsheets         Spreadsheet[]
@@ -388,6 +390,7 @@ model Workspace {
   copilotConversations CopilotConversation[]
   timeEntries          TimeEntry[]
   tasks                Task[]
+  calendarEvents       CalendarEvent[]
   documents            Document[]
   spreadsheets         Spreadsheet[]
   pdfs                 Pdf[]
@@ -448,6 +451,7 @@ model Client {
   objectives    CompanyObjective[] // WM-001 Sprint 0
   timeImputations TimeImputation[]
   tasks           Task[]
+  calendarEvents  CalendarEvent[]
   invoices        Invoice[]
   workspaceFiles  WorkspaceFile[]
 
@@ -1629,6 +1633,38 @@ model TaskTag {
   @@index([userId])
   @@index([taskId])
   @@map("task_tags")
+}
+
+// ============================================================
+// CALENDARIO — eventos internos del workspace
+// ============================================================
+
+model CalendarEvent {
+  id          String   @id @default(cuid())
+  workspaceId String
+  title       String
+  description String?
+  type        String   @default("event") // event | meeting | call | reminder | deadline
+  startsAt    DateTime
+  endsAt      DateTime?
+  allDay      Boolean  @default(false)
+  location    String?
+  clientId    String?
+  createdBy   String
+  assignedTo  String?
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  workspace Workspace @relation(fields: [workspaceId], references: [id], onDelete: Cascade)
+  client    Client?   @relation(fields: [clientId], references: [id], onDelete: SetNull)
+  creator   User      @relation("CalendarEventCreator", fields: [createdBy], references: [id], onDelete: Restrict)
+  assignee  User?     @relation("CalendarEventAssignee", fields: [assignedTo], references: [id], onDelete: SetNull)
+
+  @@index([workspaceId, startsAt])
+  @@index([clientId])
+  @@index([createdBy])
+  @@index([assignedTo])
+  @@map("calendar_events")
 }
 
 // ============================================================

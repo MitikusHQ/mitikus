@@ -266,6 +266,7 @@ export interface DashboardTranslations {
   sectionBrain: string
   sectionTasks: string
   sectionToday: string
+  sectionCalendar: string
   sectionTimelog: string
   sectionMissions: string
   sectionProfile: string
@@ -2110,6 +2111,7 @@ const en: DashboardTranslations = {
   sectionBrain: 'Brain',
   sectionTasks: 'Tasks',
   sectionToday: 'My day',
+  sectionCalendar: 'Calendar',
   sectionTimelog: 'Time log',
   sectionMissions: 'Missions',
   sectionProfile: 'My Profile',
@@ -3944,6 +3946,7 @@ const es: DashboardTranslations = {
   sectionBrain: 'Brain',
   sectionTasks: 'Tareas',
   sectionToday: 'Mi día',
+  sectionCalendar: 'Calendario',
   sectionTimelog: 'Control horario',
   sectionMissions: 'Misiones',
   sectionProfile: 'Mi perfil',
@@ -5590,6 +5593,7 @@ const fr: DashboardTranslations = {
   sectionBrain: 'Brain',
   sectionTasks: 'Tâches',
   sectionToday: 'Mon espace jour',
+  sectionCalendar: 'Calendrier',
   sectionTimelog: 'Suivi du temps',
   sectionMissions: 'Missions',
   sectionProfile: 'Mon profil',
@@ -5792,6 +5796,7 @@ const de: DashboardTranslations = {
   sectionBrain: 'Brain',
   sectionTasks: 'Aufgaben',
   sectionToday: 'Mein Tag',
+  sectionCalendar: 'Kalender',
   sectionTimelog: 'Zeitprotokoll',
   sectionMissions: 'Missionen',
   sectionProfile: 'Mein Profil',
@@ -5998,6 +6003,7 @@ const pt: DashboardTranslations = {
   sectionBrain: 'Brain',
   sectionTasks: 'Tarefas',
   sectionToday: 'O meu dia',
+  sectionCalendar: 'Calendário',
   sectionTimelog: 'Registo de tempo',
   sectionMissions: 'Missões',
   sectionProfile: 'O meu perfil',
@@ -6260,6 +6266,7 @@ const it: DashboardTranslations = {
   sectionBrain: 'Brain',
   sectionTasks: 'Attività',
   sectionToday: 'La mia giornata',
+  sectionCalendar: 'Calendario',
   sectionTimelog: 'Registro ore',
   sectionMissions: 'Missioni',
   sectionProfile: 'Il mio profilo',

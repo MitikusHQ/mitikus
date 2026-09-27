@@ -42,6 +42,7 @@ function makeSectionLabels(t: DashboardTranslations): Array<{ segment: string; l
     { segment: '/brain',         label: t.sectionBrain },
     { segment: '/tasks',         label: t.sectionTasks },
     { segment: '/today',         label: t.sectionToday },
+    { segment: '/calendar',      label: t.sectionCalendar },
     { segment: '/timelog',       label: t.sectionTimelog },
     { segment: '/missions',      label: t.sectionMissions },
     { segment: '/profile',       label: t.sectionProfile },

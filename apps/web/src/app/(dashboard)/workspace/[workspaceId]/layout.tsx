@@ -63,6 +63,12 @@ export default async function WorkspaceLayout({ children, params }: Props) {
       label: t.navToday, href: `${base}/today`, icon: Icons.today,
       description: t.descToday, badge: pendingCount > 0 ? String(pendingCount) : undefined,
     },
+    {
+      label: locale === 'es' ? 'Calendario' : 'Calendar',
+      href: `${base}/calendar`,
+      icon: Icons.today,
+      description: locale === 'es' ? 'Eventos, reuniones y vencimientos' : 'Events, meetings and due dates',
+    },
     show('arkos') && {
       label: t.navCopilot, href: `${base}/copilot`, icon: Icons.copilot, description: t.descCopilot,
     },

@@ -39,7 +39,17 @@ export async function GET(request: NextRequest, context: RouteContext) {
   const horizon = new Date(now)
   horizon.setDate(horizon.getDate() + 180)
 
-  const [tasks, invoices] = await Promise.all([
+  const [calendarEvents, tasks, invoices] = await Promise.all([
+    db.calendarEvent.findMany({
+      where: {
+        workspaceId,
+        startsAt: { gte: now, lte: horizon },
+        OR: [{ assignedTo: payload.userId }, { createdBy: payload.userId }],
+      },
+      select: { id: true, title: true, description: true, startsAt: true, endsAt: true, allDay: true, updatedAt: true },
+      orderBy: { startsAt: 'asc' },
+      take: 150,
+    }),
     db.task.findMany({
       where: {
         workspaceId,
@@ -64,6 +74,15 @@ export async function GET(request: NextRequest, context: RouteContext) {
   ])
 
   const events: IcsEvent[] = [
+    ...calendarEvents.map((event) => ({
+      uid: `calendar-${event.id}-${event.updatedAt.getTime()}`,
+      title: event.title,
+      description: event.description ?? 'Evento de MITIKUS.',
+      startsAt: event.startsAt,
+      endsAt: event.endsAt,
+      allDay: event.allDay,
+      url: appUrl(`/workspace/${workspaceId}/calendar`),
+    })),
     ...tasks
       .filter((task): task is typeof task & { dueDate: Date } => Boolean(task.dueDate))
       .map((task) => ({
