@@ -123,6 +123,7 @@ export default async function WorkspaceLayout({ children, params }: Props) {
       { label: t.navUsage, href: `${base}/usage`, icon: Icons.usage, description: t.descUsage },
       { label: t.navAudit, href: `${base}/audit`, icon: Icons.audit, description: t.descAudit },
     ] : []),
+    { label: t.navIntegrations, href: `${base}/integrations`, icon: Icons.integrations, description: t.descIntegrations },
     ...(show('admin') && can(user, 'manage_members') ? [
       { label: t.navAdminOrg, href: '/org', icon: Icons.organization, description: t.descAdminOrg },
     ] : []),
@@ -130,7 +131,6 @@ export default async function WorkspaceLayout({ children, params }: Props) {
 
   const profileChildren: NavItem[] = [
     { label: locale === 'es' ? 'Ajustes' : 'Settings', href: `${base}/settings`, icon: Icons.settings, description: locale === 'es' ? 'Configuración del workspace' : 'Workspace settings' },
-    { label: locale === 'es' ? 'Integraciones' : 'Integrations', href: `${base}/integrations`, icon: Icons.integrations, description: locale === 'es' ? 'Conecta herramientas externas' : 'Connect external tools' },
     { label: locale === 'es' ? 'Apps' : 'Apps', href: '/download', icon: Icons.download, description: locale === 'es' ? 'Descarga las apps de MITIKUS' : 'Download MITIKUS apps' },
     { label: locale === 'es' ? 'Soporte' : 'Support', href: `${base}/support`, icon: Icons.support, description: locale === 'es' ? 'Ayuda y contacto' : 'Help and contact' },
     ...(isSuperadmin ? [{ label: 'MITIKUS Admin', href: '/admin', icon: Icons.admin, description: 'Panel de control de MITIKUS' }] : []),

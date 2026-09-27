@@ -2,7 +2,11 @@
 
 import { useState } from 'react'
 import { useRouter } from 'next/navigation'
-import { disconnectCalendarIntegration, getCalendarConnectionUrl } from '@/app/actions/integrations'
+import {
+  disconnectCalendarIntegration,
+  getCalendarConnectionUrl,
+  getCalendarFeedSubscriptionUrl,
+} from '@/app/actions/integrations'
 import { getDashboardTranslations } from '@/i18n/dashboard-translations'
 import type { Locale } from '@/i18n/config'
 import type { CalendarIntegrationState, CalendarProvider } from '@/lib/integrations/calendar'
@@ -20,6 +24,8 @@ export function CalendarIntegrationClient({
   const router = useRouter()
   const [loadingProvider, setLoadingProvider] = useState<CalendarProvider | null>(null)
   const [disconnecting, setDisconnecting] = useState(false)
+  const [copyingFeed, setCopyingFeed] = useState(false)
+  const [copiedFeed, setCopiedFeed] = useState(false)
   const [error, setError] = useState<string | null>(null)
 
   async function connect(provider: CalendarProvider) {
@@ -30,6 +36,7 @@ export function CalendarIntegrationClient({
       const result = await getCalendarConnectionUrl(workspaceId, provider)
       if (!result.ok) {
         setError(result.error)
+        setLoadingProvider(null)
         return
       }
       window.location.href = result.url
@@ -53,6 +60,26 @@ export function CalendarIntegrationClient({
     }
   }
 
+  async function copyCalendarFeedUrl() {
+    if (copyingFeed) return
+    setCopyingFeed(true)
+    setCopiedFeed(false)
+    setError(null)
+    try {
+      const result = await getCalendarFeedSubscriptionUrl(workspaceId)
+      if (!result.ok) {
+        setError(result.error)
+        return
+      }
+      await navigator.clipboard.writeText(result.url)
+      setCopiedFeed(true)
+    } catch {
+      setError(t.integrationsCalendarFeedCopyError)
+    } finally {
+      setCopyingFeed(false)
+    }
+  }
+
   const providerLabel = calendar?.provider === 'google'
     ? t.integrationsGoogleCalendar
     : calendar?.provider === 'outlook'
@@ -69,6 +96,32 @@ export function CalendarIntegrationClient({
         <span className={`rounded-full px-2.5 py-1 text-xs font-medium ${calendar ? 'bg-green-500/10 text-green-600 dark:text-green-300' : 'bg-muted text-muted-foreground'}`}>
           {calendar ? t.integrationsConfigured : t.integrationsNotConfigured}
         </span>
+      </div>
+
+      <div className="mb-4 rounded-lg border border-border bg-background p-4">
+        <div className="flex flex-wrap items-center justify-between gap-3">
+          <div>
+            <p className="text-sm font-medium">{t.integrationsCalendarFeedTitle}</p>
+            <p className="mt-1 max-w-xl text-xs text-muted-foreground">
+              {t.integrationsCalendarFeedDescription}
+            </p>
+          </div>
+          <button
+            type="button"
+            onClick={copyCalendarFeedUrl}
+            disabled={copyingFeed}
+            className="rounded-md border border-border px-3 py-2 text-sm font-medium hover:bg-muted disabled:opacity-60"
+          >
+            {copyingFeed
+              ? t.integrationsCalendarFeedCopying
+              : copiedFeed
+                ? t.integrationsCalendarFeedCopied
+                : t.integrationsCalendarFeedCopy}
+          </button>
+        </div>
+        <p className="mt-3 text-[11px] text-muted-foreground">
+          {t.integrationsCalendarFeedPrivacy}
+        </p>
       </div>
 
       {calendar && providerLabel ? (

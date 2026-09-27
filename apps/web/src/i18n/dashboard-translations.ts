@@ -1505,6 +1505,13 @@ export interface DashboardTranslations {
   integrationsEmailDescription: string
   integrationsCalendarTitle: string
   integrationsCalendarDescription: string
+  integrationsCalendarFeedTitle: string
+  integrationsCalendarFeedDescription: string
+  integrationsCalendarFeedPrivacy: string
+  integrationsCalendarFeedCopy: string
+  integrationsCalendarFeedCopying: string
+  integrationsCalendarFeedCopied: string
+  integrationsCalendarFeedCopyError: string
   integrationsGoogleCalendar: string
   integrationsOutlookCalendar: string
   integrationsConnectProvider: string
@@ -3332,6 +3339,13 @@ const en: DashboardTranslations = {
   integrationsEmailDescription: 'Send and receive client emails with MITIKUS, Gmail, Outlook or your own SMTP/IMAP account.',
   integrationsCalendarTitle: 'Calendar',
   integrationsCalendarDescription: 'Prepare Google Calendar or Outlook Calendar for calls, deadlines, reminders and mission planning.',
+  integrationsCalendarFeedTitle: 'Private MITIKUS calendar feed',
+  integrationsCalendarFeedDescription: 'Copy a private ICS link to subscribe from Google Calendar, Apple Calendar or Outlook at no extra cost.',
+  integrationsCalendarFeedPrivacy: 'The feed only includes minimal reminders for future assigned tasks and invoice due dates. Sensitive details stay inside MITIKUS.',
+  integrationsCalendarFeedCopy: 'Copy ICS link',
+  integrationsCalendarFeedCopying: 'Copying...',
+  integrationsCalendarFeedCopied: 'Copied',
+  integrationsCalendarFeedCopyError: 'Could not copy the calendar link.',
   integrationsGoogleCalendar: 'Google Calendar',
   integrationsOutlookCalendar: 'Outlook Calendar',
   integrationsConnectProvider: 'Connect account',
@@ -5159,6 +5173,13 @@ const es: DashboardTranslations = {
   integrationsEmailDescription: 'Envía y recibe correos de clientes con MITIKUS, Gmail, Outlook o tu propia cuenta SMTP/IMAP.',
   integrationsCalendarTitle: 'Calendario',
   integrationsCalendarDescription: 'Prepara Google Calendar u Outlook Calendar para llamadas, vencimientos, recordatorios y planificación de misiones.',
+  integrationsCalendarFeedTitle: 'Calendario privado de MITIKUS',
+  integrationsCalendarFeedDescription: 'Copia un enlace ICS privado para suscribirte desde Google Calendar, Apple Calendar u Outlook sin coste extra.',
+  integrationsCalendarFeedPrivacy: 'El feed solo incluye recordatorios mínimos de tareas futuras asignadas y vencimientos de facturas. Los detalles sensibles se quedan dentro de MITIKUS.',
+  integrationsCalendarFeedCopy: 'Copiar enlace ICS',
+  integrationsCalendarFeedCopying: 'Copiando...',
+  integrationsCalendarFeedCopied: 'Copiado',
+  integrationsCalendarFeedCopyError: 'No se pudo copiar el enlace del calendario.',
   integrationsGoogleCalendar: 'Google Calendar',
   integrationsOutlookCalendar: 'Outlook Calendar',
   integrationsConnectProvider: 'Conectar cuenta',

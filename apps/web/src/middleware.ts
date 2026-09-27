@@ -5,7 +5,7 @@ import {
   LOCALE_HEADER,
 } from './i18n/config'
 import { resolveLocale } from './i18n/detect-locale'
-import { ratelimit } from './lib/rate-limit'
+import { rateLimit } from './lib/rate-limit'
 
 const isPublicRoute = createRouteMatcher([
   '/',
@@ -56,27 +56,11 @@ const isRateLimitReadExempt = createRouteMatcher([
 export default clerkMiddleware(async (auth, req) => {
   const skipReadRateLimit = req.method === 'GET' && isRateLimitReadExempt(req)
 
-  if (ratelimit && isRateLimitedRoute(req) && !isRateLimitExempt(req) && !skipReadRateLimit) {
+  if (isRateLimitedRoute(req) && !isRateLimitExempt(req) && !skipReadRateLimit) {
     try {
-      const ip =
-        req.headers.get('x-forwarded-for')?.split(',')[0]?.trim() ??
-        req.headers.get('x-real-ip') ??
-        '127.0.0.1'
-
-      const { success } = await ratelimit.limit(ip)
-
-      if (!success) {
-        return new NextResponse(
-          JSON.stringify({ error: 'Demasiadas solicitudes. Inténtalo en un momento.' }),
-          {
-            status: 429,
-            headers: {
-              'Content-Type': 'application/json',
-              'Retry-After': '60',
-            },
-          },
-        )
-      }
+      const ip = req.headers.get('x-forwarded-for')?.split(',')[0]?.trim() ?? req.headers.get('x-real-ip') ?? undefined
+      const limited = await rateLimit(req, 'api', 120, 60, ip)
+      if (limited) return limited
     } catch {
       // Upstash no disponible — continuar sin rate limiting
     }

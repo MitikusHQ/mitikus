@@ -25,6 +25,7 @@ import {
 import { buildWorkspaceFilesZip } from '@/lib/files/workspace-export'
 import { createExternalCalendarEvent } from '@/lib/integrations/calendar-events'
 import { uploadToExternalStorage } from '@/lib/integrations/storage-upload'
+import { buildCalendarFeedUrl, createCalendarFeedToken } from '@/lib/calendar-feed'
 
 async function getWorkspaceProfile(workspaceId: string) {
   const user = await requireUser()
@@ -70,6 +71,25 @@ export async function disconnectCalendarIntegration(workspaceId: string) {
   })
 
   return { ok: true as const, integrations: parseWorkspaceIntegrations(integrations) }
+}
+
+export async function getCalendarFeedSubscriptionUrl(workspaceId: string) {
+  const user = await requireUser()
+  const workspace = await db.workspace.findFirst({
+    where: { id: workspaceId, orgId: user.orgId },
+    select: { id: true },
+  })
+  if (!workspace) return { ok: false as const, error: 'Workspace no encontrado.' }
+
+  const token = createCalendarFeedToken({ workspaceId, userId: user.id })
+  if (!token) {
+    return {
+      ok: false as const,
+      error: 'Falta configurar CALENDAR_FEED_SECRET o MITIKUS_LICENSE_SECRET.',
+    }
+  }
+
+  return { ok: true as const, url: buildCalendarFeedUrl(workspaceId, token) }
 }
 
 export async function getStorageConnectionUrl(workspaceId: string, provider: StorageProvider) {

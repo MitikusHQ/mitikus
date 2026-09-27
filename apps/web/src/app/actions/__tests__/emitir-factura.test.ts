@@ -165,7 +165,9 @@ describe('emitirFactura', () => {
   it('persiste la huella ANTES del retorno (update llamado una vez)', async () => {
     await emitirFactura(WORKSPACE_ID, INVOICE_ID, EMISOR_NIF)
     expect(mockDb.invoice.update).toHaveBeenCalledOnce()
-    const updateCall = mockDb.invoice.update.mock.calls[0][0]
+    const updateCall = mockDb.invoice.update.mock.calls[0]?.[0]
+    expect(updateCall).toBeDefined()
+    if (!updateCall) throw new Error('Expected invoice.update to be called')
     expect(updateCall.data.huella).toBeDefined()
     expect(updateCall.data.status).toBe('enviada')
     expect(updateCall.data.qrUrl).toBeDefined()
