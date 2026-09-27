@@ -66,7 +66,7 @@ export default async function WorkspaceLayout({ children, params }: Props) {
     {
       label: locale === 'es' ? 'Calendario' : 'Calendar',
       href: `${base}/calendar`,
-      icon: Icons.today,
+      icon: Icons.calendar,
       description: locale === 'es' ? 'Eventos, reuniones y vencimientos' : 'Events, meetings and due dates',
     },
     show('arkos') && {
