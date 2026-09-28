@@ -209,6 +209,7 @@ export function MailboxClient({ workspaceId, initialMessages, initialToEmail = '
   const [folder, setFolder] = useState<MailFolder>('inbox')
   const [messages, setMessages] = useState(initialMessages)
   const [selectedId, setSelectedId] = useState(initialMessages[0]?.id ?? null)
+  const [mobileView, setMobileView] = useState<'list' | 'detail'>('list')
   const [search, setSearch] = useState('')
   const [composeOpen, setComposeOpen] = useState(Boolean(initialToEmail))
   const [toEmail, setToEmail] = useState(initialToEmail)
@@ -241,6 +242,7 @@ export function MailboxClient({ workspaceId, initialMessages, initialToEmail = '
     setFolder(nextFolder)
     setNotice(null)
     setError(null)
+    setMobileView('list')
     startTransition(async () => {
       try {
         const result = await getMailboxMessages(workspaceId, nextFolder)
@@ -329,6 +331,7 @@ export function MailboxClient({ workspaceId, initialMessages, initialToEmail = '
 
   function handleSelect(message: WorkspaceMailMessage) {
     setSelectedId(message.id)
+    setMobileView('detail')
     if (!message.isRead && message.direction === 'inbound') {
       setMessages((prev) => prev.map((m) => m.id === message.id ? { ...m, isRead: true } : m))
       void markMailAsRead(workspaceId, message.id, true)
@@ -366,6 +369,7 @@ export function MailboxClient({ workspaceId, initialMessages, initialToEmail = '
     setMessages((prev) => {
       const next = prev.filter((message) => message.id !== messageId)
       setSelectedId(next[0]?.id ?? null)
+      if (next.length === 0) setMobileView('list')
       return next
     })
   }
@@ -467,7 +471,7 @@ export function MailboxClient({ workspaceId, initialMessages, initialToEmail = '
       )}
 
       <div className="grid min-h-[520px] gap-4 lg:grid-cols-[360px_1fr]">
-        <div className="overflow-hidden rounded-lg border bg-card">
+        <div className={`overflow-hidden rounded-lg border bg-card ${mobileView === 'detail' ? 'hidden lg:block' : ''}`}>
           <div className="border-b px-3 py-2">
             <input
               type="search"
@@ -514,11 +518,18 @@ export function MailboxClient({ workspaceId, initialMessages, initialToEmail = '
           </div>
         </div>
 
-        <div className="rounded-lg border bg-card p-5">
+        <div className={`rounded-lg border bg-card p-5 ${mobileView === 'list' ? 'hidden lg:block' : ''}`}>
           {!selected ? (
             <div className="flex h-full min-h-[360px] items-center justify-center text-sm text-muted-foreground">{t.mailSelectMessage}</div>
           ) : (
             <div className="space-y-5">
+              <button
+                type="button"
+                onClick={() => setMobileView('list')}
+                className="flex items-center gap-1.5 rounded-md border px-3 py-1.5 text-sm font-medium hover:bg-muted lg:hidden"
+              >
+                ← {t.mailFolderInbox}
+              </button>
               <div className="flex flex-col gap-3 border-b pb-4 sm:flex-row sm:items-start sm:justify-between">
                 <div className="min-w-0">
                   <h2 className="break-words text-xl font-semibold">{selected.subject || t.mailNoSubject}</h2>
