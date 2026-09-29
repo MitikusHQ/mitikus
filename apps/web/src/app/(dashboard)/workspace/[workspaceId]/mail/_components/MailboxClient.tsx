@@ -209,6 +209,9 @@ export function MailboxClient({ workspaceId, initialMessages, initialToEmail = '
   const [folder, setFolder] = useState<MailFolder>('inbox')
   const [messages, setMessages] = useState(initialMessages)
   const [selectedId, setSelectedId] = useState<string | null>(null)
+  const [panelMinimized, setPanelMinimized] = useState(false)
+  const [replyBody, setReplyBody] = useState('')
+  const [replyOpen, setReplyOpen] = useState(false)
   const [search, setSearch] = useState('')
   const [composeOpen, setComposeOpen] = useState(Boolean(initialToEmail))
   const [toEmail, setToEmail] = useState(initialToEmail)
@@ -330,14 +333,46 @@ export function MailboxClient({ workspaceId, initialMessages, initialToEmail = '
 
   function handleSelect(message: WorkspaceMailMessage) {
     setSelectedId(message.id)
+    setPanelMinimized(false)
+    setReplyOpen(false)
+    setReplyBody(defaultSignature ? `\n\n${defaultSignature}` : '')
     if (!message.isRead && message.direction === 'inbound') {
       setMessages((prev) => prev.map((m) => m.id === message.id ? { ...m, isRead: true } : m))
       void markMailAsRead(workspaceId, message.id, true)
     }
   }
 
-  function closeModal() {
+  function closePanel() {
     setSelectedId(null)
+    setReplyOpen(false)
+    setReplyBody('')
+  }
+
+  function handleQuickReply() {
+    if (!selected || !replyBody.trim()) return
+    const recipient = selected.replyTo || selected.fromEmail || (selected.direction === 'outbound' ? selected.toEmail : '')
+    if (!recipient) { setError(t.mailNoReplyError); return }
+    setNotice(null)
+    setError(null)
+    startTransition(async () => {
+      try {
+        const result = await sendWorkspaceMail(workspaceId, {
+          toEmail: recipient,
+          ccEmail: '',
+          bccEmail: '',
+          subject: replySubject(selected.subject, t.mailNoSubject),
+          body: replyBody,
+        })
+        if (!result.ok) { setError(result.error); return }
+        setReplyBody('')
+        setReplyOpen(false)
+        setNotice(t.mailSentNotice)
+        loadFolder('sent')
+        closePanel()
+      } catch {
+        setError(t.mailSendError)
+      }
+    })
   }
 
   function handleReply(message: WorkspaceMailMessage) {
@@ -518,54 +553,96 @@ export function MailboxClient({ workspaceId, initialMessages, initialToEmail = '
       </div>
 
       {selected && (
-        <div className="fixed inset-0 z-50 flex items-start justify-center bg-black/50 p-4 pt-16 sm:pt-8" onClick={closeModal}>
-          <div
-            className="relative w-full max-w-2xl max-h-[85vh] overflow-y-auto rounded-xl border bg-card shadow-2xl"
-            onClick={(e) => e.stopPropagation()}
-          >
-            <div className="sticky top-0 z-10 flex items-center justify-between border-b bg-card px-5 py-3">
-              <h2 className="truncate pr-4 text-base font-semibold">{selected.subject || t.mailNoSubject}</h2>
-              <button type="button" onClick={closeModal} className="shrink-0 rounded-md p-1.5 text-muted-foreground hover:bg-muted hover:text-foreground">
-                <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M18 6 6 18"/><path d="m6 6 12 12"/></svg>
-              </button>
-            </div>
-            <div className="p-5 space-y-4">
-              <div className="flex flex-col gap-3 border-b pb-4 sm:flex-row sm:items-start sm:justify-between">
-                <div className="min-w-0 space-y-1 text-sm text-muted-foreground">
-                  {clientContextLabel(selected) && (
-                    <div className="group relative w-fit max-w-full">
-                      <p className="max-w-full truncate">{t.mailClientLabel}: {clientContextLabel(selected)}</p>
-                      <ClientContextPopover message={selected} />
-                    </div>
-                  )}
-                  <p>{t.mailFromLabel}: {selected.fromEmail || selected.fromName || t.mailNoSender}</p>
-                  <p>{t.mailToDetailLabel}: {selected.toEmail || t.mailNoRecipient}</p>
-                  {selected.ccEmail && <p>{t.mailCopyLabel}: {selected.ccEmail}</p>}
-                  {selected.bccEmail && selected.status === 'draft' && <p>{t.mailHiddenCopyLabel}: {selected.bccEmail}</p>}
-                  {selected.invoiceNumber && <p>{t.mailRelatedInvoice} {selected.invoiceNumber}</p>}
-                  {selected.clientName && (
-                    <div className="mt-2 rounded-md border bg-muted/30 p-3">
-                      <div className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">{t.mailClientInMitikus}</div>
-                      <div className="mt-1 font-medium text-foreground">{clientContextLabel(selected)}</div>
-                      <div className="mt-1 text-xs">{selected.fromEmail || selected.toEmail}</div>
-                    </div>
-                  )}
-                </div>
-                <div className="flex shrink-0 flex-row flex-wrap gap-2 sm:flex-col sm:items-end">
-                  <span className={`w-fit rounded-full px-3 py-1 text-xs font-medium ${statusClass(selected.status)}`}>{STATUS_LABELS[selected.status] ?? selected.status}</span>
-                  <button type="button" onClick={() => handleReply(selected)} className="rounded-md border px-3 py-2 text-sm font-medium hover:bg-muted">{t.mailReply}</button>
-                  <button type="button" onClick={() => handleForward(selected)} className="rounded-md border px-3 py-2 text-sm font-medium hover:bg-muted">Reenviar</button>
-                  <button type="button" onClick={() => handleDeleteMessage(selected)} className="rounded-md border border-red-200 px-3 py-2 text-sm font-medium text-red-600 hover:bg-red-50 dark:border-red-900 dark:text-red-300 dark:hover:bg-red-950/30">
-                    {folder === 'trash' ? t.mailDeletePermanent : t.mailDelete}
-                  </button>
-                </div>
-              </div>
-              {selected.lastError && <div className="rounded-md border border-red-200 bg-red-50 px-3 py-2 text-sm text-red-700 dark:border-red-900 dark:bg-red-950/30 dark:text-red-300">{selected.lastError}</div>}
-              <div className="whitespace-pre-wrap break-words rounded-md bg-muted/30 p-4 text-sm leading-6">
-                {selected.body || t.mailNoContent}
-              </div>
-            </div>
+        <div className={`fixed bottom-0 right-4 z-50 flex w-full max-w-lg flex-col rounded-t-xl border border-b-0 bg-card shadow-2xl transition-all duration-200 sm:right-6 sm:w-[480px] ${panelMinimized ? 'max-h-12' : 'max-h-[70vh]'}`}>
+          {/* Header */}
+          <div className="flex shrink-0 cursor-pointer select-none items-center gap-2 rounded-t-xl bg-foreground px-4 py-3 text-background" onClick={() => setPanelMinimized((v) => !v)}>
+            <span className="flex-1 truncate text-sm font-semibold">{selected.subject || t.mailNoSubject}</span>
+            <span className="shrink-0 text-xs opacity-70">{fmtDate(selected.sentAt ?? selected.createdAt, locale)}</span>
+            <button
+              type="button"
+              onClick={(e) => { e.stopPropagation(); setPanelMinimized((v) => !v) }}
+              className="shrink-0 rounded p-0.5 opacity-70 hover:opacity-100"
+              title={panelMinimized ? 'Expandir' : 'Minimizar'}
+            >
+              {panelMinimized
+                ? <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="m18 15-6-6-6 6"/></svg>
+                : <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="m6 9 6 6 6-6"/></svg>
+              }
+            </button>
+            <button
+              type="button"
+              onClick={(e) => { e.stopPropagation(); closePanel() }}
+              className="shrink-0 rounded p-0.5 opacity-70 hover:opacity-100"
+              title="Cerrar"
+            >
+              <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M18 6 6 18"/><path d="m6 6 12 12"/></svg>
+            </button>
           </div>
+
+          {!panelMinimized && (
+            <div className="flex min-h-0 flex-1 flex-col overflow-hidden">
+              {/* Meta */}
+              <div className="shrink-0 border-b bg-muted/30 px-4 py-2 text-xs text-muted-foreground space-y-0.5">
+                <div className="flex items-center gap-2">
+                  <span className="font-medium text-foreground">{t.mailFromLabel}:</span>
+                  <span>{selected.fromName || selected.fromEmail || t.mailNoSender}</span>
+                  {selected.fromEmail && selected.fromName && <span className="opacity-60">&lt;{selected.fromEmail}&gt;</span>}
+                  <span className={`ml-auto rounded-full px-2 py-0.5 ${statusClass(selected.status)}`}>{STATUS_LABELS[selected.status] ?? selected.status}</span>
+                </div>
+                <div><span className="font-medium text-foreground">{t.mailToDetailLabel}:</span> {selected.toEmail || t.mailNoRecipient}</div>
+                {selected.ccEmail && <div><span className="font-medium text-foreground">{t.mailCopyLabel}:</span> {selected.ccEmail}</div>}
+                {selected.invoiceNumber && <div><span className="font-medium text-foreground">{t.mailRelatedInvoice}</span> {selected.invoiceNumber}</div>}
+                {clientContextLabel(selected) && (
+                  <div className="group relative w-fit">
+                    <span className="font-medium text-foreground">{t.mailClientLabel}:</span> {clientContextLabel(selected)}
+                  </div>
+                )}
+              </div>
+
+              {/* Body */}
+              <div className="flex-1 overflow-y-auto px-4 py-3">
+                {selected.lastError && (
+                  <div className="mb-3 rounded-md border border-red-200 bg-red-50 px-3 py-2 text-xs text-red-700 dark:border-red-900 dark:bg-red-950/30 dark:text-red-300">{selected.lastError}</div>
+                )}
+                <div className="whitespace-pre-wrap break-words text-sm leading-6 text-foreground">
+                  {selected.body || t.mailNoContent}
+                </div>
+              </div>
+
+              {/* Actions + quick reply */}
+              <div className="shrink-0 border-t bg-card">
+                {replyOpen ? (
+                  <div className="p-3 space-y-2">
+                    <textarea
+                      value={replyBody}
+                      onChange={(e) => setReplyBody(e.target.value)}
+                      rows={4}
+                      placeholder={t.mailBodyPlaceholder}
+                      className="w-full rounded-md border bg-background px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-ring resize-none"
+                    />
+                    <div className="flex justify-end gap-2">
+                      <button type="button" onClick={() => setReplyOpen(false)} className="rounded-md border px-3 py-1.5 text-sm font-medium hover:bg-muted">{t.mailClose}</button>
+                      <button type="button" onClick={handleQuickReply} disabled={isPending || !replyBody.trim()} className="rounded-md bg-primary px-4 py-1.5 text-sm font-semibold text-primary-foreground hover:opacity-90 disabled:opacity-50">{t.mailSend}</button>
+                    </div>
+                  </div>
+                ) : (
+                  <div className="flex items-center gap-2 px-4 py-2">
+                    <button type="button" onClick={() => setReplyOpen(true)} className="flex items-center gap-1.5 rounded-md border px-3 py-1.5 text-sm font-medium hover:bg-muted">
+                      <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><polyline points="9 17 4 12 9 7"/><path d="M20 18v-2a4 4 0 0 0-4-4H4"/></svg>
+                      {t.mailReply}
+                    </button>
+                    <button type="button" onClick={() => handleForward(selected)} className="flex items-center gap-1.5 rounded-md border px-3 py-1.5 text-sm font-medium hover:bg-muted">
+                      <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><polyline points="15 17 20 12 15 7"/><path d="M4 18v-2a4 4 0 0 1 4-4h12"/></svg>
+                      Reenviar
+                    </button>
+                    <button type="button" onClick={() => handleDeleteMessage(selected)} className="ml-auto rounded-md border border-red-200 px-3 py-1.5 text-sm font-medium text-red-600 hover:bg-red-50 dark:border-red-900 dark:text-red-300 dark:hover:bg-red-950/30">
+                      {folder === 'trash' ? t.mailDeletePermanent : t.mailDelete}
+                    </button>
+                  </div>
+                )}
+              </div>
+            </div>
+          )}
         </div>
       )}
     </div>
