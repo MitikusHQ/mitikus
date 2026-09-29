@@ -208,8 +208,7 @@ export function MailboxClient({ workspaceId, initialMessages, initialToEmail = '
   }
   const [folder, setFolder] = useState<MailFolder>('inbox')
   const [messages, setMessages] = useState(initialMessages)
-  const [selectedId, setSelectedId] = useState(initialMessages[0]?.id ?? null)
-  const [mobileView, setMobileView] = useState<'list' | 'detail'>('list')
+  const [selectedId, setSelectedId] = useState<string | null>(null)
   const [search, setSearch] = useState('')
   const [composeOpen, setComposeOpen] = useState(Boolean(initialToEmail))
   const [toEmail, setToEmail] = useState(initialToEmail)
@@ -234,7 +233,7 @@ export function MailboxClient({ workspaceId, initialMessages, initialToEmail = '
   }, [messages, search])
 
   const selected = useMemo(
-    () => messages.find((message) => message.id === selectedId) ?? messages[0] ?? null,
+    () => selectedId ? (messages.find((message) => message.id === selectedId) ?? null) : null,
     [messages, selectedId],
   )
 
@@ -242,7 +241,7 @@ export function MailboxClient({ workspaceId, initialMessages, initialToEmail = '
     setFolder(nextFolder)
     setNotice(null)
     setError(null)
-    setMobileView('list')
+    setSelectedId(null)
     startTransition(async () => {
       try {
         const result = await getMailboxMessages(workspaceId, nextFolder)
@@ -331,11 +330,14 @@ export function MailboxClient({ workspaceId, initialMessages, initialToEmail = '
 
   function handleSelect(message: WorkspaceMailMessage) {
     setSelectedId(message.id)
-    setMobileView('detail')
     if (!message.isRead && message.direction === 'inbound') {
       setMessages((prev) => prev.map((m) => m.id === message.id ? { ...m, isRead: true } : m))
       void markMailAsRead(workspaceId, message.id, true)
     }
+  }
+
+  function closeModal() {
+    setSelectedId(null)
   }
 
   function handleReply(message: WorkspaceMailMessage) {
@@ -346,6 +348,7 @@ export function MailboxClient({ workspaceId, initialMessages, initialToEmail = '
     }
     setNotice(null)
     setError(null)
+    setSelectedId(null)
     setToEmail(recipient)
     setCcEmail('')
     setBccEmail('')
@@ -357,6 +360,7 @@ export function MailboxClient({ workspaceId, initialMessages, initialToEmail = '
   function handleForward(message: WorkspaceMailMessage) {
     setNotice(null)
     setError(null)
+    setSelectedId(null)
     setToEmail('')
     setCcEmail('')
     setBccEmail('')
@@ -366,12 +370,8 @@ export function MailboxClient({ workspaceId, initialMessages, initialToEmail = '
   }
 
   function removeSelectedFromList(messageId: string) {
-    setMessages((prev) => {
-      const next = prev.filter((message) => message.id !== messageId)
-      setSelectedId(next[0]?.id ?? null)
-      if (next.length === 0) setMobileView('list')
-      return next
-    })
+    setMessages((prev) => prev.filter((message) => message.id !== messageId))
+    setSelectedId(null)
   }
 
   function handleDeleteMessage(message: WorkspaceMailMessage) {
@@ -470,98 +470,91 @@ export function MailboxClient({ workspaceId, initialMessages, initialToEmail = '
         </div>
       )}
 
-      <div className="grid min-h-[520px] gap-4 lg:grid-cols-[360px_1fr]">
-        <div className={`overflow-hidden rounded-lg border bg-card ${mobileView === 'detail' ? 'hidden lg:block' : ''}`}>
-          <div className="border-b px-3 py-2">
-            <input
-              type="search"
-              value={search}
-              onChange={(e) => setSearch(e.target.value)}
-              placeholder="Buscar..."
-              className="w-full rounded-md border bg-background px-3 py-1.5 text-sm focus:outline-none focus:ring-2 focus:ring-ring"
-            />
-          </div>
-          <div className="max-h-[620px] overflow-y-auto">
-            {filteredMessages.length === 0 ? (
-              <div className="p-6 text-sm text-muted-foreground">{t.mailNoMessages}</div>
-            ) : filteredMessages.map((message, index) => {
-              const unread = !message.isRead && message.direction === 'inbound'
-              return (
-                <button
-                  key={message.id}
-                  type="button"
-                  onClick={() => handleSelect(message)}
-                  className={`group relative block w-full overflow-visible border-b px-4 py-3 text-left hover:bg-muted/60 ${selected?.id === message.id ? 'bg-muted' : ''}`}
-                >
-                  <div className="flex items-center justify-between gap-3">
-                    <div className="flex items-center gap-1.5 min-w-0">
-                      {unread && <span className="shrink-0 w-2 h-2 rounded-full bg-primary" />}
-                      <span className={`truncate text-sm ${unread ? 'font-bold' : 'font-semibold'}`}>{displayPeer(message, t.mailNoSender, t.mailNoRecipient)}</span>
-                    </div>
-                    <span className="shrink-0 text-xs text-muted-foreground">{fmtDate(message.sentAt ?? message.createdAt, locale)}</span>
-                  </div>
-                  {peerEmail(message) && <div className="mt-1 truncate text-xs text-muted-foreground">{peerEmail(message)}</div>}
-                  <div className={`mt-1 truncate text-sm ${unread ? 'font-medium' : ''}`}>{message.subject || t.mailNoSubject}</div>
-                  <div className="mt-1 flex items-center gap-2 text-xs text-muted-foreground">
-                    <span className={`rounded-full px-2 py-0.5 ${statusClass(message.status)}`}>{STATUS_LABELS[message.status] ?? message.status}</span>
-                    {message.tag && message.direction === 'inbound' && (
-                      <span className={`rounded-full px-2 py-0.5 ${TAG_COLORS[message.tag as MailTag] ?? TAG_COLORS.otro}`}>
-                        {TAG_LABELS[message.tag as MailTag] ?? message.tag}
-                      </span>
-                    )}
-                    {message.invoiceNumber && <span>{t.mailInvoiceBadge} {message.invoiceNumber}</span>}
-                  </div>
-                  <ClientContextPopover message={message} position={index === 0 ? 'bottom' : 'top'} />
-                </button>
-              )
-            })}
-          </div>
+      <div className="overflow-hidden rounded-lg border bg-card">
+        <div className="border-b px-3 py-2">
+          <input
+            type="search"
+            value={search}
+            onChange={(e) => setSearch(e.target.value)}
+            placeholder="Buscar..."
+            className="w-full rounded-md border bg-background px-3 py-1.5 text-sm focus:outline-none focus:ring-2 focus:ring-ring"
+          />
         </div>
-
-        <div className={`rounded-lg border bg-card p-5 ${mobileView === 'list' ? 'hidden lg:block' : ''}`}>
-          {!selected ? (
-            <div className="flex h-full min-h-[360px] items-center justify-center text-sm text-muted-foreground">{t.mailSelectMessage}</div>
-          ) : (
-            <div className="space-y-5">
+        <div className="max-h-[620px] overflow-y-auto">
+          {filteredMessages.length === 0 ? (
+            <div className="p-6 text-sm text-muted-foreground">{t.mailNoMessages}</div>
+          ) : filteredMessages.map((message, index) => {
+            const unread = !message.isRead && message.direction === 'inbound'
+            return (
               <button
+                key={message.id}
                 type="button"
-                onClick={() => setMobileView('list')}
-                className="flex items-center gap-1.5 rounded-md border px-3 py-1.5 text-sm font-medium hover:bg-muted lg:hidden"
+                onClick={() => handleSelect(message)}
+                className="group relative block w-full overflow-visible border-b px-4 py-3 text-left hover:bg-muted/60"
               >
-                ← {t.mailFolderInbox}
-              </button>
-              <div className="flex flex-col gap-3 border-b pb-4 sm:flex-row sm:items-start sm:justify-between">
-                <div className="min-w-0">
-                  <h2 className="break-words text-xl font-semibold">{selected.subject || t.mailNoSubject}</h2>
-                  <div className="mt-2 space-y-1 text-sm text-muted-foreground">
-                    {clientContextLabel(selected) && (
-                      <div className="group relative w-fit max-w-full">
-                        <p className="max-w-full truncate">{t.mailClientLabel}: {clientContextLabel(selected)}</p>
-                        <ClientContextPopover message={selected} />
-                      </div>
-                    )}
-                    <p>{t.mailFromLabel}: {selected.fromEmail || selected.fromName || t.mailNoSender}</p>
-                    <p>{t.mailToDetailLabel}: {selected.toEmail || t.mailNoRecipient}</p>
-                    {selected.ccEmail && <p>{t.mailCopyLabel}: {selected.ccEmail}</p>}
-                    {selected.bccEmail && selected.status === 'draft' && <p>{t.mailHiddenCopyLabel}: {selected.bccEmail}</p>}
-                    {selected.invoiceNumber && <p>{t.mailRelatedInvoice} {selected.invoiceNumber}</p>}
+                <div className="flex items-center justify-between gap-3">
+                  <div className="flex items-center gap-1.5 min-w-0">
+                    {unread && <span className="shrink-0 w-2 h-2 rounded-full bg-primary" />}
+                    <span className={`truncate text-sm ${unread ? 'font-bold' : 'font-semibold'}`}>{displayPeer(message, t.mailNoSender, t.mailNoRecipient)}</span>
                   </div>
+                  <span className="shrink-0 text-xs text-muted-foreground">{fmtDate(message.sentAt ?? message.createdAt, locale)}</span>
+                </div>
+                {peerEmail(message) && <div className="mt-1 truncate text-xs text-muted-foreground">{peerEmail(message)}</div>}
+                <div className={`mt-1 truncate text-sm ${unread ? 'font-medium' : ''}`}>{message.subject || t.mailNoSubject}</div>
+                <div className="mt-1 flex items-center gap-2 text-xs text-muted-foreground">
+                  <span className={`rounded-full px-2 py-0.5 ${statusClass(message.status)}`}>{STATUS_LABELS[message.status] ?? message.status}</span>
+                  {message.tag && message.direction === 'inbound' && (
+                    <span className={`rounded-full px-2 py-0.5 ${TAG_COLORS[message.tag as MailTag] ?? TAG_COLORS.otro}`}>
+                      {TAG_LABELS[message.tag as MailTag] ?? message.tag}
+                    </span>
+                  )}
+                  {message.invoiceNumber && <span>{t.mailInvoiceBadge} {message.invoiceNumber}</span>}
+                </div>
+                <ClientContextPopover message={message} position={index === 0 ? 'bottom' : 'top'} />
+              </button>
+            )
+          })}
+        </div>
+      </div>
+
+      {selected && (
+        <div className="fixed inset-0 z-50 flex items-start justify-center bg-black/50 p-4 pt-16 sm:pt-8" onClick={closeModal}>
+          <div
+            className="relative w-full max-w-2xl max-h-[85vh] overflow-y-auto rounded-xl border bg-card shadow-2xl"
+            onClick={(e) => e.stopPropagation()}
+          >
+            <div className="sticky top-0 z-10 flex items-center justify-between border-b bg-card px-5 py-3">
+              <h2 className="truncate pr-4 text-base font-semibold">{selected.subject || t.mailNoSubject}</h2>
+              <button type="button" onClick={closeModal} className="shrink-0 rounded-md p-1.5 text-muted-foreground hover:bg-muted hover:text-foreground">
+                <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M18 6 6 18"/><path d="m6 6 12 12"/></svg>
+              </button>
+            </div>
+            <div className="p-5 space-y-4">
+              <div className="flex flex-col gap-3 border-b pb-4 sm:flex-row sm:items-start sm:justify-between">
+                <div className="min-w-0 space-y-1 text-sm text-muted-foreground">
+                  {clientContextLabel(selected) && (
+                    <div className="group relative w-fit max-w-full">
+                      <p className="max-w-full truncate">{t.mailClientLabel}: {clientContextLabel(selected)}</p>
+                      <ClientContextPopover message={selected} />
+                    </div>
+                  )}
+                  <p>{t.mailFromLabel}: {selected.fromEmail || selected.fromName || t.mailNoSender}</p>
+                  <p>{t.mailToDetailLabel}: {selected.toEmail || t.mailNoRecipient}</p>
+                  {selected.ccEmail && <p>{t.mailCopyLabel}: {selected.ccEmail}</p>}
+                  {selected.bccEmail && selected.status === 'draft' && <p>{t.mailHiddenCopyLabel}: {selected.bccEmail}</p>}
+                  {selected.invoiceNumber && <p>{t.mailRelatedInvoice} {selected.invoiceNumber}</p>}
                   {selected.clientName && (
-                    <div className="mt-3 rounded-md border bg-muted/30 p-3 text-sm">
+                    <div className="mt-2 rounded-md border bg-muted/30 p-3">
                       <div className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">{t.mailClientInMitikus}</div>
-                      <div className="mt-1 font-medium">{clientContextLabel(selected)}</div>
-                      <div className="mt-1 text-xs text-muted-foreground">{selected.fromEmail || selected.toEmail}</div>
+                      <div className="mt-1 font-medium text-foreground">{clientContextLabel(selected)}</div>
+                      <div className="mt-1 text-xs">{selected.fromEmail || selected.toEmail}</div>
                     </div>
                   )}
                 </div>
-                <div className="flex shrink-0 flex-col items-start gap-2 sm:items-end">
+                <div className="flex shrink-0 flex-row flex-wrap gap-2 sm:flex-col sm:items-end">
                   <span className={`w-fit rounded-full px-3 py-1 text-xs font-medium ${statusClass(selected.status)}`}>{STATUS_LABELS[selected.status] ?? selected.status}</span>
-                  <button type="button" onClick={() => handleReply(selected)} className="rounded-md border px-3 py-2 text-sm font-medium hover:bg-muted">
-                    {t.mailReply}
-                  </button>
-                  <button type="button" onClick={() => handleForward(selected)} className="rounded-md border px-3 py-2 text-sm font-medium hover:bg-muted">
-                    Reenviar
-                  </button>
+                  <button type="button" onClick={() => handleReply(selected)} className="rounded-md border px-3 py-2 text-sm font-medium hover:bg-muted">{t.mailReply}</button>
+                  <button type="button" onClick={() => handleForward(selected)} className="rounded-md border px-3 py-2 text-sm font-medium hover:bg-muted">Reenviar</button>
                   <button type="button" onClick={() => handleDeleteMessage(selected)} className="rounded-md border border-red-200 px-3 py-2 text-sm font-medium text-red-600 hover:bg-red-50 dark:border-red-900 dark:text-red-300 dark:hover:bg-red-950/30">
                     {folder === 'trash' ? t.mailDeletePermanent : t.mailDelete}
                   </button>
@@ -572,9 +565,9 @@ export function MailboxClient({ workspaceId, initialMessages, initialToEmail = '
                 {selected.body || t.mailNoContent}
               </div>
             </div>
-          )}
+          </div>
         </div>
-      </div>
+      )}
     </div>
   )
 }
