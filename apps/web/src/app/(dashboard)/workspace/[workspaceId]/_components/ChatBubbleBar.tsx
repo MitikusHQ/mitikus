@@ -502,9 +502,9 @@ function CallOverlay({ call, onSignal, onRegisterHandler, onHangup, sharedAudioC
                 : status === 'no-relay' ? '⚠ Red requiere relay TURN'
                 : '❌ Sin conexión'}
             </p>
-            {sigLog.length > 0 && (
-              <div className="text-zinc-600 text-[9px] leading-tight max-w-[220px]">
-                {sigLog.map((l, i) => <div key={i}>{l}</div>)}
+            {sigLog.length > 0 && process.env.NODE_ENV === 'development' && (
+              <div className="text-zinc-600 text-[9px] leading-tight max-w-[220px] max-h-10 overflow-hidden">
+                {sigLog.slice(-2).map((l, i) => <div key={i}>{l}</div>)}
               </div>
             )}
           </div>
@@ -536,10 +536,10 @@ function CallOverlay({ call, onSignal, onRegisterHandler, onHangup, sharedAudioC
       </div>
 
       {call.mode === 'video' ? (
-        <div className="flex-1 relative bg-zinc-950">
-          <video ref={remoteVideoRef} autoPlay playsInline className="w-full h-full object-contain" />
+        <div className="flex-1 relative bg-zinc-950 overflow-hidden">
+          <video ref={remoteVideoRef} autoPlay playsInline className="absolute inset-0 w-full h-full object-contain" />
           <video ref={localVideoRef} autoPlay playsInline muted
-            className="absolute bottom-4 right-4 w-36 h-24 rounded-xl object-cover border-2 border-zinc-700 bg-zinc-800" />
+            className="absolute bottom-4 right-4 w-36 h-24 rounded-xl object-cover border-2 border-zinc-700 bg-zinc-800 z-10" />
         </div>
       ) : (
         <div className="flex-1 flex flex-col items-center justify-center gap-4 bg-zinc-950">
