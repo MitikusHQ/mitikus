@@ -502,11 +502,6 @@ function CallOverlay({ call, onSignal, onRegisterHandler, onHangup, sharedAudioC
                 : status === 'no-relay' ? '⚠ Red requiere relay TURN'
                 : '❌ Sin conexión'}
             </p>
-            {sigLog.length > 0 && process.env.NODE_ENV === 'development' && (
-              <div className="text-zinc-600 text-[9px] leading-tight max-w-[220px] max-h-10 overflow-hidden">
-                {sigLog.slice(-2).map((l, i) => <div key={i}>{l}</div>)}
-              </div>
-            )}
           </div>
         </div>
         <div className="flex items-center gap-2">
