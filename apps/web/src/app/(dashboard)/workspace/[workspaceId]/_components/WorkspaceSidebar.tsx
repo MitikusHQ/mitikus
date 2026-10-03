@@ -139,9 +139,8 @@ export function WorkspaceSidebar({ workspaceId, workspaceName, workspaceLogoUrl,
                     </li>
                     {isDesktop && item.href.endsWith('/mail') && (
                       <li key="browser">
-                        <button
-                          type="button"
-                          onClick={() => openDesktopBrowser().then(ok => { if (!ok) alert('openDesktopBrowser returned false') }).catch(e => alert(String(e)))}
+                        <Link
+                          href={`/workspace/${workspaceId}/browser`}
                           title="Navegador"
                           className={cn(
                             'flex items-center gap-2 w-full rounded-md text-sm text-muted-foreground hover:text-foreground hover:bg-muted transition-colors',
@@ -154,7 +153,7 @@ export function WorkspaceSidebar({ workspaceId, workspaceName, workspaceLogoUrl,
                             <path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z"/>
                           </svg>
                           {!collapsed && <span>Navegador</span>}
-                        </button>
+                        </Link>
                       </li>
                     )}
                     {isLastGroup && ii === group.items.length - 1 && onOpenOnboarding && (
