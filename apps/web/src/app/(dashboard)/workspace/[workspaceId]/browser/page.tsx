@@ -1,7 +1,22 @@
 'use client'
 
+/* eslint-disable @typescript-eslint/no-explicit-any */
+
 import { useEffect, useRef, useState } from 'react'
 import { isDesktopApp } from '@/lib/desktop-bridge'
+
+// Declaración de tipos para el elemento <webview> de Tauri/Electron
+declare global {
+  // eslint-disable-next-line @typescript-eslint/no-namespace
+  namespace JSX {
+    interface IntrinsicElements {
+      webview: React.DetailedHTMLProps<React.HTMLAttributes<HTMLElement>, HTMLElement> & {
+        src?: string
+        allowpopups?: string
+      }
+    }
+  }
+}
 
 export default function BrowserPage() {
   const [url, setUrl] = useState('https://www.google.com')
@@ -11,14 +26,6 @@ export default function BrowserPage() {
 
   useEffect(() => { setIsDesktop(isDesktopApp()) }, [])
 
-  if (!isDesktop) {
-    return (
-      <div className="flex flex-col items-center justify-center h-full text-muted-foreground gap-2">
-        <p className="text-sm">El navegador integrado solo está disponible en la app de escritorio.</p>
-      </div>
-    )
-  }
-
   function navigate() {
     let target = inputUrl.trim()
     if (!target) return
@@ -27,6 +34,14 @@ export default function BrowserPage() {
     }
     setUrl(target)
     setInputUrl(target)
+  }
+
+  if (!isDesktop) {
+    return (
+      <div className="flex flex-col items-center justify-center h-full text-muted-foreground gap-2">
+        <p className="text-sm">El navegador integrado solo está disponible en la app de escritorio.</p>
+      </div>
+    )
   }
 
   return (
@@ -71,12 +86,12 @@ export default function BrowserPage() {
         </form>
       </div>
 
-      {/* WebView */}
+      {/* WebView — solo funciona dentro de Tauri */}
       <webview
         ref={webviewRef as any}
         src={url}
         className="flex-1 w-full min-h-0"
-        style={{ display: 'flex', flexDirection: 'column', flexGrow: 1 }}
+        style={{ flexGrow: 1 }}
         allowpopups="true"
       />
     </div>
