@@ -103,10 +103,6 @@ export async function activateApp(): Promise<void> {
  */
 export async function openDesktopBrowser(url?: string): Promise<boolean> {
   if (!isDesktopApp()) return false
-  try {
-    await window.__TAURI__!.core!.invoke('open_browser', { url: url ?? '' })
-    return true
-  } catch {
-    return false
-  }
+  await window.__TAURI__!.core!.invoke('open_browser', { url: url ?? '' })
+  return true
 }

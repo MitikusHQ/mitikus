@@ -141,7 +141,7 @@ export function WorkspaceSidebar({ workspaceId, workspaceName, workspaceLogoUrl,
                       <li key="browser">
                         <button
                           type="button"
-                          onClick={() => openDesktopBrowser()}
+                          onClick={() => openDesktopBrowser().then(ok => { if (!ok) alert('openDesktopBrowser returned false') }).catch(e => alert(String(e)))}
                           title="Navegador"
                           className={cn(
                             'flex items-center gap-2 w-full rounded-md text-sm text-muted-foreground hover:text-foreground hover:bg-muted transition-colors',
