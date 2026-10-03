@@ -1,43 +1,66 @@
 'use client'
 
-/* eslint-disable @typescript-eslint/no-explicit-any */
-
-import { useEffect, useRef, useState } from 'react'
+import { useEffect, useRef, useState, useCallback } from 'react'
 import { isDesktopApp } from '@/lib/desktop-bridge'
 
-// Declaración de tipos para el elemento <webview> de Tauri/Electron
-declare global {
-  // eslint-disable-next-line @typescript-eslint/no-namespace
-  namespace JSX {
-    interface IntrinsicElements {
-      webview: {
-        src?: string
-        ref?: React.Ref<HTMLElement>
-        className?: string
-        style?: React.CSSProperties
-        allowpopups?: string
-        [key: string]: unknown
-      }
-    }
-  }
+async function invoke(cmd: string, args?: Record<string, unknown>) {
+  const t = (window as unknown as { __TAURI__?: { core?: { invoke?: Function } } }).__TAURI__
+  if (!t?.core?.invoke) return
+  return t.core.invoke(cmd, args)
 }
 
 export default function BrowserPage() {
-  const [url, setUrl] = useState('https://www.google.com')
   const [inputUrl, setInputUrl] = useState('https://www.google.com')
+  const [currentUrl, setCurrentUrl] = useState('https://www.google.com')
   const [isDesktop, setIsDesktop] = useState(false)
-  const webviewRef = useRef<HTMLElement | null>(null)
+  const containerRef = useRef<HTMLDivElement | null>(null)
 
   useEffect(() => { setIsDesktop(isDesktopApp()) }, [])
 
-  function navigate() {
-    let target = inputUrl.trim()
-    if (!target) return
-    if (!/^https?:\/\//i.test(target)) {
-      target = target.includes('.') ? `https://${target}` : `https://www.google.com/search?q=${encodeURIComponent(target)}`
+  const openBrowserAt = useCallback(async (url: string) => {
+    const el = containerRef.current
+    if (!el) return
+    const rect = el.getBoundingClientRect()
+    await invoke('open_browser', {
+      url,
+      x: rect.left,
+      y: rect.top,
+      width: rect.width,
+      height: rect.height,
+    })
+  }, [])
+
+  // Abrir child webview cuando el componente monta (solo desktop)
+  useEffect(() => {
+    if (!isDesktop) return
+    openBrowserAt(currentUrl)
+    return () => {
+      // Cerrar el child webview cuando se navega fuera
+      invoke('browser_close').catch(() => {})
     }
-    setUrl(target)
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [isDesktop])
+
+  // Reposicionar si el contenedor cambia de tamaño
+  useEffect(() => {
+    if (!isDesktop || !containerRef.current) return
+    const observer = new ResizeObserver(() => openBrowserAt(currentUrl))
+    observer.observe(containerRef.current)
+    return () => observer.disconnect()
+  }, [isDesktop, currentUrl, openBrowserAt])
+
+  function navigate(url?: string) {
+    const target = normalizeUrl(url ?? inputUrl)
+    if (!target) return
+    setCurrentUrl(target)
     setInputUrl(target)
+    invoke('browser_navigate', {
+      url: target,
+      x: containerRef.current?.getBoundingClientRect().left,
+      y: containerRef.current?.getBoundingClientRect().top,
+      width: containerRef.current?.getBoundingClientRect().width,
+      height: containerRef.current?.getBoundingClientRect().height,
+    }).catch(() => {})
   }
 
   if (!isDesktop) {
@@ -54,7 +77,7 @@ export default function BrowserPage() {
       <div className="flex items-center gap-2 px-3 py-2 border-b border-border bg-background shrink-0">
         <button
           type="button"
-          onClick={() => (webviewRef.current as any)?.goBack?.()}
+          onClick={() => invoke('browser_back').catch(() => {})}
           className="p-1.5 rounded hover:bg-muted text-muted-foreground hover:text-foreground transition-colors"
           title="Atrás"
         >
@@ -62,7 +85,7 @@ export default function BrowserPage() {
         </button>
         <button
           type="button"
-          onClick={() => (webviewRef.current as any)?.goForward?.()}
+          onClick={() => invoke('browser_forward').catch(() => {})}
           className="p-1.5 rounded hover:bg-muted text-muted-foreground hover:text-foreground transition-colors"
           title="Adelante"
         >
@@ -70,16 +93,13 @@ export default function BrowserPage() {
         </button>
         <button
           type="button"
-          onClick={() => (webviewRef.current as any)?.reload?.()}
+          onClick={() => invoke('browser_reload').catch(() => {})}
           className="p-1.5 rounded hover:bg-muted text-muted-foreground hover:text-foreground transition-colors"
           title="Recargar"
         >
           <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M3 12a9 9 0 0 1 9-9 9.75 9.75 0 0 1 6.74 2.74L21 8"/><path d="M21 3v5h-5"/><path d="M21 12a9 9 0 0 1-9 9 9.75 9.75 0 0 1-6.74-2.74L3 16"/><path d="M8 16H3v5"/></svg>
         </button>
-        <form
-          onSubmit={(e) => { e.preventDefault(); navigate() }}
-          className="flex-1 flex"
-        >
+        <form onSubmit={(e) => { e.preventDefault(); navigate() }} className="flex-1 flex">
           <input
             type="text"
             value={inputUrl}
@@ -90,14 +110,16 @@ export default function BrowserPage() {
         </form>
       </div>
 
-      {/* WebView — solo funciona dentro de Tauri */}
-      <webview
-        ref={webviewRef as any}
-        src={url}
-        className="flex-1 w-full min-h-0"
-        style={{ flexGrow: 1 }}
-        {...({ allowpopups: 'true' } as Record<string, unknown>)}
-      />
+      {/* Área donde se superpone el child webview de Tauri */}
+      <div ref={containerRef} className="flex-1 w-full min-h-0" />
     </div>
   )
+}
+
+function normalizeUrl(raw: string): string {
+  const s = raw.trim()
+  if (!s) return ''
+  if (/^https?:\/\//i.test(s)) return s
+  if (s.includes('.')) return `https://${s}`
+  return `https://www.google.com/search?q=${encodeURIComponent(s)}`
 }
