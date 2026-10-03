@@ -10,9 +10,13 @@ declare global {
   // eslint-disable-next-line @typescript-eslint/no-namespace
   namespace JSX {
     interface IntrinsicElements {
-      webview: React.DetailedHTMLProps<React.HTMLAttributes<HTMLElement>, HTMLElement> & {
+      webview: {
         src?: string
-        allowpopups?: boolean | string
+        ref?: React.Ref<HTMLElement>
+        className?: string
+        style?: React.CSSProperties
+        allowpopups?: string
+        [key: string]: unknown
       }
     }
   }
@@ -92,7 +96,7 @@ export default function BrowserPage() {
         src={url}
         className="flex-1 w-full min-h-0"
         style={{ flexGrow: 1 }}
-        allowpopups="true"
+        {...({ allowpopups: 'true' } as Record<string, unknown>)}
       />
     </div>
   )
