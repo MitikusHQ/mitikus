@@ -6,6 +6,7 @@ import Link from 'next/link'
 import { cn } from '@/lib/utils'
 import { getLogoImageStyle, getLogoTextStyle } from '@/lib/logo-crop'
 import { WorkspaceSidebarItem, type NavItem } from './WorkspaceSidebarItem'
+import { isDesktopApp, openDesktopBrowser } from '@/lib/desktop-bridge'
 
 interface NavGroup {
   label?: string
@@ -29,6 +30,8 @@ export function WorkspaceSidebar({ workspaceId, workspaceName, workspaceLogoUrl,
   const logoCrop = workspaceLogoCrop ?? { x: 0, y: 0, zoom: 1 }
   const logoText = workspaceLogoText ?? { x: 12, y: 12, size: 16, color: '#FFFFFF', font: 'Inter' }
   const [logoSize, setLogoSize] = useState<{ width: number; height: number } | null>(null)
+  const [isDesktop, setIsDesktop] = useState(false)
+  useEffect(() => { setIsDesktop(isDesktopApp()) }, [])
   useEffect(() => {
     if (!workspaceLogoUrl) { setLogoSize(null); return }
     const img = new Image()
@@ -162,13 +165,31 @@ export function WorkspaceSidebar({ workspaceId, workspaceName, workspaceLogoUrl,
         })}
       </nav>
 
-      {/* Footer — solo "Powered by MITIKUS" */}
+      {/* Footer — navegador desktop + "Powered by MITIKUS" */}
       <div className={cn(
         'border-t border-border/60 bg-sidebar',
         collapsed
-          ? 'flex justify-center px-2 py-3'
+          ? 'flex flex-col items-center gap-1 px-2 py-3'
           : 'px-3 py-3',
       )}>
+        {isDesktop && (
+          <button
+            type="button"
+            onClick={() => openDesktopBrowser()}
+            title="Abrir navegador"
+            className={cn(
+              'flex items-center gap-2 w-full rounded-md text-xs text-muted-foreground hover:text-foreground hover:bg-muted transition-colors mb-1',
+              collapsed ? 'justify-center p-2' : 'px-3 py-2',
+            )}
+          >
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden className="shrink-0">
+              <circle cx="12" cy="12" r="10"/>
+              <line x1="2" y1="12" x2="22" y2="12"/>
+              <path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z"/>
+            </svg>
+            {!collapsed && <span>Navegador</span>}
+          </button>
+        )}
         {!collapsed && (
           <p className="px-3 text-[10px] text-muted-foreground/50 truncate flex items-center gap-1.5">
             <svg width="16" height="16" viewBox="0 0 200 200" xmlns="http://www.w3.org/2000/svg" aria-hidden className="shrink-0">
