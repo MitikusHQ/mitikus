@@ -1,6 +1,6 @@
 'use client'
 
-import { useMemo, useState, useTransition } from 'react'
+import { useEffect, useMemo, useState, useTransition } from 'react'
 import Link from 'next/link'
 import { createCalendarEvent, getCalendarItems, type CalendarClientOption, type CalendarItem } from '@/app/actions/calendar'
 
@@ -22,12 +22,15 @@ const TYPE_LABELS: Record<string, string> = {
   deadline: 'Vencimiento',
   task: 'Tarea',
   invoice: 'Factura',
+  google_event: 'Google Calendar',
+  google: 'Google Calendar',
 }
 
 const SOURCE_STYLES: Record<string, string> = {
   event: 'border-blue-500/30 bg-blue-500/10 text-blue-700 dark:text-blue-200',
   task: 'border-emerald-500/30 bg-emerald-500/10 text-emerald-700 dark:text-emerald-200',
   invoice: 'border-amber-500/30 bg-amber-500/10 text-amber-700 dark:text-amber-200',
+  google: 'border-violet-500/30 bg-violet-500/10 text-violet-700 dark:text-violet-200',
 }
 
 function toDateInputValue(date: Date) {
@@ -99,8 +102,25 @@ function groupByDay(items: CalendarItem[]) {
   }, {})
 }
 
+async function fetchGoogleEvents(workspaceId: string, from: Date, to: Date): Promise<CalendarItem[]> {
+  try {
+    const params = new URLSearchParams({
+      workspaceId,
+      from: from.toISOString(),
+      to: to.toISOString(),
+    })
+    const res = await fetch(`/api/integrations/calendar/google/events?${params.toString()}`)
+    if (!res.ok) return []
+    const data = await res.json() as { items?: CalendarItem[] }
+    return data.items ?? []
+  } catch {
+    return []
+  }
+}
+
 export function CalendarClient({ workspaceId, initialItems, clients, initialFrom }: Props) {
   const [items, setItems] = useState(initialItems)
+  const [googleItems, setGoogleItems] = useState<CalendarItem[]>([])
   const [mode, setMode] = useState<ViewMode>('month')
   const [anchorDate, setAnchorDate] = useState(() => new Date(initialFrom))
   const [showForm, setShowForm] = useState(false)
@@ -108,7 +128,8 @@ export function CalendarClient({ workspaceId, initialItems, clients, initialFrom
   const [isPending, startTransition] = useTransition()
 
   const range = useMemo(() => getRange(anchorDate, mode), [anchorDate, mode])
-  const grouped = useMemo(() => groupByDay(items), [items])
+  const allItems = useMemo(() => [...items, ...googleItems].sort((a, b) => a.startsAt.localeCompare(b.startsAt)), [items, googleItems])
+  const grouped = useMemo(() => groupByDay(allItems), [allItems])
   const days = useMemo(() => {
     const output: Date[] = []
     const cursor = new Date(range.from)
@@ -122,10 +143,20 @@ export function CalendarClient({ workspaceId, initialItems, clients, initialFrom
   function refresh(date = anchorDate, nextMode = mode) {
     const nextRange = getRange(date, nextMode)
     startTransition(async () => {
-      const nextItems = await getCalendarItems(workspaceId, nextRange.from.toISOString(), nextRange.to.toISOString())
+      const [nextItems, nextGoogleItems] = await Promise.all([
+        getCalendarItems(workspaceId, nextRange.from.toISOString(), nextRange.to.toISOString()),
+        fetchGoogleEvents(workspaceId, nextRange.from, nextRange.to),
+      ])
       setItems(nextItems)
+      setGoogleItems(nextGoogleItems)
     })
   }
+
+  // Cargar eventos de Google al montar
+  useEffect(() => {
+    fetchGoogleEvents(workspaceId, range.from, range.to).then(setGoogleItems).catch(() => {})
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [])
 
   function changeMode(nextMode: ViewMode) {
     setMode(nextMode)
