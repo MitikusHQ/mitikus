@@ -2,7 +2,7 @@ import { createHash, randomBytes } from 'node:crypto'
 import { decryptSafe, encryptSafe } from '@/lib/crypto'
 
 export type CalendarProvider = 'google'
-export type StorageProvider = 'google_drive' | 'onedrive' | 'dropbox'
+export type StorageProvider = 'google_drive' | 'dropbox'
 export type AiProvider = 'openai' | 'anthropic' | 'gemini'
 
 export interface CalendarIntegrationState {
@@ -225,21 +225,6 @@ export function getStorageAuthorizeUrl(provider: StorageProvider, workspaceId: s
     return `https://accounts.google.com/o/oauth2/v2/auth?${params.toString()}`
   }
 
-  if (provider === 'onedrive') {
-    const clientId = process.env.MICROSOFT_STORAGE_CLIENT_ID
-    if (!clientId) return null
-
-    const params = new URLSearchParams({
-      client_id: clientId,
-      redirect_uri: redirectUri,
-      response_type: 'code',
-      response_mode: 'query',
-      scope: 'offline_access openid email User.Read Files.ReadWrite',
-      state,
-    })
-    return `https://login.microsoftonline.com/common/oauth2/v2.0/authorize?${params.toString()}`
-  }
-
   const clientId = process.env.DROPBOX_CLIENT_ID
   if (!clientId) return null
 
@@ -261,7 +246,7 @@ export function decodeStorageState(state: string | null): { workspaceId: string;
       provider?: unknown
     }
     if (typeof parsed.workspaceId !== 'string') return null
-    if (parsed.provider !== 'google_drive' && parsed.provider !== 'onedrive' && parsed.provider !== 'dropbox') return null
+    if (parsed.provider !== 'google_drive' && parsed.provider !== 'dropbox') return null
     return { workspaceId: parsed.workspaceId, provider: parsed.provider }
   } catch {
     return null

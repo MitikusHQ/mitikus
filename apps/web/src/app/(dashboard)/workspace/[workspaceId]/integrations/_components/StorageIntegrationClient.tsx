@@ -30,7 +30,6 @@ export function StorageIntegrationClient({
 
   const providerLabels: Record<StorageProvider, string> = {
     google_drive: t.integrationsGoogleDrive,
-    onedrive: t.integrationsOneDrive,
     dropbox: t.integrationsDropbox,
   }
 
@@ -136,10 +135,9 @@ export function StorageIntegrationClient({
           )}
         </div>
       ) : (
-        <div className="grid gap-3 sm:grid-cols-3">
+        <div className="grid gap-3 sm:grid-cols-2">
           {([
             ['google_drive', t.integrationsGoogleDrive, 'G'],
-            ['onedrive', t.integrationsOneDrive, 'O'],
             ['dropbox', t.integrationsDropbox, 'D'],
           ] as const).map(([provider, label, mark]) => (
             <button
