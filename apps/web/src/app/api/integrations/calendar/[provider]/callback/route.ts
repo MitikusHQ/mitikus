@@ -45,27 +45,6 @@ async function exchangeGoogleCode(code: string, redirectUri: string): Promise<To
   return data
 }
 
-async function exchangeOutlookCode(code: string, redirectUri: string): Promise<TokenResponse> {
-  const clientId = process.env.MICROSOFT_CALENDAR_CLIENT_ID
-  const clientSecret = process.env.MICROSOFT_CALENDAR_CLIENT_SECRET
-  if (!clientId || !clientSecret) throw new Error('Microsoft Calendar no está configurado.')
-
-  const res = await fetch('https://login.microsoftonline.com/common/oauth2/v2.0/token', {
-    method: 'POST',
-    headers: { 'content-type': 'application/x-www-form-urlencoded' },
-    body: new URLSearchParams({
-      client_id: clientId,
-      client_secret: clientSecret,
-      code,
-      grant_type: 'authorization_code',
-      redirect_uri: redirectUri,
-    }),
-  })
-  const data = await res.json() as TokenResponse
-  if (!res.ok || data.error) throw new Error(data.error_description ?? 'No se pudo conectar Outlook Calendar.')
-  return data
-}
-
 async function fetchGoogleEmail(accessToken: string) {
   const res = await fetch('https://openidconnect.googleapis.com/v1/userinfo', {
     headers: { authorization: `Bearer ${accessToken}` },
@@ -75,21 +54,12 @@ async function fetchGoogleEmail(accessToken: string) {
   return data.email ?? null
 }
 
-async function fetchOutlookEmail(accessToken: string) {
-  const res = await fetch('https://graph.microsoft.com/v1.0/me?$select=mail,userPrincipalName', {
-    headers: { authorization: `Bearer ${accessToken}` },
-  })
-  if (!res.ok) return null
-  const data = await res.json() as { mail?: string | null; userPrincipalName?: string | null }
-  return data.mail ?? data.userPrincipalName ?? null
-}
-
 export async function GET(request: NextRequest, context: RouteContext) {
   const { provider: rawProvider } = await context.params
   const provider = rawProvider as CalendarProvider
   const fallbackUrl = new URL('/onboarding', request.url)
 
-  if (provider !== 'google' && provider !== 'outlook') {
+  if (provider !== 'google') {
     return NextResponse.redirect(fallbackUrl)
   }
 
@@ -110,15 +80,11 @@ export async function GET(request: NextRequest, context: RouteContext) {
   if (!workspace) return NextResponse.redirect(fallbackUrl)
 
   const redirectUri = getCalendarRedirectUri(provider)
-  const token = provider === 'google'
-    ? await exchangeGoogleCode(code, redirectUri)
-    : await exchangeOutlookCode(code, redirectUri)
+  const token = await exchangeGoogleCode(code, redirectUri)
 
   if (!token.access_token) throw new Error('El proveedor no devolvió token de acceso.')
 
-  const accountEmail = provider === 'google'
-    ? await fetchGoogleEmail(token.access_token)
-    : await fetchOutlookEmail(token.access_token)
+  const accountEmail = await fetchGoogleEmail(token.access_token)
 
   const calendar = buildCalendarIntegrationState({
     provider,

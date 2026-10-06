@@ -1,7 +1,7 @@
 import { createHash, randomBytes } from 'node:crypto'
 import { decryptSafe, encryptSafe } from '@/lib/crypto'
 
-export type CalendarProvider = 'google' | 'outlook'
+export type CalendarProvider = 'google'
 export type StorageProvider = 'google_drive' | 'onedrive' | 'dropbox'
 export type AiProvider = 'openai' | 'anthropic' | 'gemini'
 
@@ -138,34 +138,19 @@ export function getCalendarAuthorizeUrl(provider: CalendarProvider, workspaceId:
   const redirectUri = getCalendarRedirectUri(provider)
   const state = Buffer.from(JSON.stringify({ workspaceId, provider })).toString('base64url')
 
-  if (provider === 'google') {
-    const clientId = process.env.GOOGLE_CALENDAR_CLIENT_ID
-    if (!clientId) return null
-
-    const params = new URLSearchParams({
-      client_id: clientId,
-      redirect_uri: redirectUri,
-      response_type: 'code',
-      scope: 'openid email https://www.googleapis.com/auth/calendar.events',
-      access_type: 'offline',
-      prompt: 'consent',
-      state,
-    })
-    return `https://accounts.google.com/o/oauth2/v2/auth?${params.toString()}`
-  }
-
-  const clientId = process.env.MICROSOFT_CALENDAR_CLIENT_ID
+  const clientId = process.env.GOOGLE_CALENDAR_CLIENT_ID
   if (!clientId) return null
 
   const params = new URLSearchParams({
     client_id: clientId,
     redirect_uri: redirectUri,
     response_type: 'code',
-    response_mode: 'query',
-    scope: 'offline_access openid email User.Read Calendars.ReadWrite',
+    scope: 'openid email https://www.googleapis.com/auth/calendar.events',
+    access_type: 'offline',
+    prompt: 'consent',
     state,
   })
-  return `https://login.microsoftonline.com/common/oauth2/v2.0/authorize?${params.toString()}`
+  return `https://accounts.google.com/o/oauth2/v2/auth?${params.toString()}`
 }
 
 export function decodeCalendarState(state: string | null): { workspaceId: string; provider: CalendarProvider } | null {
@@ -176,7 +161,7 @@ export function decodeCalendarState(state: string | null): { workspaceId: string
       provider?: unknown
     }
     if (typeof parsed.workspaceId !== 'string') return null
-    if (parsed.provider !== 'google' && parsed.provider !== 'outlook') return null
+    if (parsed.provider !== 'google') return null
     return { workspaceId: parsed.workspaceId, provider: parsed.provider }
   } catch {
     return null

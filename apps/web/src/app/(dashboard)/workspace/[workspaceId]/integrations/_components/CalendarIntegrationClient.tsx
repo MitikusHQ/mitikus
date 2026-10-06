@@ -82,9 +82,7 @@ export function CalendarIntegrationClient({
 
   const providerLabel = calendar?.provider === 'google'
     ? t.integrationsGoogleCalendar
-    : calendar?.provider === 'outlook'
-      ? t.integrationsOutlookCalendar
-      : null
+    : null
 
   return (
     <section className="rounded-lg border border-border bg-card p-5">
@@ -144,40 +142,22 @@ export function CalendarIntegrationClient({
           </div>
         </div>
       ) : (
-        <div className="grid gap-3 sm:grid-cols-2">
-          <button
-            type="button"
-            onClick={() => connect('google')}
-            disabled={loadingProvider !== null}
-            className="rounded-lg border border-border bg-background p-4 text-left transition-colors hover:border-primary/60 disabled:opacity-60"
-          >
-            <span className="flex items-center gap-3">
-              <span className="flex h-9 w-9 items-center justify-center rounded-md border border-border bg-muted text-sm font-semibold">G</span>
-              <span>
-                <span className="block text-sm font-medium">{t.integrationsGoogleCalendar}</span>
-                <span className="block text-xs text-muted-foreground">
-                  {loadingProvider === 'google' ? t.integrationsConnecting : t.integrationsConnectProvider}
-                </span>
+        <button
+          type="button"
+          onClick={() => connect('google')}
+          disabled={loadingProvider !== null}
+          className="w-full rounded-lg border border-border bg-background p-4 text-left transition-colors hover:border-primary/60 disabled:opacity-60"
+        >
+          <span className="flex items-center gap-3">
+            <span className="flex h-9 w-9 items-center justify-center rounded-md border border-border bg-muted text-sm font-semibold">G</span>
+            <span>
+              <span className="block text-sm font-medium">{t.integrationsGoogleCalendar}</span>
+              <span className="block text-xs text-muted-foreground">
+                {loadingProvider === 'google' ? t.integrationsConnecting : t.integrationsConnectProvider}
               </span>
             </span>
-          </button>
-          <button
-            type="button"
-            onClick={() => connect('outlook')}
-            disabled={loadingProvider !== null}
-            className="rounded-lg border border-border bg-background p-4 text-left transition-colors hover:border-primary/60 disabled:opacity-60"
-          >
-            <span className="flex items-center gap-3">
-              <span className="flex h-9 w-9 items-center justify-center rounded-md border border-border bg-muted text-sm font-semibold">O</span>
-              <span>
-                <span className="block text-sm font-medium">{t.integrationsOutlookCalendar}</span>
-                <span className="block text-xs text-muted-foreground">
-                  {loadingProvider === 'outlook' ? t.integrationsConnecting : t.integrationsConnectProvider}
-                </span>
-              </span>
-            </span>
-          </button>
-        </div>
+          </span>
+        </button>
       )}
 
       {error && <p className="mt-4 rounded-md border border-red-500/30 bg-red-500/10 px-3 py-2 text-xs text-red-300">{error}</p>}
