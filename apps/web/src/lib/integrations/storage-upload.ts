@@ -14,7 +14,6 @@ export interface ExternalStorageUploadResult {
 
 export async function uploadToExternalStorage(input: ExternalStorageUploadInput): Promise<ExternalStorageUploadResult> {
   if (input.provider === 'google_drive') return uploadToGoogleDrive(input)
-  if (input.provider === 'onedrive') return uploadToOneDrive(input)
   return uploadToDropbox(input)
 }
 
@@ -42,21 +41,6 @@ async function uploadToGoogleDrive(input: ExternalStorageUploadInput): Promise<E
   const data = await res.json() as { id?: string; webViewLink?: string; error?: { message?: string } }
   if (!res.ok) throw new Error(data.error?.message ?? 'No se pudo subir el ZIP a Google Drive.')
   return { providerFileId: data.id ?? null, webUrl: data.webViewLink ?? null }
-}
-
-async function uploadToOneDrive(input: ExternalStorageUploadInput): Promise<ExternalStorageUploadResult> {
-  const encodedName = encodeURIComponent(input.filename)
-  const res = await fetch(`https://graph.microsoft.com/v1.0/me/drive/root:/MITIKUS/${encodedName}:/content`, {
-    method: 'PUT',
-    headers: {
-      authorization: `Bearer ${input.accessToken}`,
-      'content-type': 'application/zip',
-    },
-    body: new Uint8Array(input.buffer),
-  })
-  const data = await res.json() as { id?: string; webUrl?: string; error?: { message?: string } }
-  if (!res.ok) throw new Error(data.error?.message ?? 'No se pudo subir el ZIP a OneDrive.')
-  return { providerFileId: data.id ?? null, webUrl: data.webUrl ?? null }
 }
 
 async function uploadToDropbox(input: ExternalStorageUploadInput): Promise<ExternalStorageUploadResult> {

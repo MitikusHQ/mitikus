@@ -99,9 +99,7 @@ export async function getStorageConnectionUrl(workspaceId: string, provider: Sto
     const missingKey =
       provider === 'google_drive'
         ? 'GOOGLE_DRIVE_CLIENT_ID'
-        : provider === 'onedrive'
-          ? 'MICROSOFT_STORAGE_CLIENT_ID'
-          : 'DROPBOX_CLIENT_ID'
+        : 'DROPBOX_CLIENT_ID'
     return {
       ok: false as const,
       error: `Falta configurar ${missingKey} en producción.`,
