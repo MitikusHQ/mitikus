@@ -69,6 +69,12 @@ export default async function WorkspaceLayout({ children, params }: Props) {
       icon: Icons.calendar,
       description: locale === 'es' ? 'Eventos, reuniones y vencimientos' : 'Events, meetings and due dates',
     },
+    {
+      label: locale === 'es' ? 'Reuniones' : 'Meetings',
+      href: `${base}/meetings`,
+      icon: Icons.video,
+      description: locale === 'es' ? 'Salas de videollamada para clientes externos' : 'Video rooms for external clients',
+    },
     show('arkos') && {
       label: t.navCopilot, href: `${base}/copilot`, icon: Icons.copilot, description: t.descCopilot,
     },

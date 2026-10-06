@@ -415,6 +415,7 @@ model Workspace {
   leaveRequests        LeaveRequest[]
   leaveBalances        LeaveBalance[]
   notifications        Notification[]
+  guestRooms           GuestRoom[]
 
   @@unique([orgId, slug])
   @@index([orgId])
@@ -455,6 +456,7 @@ model Client {
   calendarEvents  CalendarEvent[]
   invoices        Invoice[]
   workspaceFiles  WorkspaceFile[]
+  contracts       Contract[]
 
   @@index([workspaceId])
   @@map("clients")
@@ -1799,6 +1801,7 @@ model Contract {
   status            ContractStatus @default(DRAFT)
   clientName        String?
   clientEmail       String?
+  clientId          String?
   shareToken        String         @unique @default(cuid())
 
   internalSignature Bytes?
@@ -1825,6 +1828,7 @@ model Contract {
 
   workspace         Workspace      @relation(fields: [workspaceId], references: [id], onDelete: Cascade)
   creator           User           @relation(fields: [createdBy], references: [id], onDelete: Restrict)
+  client            Client?        @relation(fields: [clientId], references: [id], onDelete: SetNull)
 
   @@index([workspaceId])
   @@index([workspaceId, status])
@@ -2571,6 +2575,38 @@ model LeaveRequest {
   @@index([workspaceId, status])
   @@index([employeeId, startDate])
   @@map("leave_requests")
+}
+
+// ============================================================
+// GUEST ROOM — sala temporal para clientes externos (sin cuenta)
+// ============================================================
+
+model GuestRoom {
+  id          String   @id @default(cuid())
+  token       String   @unique @default(cuid())
+  workspaceId String
+  workspace   Workspace @relation(fields: [workspaceId], references: [id], onDelete: Cascade)
+  hostUserId  String   // userId del miembro de MITIKUS que creó la sala
+  label       String?  // nombre descriptivo (p.ej. "Reunión con cliente Juan")
+  expiresAt   DateTime
+  createdAt   DateTime @default(now())
+
+  @@index([workspaceId])
+  @@index([token])
+  @@map("guest_rooms")
+}
+
+model GuestEvent {
+  id          String   @id @default(cuid())
+  token       String   // GuestRoom token
+  targetUserId String  // host user id
+  type        String
+  payload     Json
+  createdAt   DateTime @default(now())
+
+  @@index([token, createdAt])
+  @@index([targetUserId, createdAt])
+  @@map("guest_events")
 }
 
 model LeaveBalance {
