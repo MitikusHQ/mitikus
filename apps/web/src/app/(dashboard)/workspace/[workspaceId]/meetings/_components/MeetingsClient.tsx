@@ -1,6 +1,6 @@
 'use client'
 
-import { useState } from 'react'
+import { useState, useEffect, useRef, useCallback } from 'react'
 import type { Locale } from '@/i18n/config'
 
 interface GuestRoom {
@@ -19,13 +19,163 @@ interface Props {
   locale: Locale
 }
 
-export function MeetingsClient({ workspaceId, initialRooms, baseUrl }: Props) {
+interface HostEvent {
+  id: string
+  type: string
+  payload: Record<string, unknown>
+  createdAt: string
+}
+
+interface IncomingCall {
+  token: string
+  senderName: string
+  offer: RTCSessionDescriptionInit
+  mode: 'audio' | 'video'
+}
+
+const STUN: RTCIceServer[] = [
+  { urls: 'stun:stun.l.google.com:19302' },
+  { urls: 'stun:stun1.l.google.com:19302' },
+]
+
+export function MeetingsClient({ workspaceId, userId, initialRooms, baseUrl }: Props) {
   const [rooms, setRooms] = useState<GuestRoom[]>(initialRooms)
   const [creating, setCreating] = useState(false)
   const [label, setLabel] = useState('')
   const [hours, setHours] = useState(24)
   const [copiedToken, setCopiedToken] = useState<string | null>(null)
 
+  // ── Call state ────────────────────────────────────────────────
+  const [incoming, setIncoming] = useState<IncomingCall | null>(null)
+  const [callState, setCallState] = useState<'idle' | 'ringing' | 'connected'>('idle')
+  const [activeToken, setActiveToken] = useState<string | null>(null)
+  const [activeGuestName, setActiveGuestName] = useState<string>('')
+
+  const pcRef = useRef<RTCPeerConnection | null>(null)
+  const localStreamRef = useRef<MediaStream | null>(null)
+  const iceCandidateQueueRef = useRef<RTCIceCandidateInit[]>([])
+  const lastEventTime = useRef(new Date().toISOString())
+  const localVideoRef = useRef<HTMLVideoElement>(null)
+  const remoteVideoRef = useRef<HTMLVideoElement>(null)
+
+  // ── Host signal helper ────────────────────────────────────────
+  async function hostSignal(token: string, type: string, payload: Record<string, unknown>) {
+    await fetch('/api/guest/host-signal', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ token, type, payload }),
+    })
+  }
+
+  // ── Poll host events ──────────────────────────────────────────
+  const pollHostEvents = useCallback(async () => {
+    try {
+      const r = await fetch(`/api/guest/host-events?since=${encodeURIComponent(lastEventTime.current)}`)
+      if (!r.ok) return
+      const data = await r.json() as { events: HostEvent[]; serverTime: string }
+      lastEventTime.current = data.serverTime
+
+      for (const ev of data.events) {
+        const p = ev.payload as Record<string, unknown>
+
+        if (ev.type === 'guest_offer' && callState === 'idle') {
+          setIncoming({
+            token: (p['guestToken'] ?? p['token']) as string,
+            senderName: (p['fromUserName'] ?? p['senderName'] ?? 'Invitado') as string,
+            offer: p['offer'] as RTCSessionDescriptionInit,
+            mode: (p['mode'] as 'audio' | 'video') ?? 'video',
+          })
+          setCallState('ringing')
+        } else if (ev.type === 'guest_ice' && pcRef.current) {
+          const candidate = p['candidate'] as RTCIceCandidateInit
+          if (pcRef.current.remoteDescription) {
+            try { await pcRef.current.addIceCandidate(candidate) } catch { /* ignore */ }
+          } else {
+            iceCandidateQueueRef.current.push(candidate)
+          }
+        } else if (ev.type === 'guest_hangup') {
+          hangUp()
+        }
+      }
+    } catch { /* ignore */ }
+  }, [callState])
+
+  useEffect(() => {
+    const interval = setInterval(pollHostEvents, 1500)
+    return () => clearInterval(interval)
+  }, [pollHostEvents])
+
+  // ── Accept call ───────────────────────────────────────────────
+  async function acceptCall() {
+    if (!incoming) return
+    const { token, senderName, offer, mode } = incoming
+    setActiveToken(token)
+    setActiveGuestName(senderName)
+    setIncoming(null)
+    setCallState('connected')
+
+    let stream: MediaStream | null = null
+    try {
+      stream = await navigator.mediaDevices.getUserMedia({ audio: true, video: mode === 'video' })
+    } catch {
+      try { stream = await navigator.mediaDevices.getUserMedia({ audio: true }) } catch { /* no mic */ }
+    }
+    if (stream) {
+      localStreamRef.current = stream
+      if (localVideoRef.current) localVideoRef.current.srcObject = stream
+    }
+
+    const pc = new RTCPeerConnection({ iceServers: STUN })
+    pc.onicecandidate = e => {
+      if (e.candidate) void hostSignal(token, 'host_ice', { candidate: e.candidate.toJSON() })
+    }
+    pc.ontrack = e => {
+      if (e.streams[0] && remoteVideoRef.current) {
+        remoteVideoRef.current.srcObject = e.streams[0]
+        void remoteVideoRef.current.play().catch(() => {})
+      }
+    }
+    pc.onconnectionstatechange = () => {
+      if (['failed', 'disconnected', 'closed'].includes(pc.connectionState)) hangUp()
+    }
+    pcRef.current = pc
+
+    if (stream) stream.getTracks().forEach(t => pc.addTrack(t, stream!))
+    await pc.setRemoteDescription(offer)
+
+    // drain queued ICE candidates
+    const queue = iceCandidateQueueRef.current.splice(0)
+    for (const c of queue) {
+      try { await pc.addIceCandidate(c) } catch { /* ignore */ }
+    }
+
+    const answer = await pc.createAnswer()
+    await pc.setLocalDescription(answer)
+    await hostSignal(token, 'host_answer', { answer })
+  }
+
+  // ── Reject / hang up ──────────────────────────────────────────
+  async function rejectCall() {
+    if (incoming) await hostSignal(incoming.token, 'host_hangup', {})
+    setIncoming(null)
+    setCallState('idle')
+  }
+
+  function hangUp() {
+    if (activeToken) void hostSignal(activeToken, 'host_hangup', {})
+    pcRef.current?.close()
+    pcRef.current = null
+    iceCandidateQueueRef.current = []
+    localStreamRef.current?.getTracks().forEach(t => t.stop())
+    localStreamRef.current = null
+    if (localVideoRef.current) localVideoRef.current.srcObject = null
+    if (remoteVideoRef.current) remoteVideoRef.current.srcObject = null
+    setCallState('idle')
+    setActiveToken(null)
+    setActiveGuestName('')
+  }
+
+  // ── Room management ───────────────────────────────────────────
   async function createRoom() {
     if (creating) return
     setCreating(true)
@@ -54,8 +204,71 @@ export function MeetingsClient({ workspaceId, initialRooms, baseUrl }: Props) {
     setTimeout(() => setCopiedToken(null), 2000)
   }
 
+  // ── Render ────────────────────────────────────────────────────
+
+  // Active call screen
+  if (callState === 'connected') {
+    return (
+      <div className="fixed inset-0 z-50 bg-zinc-950 flex flex-col items-center justify-center gap-4 p-4">
+        <p className="text-zinc-400 text-sm">Conectado con <span className="text-white font-medium">{activeGuestName}</span></p>
+
+        <div className="relative w-full max-w-2xl aspect-video bg-zinc-900 rounded-2xl overflow-hidden border border-zinc-800">
+          <video ref={remoteVideoRef} autoPlay playsInline className="w-full h-full object-cover" />
+          <div className="absolute inset-0 flex items-center justify-center pointer-events-none">
+            {/* placeholder while video loads */}
+          </div>
+          {/* PiP local */}
+          <video ref={localVideoRef} autoPlay playsInline muted
+            className="absolute bottom-3 right-3 w-28 h-20 rounded-lg object-cover bg-zinc-800 border border-zinc-700" />
+        </div>
+
+        <button
+          onClick={hangUp}
+          className="flex items-center gap-2 px-6 py-3 rounded-xl bg-red-600 hover:bg-red-500 text-white font-medium text-sm transition-colors"
+        >
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+            <path d="M10.68 13.31a16 16 0 0 0 3.41 2.6l1.27-1.27a2 2 0 0 1 2.11-.45c.907.339 1.85.573 2.81.7A2 2 0 0 1 22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.73 19.73 0 0 1-6.91-6.91 2 2 0 0 1 .48-2.34"/>
+            <line x1="23" y1="1" x2="1" y2="23"/>
+          </svg>
+          Colgar
+        </button>
+      </div>
+    )
+  }
+
   return (
     <div className="p-6 max-w-2xl mx-auto space-y-6">
+      {/* Incoming call banner */}
+      {callState === 'ringing' && incoming && (
+        <div className="rounded-xl border border-violet-500 bg-violet-500/10 p-5">
+          <div className="flex items-center justify-between gap-4">
+            <div className="flex items-center gap-3">
+              <div className="w-10 h-10 rounded-full bg-violet-600 flex items-center justify-center text-white font-bold text-lg shrink-0">
+                {incoming.senderName[0]?.toUpperCase() ?? '?'}
+              </div>
+              <div>
+                <p className="text-sm font-semibold text-white">{incoming.senderName} está llamando</p>
+                <p className="text-xs text-zinc-400">{incoming.mode === 'video' ? 'Videollamada' : 'Solo audio'}</p>
+              </div>
+            </div>
+            <div className="flex items-center gap-2 shrink-0">
+              <button
+                onClick={() => void acceptCall()}
+                className="px-4 py-2 rounded-lg bg-green-600 hover:bg-green-500 text-white text-sm font-medium transition-colors"
+              >
+                Aceptar
+              </button>
+              <button
+                onClick={() => void rejectCall()}
+                className="px-4 py-2 rounded-lg bg-red-600 hover:bg-red-500 text-white text-sm font-medium transition-colors"
+              >
+                Rechazar
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
       <div>
         <h1 className="text-xl font-semibold">Salas de reunión</h1>
         <p className="mt-1 text-sm text-muted-foreground">
