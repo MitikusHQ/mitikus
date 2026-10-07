@@ -54,6 +54,9 @@ export function MeetingsClient({ workspaceId, userId, initialRooms, baseUrl }: P
   const [activeToken, setActiveToken] = useState<string | null>(null)
   const [activeGuestName, setActiveGuestName] = useState<string>('')
   const [remoteStream, setRemoteStream] = useState<MediaStream | null>(null)
+  const [pcState, setPcState] = useState<string>('—')
+  const [iceState, setIceState] = useState<string>('—')
+  const [trackCount, setTrackCount] = useState(0)
 
   const pcRef = useRef<RTCPeerConnection | null>(null)
   const localStreamRef = useRef<MediaStream | null>(null)
@@ -160,11 +163,14 @@ export function MeetingsClient({ workspaceId, userId, initialRooms, baseUrl }: P
       if (e.candidate) void hostSignal(token, 'host_ice', { candidate: e.candidate.toJSON() })
     }
     pc.ontrack = e => {
-      if (e.streams[0]) setRemoteStream(e.streams[0])
+      const s = e.streams[0]
+      if (s) { setRemoteStream(s); setTrackCount(s.getTracks().length) }
     }
     pc.onconnectionstatechange = () => {
+      setPcState(pc.connectionState)
       if (['failed', 'disconnected', 'closed'].includes(pc.connectionState)) hangUp()
     }
+    pc.oniceconnectionstatechange = () => { setIceState(pc.iceConnectionState) }
     pcRef.current = pc
 
     if (stream) stream.getTracks().forEach(t => pc.addTrack(t, stream!))
@@ -204,11 +210,14 @@ export function MeetingsClient({ workspaceId, userId, initialRooms, baseUrl }: P
       if (e.candidate) void hostSignal(token, 'host_ice', { candidate: e.candidate.toJSON() })
     }
     pc.ontrack = e => {
-      if (e.streams[0]) setRemoteStream(e.streams[0])
+      const s = e.streams[0]
+      if (s) { setRemoteStream(s); setTrackCount(s.getTracks().length) }
     }
     pc.onconnectionstatechange = () => {
+      setPcState(pc.connectionState)
       if (['failed', 'disconnected', 'closed'].includes(pc.connectionState)) hangUp()
     }
+    pc.oniceconnectionstatechange = () => { setIceState(pc.iceConnectionState) }
     pcRef.current = pc
 
     if (stream) stream.getTracks().forEach(t => pc.addTrack(t, stream!))
@@ -289,6 +298,14 @@ export function MeetingsClient({ workspaceId, userId, initialRooms, baseUrl }: P
           {/* PiP local */}
           <video ref={localVideoRef} autoPlay playsInline muted
             className="absolute bottom-3 right-3 w-28 h-20 rounded-lg object-cover bg-zinc-800 border border-zinc-700" />
+        </div>
+
+        {/* Debug panel */}
+        <div className="text-xs font-mono bg-black/60 rounded-lg px-4 py-2 text-zinc-300 flex gap-4">
+          <span>PC: <b className="text-white">{pcState}</b></span>
+          <span>ICE: <b className="text-white">{iceState}</b></span>
+          <span>tracks: <b className="text-white">{trackCount}</b></span>
+          <span>stream: <b className="text-white">{remoteStream ? 'sí' : 'no'}</b></span>
         </div>
 
         <button

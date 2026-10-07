@@ -34,6 +34,9 @@ export function GuestRoomClient({ token }: { token: string }) {
 
   const [remoteStream, setRemoteStream] = useState<MediaStream | null>(null)
   const [localStream, setLocalStream] = useState<MediaStream | null>(null)
+  const [pcState, setPcState] = useState<string>('—')
+  const [iceState, setIceState] = useState<string>('—')
+  const [trackCount, setTrackCount] = useState(0)
 
   const pcRef = useRef<RTCPeerConnection | null>(null)
   const localStreamRef = useRef<MediaStream | null>(null)
@@ -109,12 +112,15 @@ export function GuestRoomClient({ token }: { token: string }) {
       if (e.candidate) void signal('guest_ice', { candidate: e.candidate.toJSON() })
     }
     pc.ontrack = e => {
-      if (e.streams[0]) setRemoteStream(e.streams[0])
+      const s = e.streams[0]
+      if (s) { setRemoteStream(s); setTrackCount(s.getTracks().length) }
     }
     pc.onconnectionstatechange = () => {
+      setPcState(pc.connectionState)
       if (pc.connectionState === 'connected') setCallState('connected')
       if (['failed', 'disconnected', 'closed'].includes(pc.connectionState)) endCall()
     }
+    pc.oniceconnectionstatechange = () => { setIceState(pc.iceConnectionState) }
     pcRef.current = pc
     return pc
   }
@@ -347,6 +353,16 @@ export function GuestRoomClient({ token }: { token: string }) {
           </button>
         )}
       </div>
+
+      {/* Debug panel */}
+      {callState !== 'idle' && (
+        <div className="text-xs font-mono bg-zinc-900 rounded-lg px-4 py-2 text-zinc-400 flex gap-4">
+          <span>PC: <b className="text-white">{pcState}</b></span>
+          <span>ICE: <b className="text-white">{iceState}</b></span>
+          <span>tracks: <b className="text-white">{trackCount}</b></span>
+          <span>stream: <b className="text-white">{remoteStream ? 'sí' : 'no'}</b></span>
+        </div>
+      )}
 
       <p className="text-zinc-600 text-xs">{room.label ?? 'Sala de reunión'} · {guestName}</p>
     </div>
