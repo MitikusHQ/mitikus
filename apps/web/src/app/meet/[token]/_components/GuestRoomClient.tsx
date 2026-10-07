@@ -36,6 +36,8 @@ export function GuestRoomClient({ token }: { token: string }) {
   const [localStream, setLocalStream] = useState<MediaStream | null>(null)
   const [pcState, setPcState] = useState<string>('—')
   const [iceState, setIceState] = useState<string>('—')
+  const [gatherState, setGatherState] = useState<string>('—')
+  const [iceSent, setIceSent] = useState(0)
   const [trackCount, setTrackCount] = useState(0)
 
   const pcRef = useRef<RTCPeerConnection | null>(null)
@@ -123,7 +125,7 @@ export function GuestRoomClient({ token }: { token: string }) {
   function createPeerConnection(iceServers: RTCIceServer[]) {
     const pc = new RTCPeerConnection({ iceServers })
     pc.onicecandidate = e => {
-      if (e.candidate) void signal('guest_ice', { candidate: e.candidate.toJSON() })
+      if (e.candidate) { setIceSent(n => n + 1); void signal('guest_ice', { candidate: e.candidate.toJSON() }) }
     }
     pc.ontrack = e => {
       const s = e.streams[0] ?? new MediaStream([e.track])
@@ -135,6 +137,7 @@ export function GuestRoomClient({ token }: { token: string }) {
       if (['failed', 'disconnected', 'closed'].includes(pc.connectionState)) endCall()
     }
     pc.oniceconnectionstatechange = () => { setIceState(pc.iceConnectionState) }
+    pc.onicegatheringstatechange = () => { setGatherState(pc.iceGatheringState) }
     pcRef.current = pc
     return pc
   }
@@ -370,9 +373,11 @@ export function GuestRoomClient({ token }: { token: string }) {
 
       {/* Debug panel */}
       {callState !== 'idle' && (
-        <div className="text-xs font-mono bg-zinc-900 rounded-lg px-4 py-2 text-zinc-400 flex gap-4">
+        <div className="text-xs font-mono bg-zinc-900 rounded-lg px-4 py-2 text-zinc-400 flex flex-wrap gap-4">
           <span>PC: <b className="text-white">{pcState}</b></span>
           <span>ICE: <b className="text-white">{iceState}</b></span>
+          <span>gather: <b className="text-white">{gatherState}</b></span>
+          <span>sent: <b className="text-white">{iceSent}</b></span>
           <span>tracks: <b className="text-white">{trackCount}</b></span>
           <span>stream: <b className="text-white">{remoteStream ? 'sí' : 'no'}</b></span>
         </div>

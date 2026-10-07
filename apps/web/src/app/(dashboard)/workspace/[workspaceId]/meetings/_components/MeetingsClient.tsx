@@ -36,9 +36,12 @@ interface IncomingCall {
 const STUN: RTCIceServer[] = [
   { urls: 'stun:stun.l.google.com:19302' },
   { urls: 'stun:stun1.l.google.com:19302' },
+  { urls: 'stun:stun.cloudflare.com:3478' },
   { urls: 'turn:openrelay.metered.ca:80', username: 'openrelayproject', credential: 'openrelayproject' },
   { urls: 'turn:openrelay.metered.ca:443', username: 'openrelayproject', credential: 'openrelayproject' },
-  { urls: 'turn:openrelay.metered.ca:443?transport=tcp', username: 'openrelayproject', credential: 'openrelayproject' },
+  { urls: 'turns:openrelay.metered.ca:443', username: 'openrelayproject', credential: 'openrelayproject' },
+  { urls: 'turn:freestun.net:3479', username: 'free', credential: 'free' },
+  { urls: 'turns:freestun.net:5350', username: 'free', credential: 'free' },
 ]
 
 export function MeetingsClient({ workspaceId, userId, initialRooms, baseUrl }: Props) {
@@ -56,6 +59,8 @@ export function MeetingsClient({ workspaceId, userId, initialRooms, baseUrl }: P
   const [remoteStream, setRemoteStream] = useState<MediaStream | null>(null)
   const [pcState, setPcState] = useState<string>('—')
   const [iceState, setIceState] = useState<string>('—')
+  const [gatherState, setGatherState] = useState<string>('—')
+  const [iceSent, setIceSent] = useState(0)
   const [trackCount, setTrackCount] = useState(0)
 
   const pcRef = useRef<RTCPeerConnection | null>(null)
@@ -158,17 +163,15 @@ export function MeetingsClient({ workspaceId, userId, initialRooms, baseUrl }: P
 
     const pc = new RTCPeerConnection({ iceServers: STUN })
     pc.onicecandidate = e => {
-      if (e.candidate) void hostSignal(token, 'host_ice', { candidate: e.candidate.toJSON() })
+      if (e.candidate) { setIceSent(n => n + 1); void hostSignal(token, 'host_ice', { candidate: e.candidate.toJSON() }) }
     }
     pc.ontrack = e => {
       const s = e.streams[0] ?? new MediaStream([e.track])
       assignRemoteStream(s)
     }
-    pc.onconnectionstatechange = () => {
-      setPcState(pc.connectionState)
-      if (['failed', 'disconnected', 'closed'].includes(pc.connectionState)) hangUp()
-    }
+    pc.onconnectionstatechange = () => { setPcState(pc.connectionState); if (['failed', 'disconnected', 'closed'].includes(pc.connectionState)) hangUp() }
     pc.oniceconnectionstatechange = () => { setIceState(pc.iceConnectionState) }
+    pc.onicegatheringstatechange = () => { setGatherState(pc.iceGatheringState) }
     pcRef.current = pc
 
     if (stream) stream.getTracks().forEach(t => pc.addTrack(t, stream!))
@@ -205,17 +208,15 @@ export function MeetingsClient({ workspaceId, userId, initialRooms, baseUrl }: P
 
     const pc = new RTCPeerConnection({ iceServers: STUN })
     pc.onicecandidate = e => {
-      if (e.candidate) void hostSignal(token, 'host_ice', { candidate: e.candidate.toJSON() })
+      if (e.candidate) { setIceSent(n => n + 1); void hostSignal(token, 'host_ice', { candidate: e.candidate.toJSON() }) }
     }
     pc.ontrack = e => {
       const s = e.streams[0] ?? new MediaStream([e.track])
       assignRemoteStream(s)
     }
-    pc.onconnectionstatechange = () => {
-      setPcState(pc.connectionState)
-      if (['failed', 'disconnected', 'closed'].includes(pc.connectionState)) hangUp()
-    }
+    pc.onconnectionstatechange = () => { setPcState(pc.connectionState); if (['failed', 'disconnected', 'closed'].includes(pc.connectionState)) hangUp() }
     pc.oniceconnectionstatechange = () => { setIceState(pc.iceConnectionState) }
+    pc.onicegatheringstatechange = () => { setGatherState(pc.iceGatheringState) }
     pcRef.current = pc
 
     if (stream) stream.getTracks().forEach(t => pc.addTrack(t, stream!))
@@ -299,9 +300,11 @@ export function MeetingsClient({ workspaceId, userId, initialRooms, baseUrl }: P
         </div>
 
         {/* Debug panel */}
-        <div className="text-xs font-mono bg-black/60 rounded-lg px-4 py-2 text-zinc-300 flex gap-4">
+        <div className="text-xs font-mono bg-black/60 rounded-lg px-4 py-2 text-zinc-300 flex flex-wrap gap-4">
           <span>PC: <b className="text-white">{pcState}</b></span>
           <span>ICE: <b className="text-white">{iceState}</b></span>
+          <span>gather: <b className="text-white">{gatherState}</b></span>
+          <span>sent: <b className="text-white">{iceSent}</b></span>
           <span>tracks: <b className="text-white">{trackCount}</b></span>
           <span>stream: <b className="text-white">{remoteStream ? 'sí' : 'no'}</b></span>
         </div>

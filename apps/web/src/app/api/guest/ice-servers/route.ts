@@ -5,22 +5,13 @@ const DEFAULT_ICE: RTCIceServer[] = [
   { urls: 'stun:stun.l.google.com:19302' },
   { urls: 'stun:stun1.l.google.com:19302' },
   { urls: 'stun:stun.cloudflare.com:3478' },
-  // Open Relay TURN — gratuito, sin cuenta, hasta 50GB/mes
-  {
-    urls: 'turn:openrelay.metered.ca:80',
-    username: 'openrelayproject',
-    credential: 'openrelayproject',
-  },
-  {
-    urls: 'turn:openrelay.metered.ca:443',
-    username: 'openrelayproject',
-    credential: 'openrelayproject',
-  },
-  {
-    urls: 'turn:openrelay.metered.ca:443?transport=tcp',
-    username: 'openrelayproject',
-    credential: 'openrelayproject',
-  },
+  // Open Relay (metered.ca)
+  { urls: 'turn:openrelay.metered.ca:80', username: 'openrelayproject', credential: 'openrelayproject' },
+  { urls: 'turn:openrelay.metered.ca:443', username: 'openrelayproject', credential: 'openrelayproject' },
+  { urls: 'turns:openrelay.metered.ca:443', username: 'openrelayproject', credential: 'openrelayproject' },
+  // FreeStan — gratuito, sin cuenta
+  { urls: 'turn:freestun.net:3479', username: 'free', credential: 'free' },
+  { urls: 'turns:freestun.net:5350', username: 'free', credential: 'free' },
 ]
 
 // GET /api/guest/ice-servers?token=xxx — returns ICE servers for guest (no Clerk auth)
