@@ -1,10 +1,26 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { db } from '@/lib/db'
 
-const STUN: RTCIceServer[] = [
+const DEFAULT_ICE: RTCIceServer[] = [
   { urls: 'stun:stun.l.google.com:19302' },
   { urls: 'stun:stun1.l.google.com:19302' },
   { urls: 'stun:stun.cloudflare.com:3478' },
+  // Open Relay TURN — gratuito, sin cuenta, hasta 50GB/mes
+  {
+    urls: 'turn:openrelay.metered.ca:80',
+    username: 'openrelayproject',
+    credential: 'openrelayproject',
+  },
+  {
+    urls: 'turn:openrelay.metered.ca:443',
+    username: 'openrelayproject',
+    credential: 'openrelayproject',
+  },
+  {
+    urls: 'turn:openrelay.metered.ca:443?transport=tcp',
+    username: 'openrelayproject',
+    credential: 'openrelayproject',
+  },
 ]
 
 // GET /api/guest/ice-servers?token=xxx — returns ICE servers for guest (no Clerk auth)
@@ -38,5 +54,5 @@ export async function GET(req: NextRequest) {
     } catch { /* fall through */ }
   }
 
-  return NextResponse.json({ iceServers: STUN })
+  return NextResponse.json({ iceServers: DEFAULT_ICE })
 }
