@@ -33,6 +33,7 @@ export function GuestRoomClient({ token }: { token: string }) {
   const [callMode, setCallMode] = useState<'audio' | 'video'>('video')
 
   const [remoteStream, setRemoteStream] = useState<MediaStream | null>(null)
+  const [localStream, setLocalStream] = useState<MediaStream | null>(null)
 
   const pcRef = useRef<RTCPeerConnection | null>(null)
   const localStreamRef = useRef<MediaStream | null>(null)
@@ -41,22 +42,25 @@ export function GuestRoomClient({ token }: { token: string }) {
   const localVideoRef = useRef<HTMLVideoElement>(null)
   const remoteVideoRef = useRef<HTMLVideoElement>(null)
 
+  const remoteVideoCallback = useCallback((el: HTMLVideoElement | null) => {
+    ;(remoteVideoRef as React.MutableRefObject<HTMLVideoElement | null>).current = el
+    if (el && remoteStream) { el.srcObject = remoteStream; void el.play().catch(() => {}) }
+  }, [remoteStream])
+
+  const localVideoCallback = useCallback((el: HTMLVideoElement | null) => {
+    ;(localVideoRef as React.MutableRefObject<HTMLVideoElement | null>).current = el
+    if (el && localStream) { el.srcObject = localStream; void el.play().catch(() => {}) }
+  }, [localStream])
+
   useEffect(() => {
-    if (!remoteStream) return
     const el = remoteVideoRef.current
-    if (el) {
-      el.srcObject = remoteStream
-      void el.play().catch(() => {})
-    }
+    if (el && remoteStream) { el.srcObject = remoteStream; void el.play().catch(() => {}) }
   }, [remoteStream, callState])
 
-  const remoteVideoCallback = useCallback((el: HTMLVideoElement | null) => {
-    if (el && remoteStream) {
-      el.srcObject = remoteStream
-      void el.play().catch(() => {})
-    }
-    ;(remoteVideoRef as React.MutableRefObject<HTMLVideoElement | null>).current = el
-  }, [remoteStream])
+  useEffect(() => {
+    const el = localVideoRef.current
+    if (el && localStream) { el.srcObject = localStream; void el.play().catch(() => {}) }
+  }, [localStream, callState])
 
   // Load room info
   useEffect(() => {
@@ -129,7 +133,7 @@ export function GuestRoomClient({ token }: { token: string }) {
     }
     if (stream) {
       localStreamRef.current = stream
-      if (localVideoRef.current) localVideoRef.current.srcObject = stream
+      setLocalStream(stream)
     }
 
     const pc = createPeerConnection(iceServers)
@@ -193,7 +197,7 @@ export function GuestRoomClient({ token }: { token: string }) {
     }
     if (stream) {
       localStreamRef.current = stream
-      if (localVideoRef.current) localVideoRef.current.srcObject = stream
+      setLocalStream(stream)
     }
     const pc = createPeerConnection(iceServers)
     if (stream) stream.getTracks().forEach(t => pc.addTrack(t, stream!))
@@ -214,6 +218,7 @@ export function GuestRoomClient({ token }: { token: string }) {
     localStreamRef.current = null
     if (localVideoRef.current) localVideoRef.current.srcObject = null
     if (remoteVideoRef.current) remoteVideoRef.current.srcObject = null
+    setLocalStream(null)
     setRemoteStream(null)
     setCallState('idle')
   }
@@ -300,7 +305,7 @@ export function GuestRoomClient({ token }: { token: string }) {
         )}
         {/* Local video PiP */}
         {callMode === 'video' && (callState === 'calling' || callState === 'connected') && (
-          <video ref={localVideoRef} autoPlay playsInline muted
+          <video ref={localVideoCallback} autoPlay playsInline muted
             className="absolute bottom-3 right-3 w-28 h-20 rounded-lg object-cover bg-zinc-800 border border-zinc-700" />
         )}
       </div>
