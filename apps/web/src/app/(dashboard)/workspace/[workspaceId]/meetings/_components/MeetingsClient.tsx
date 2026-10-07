@@ -98,6 +98,12 @@ export function MeetingsClient({ workspaceId, userId, initialRooms, baseUrl }: P
             mode: (p['mode'] as 'audio' | 'video') ?? 'video',
           })
           setCallState('ringing')
+        } else if (ev.type === 'guest_answer' && pcRef.current) {
+          await pcRef.current.setRemoteDescription(p['answer'] as RTCSessionDescriptionInit)
+          const queue = iceCandidateQueueRef.current.splice(0)
+          for (const c of queue) {
+            try { await pcRef.current.addIceCandidate(c) } catch { /* ignore */ }
+          }
         } else if (ev.type === 'guest_ice' && pcRef.current) {
           const candidate = p['candidate'] as RTCIceCandidateInit
           if (pcRef.current.remoteDescription) {
@@ -161,6 +167,47 @@ export function MeetingsClient({ workspaceId, userId, initialRooms, baseUrl }: P
     const answer = await pc.createAnswer()
     await pc.setLocalDescription(answer)
     await hostSignal(token, 'host_answer', { answer })
+  }
+
+  // ── Host initiates call ───────────────────────────────────────
+  async function callGuest(token: string, roomLabel: string | null) {
+    if (callState !== 'idle') return
+    setActiveToken(token)
+    setActiveGuestName(roomLabel ?? 'Invitado')
+    setCallState('connected')
+
+    let stream: MediaStream | null = null
+    try {
+      stream = await navigator.mediaDevices.getUserMedia({ audio: true, video: true })
+    } catch {
+      try { stream = await navigator.mediaDevices.getUserMedia({ audio: true }) } catch { /* no mic */ }
+    }
+    if (stream) {
+      localStreamRef.current = stream
+      if (localVideoRef.current) localVideoRef.current.srcObject = stream
+    }
+
+    const pc = new RTCPeerConnection({ iceServers: STUN })
+    pc.onicecandidate = e => {
+      if (e.candidate) void hostSignal(token, 'host_ice', { candidate: e.candidate.toJSON() })
+    }
+    pc.ontrack = e => {
+      if (e.streams[0]) setRemoteStream(e.streams[0])
+    }
+    pc.onconnectionstatechange = () => {
+      if (['failed', 'disconnected', 'closed'].includes(pc.connectionState)) hangUp()
+    }
+    pcRef.current = pc
+
+    if (stream) stream.getTracks().forEach(t => pc.addTrack(t, stream!))
+    else {
+      pc.addTransceiver('audio', { direction: 'recvonly' })
+      pc.addTransceiver('video', { direction: 'recvonly' })
+    }
+
+    const offer = await pc.createOffer()
+    await pc.setLocalDescription(offer)
+    await hostSignal(token, 'host_offer', { offer, mode: stream?.getVideoTracks().length ? 'video' : 'audio' })
   }
 
   // ── Reject / hang up ──────────────────────────────────────────
@@ -336,6 +383,13 @@ export function MeetingsClient({ workspaceId, userId, initialRooms, baseUrl }: P
                   </p>
                 </div>
                 <div className="flex items-center gap-2 shrink-0">
+                  <button
+                    onClick={() => void callGuest(room.token, room.label)}
+                    disabled={callState !== 'idle'}
+                    className="rounded-md bg-green-600 hover:bg-green-500 disabled:opacity-40 px-3 py-1.5 text-xs font-medium text-white"
+                  >
+                    Llamar
+                  </button>
                   <button
                     onClick={() => void copyLink(room.token)}
                     className="rounded-md bg-primary px-3 py-1.5 text-xs font-medium text-primary-foreground hover:bg-primary/90"
