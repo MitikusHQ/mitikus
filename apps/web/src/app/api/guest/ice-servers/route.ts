@@ -28,6 +28,22 @@ export async function GET(req: NextRequest) {
     return NextResponse.json({ error: 'Room expired or not found' }, { status: 404 })
   }
 
+  // Metered.ca TURN — dynamic HMAC credentials (preferred)
+  const meteredKey = process.env.METERED_API_KEY
+  const meteredApp = process.env.METERED_APP_NAME
+  if (meteredKey && meteredApp) {
+    try {
+      const r = await fetch(
+        `https://${meteredApp}.metered.live/api/v1/turn/credentials?apiKey=${meteredKey}`
+      )
+      if (r.ok) {
+        const iceServers = await r.json() as RTCIceServer[]
+        return NextResponse.json({ iceServers })
+      }
+    } catch { /* fall through */ }
+  }
+
+  // Twilio fallback
   const twilioSid = process.env.TWILIO_ACCOUNT_SID
   const twilioToken = process.env.TWILIO_AUTH_TOKEN
   if (twilioSid && twilioToken) {
