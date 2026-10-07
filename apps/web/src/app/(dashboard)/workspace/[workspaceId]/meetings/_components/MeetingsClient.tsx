@@ -50,6 +50,7 @@ export function MeetingsClient({ workspaceId, userId, initialRooms, baseUrl }: P
   const [callState, setCallState] = useState<'idle' | 'ringing' | 'connected'>('idle')
   const [activeToken, setActiveToken] = useState<string | null>(null)
   const [activeGuestName, setActiveGuestName] = useState<string>('')
+  const [remoteStream, setRemoteStream] = useState<MediaStream | null>(null)
 
   const pcRef = useRef<RTCPeerConnection | null>(null)
   const localStreamRef = useRef<MediaStream | null>(null)
@@ -57,6 +58,14 @@ export function MeetingsClient({ workspaceId, userId, initialRooms, baseUrl }: P
   const lastEventTime = useRef(new Date().toISOString())
   const localVideoRef = useRef<HTMLVideoElement>(null)
   const remoteVideoRef = useRef<HTMLVideoElement>(null)
+
+  // Assign remote stream to video element once both exist
+  useEffect(() => {
+    if (remoteVideoRef.current && remoteStream) {
+      remoteVideoRef.current.srcObject = remoteStream
+      void remoteVideoRef.current.play().catch(() => {})
+    }
+  }, [remoteStream, callState])
 
   // ── Host signal helper ────────────────────────────────────────
   async function hostSignal(token: string, type: string, payload: Record<string, unknown>) {
@@ -130,10 +139,7 @@ export function MeetingsClient({ workspaceId, userId, initialRooms, baseUrl }: P
       if (e.candidate) void hostSignal(token, 'host_ice', { candidate: e.candidate.toJSON() })
     }
     pc.ontrack = e => {
-      if (e.streams[0] && remoteVideoRef.current) {
-        remoteVideoRef.current.srcObject = e.streams[0]
-        void remoteVideoRef.current.play().catch(() => {})
-      }
+      if (e.streams[0]) setRemoteStream(e.streams[0])
     }
     pc.onconnectionstatechange = () => {
       if (['failed', 'disconnected', 'closed'].includes(pc.connectionState)) hangUp()
@@ -170,6 +176,7 @@ export function MeetingsClient({ workspaceId, userId, initialRooms, baseUrl }: P
     localStreamRef.current = null
     if (localVideoRef.current) localVideoRef.current.srcObject = null
     if (remoteVideoRef.current) remoteVideoRef.current.srcObject = null
+    setRemoteStream(null)
     setCallState('idle')
     setActiveToken(null)
     setActiveGuestName('')

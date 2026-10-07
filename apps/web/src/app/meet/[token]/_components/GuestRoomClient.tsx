@@ -29,12 +29,21 @@ export function GuestRoomClient({ token }: { token: string }) {
   const [callState, setCallState] = useState<'idle' | 'waiting' | 'calling' | 'connected'>('idle')
   const [callMode, setCallMode] = useState<'audio' | 'video'>('video')
 
+  const [remoteStream, setRemoteStream] = useState<MediaStream | null>(null)
+
   const pcRef = useRef<RTCPeerConnection | null>(null)
   const localStreamRef = useRef<MediaStream | null>(null)
   const iceCandidateQueueRef = useRef<RTCIceCandidateInit[]>([])
   const lastEventTime = useRef(new Date().toISOString())
   const localVideoRef = useRef<HTMLVideoElement>(null)
   const remoteVideoRef = useRef<HTMLVideoElement>(null)
+
+  useEffect(() => {
+    if (remoteVideoRef.current && remoteStream) {
+      remoteVideoRef.current.srcObject = remoteStream
+      void remoteVideoRef.current.play().catch(() => {})
+    }
+  }, [remoteStream, callState])
 
   // Load room info
   useEffect(() => {
@@ -83,10 +92,7 @@ export function GuestRoomClient({ token }: { token: string }) {
       if (e.candidate) void signal('guest_ice', { candidate: e.candidate.toJSON() })
     }
     pc.ontrack = e => {
-      if (e.streams[0] && remoteVideoRef.current) {
-        remoteVideoRef.current.srcObject = e.streams[0]
-        void remoteVideoRef.current.play().catch(() => {})
-      }
+      if (e.streams[0]) setRemoteStream(e.streams[0])
     }
     pc.onconnectionstatechange = () => {
       if (pc.connectionState === 'connected') setCallState('connected')
@@ -195,6 +201,7 @@ export function GuestRoomClient({ token }: { token: string }) {
     localStreamRef.current = null
     if (localVideoRef.current) localVideoRef.current.srcObject = null
     if (remoteVideoRef.current) remoteVideoRef.current.srcObject = null
+    setRemoteStream(null)
     setCallState('idle')
   }
 
