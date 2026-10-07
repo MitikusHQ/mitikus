@@ -5,11 +5,15 @@ const DEFAULT_ICE: RTCIceServer[] = [
   { urls: 'stun:stun.l.google.com:19302' },
   { urls: 'stun:stun1.l.google.com:19302' },
   { urls: 'stun:stun.cloudflare.com:3478' },
-  // Open Relay (metered.ca)
-  { urls: 'turn:openrelay.metered.ca:80', username: 'openrelayproject', credential: 'openrelayproject' },
-  { urls: 'turn:openrelay.metered.ca:443', username: 'openrelayproject', credential: 'openrelayproject' },
-  { urls: 'turns:openrelay.metered.ca:443', username: 'openrelayproject', credential: 'openrelayproject' },
-  // FreeStan — gratuito, sin cuenta
+  // Metered.ca relay (updated endpoints)
+  { urls: 'turn:a.relay.metered.ca:80',                   username: 'openrelayproject', credential: 'openrelayproject' },
+  { urls: 'turn:a.relay.metered.ca:80?transport=tcp',     username: 'openrelayproject', credential: 'openrelayproject' },
+  { urls: 'turn:a.relay.metered.ca:443',                  username: 'openrelayproject', credential: 'openrelayproject' },
+  { urls: 'turn:a.relay.metered.ca:443?transport=tcp',    username: 'openrelayproject', credential: 'openrelayproject' },
+  { urls: 'turns:a.relay.metered.ca:443',                 username: 'openrelayproject', credential: 'openrelayproject' },
+  // numb.viagenie.ca — free public TURN
+  { urls: 'turn:numb.viagenie.ca', username: 'webrtc@live.com', credential: 'muazkh' },
+  // FreeStan
   { urls: 'turn:freestun.net:3479', username: 'free', credential: 'free' },
   { urls: 'turns:freestun.net:5350', username: 'free', credential: 'free' },
 ]
