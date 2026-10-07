@@ -29,8 +29,9 @@ export function GuestRoomClient({ token }: { token: string }) {
   const [error, setError] = useState<string | null>(null)
   const [guestName, setGuestName] = useState('')
   const [nameConfirmed, setNameConfirmed] = useState(false)
-  const [callState, setCallState] = useState<'idle' | 'waiting' | 'calling' | 'connected'>('idle')
+  const [callState, setCallState] = useState<'idle' | 'waiting' | 'calling' | 'ringing' | 'connected'>('idle')
   const [callMode, setCallMode] = useState<'audio' | 'video'>('video')
+  const incomingOfferRef = useRef<{ offer: RTCSessionDescriptionInit; mode: 'audio' | 'video' } | null>(null)
 
   const [remoteStream, setRemoteStream] = useState<MediaStream | null>(null)
   const [localStream, setLocalStream] = useState<MediaStream | null>(null)
@@ -208,9 +209,19 @@ export function GuestRoomClient({ token }: { token: string }) {
     return () => clearInterval(interval)
   }, [pollEvents])
 
-  async function handleHostOffer(offer: RTCSessionDescriptionInit, mode: 'audio' | 'video') {
+  function handleHostOffer(offer: RTCSessionDescriptionInit, mode: 'audio' | 'video') {
     if (callState !== 'idle') return
+    incomingOfferRef.current = { offer, mode }
     setCallMode(mode)
+    setCallState('ringing')
+  }
+
+  async function acceptIncoming() {
+    const incoming = incomingOfferRef.current
+    if (!incoming) return
+    incomingOfferRef.current = null
+    const { offer, mode } = incoming
+    setCallState('waiting')
     const iceServers = await fetchIceServers()
     let stream: MediaStream | null = null
     try {
@@ -232,11 +243,18 @@ export function GuestRoomClient({ token }: { token: string }) {
     setCallState('connected')
   }
 
+  function rejectIncoming() {
+    incomingOfferRef.current = null
+    void signal('guest_hangup', {})
+    setCallState('idle')
+  }
+
   function endCall() {
     void signal('guest_hangup', {})
     pcRef.current?.close()
     pcRef.current = null
     iceCandidateQueueRef.current = []
+    incomingOfferRef.current = null
     localStreamRef.current?.getTracks().forEach(t => t.stop())
     localStreamRef.current = null
     if (localVideoRef.current) localVideoRef.current.srcObject = null
@@ -318,11 +336,40 @@ export function GuestRoomClient({ token }: { token: string }) {
             <div className="w-16 h-16 rounded-full bg-violet-600 flex items-center justify-center text-2xl font-bold text-white">
               {room.label?.[0]?.toUpperCase() ?? 'M'}
             </div>
-            <p className="text-zinc-300 text-sm">
-              {callState === 'idle' ? 'Elige cómo conectarte' : callState === 'waiting' ? 'Iniciando…' : 'Llamando… esperando al anfitrión'}
-            </p>
-            {callState === 'calling' && (
-              <div className="w-5 h-5 border-2 border-violet-500 border-t-transparent rounded-full animate-spin" />
+            {callState === 'ringing' ? (
+              <>
+                <p className="text-white text-sm font-medium">{room.label ?? 'Anfitrión'} te está llamando</p>
+                <div className="flex gap-3 mt-1">
+                  <button
+                    onClick={() => void acceptIncoming()}
+                    className="flex items-center gap-2 px-5 py-3 rounded-xl bg-green-600 hover:bg-green-500 text-white font-medium text-sm transition-colors"
+                  >
+                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                      <path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07A19.5 19.5 0 0 1 4.69 12a19.79 19.79 0 0 1-3-8.63A2 2 0 0 1 3.77 1h3a2 2 0 0 1 2 1.72c.127.96.361 1.903.7 2.81a2 2 0 0 1-.45 2.11L7.91 8.69a16 16 0 0 0 6.29 6.29l1.06-1.06a2 2 0 0 1 2.11-.45c.907.339 1.85.573 2.81.7A2 2 0 0 1 22 16.92z"/>
+                    </svg>
+                    Aceptar
+                  </button>
+                  <button
+                    onClick={rejectIncoming}
+                    className="flex items-center gap-2 px-5 py-3 rounded-xl bg-red-600 hover:bg-red-500 text-white font-medium text-sm transition-colors"
+                  >
+                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                      <path d="M10.68 13.31a16 16 0 0 0 3.41 2.6l1.27-1.27a2 2 0 0 1 2.11-.45c.907.339 1.85.573 2.81.7A2 2 0 0 1 22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07A19.73 19.73 0 0 1 4.69 12 2 2 0 0 1 3.77 1h3a2 2 0 0 1 2 1.72 12.05 12.05 0 0 0 .7 2.81 2 2 0 0 1-.45 2.11L7.91 8.69"/>
+                      <line x1="23" y1="1" x2="1" y2="23"/>
+                    </svg>
+                    Rechazar
+                  </button>
+                </div>
+              </>
+            ) : (
+              <>
+                <p className="text-zinc-300 text-sm">
+                  {callState === 'idle' ? 'Elige cómo conectarte' : callState === 'waiting' ? 'Iniciando…' : 'Llamando… esperando al anfitrión'}
+                </p>
+                {callState === 'calling' && (
+                  <div className="w-5 h-5 border-2 border-violet-500 border-t-transparent rounded-full animate-spin" />
+                )}
+              </>
             )}
           </div>
         )}
@@ -357,7 +404,7 @@ export function GuestRoomClient({ token }: { token: string }) {
             </button>
           </>
         )}
-        {(callState === 'calling' || callState === 'connected' || callState === 'waiting') && (
+        {(callState === 'calling' || callState === 'connected' || callState === 'waiting' || callState === 'ringing') && (
           <button
             onClick={endCall}
             className="flex items-center gap-2 px-5 py-3 rounded-xl bg-red-600 hover:bg-red-500 text-white font-medium text-sm transition-colors"
