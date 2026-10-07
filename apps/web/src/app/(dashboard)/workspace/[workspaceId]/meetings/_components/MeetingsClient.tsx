@@ -202,7 +202,7 @@ export function MeetingsClient({ workspaceId, userId, initialRooms, baseUrl }: P
   }
 
   // ── Host initiates call ───────────────────────────────────────
-  async function callGuest(token: string, roomLabel: string | null) {
+  async function callGuest(token: string, roomLabel: string | null, mode: 'audio' | 'video' = 'video') {
     if (callState !== 'idle') return
     setActiveToken(token)
     setActiveGuestName(roomLabel ?? 'Invitado')
@@ -210,7 +210,7 @@ export function MeetingsClient({ workspaceId, userId, initialRooms, baseUrl }: P
 
     let stream: MediaStream | null = null
     try {
-      stream = await navigator.mediaDevices.getUserMedia({ audio: true, video: true })
+      stream = await navigator.mediaDevices.getUserMedia({ audio: true, video: mode === 'video' })
     } catch {
       try { stream = await navigator.mediaDevices.getUserMedia({ audio: true }) } catch { /* no mic */ }
     }
@@ -241,7 +241,7 @@ export function MeetingsClient({ workspaceId, userId, initialRooms, baseUrl }: P
 
     const offer = await pc.createOffer()
     await pc.setLocalDescription(offer)
-    await hostSignal(token, 'host_offer', { offer, mode: stream?.getVideoTracks().length ? 'video' : 'audio' })
+    await hostSignal(token, 'host_offer', { offer, mode })
   }
 
   // ── Reject / hang up ──────────────────────────────────────────
@@ -428,11 +428,18 @@ export function MeetingsClient({ workspaceId, userId, initialRooms, baseUrl }: P
                 </div>
                 <div className="flex items-center gap-2 shrink-0">
                   <button
-                    onClick={() => void callGuest(room.token, room.label)}
+                    onClick={() => void callGuest(room.token, room.label, 'audio')}
                     disabled={callState !== 'idle'}
                     className="rounded-md bg-green-600 hover:bg-green-500 disabled:opacity-40 px-3 py-1.5 text-xs font-medium text-white"
                   >
                     Llamar
+                  </button>
+                  <button
+                    onClick={() => void callGuest(room.token, room.label, 'video')}
+                    disabled={callState !== 'idle'}
+                    className="rounded-md bg-violet-600 hover:bg-violet-500 disabled:opacity-40 px-3 py-1.5 text-xs font-medium text-white"
+                  >
+                    Vídeo
                   </button>
                   <button
                     onClick={() => void copyLink(room.token)}
