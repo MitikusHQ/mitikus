@@ -42,11 +42,21 @@ export function GuestRoomClient({ token }: { token: string }) {
   const remoteVideoRef = useRef<HTMLVideoElement>(null)
 
   useEffect(() => {
-    if (remoteVideoRef.current && remoteStream) {
-      remoteVideoRef.current.srcObject = remoteStream
-      void remoteVideoRef.current.play().catch(() => {})
+    if (!remoteStream) return
+    const el = remoteVideoRef.current
+    if (el) {
+      el.srcObject = remoteStream
+      void el.play().catch(() => {})
     }
   }, [remoteStream, callState])
+
+  const remoteVideoCallback = useCallback((el: HTMLVideoElement | null) => {
+    if (el && remoteStream) {
+      el.srcObject = remoteStream
+      void el.play().catch(() => {})
+    }
+    ;(remoteVideoRef as React.MutableRefObject<HTMLVideoElement | null>).current = el
+  }, [remoteStream])
 
   // Load room info
   useEffect(() => {
@@ -262,7 +272,7 @@ export function GuestRoomClient({ token }: { token: string }) {
               Entrar a la sala
             </button>
           </div>
-          <p className="text-zinc-600 text-xs text-center mt-4">
+          <p className="text-zinc-600 text-xs text-center mt-4" suppressHydrationWarning>
             Expira {new Date(room.expiresAt).toLocaleString('es-ES')}
           </p>
         </div>
@@ -274,7 +284,7 @@ export function GuestRoomClient({ token }: { token: string }) {
     <div className="min-h-screen bg-zinc-950 flex flex-col items-center justify-center p-4 gap-4">
       {/* Remote video */}
       <div className="relative w-full max-w-2xl aspect-video bg-zinc-900 rounded-2xl overflow-hidden border border-zinc-800">
-        <video ref={remoteVideoRef} autoPlay playsInline className="w-full h-full object-cover" />
+        <video ref={remoteVideoCallback} autoPlay playsInline className="w-full h-full object-cover" />
         {callState !== 'connected' && (
           <div className="absolute inset-0 flex flex-col items-center justify-center gap-3">
             <div className="w-16 h-16 rounded-full bg-violet-600 flex items-center justify-center text-2xl font-bold text-white">

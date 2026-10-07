@@ -62,13 +62,25 @@ export function MeetingsClient({ workspaceId, userId, initialRooms, baseUrl }: P
   const localVideoRef = useRef<HTMLVideoElement>(null)
   const remoteVideoRef = useRef<HTMLVideoElement>(null)
 
-  // Assign remote stream to video element once both exist
+  // Assign remote stream whenever stream or video element become available
   useEffect(() => {
-    if (remoteVideoRef.current && remoteStream) {
-      remoteVideoRef.current.srcObject = remoteStream
-      void remoteVideoRef.current.play().catch(() => {})
+    if (!remoteStream) return
+    const el = remoteVideoRef.current
+    if (el) {
+      el.srcObject = remoteStream
+      void el.play().catch(() => {})
     }
   }, [remoteStream, callState])
+
+  // Also try assigning via callback ref when element mounts into the DOM
+  const remoteVideoCallback = useCallback((el: HTMLVideoElement | null) => {
+    if (el && remoteStream) {
+      el.srcObject = remoteStream
+      void el.play().catch(() => {})
+    }
+    // keep ref in sync
+    ;(remoteVideoRef as React.MutableRefObject<HTMLVideoElement | null>).current = el
+  }, [remoteStream])
 
   // ── Host signal helper ────────────────────────────────────────
   async function hostSignal(token: string, type: string, payload: Record<string, unknown>) {
@@ -270,7 +282,7 @@ export function MeetingsClient({ workspaceId, userId, initialRooms, baseUrl }: P
         <p className="text-zinc-400 text-sm">Conectado con <span className="text-white font-medium">{activeGuestName}</span></p>
 
         <div className="relative w-full max-w-2xl aspect-video bg-zinc-900 rounded-2xl overflow-hidden border border-zinc-800">
-          <video ref={remoteVideoRef} autoPlay playsInline className="w-full h-full object-cover" />
+          <video ref={remoteVideoCallback} autoPlay playsInline className="w-full h-full object-cover" />
           <div className="absolute inset-0 flex items-center justify-center pointer-events-none">
             {/* placeholder while video loads */}
           </div>
@@ -378,7 +390,7 @@ export function MeetingsClient({ workspaceId, userId, initialRooms, baseUrl }: P
                   <p className="mt-0.5 text-xs text-muted-foreground font-mono break-all">
                     {baseUrl}/meet/{room.token}
                   </p>
-                  <p className="mt-1 text-xs text-muted-foreground">
+                  <p className="mt-1 text-xs text-muted-foreground" suppressHydrationWarning>
                     Expira {new Date(room.expiresAt).toLocaleString('es-ES')}
                   </p>
                 </div>
