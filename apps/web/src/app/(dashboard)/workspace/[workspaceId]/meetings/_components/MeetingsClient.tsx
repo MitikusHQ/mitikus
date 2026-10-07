@@ -60,30 +60,28 @@ export function MeetingsClient({ workspaceId, userId, initialRooms, baseUrl }: P
 
   const pcRef = useRef<RTCPeerConnection | null>(null)
   const localStreamRef = useRef<MediaStream | null>(null)
+  const remoteStreamRef = useRef<MediaStream | null>(null)
   const iceCandidateQueueRef = useRef<RTCIceCandidateInit[]>([])
   const lastEventTime = useRef(new Date().toISOString())
   const localVideoRef = useRef<HTMLVideoElement>(null)
   const remoteVideoRef = useRef<HTMLVideoElement>(null)
 
-  // Assign remote stream whenever stream or video element become available
-  useEffect(() => {
-    if (!remoteStream) return
+  function assignRemoteStream(s: MediaStream) {
+    remoteStreamRef.current = s
+    setRemoteStream(s)
+    setTrackCount(s.getTracks().length)
     const el = remoteVideoRef.current
-    if (el) {
-      el.srcObject = remoteStream
-      void el.play().catch(() => {})
-    }
-  }, [remoteStream, callState])
+    if (el) { el.srcObject = s; void el.play().catch(() => {}) }
+  }
 
-  // Also try assigning via callback ref when element mounts into the DOM
-  const remoteVideoCallback = useCallback((el: HTMLVideoElement | null) => {
-    if (el && remoteStream) {
-      el.srcObject = remoteStream
+  // Inline ref callback — runs on every render so it always has the current stream ref
+  const remoteVideoCallback = (el: HTMLVideoElement | null) => {
+    remoteVideoRef.current = el
+    if (el && remoteStreamRef.current) {
+      el.srcObject = remoteStreamRef.current
       void el.play().catch(() => {})
     }
-    // keep ref in sync
-    ;(remoteVideoRef as React.MutableRefObject<HTMLVideoElement | null>).current = el
-  }, [remoteStream])
+  }
 
   // ── Host signal helper ────────────────────────────────────────
   async function hostSignal(token: string, type: string, payload: Record<string, unknown>) {
@@ -163,8 +161,8 @@ export function MeetingsClient({ workspaceId, userId, initialRooms, baseUrl }: P
       if (e.candidate) void hostSignal(token, 'host_ice', { candidate: e.candidate.toJSON() })
     }
     pc.ontrack = e => {
-      const s = e.streams[0]
-      if (s) { setRemoteStream(s); setTrackCount(s.getTracks().length) }
+      const s = e.streams[0] ?? new MediaStream([e.track])
+      assignRemoteStream(s)
     }
     pc.onconnectionstatechange = () => {
       setPcState(pc.connectionState)
@@ -210,8 +208,8 @@ export function MeetingsClient({ workspaceId, userId, initialRooms, baseUrl }: P
       if (e.candidate) void hostSignal(token, 'host_ice', { candidate: e.candidate.toJSON() })
     }
     pc.ontrack = e => {
-      const s = e.streams[0]
-      if (s) { setRemoteStream(s); setTrackCount(s.getTracks().length) }
+      const s = e.streams[0] ?? new MediaStream([e.track])
+      assignRemoteStream(s)
     }
     pc.onconnectionstatechange = () => {
       setPcState(pc.connectionState)

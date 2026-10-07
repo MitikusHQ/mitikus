@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useEffect, useRef, useCallback } from 'react'
+import { useState, useEffect, useRef } from 'react'
 
 interface RoomInfo {
   token: string
@@ -40,30 +40,44 @@ export function GuestRoomClient({ token }: { token: string }) {
 
   const pcRef = useRef<RTCPeerConnection | null>(null)
   const localStreamRef = useRef<MediaStream | null>(null)
+  const remoteStreamRef = useRef<MediaStream | null>(null)
+  const localStreamStateRef = useRef<MediaStream | null>(null)
   const iceCandidateQueueRef = useRef<RTCIceCandidateInit[]>([])
   const lastEventTime = useRef(new Date().toISOString())
   const localVideoRef = useRef<HTMLVideoElement>(null)
   const remoteVideoRef = useRef<HTMLVideoElement>(null)
 
-  const remoteVideoCallback = useCallback((el: HTMLVideoElement | null) => {
-    ;(remoteVideoRef as React.MutableRefObject<HTMLVideoElement | null>).current = el
-    if (el && remoteStream) { el.srcObject = remoteStream; void el.play().catch(() => {}) }
-  }, [remoteStream])
-
-  const localVideoCallback = useCallback((el: HTMLVideoElement | null) => {
-    ;(localVideoRef as React.MutableRefObject<HTMLVideoElement | null>).current = el
-    if (el && localStream) { el.srcObject = localStream; void el.play().catch(() => {}) }
-  }, [localStream])
-
-  useEffect(() => {
+  function assignRemoteStream(s: MediaStream) {
+    remoteStreamRef.current = s
+    setRemoteStream(s)
+    setTrackCount(s.getTracks().length)
     const el = remoteVideoRef.current
-    if (el && remoteStream) { el.srcObject = remoteStream; void el.play().catch(() => {}) }
-  }, [remoteStream, callState])
+    if (el) { el.srcObject = s; void el.play().catch(() => {}) }
+  }
 
-  useEffect(() => {
+  function assignLocalStream(s: MediaStream) {
+    localStreamStateRef.current = s
+    setLocalStream(s)
     const el = localVideoRef.current
-    if (el && localStream) { el.srcObject = localStream; void el.play().catch(() => {}) }
-  }, [localStream, callState])
+    if (el) { el.srcObject = s; void el.play().catch(() => {}) }
+  }
+
+  // Inline callbacks — recreated every render so always hold current ref values
+  const remoteVideoCallback = (el: HTMLVideoElement | null) => {
+    remoteVideoRef.current = el
+    if (el && remoteStreamRef.current) {
+      el.srcObject = remoteStreamRef.current
+      void el.play().catch(() => {})
+    }
+  }
+
+  const localVideoCallback = (el: HTMLVideoElement | null) => {
+    localVideoRef.current = el
+    if (el && localStreamStateRef.current) {
+      el.srcObject = localStreamStateRef.current
+      void el.play().catch(() => {})
+    }
+  }
 
   // Load room info
   useEffect(() => {
@@ -112,8 +126,8 @@ export function GuestRoomClient({ token }: { token: string }) {
       if (e.candidate) void signal('guest_ice', { candidate: e.candidate.toJSON() })
     }
     pc.ontrack = e => {
-      const s = e.streams[0]
-      if (s) { setRemoteStream(s); setTrackCount(s.getTracks().length) }
+      const s = e.streams[0] ?? new MediaStream([e.track])
+      assignRemoteStream(s)
     }
     pc.onconnectionstatechange = () => {
       setPcState(pc.connectionState)
@@ -139,7 +153,7 @@ export function GuestRoomClient({ token }: { token: string }) {
     }
     if (stream) {
       localStreamRef.current = stream
-      setLocalStream(stream)
+      assignLocalStream(stream)
     }
 
     const pc = createPeerConnection(iceServers)
@@ -203,7 +217,7 @@ export function GuestRoomClient({ token }: { token: string }) {
     }
     if (stream) {
       localStreamRef.current = stream
-      setLocalStream(stream)
+      assignLocalStream(stream)
     }
     const pc = createPeerConnection(iceServers)
     if (stream) stream.getTracks().forEach(t => pc.addTrack(t, stream!))
