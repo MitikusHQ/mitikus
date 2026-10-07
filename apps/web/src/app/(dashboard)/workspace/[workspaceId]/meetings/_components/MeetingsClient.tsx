@@ -33,19 +33,27 @@ interface IncomingCall {
   mode: 'audio' | 'video'
 }
 
-const STUN: RTCIceServer[] = [
+const STUN_FALLBACK: RTCIceServer[] = [
   { urls: 'stun:stun.l.google.com:19302' },
   { urls: 'stun:stun1.l.google.com:19302' },
   { urls: 'stun:stun.cloudflare.com:3478' },
-  { urls: 'turn:a.relay.metered.ca:80',                   username: 'openrelayproject', credential: 'openrelayproject' },
-  { urls: 'turn:a.relay.metered.ca:80?transport=tcp',     username: 'openrelayproject', credential: 'openrelayproject' },
-  { urls: 'turn:a.relay.metered.ca:443',                  username: 'openrelayproject', credential: 'openrelayproject' },
-  { urls: 'turn:a.relay.metered.ca:443?transport=tcp',    username: 'openrelayproject', credential: 'openrelayproject' },
-  { urls: 'turns:a.relay.metered.ca:443',                 username: 'openrelayproject', credential: 'openrelayproject' },
-  { urls: 'turn:numb.viagenie.ca', username: 'webrtc@live.com', credential: 'muazkh' },
-  { urls: 'turn:freestun.net:3479', username: 'free', credential: 'free' },
-  { urls: 'turns:freestun.net:5350', username: 'free', credential: 'free' },
+  { urls: 'turn:a.relay.metered.ca:80',                username: 'openrelayproject', credential: 'openrelayproject' },
+  { urls: 'turn:a.relay.metered.ca:80?transport=tcp',  username: 'openrelayproject', credential: 'openrelayproject' },
+  { urls: 'turn:a.relay.metered.ca:443',               username: 'openrelayproject', credential: 'openrelayproject' },
+  { urls: 'turn:a.relay.metered.ca:443?transport=tcp', username: 'openrelayproject', credential: 'openrelayproject' },
+  { urls: 'turns:a.relay.metered.ca:443',              username: 'openrelayproject', credential: 'openrelayproject' },
 ]
+
+async function fetchIceServers(): Promise<RTCIceServer[]> {
+  try {
+    const r = await fetch('/api/ice-servers')
+    if (r.ok) {
+      const data = await r.json() as { iceServers: RTCIceServer[] }
+      return data.iceServers
+    }
+  } catch { /* fall through */ }
+  return STUN_FALLBACK
+}
 
 export function MeetingsClient({ workspaceId, userId, initialRooms, baseUrl }: Props) {
   const [rooms, setRooms] = useState<GuestRoom[]>(initialRooms)
@@ -165,7 +173,8 @@ export function MeetingsClient({ workspaceId, userId, initialRooms, baseUrl }: P
       if (localVideoRef.current) localVideoRef.current.srcObject = stream
     }
 
-    const pc = new RTCPeerConnection({ iceServers: STUN })
+    const iceServers = await fetchIceServers()
+    const pc = new RTCPeerConnection({ iceServers })
     pc.onicecandidate = e => {
       if (e.candidate) { setIceSent(n => n + 1); void hostSignal(token, 'host_ice', { candidate: e.candidate.toJSON() }) }
     }
@@ -210,7 +219,8 @@ export function MeetingsClient({ workspaceId, userId, initialRooms, baseUrl }: P
       if (localVideoRef.current) localVideoRef.current.srcObject = stream
     }
 
-    const pc = new RTCPeerConnection({ iceServers: STUN })
+    const iceServers = await fetchIceServers()
+    const pc = new RTCPeerConnection({ iceServers })
     pc.onicecandidate = e => {
       if (e.candidate) { setIceSent(n => n + 1); void hostSignal(token, 'host_ice', { candidate: e.candidate.toJSON() }) }
     }
