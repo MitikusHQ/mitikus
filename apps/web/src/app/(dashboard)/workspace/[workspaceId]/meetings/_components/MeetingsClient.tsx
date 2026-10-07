@@ -122,11 +122,12 @@ export function MeetingsClient({ workspaceId, userId, initialRooms, baseUrl }: P
           for (const c of queue) {
             try { await pcRef.current.addIceCandidate(c) } catch { /* ignore */ }
           }
-        } else if (ev.type === 'guest_ice' && pcRef.current) {
+        } else if (ev.type === 'guest_ice') {
           const candidate = p['candidate'] as RTCIceCandidateInit
-          if (pcRef.current.remoteDescription) {
+          if (pcRef.current?.remoteDescription) {
             try { await pcRef.current.addIceCandidate(candidate) } catch { /* ignore */ }
           } else {
+            // Queue even if PC not created yet (getUserMedia is async)
             iceCandidateQueueRef.current.push(candidate)
           }
         } else if (ev.type === 'guest_hangup') {
