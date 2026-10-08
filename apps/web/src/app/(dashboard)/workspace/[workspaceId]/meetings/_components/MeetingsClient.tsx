@@ -61,6 +61,10 @@ export function MeetingsClient({ workspaceId, userId, initialRooms, baseUrl }: P
   const [label, setLabel] = useState('')
   const [hours, setHours] = useState(24)
   const [copiedToken, setCopiedToken] = useState<string | null>(null)
+  const [sendModal, setSendModal] = useState<{ token: string; url: string } | null>(null)
+  const [sendEmail, setSendEmail] = useState('')
+  const [clientSuggestions, setClientSuggestions] = useState<{ id: string; name: string; email: string; contactName: string | null }[]>([])
+  const [showSuggestions, setShowSuggestions] = useState(false)
 
   // ── Call state ────────────────────────────────────────────────
   const [incoming, setIncoming] = useState<IncomingCall | null>(null)
@@ -295,6 +299,34 @@ export function MeetingsClient({ workspaceId, userId, initialRooms, baseUrl }: P
     setTimeout(() => setCopiedToken(null), 2000)
   }
 
+  function openSendModal(token: string) {
+    setSendEmail('')
+    setClientSuggestions([])
+    setShowSuggestions(false)
+    setSendModal({ token, url: `${baseUrl}/meet/${token}` })
+  }
+
+  async function searchClients(q: string) {
+    setSendEmail(q)
+    if (q.length < 1) { setClientSuggestions([]); setShowSuggestions(false); return }
+    try {
+      const r = await fetch(`/api/workspace/${workspaceId}/clients-search?q=${encodeURIComponent(q)}`)
+      if (r.ok) {
+        const data = await r.json() as { clients: { id: string; name: string; email: string; contactName: string | null }[] }
+        setClientSuggestions(data.clients)
+        setShowSuggestions(data.clients.length > 0)
+      }
+    } catch { /* ignore */ }
+  }
+
+  function sendViaEmail() {
+    if (!sendModal || !sendEmail.trim()) return
+    const subject = encodeURIComponent('Enlace para nuestra videollamada')
+    const body = encodeURIComponent(`Hola,\n\nTe comparto el enlace para unirte a nuestra reunión:\n\n${sendModal.url}\n\nNo necesitas crear ninguna cuenta.\n\nHasta pronto.`)
+    window.open(`mailto:${sendEmail.trim()}?subject=${subject}&body=${body}`)
+    setSendModal(null)
+  }
+
   // ── Render ────────────────────────────────────────────────────
 
   // Active call screen
@@ -448,6 +480,12 @@ export function MeetingsClient({ workspaceId, userId, initialRooms, baseUrl }: P
                     {copiedToken === room.token ? '¡Copiado!' : 'Copiar enlace'}
                   </button>
                   <button
+                    onClick={() => openSendModal(room.token)}
+                    className="rounded-md border border-border px-3 py-1.5 text-xs font-medium text-muted-foreground hover:text-foreground hover:border-foreground"
+                  >
+                    Enviar
+                  </button>
+                  <button
                     onClick={() => void revokeRoom(room.token)}
                     className="rounded-md border border-border px-3 py-1.5 text-xs font-medium text-muted-foreground hover:text-destructive hover:border-destructive"
                   >
@@ -460,5 +498,57 @@ export function MeetingsClient({ workspaceId, userId, initialRooms, baseUrl }: P
         </div>
       )}
     </div>
+
+    {/* Send link modal */}
+    {sendModal && (
+      <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 p-4" onClick={() => setSendModal(null)}>
+        <div className="w-full max-w-sm bg-background border border-border rounded-2xl p-6 shadow-xl" onClick={e => e.stopPropagation()}>
+          <h3 className="text-sm font-semibold mb-1">Enviar enlace por email</h3>
+          <p className="text-xs text-muted-foreground mb-4 break-all">{sendModal.url}</p>
+
+          <div className="relative">
+            <input
+              type="email"
+              value={sendEmail}
+              onChange={e => void searchClients(e.target.value)}
+              onFocus={() => { if (clientSuggestions.length > 0) setShowSuggestions(true) }}
+              placeholder="Email del destinatario…"
+              autoFocus
+              className="w-full bg-muted border border-border rounded-xl px-3 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-ring placeholder:text-muted-foreground"
+            />
+            {showSuggestions && (
+              <div className="absolute top-full mt-1 w-full bg-background border border-border rounded-xl shadow-lg overflow-hidden z-10">
+                {clientSuggestions.map(c => (
+                  <button
+                    key={c.id}
+                    onClick={() => { setSendEmail(c.email); setShowSuggestions(false) }}
+                    className="w-full text-left px-3 py-2 text-sm hover:bg-muted flex flex-col"
+                  >
+                    <span className="font-medium">{c.name}{c.contactName ? ` · ${c.contactName}` : ''}</span>
+                    <span className="text-xs text-muted-foreground">{c.email}</span>
+                  </button>
+                ))}
+              </div>
+            )}
+          </div>
+
+          <div className="flex gap-2 mt-4">
+            <button
+              onClick={() => setSendModal(null)}
+              className="flex-1 py-2 rounded-xl border border-border text-sm text-muted-foreground hover:text-foreground"
+            >
+              Cancelar
+            </button>
+            <button
+              onClick={sendViaEmail}
+              disabled={!sendEmail.trim()}
+              className="flex-1 py-2 rounded-xl bg-primary text-primary-foreground text-sm font-medium disabled:opacity-40 hover:bg-primary/90"
+            >
+              Abrir correo
+            </button>
+          </div>
+        </div>
+      </div>
+    )}
   )
 }
