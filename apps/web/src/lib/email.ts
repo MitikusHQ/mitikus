@@ -903,12 +903,12 @@ export async function sendMeetingInviteEmail({
   roomLabel: string | null
   meetUrl: string
 }): Promise<void> {
-  if (!process.env.RESEND_API_KEY) return
+  if (!process.env.RESEND_API_KEY) throw new Error('RESEND_API_KEY not set')
   const resend = new Resend(process.env.RESEND_API_KEY)
   const label = escHtml(roomLabel ?? 'Reunión')
   const name = escHtml(fromName)
   const url = escHtml(meetUrl)
-  await resend.emails.send({
+  const result = await resend.emails.send({
     from: 'MITIKUS <notificaciones@mitikus.com>',
     to,
     subject: `${fromName} te invita a una reunión`,
@@ -929,4 +929,9 @@ export async function sendMeetingInviteEmail({
       </div>
     `,
   })
+  if (result.error) {
+    console.error('[sendMeetingInviteEmail] Resend rejected:', JSON.stringify(result.error))
+    throw new Error(result.error.message ?? JSON.stringify(result.error))
+  }
+  console.log('[sendMeetingInviteEmail] sent id:', result.data?.id)
 }

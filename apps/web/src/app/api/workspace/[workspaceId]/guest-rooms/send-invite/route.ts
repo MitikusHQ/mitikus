@@ -34,9 +34,11 @@ export async function POST(req: NextRequest, { params }: { params: Promise<{ wor
       roomLabel: room.label,
       meetUrl: `${baseUrl}/meet/${token}`,
     })
-  } catch (err) {
-    console.error('[send-invite] Resend error:', err)
-    return NextResponse.json({ error: String(err) }, { status: 500 })
+  } catch (err: unknown) {
+    const msg = err instanceof Error ? err.message : String(err)
+    const detail = typeof err === 'object' && err !== null ? JSON.stringify(err) : msg
+    console.error('[send-invite] Resend error:', detail)
+    return NextResponse.json({ error: msg, detail }, { status: 500 })
   }
 
   return NextResponse.json({ ok: true })
