@@ -361,6 +361,7 @@ export function MeetingsClient({ workspaceId, userId, initialRooms, baseUrl }: P
   }
 
   return (
+    <>
     <div className="p-6 max-w-2xl mx-auto space-y-6">
       {/* Incoming call banner */}
       {callState === 'ringing' && incoming && (
@@ -541,5 +542,6 @@ export function MeetingsClient({ workspaceId, userId, initialRooms, baseUrl }: P
         </div>
       </div>
     )}
+    </>
   )
 }

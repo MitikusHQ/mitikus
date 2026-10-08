@@ -7,8 +7,8 @@ export async function GET(req: NextRequest, { params }: { params: Promise<{ work
   const { workspaceId } = await params
   const q = req.nextUrl.searchParams.get('q') ?? ''
 
-  const membership = await db.workspaceMember.findFirst({ where: { workspaceId, userId: user.id } })
-  if (!membership) return NextResponse.json({ error: 'Forbidden' }, { status: 403 })
+  const workspace = await db.workspace.findFirst({ where: { id: workspaceId, orgId: user.orgId }, select: { id: true } })
+  if (!workspace) return NextResponse.json({ error: 'Forbidden' }, { status: 403 })
 
   const clients = await db.client.findMany({
     where: {
