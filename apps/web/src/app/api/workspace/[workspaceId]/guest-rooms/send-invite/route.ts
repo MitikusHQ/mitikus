@@ -2,7 +2,6 @@ import { NextRequest, NextResponse } from 'next/server'
 import { db } from '@/lib/db'
 import { requireUser } from '@/lib/auth'
 import { sendMeetingInviteEmail } from '@/lib/email'
-import { clerkClient } from '@clerk/nextjs/server'
 
 export async function POST(req: NextRequest, { params }: { params: Promise<{ workspaceId: string }> }) {
   const user = await requireUser()
@@ -23,14 +22,7 @@ export async function POST(req: NextRequest, { params }: { params: Promise<{ wor
     return NextResponse.json({ error: 'RESEND_API_KEY not configured' }, { status: 500 })
   }
 
-  let fromName = 'Tu contacto'
-  try {
-    const clerk = await clerkClient()
-    const clerkUser = await clerk.users.getUser(user.id)
-    fromName = ([clerkUser.firstName, clerkUser.lastName].filter(Boolean).join(' ') || clerkUser.emailAddresses[0]?.emailAddress) ?? 'Tu contacto'
-  } catch (err) {
-    console.warn('[send-invite] Could not get Clerk user name:', err)
-  }
+  const fromName = user.name ?? user.email
 
   try {
     await sendMeetingInviteEmail({
