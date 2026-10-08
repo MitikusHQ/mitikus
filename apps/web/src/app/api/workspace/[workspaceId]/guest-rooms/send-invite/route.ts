@@ -22,6 +22,11 @@ export async function POST(req: NextRequest, { params }: { params: Promise<{ wor
   const fromName = ([clerkUser.firstName, clerkUser.lastName].filter(Boolean).join(' ') || clerkUser.emailAddresses[0]?.emailAddress) ?? 'Tu contacto'
 
   const baseUrl = process.env.NEXT_PUBLIC_APP_URL ?? 'https://mitikus.com'
+  if (!process.env.RESEND_API_KEY) {
+    console.error('[send-invite] RESEND_API_KEY not set')
+    return NextResponse.json({ error: 'RESEND_API_KEY not configured' }, { status: 500 })
+  }
+
   try {
     await sendMeetingInviteEmail({
       to,

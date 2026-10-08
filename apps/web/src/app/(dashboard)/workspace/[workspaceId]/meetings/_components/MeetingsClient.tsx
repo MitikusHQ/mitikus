@@ -327,11 +327,16 @@ export function MeetingsClient({ workspaceId, userId, initialRooms, baseUrl }: P
     if (!sendModal || !sendEmail.trim()) return
     setSendingEmail(true)
     try {
-      await fetch(`/api/workspace/${workspaceId}/guest-rooms/send-invite`, {
+      const r = await fetch(`/api/workspace/${workspaceId}/guest-rooms/send-invite`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ token: sendModal.token, to: sendEmail.trim() }),
       })
+      if (!r.ok) {
+        const data = await r.json() as { error?: string }
+        alert(`Error al enviar: ${data.error ?? r.status}`)
+        return
+      }
       setSendDone(true)
       setTimeout(() => setSendModal(null), 1500)
     } finally {
