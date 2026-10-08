@@ -1,6 +1,7 @@
 import { notFound } from 'next/navigation'
 import { db } from '@/lib/db'
 import type { Metadata } from 'next'
+import DOMPurify from 'isomorphic-dompurify'
 
 interface Props {
   params: Promise<{ token: string }>
@@ -78,7 +79,7 @@ export default async function ClientPortalPage({ params }: Props) {
         {/* Contenido del documento */}
         <div
           className="prose prose-slate dark:prose-invert max-w-none prose-headings:font-semibold prose-p:leading-relaxed prose-p:text-slate-700 dark:prose-p:text-slate-300"
-          dangerouslySetInnerHTML={{ __html: doc.content }}
+          dangerouslySetInnerHTML={{ __html: DOMPurify.sanitize(doc.content) }}
         />
       </main>
 

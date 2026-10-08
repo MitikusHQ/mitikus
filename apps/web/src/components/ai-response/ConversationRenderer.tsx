@@ -1,6 +1,7 @@
 import { cn } from '@/lib/utils'
 import { renderMarkdown } from '@/lib/ai/render-markdown'
 import type { RendererProps } from '@/lib/ai/types'
+import DOMPurify from 'isomorphic-dompurify'
 
 /**
  * Renderer para respuestas conversacionales o markdown sin estructura de informe.
@@ -15,7 +16,7 @@ export function ConversationRenderer({ text }: RendererProps) {
         'text-sm leading-relaxed text-foreground',
         'max-h-[600px]',
       )}
-      dangerouslySetInnerHTML={{ __html: `<div class="space-y-1">${html}</div>` }}
+      dangerouslySetInnerHTML={{ __html: DOMPurify.sanitize(`<div class="space-y-1">${html}</div>`) }}
     />
   )
 }

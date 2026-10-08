@@ -5,12 +5,17 @@ import { cn } from '@/lib/utils'
 import { parseReport } from '@/lib/ai/parse-report'
 import { renderMarkdown } from '@/lib/ai/render-markdown'
 import type { RendererProps } from '@/lib/ai/types'
+import DOMPurify from 'isomorphic-dompurify'
+
+function safeHtml(html: string) {
+  return DOMPurify.sanitize(`<div class="space-y-1">${html}</div>`)
+}
 
 function SectionContent({ html, className }: { html: string; className?: string }) {
   return (
     <div
       className={className}
-      dangerouslySetInnerHTML={{ __html: `<div class="space-y-1">${html}</div>` }}
+      dangerouslySetInnerHTML={{ __html: safeHtml(html) }}
     />
   )
 }
@@ -28,7 +33,7 @@ export function ReportRenderer({ text }: RendererProps) {
     return (
       <div
         className="text-sm leading-relaxed text-foreground overflow-auto max-h-[600px]"
-        dangerouslySetInnerHTML={{ __html: `<div class="space-y-1">${renderMarkdown(text)}</div>` }}
+        dangerouslySetInnerHTML={{ __html: safeHtml(renderMarkdown(text)) }}
       />
     )
   }

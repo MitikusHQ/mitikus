@@ -6,6 +6,8 @@ import { FileType } from '@prisma/client'
 import { checkPlanLimit } from '@/lib/billing/check-plan-limit'
 import { checkStorageAlerts } from '@/lib/storage-alerts'
 import { can } from '@/lib/permissions'
+import { randomUUID } from 'crypto'
+import path from 'path'
 
 const MIME_TO_TYPE: Record<string, FileType> = {
   'application/pdf': FileType.PDF,
@@ -63,7 +65,8 @@ export async function POST(
     if (!folder) return NextResponse.json({ error: 'Carpeta no encontrada' }, { status: 404 })
   }
 
-  const blob = await put(`files/${workspaceId}/${Date.now()}-${file.name}`, file, {
+  const ext = path.extname(file.name)
+  const blob = await put(`files/${workspaceId}/${randomUUID()}${ext}`, file, {
     access: 'public',
   })
 
