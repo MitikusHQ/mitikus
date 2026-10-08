@@ -22,12 +22,17 @@ export async function POST(req: NextRequest, { params }: { params: Promise<{ wor
   const fromName = ([clerkUser.firstName, clerkUser.lastName].filter(Boolean).join(' ') || clerkUser.emailAddresses[0]?.emailAddress) ?? 'Tu contacto'
 
   const baseUrl = process.env.NEXT_PUBLIC_APP_URL ?? 'https://mitikus.com'
-  await sendMeetingInviteEmail({
-    to,
-    fromName,
-    roomLabel: room.label,
-    meetUrl: `${baseUrl}/meet/${token}`,
-  })
+  try {
+    await sendMeetingInviteEmail({
+      to,
+      fromName,
+      roomLabel: room.label,
+      meetUrl: `${baseUrl}/meet/${token}`,
+    })
+  } catch (err) {
+    console.error('[send-invite] Resend error:', err)
+    return NextResponse.json({ error: String(err) }, { status: 500 })
+  }
 
   return NextResponse.json({ ok: true })
 }
