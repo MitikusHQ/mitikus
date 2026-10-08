@@ -81,7 +81,7 @@ export async function POST(
 
   const ext = path.extname(safeName)
   const blob = await put(`files/${workspaceId}/${randomUUID()}${ext}`, file, {
-    access: 'public',
+    access: 'private',
   })
 
   const saved = await db.workspaceFile.create({

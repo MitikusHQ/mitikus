@@ -247,7 +247,7 @@ export function ClientFilesSection({ workspaceId, clientId, initialFiles, initia
                   </p>
                 </div>
                 <a
-                  href={file.url}
+                  href={`/api/workspace/${workspaceId}/files/${file.id}/download`}
                   download={file.name}
                   className="shrink-0 rounded-md border border-input px-3 py-1.5 text-xs hover:bg-accent transition-colors"
                 >

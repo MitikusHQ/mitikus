@@ -2,6 +2,8 @@ import { NextRequest, NextResponse } from 'next/server'
 import { auth } from '@clerk/nextjs/server'
 import { db } from '@/lib/db'
 import { put } from '@vercel/blob'
+import { randomUUID } from 'crypto'
+import path from 'path'
 
 const MAX_BYTES = 10 * 1024 * 1024 // 10 MB
 
@@ -27,7 +29,8 @@ export async function POST(
   if (!file) return NextResponse.json({ error: 'No file' }, { status: 400 })
   if (file.size > MAX_BYTES) return NextResponse.json({ error: 'File too large (max 10 MB)' }, { status: 413 })
 
-  const blob = await put(`chat/${convId}/${Date.now()}-${file.name}`, file, {
+  const ext = path.extname(path.basename(file.name))
+  const blob = await put(`chat/${convId}/${randomUUID()}${ext}`, file, {
     access: 'public',
     contentType: file.type || 'application/octet-stream',
   })
