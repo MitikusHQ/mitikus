@@ -17,14 +17,19 @@ export async function POST(req: NextRequest, { params }: { params: Promise<{ wor
   const room = await db.guestRoom.findUnique({ where: { token } })
   if (!room || room.expiresAt < new Date()) return NextResponse.json({ error: 'Room expired' }, { status: 404 })
 
-  const clerk = await clerkClient()
-  const clerkUser = await clerk.users.getUser(user.id)
-  const fromName = ([clerkUser.firstName, clerkUser.lastName].filter(Boolean).join(' ') || clerkUser.emailAddresses[0]?.emailAddress) ?? 'Tu contacto'
-
   const baseUrl = process.env.NEXT_PUBLIC_APP_URL ?? 'https://mitikus.com'
   if (!process.env.RESEND_API_KEY) {
     console.error('[send-invite] RESEND_API_KEY not set')
     return NextResponse.json({ error: 'RESEND_API_KEY not configured' }, { status: 500 })
+  }
+
+  let fromName = 'Tu contacto'
+  try {
+    const clerk = await clerkClient()
+    const clerkUser = await clerk.users.getUser(user.id)
+    fromName = ([clerkUser.firstName, clerkUser.lastName].filter(Boolean).join(' ') || clerkUser.emailAddresses[0]?.emailAddress) ?? 'Tu contacto'
+  } catch (err) {
+    console.warn('[send-invite] Could not get Clerk user name:', err)
   }
 
   try {
