@@ -23,6 +23,8 @@ const MIME_TO_TYPE: Record<string, FileType> = {
   'application/zip': FileType.OTHER,
 }
 
+const ALLOWED_MIMES = new Set(Object.keys(MIME_TO_TYPE))
+
 const MAX_SIZE = 50 * 1024 * 1024 // 50 MB
 
 export async function POST(
@@ -43,12 +45,24 @@ export async function POST(
   if (!file) return NextResponse.json({ error: 'Fichero requerido' }, { status: 400 })
   if (file.size > MAX_SIZE) return NextResponse.json({ error: 'Máximo 50 MB' }, { status: 400 })
 
+  // Sanitize filename: strip path traversal and keep only the basename
+  const safeName = path.basename(file.name).replace(/[^\w.\-]/g, '_') || 'file'
+
+  // Validate MIME type against file magic bytes (prevents Content-Type spoofing)
+  const { fileTypeFromBuffer } = await import('file-type')
+  const headerBytes = await file.slice(0, 4100).arrayBuffer()
+  const detected = await fileTypeFromBuffer(new Uint8Array(headerBytes))
+  const effectiveMime = detected?.mime ?? file.type
+  if (!ALLOWED_MIMES.has(effectiveMime)) {
+    return NextResponse.json({ error: `Tipo de archivo no permitido: ${effectiveMime}` }, { status: 415 })
+  }
+
   const storageLimit = await checkPlanLimit(user.orgId, 'maxStorageGB', workspaceId)
   if (!storageLimit.allowed) {
     return NextResponse.json({ error: storageLimit.message }, { status: 413 })
   }
 
-  const fileType = MIME_TO_TYPE[file.type] ?? FileType.OTHER
+  const fileType = MIME_TO_TYPE[effectiveMime] ?? FileType.OTHER
 
   if (clientId) {
     const client = await db.client.findFirst({
@@ -65,7 +79,7 @@ export async function POST(
     if (!folder) return NextResponse.json({ error: 'Carpeta no encontrada' }, { status: 404 })
   }
 
-  const ext = path.extname(file.name)
+  const ext = path.extname(safeName)
   const blob = await put(`files/${workspaceId}/${randomUUID()}${ext}`, file, {
     access: 'public',
   })
@@ -75,7 +89,7 @@ export async function POST(
       workspaceId,
       folderId: folderId || null,
       clientId: clientId || null,
-      name: file.name,
+      name: safeName,
       type: fileType,
       url: blob.url,
       size: file.size,
