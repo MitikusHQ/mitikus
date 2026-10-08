@@ -63,6 +63,8 @@ export function MeetingsClient({ workspaceId, userId, initialRooms, baseUrl }: P
   const [copiedToken, setCopiedToken] = useState<string | null>(null)
   const [sendModal, setSendModal] = useState<{ token: string; url: string } | null>(null)
   const [sendEmail, setSendEmail] = useState('')
+  const [sendingEmail, setSendingEmail] = useState(false)
+  const [sendDone, setSendDone] = useState(false)
   const [clientSuggestions, setClientSuggestions] = useState<{ id: string; name: string; email: string; contactName: string | null }[]>([])
   const [showSuggestions, setShowSuggestions] = useState(false)
 
@@ -301,6 +303,8 @@ export function MeetingsClient({ workspaceId, userId, initialRooms, baseUrl }: P
 
   function openSendModal(token: string) {
     setSendEmail('')
+    setSendingEmail(false)
+    setSendDone(false)
     setClientSuggestions([])
     setShowSuggestions(false)
     setSendModal({ token, url: `${baseUrl}/meet/${token}` })
@@ -319,12 +323,20 @@ export function MeetingsClient({ workspaceId, userId, initialRooms, baseUrl }: P
     } catch { /* ignore */ }
   }
 
-  function sendViaEmail() {
+  async function sendViaEmail() {
     if (!sendModal || !sendEmail.trim()) return
-    const subject = encodeURIComponent('Enlace para nuestra videollamada')
-    const body = encodeURIComponent(`Hola,\n\nTe comparto el enlace para unirte a nuestra reunión:\n\n${sendModal.url}\n\nNo necesitas crear ninguna cuenta.\n\nHasta pronto.`)
-    window.open(`mailto:${sendEmail.trim()}?subject=${subject}&body=${body}`)
-    setSendModal(null)
+    setSendingEmail(true)
+    try {
+      await fetch(`/api/workspace/${workspaceId}/guest-rooms/send-invite`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ token: sendModal.token, to: sendEmail.trim() }),
+      })
+      setSendDone(true)
+      setTimeout(() => setSendModal(null), 1500)
+    } finally {
+      setSendingEmail(false)
+    }
   }
 
   // ── Render ────────────────────────────────────────────────────
@@ -532,11 +544,11 @@ export function MeetingsClient({ workspaceId, userId, initialRooms, baseUrl }: P
               Cancelar
             </button>
             <button
-              onClick={sendViaEmail}
-              disabled={!sendEmail.trim()}
+              onClick={() => void sendViaEmail()}
+              disabled={!sendEmail.trim() || sendingEmail || sendDone}
               className="flex-1 py-2 rounded-xl bg-primary text-primary-foreground text-sm font-medium disabled:opacity-40 hover:bg-primary/90"
             >
-              Abrir correo
+              {sendDone ? '¡Enviado!' : sendingEmail ? 'Enviando…' : 'Enviar'}
             </button>
           </div>
         </div>

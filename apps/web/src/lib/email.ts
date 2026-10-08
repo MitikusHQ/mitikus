@@ -891,3 +891,42 @@ export async function sendPaymentFailedEmail({
     `,
   })
 }
+
+export async function sendMeetingInviteEmail({
+  to,
+  fromName,
+  roomLabel,
+  meetUrl,
+}: {
+  to: string
+  fromName: string
+  roomLabel: string | null
+  meetUrl: string
+}): Promise<void> {
+  if (!process.env.RESEND_API_KEY) return
+  const resend = new Resend(process.env.RESEND_API_KEY)
+  const label = escHtml(roomLabel ?? 'Reunión')
+  const name = escHtml(fromName)
+  const url = escHtml(meetUrl)
+  await resend.emails.send({
+    from: 'MITIKUS <notificaciones@mitikus.com>',
+    to,
+    subject: `${fromName} te invita a una reunión`,
+    html: `
+      <div style="font-family:sans-serif;max-width:480px;margin:0 auto;padding:24px">
+        <p style="font-size:15px;color:#111"><strong>${name}</strong> te ha compartido un enlace para unirte a una reunión:</p>
+        <div style="margin:16px 0;padding:12px 16px;background:#f5f5f5;border-radius:8px;font-size:15px;color:#111">
+          ${label}
+        </div>
+        <a href="${url}" style="display:inline-block;padding:12px 24px;background:#7c3aed;color:#fff;border-radius:8px;text-decoration:none;font-size:15px;font-weight:600">
+          Unirse a la reunión
+        </a>
+        <p style="margin-top:16px;font-size:13px;color:#555">
+          O copia este enlace en tu navegador:<br>
+          <a href="${url}" style="color:#7c3aed;word-break:break-all">${url}</a>
+        </p>
+        <p style="margin-top:24px;font-size:12px;color:#888">No necesitas crear ninguna cuenta. MITIKUS &middot; <a href="https://mitikus.com" style="color:#888">mitikus.com</a></p>
+      </div>
+    `,
+  })
+}
