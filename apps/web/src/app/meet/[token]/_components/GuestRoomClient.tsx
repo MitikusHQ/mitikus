@@ -418,17 +418,6 @@ export function GuestRoomClient({ token }: { token: string }) {
         )}
       </div>
 
-      {/* Debug panel */}
-      {callState !== 'idle' && (
-        <div className="text-xs font-mono bg-zinc-900 rounded-lg px-4 py-2 text-zinc-400 flex flex-wrap gap-4">
-          <span>PC: <b className="text-white">{pcState}</b></span>
-          <span>ICE: <b className="text-white">{iceState}</b></span>
-          <span>gather: <b className="text-white">{gatherState}</b></span>
-          <span>sent: <b className="text-white">{iceSent}</b></span>
-          <span>tracks: <b className="text-white">{trackCount}</b></span>
-          <span>stream: <b className="text-white">{remoteStream ? 'sí' : 'no'}</b></span>
-        </div>
-      )}
 
       <p className="text-zinc-600 text-xs">{room.label ?? 'Sala de reunión'} · {guestName}</p>
     </div>

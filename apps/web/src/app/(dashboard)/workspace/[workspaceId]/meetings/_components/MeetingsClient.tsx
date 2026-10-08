@@ -345,15 +345,6 @@ export function MeetingsClient({ workspaceId, userId, initialRooms, baseUrl }: P
             className="absolute bottom-3 right-3 w-28 h-20 rounded-lg object-cover bg-zinc-800 border border-zinc-700" />
         </div>
 
-        {/* Debug panel */}
-        <div className="text-xs font-mono bg-black/60 rounded-lg px-4 py-2 text-zinc-300 flex flex-wrap gap-4">
-          <span>PC: <b className="text-white">{pcState}</b></span>
-          <span>ICE: <b className="text-white">{iceState}</b></span>
-          <span>gather: <b className="text-white">{gatherState}</b></span>
-          <span>sent: <b className="text-white">{iceSent}</b></span>
-          <span>tracks: <b className="text-white">{trackCount}</b></span>
-          <span>stream: <b className="text-white">{remoteStream ? 'sí' : 'no'}</b></span>
-        </div>
 
         <button
           onClick={hangUp}
