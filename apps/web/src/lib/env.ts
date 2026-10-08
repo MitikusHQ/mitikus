@@ -13,6 +13,8 @@ const REQUIRED = [
   'STRIPE_SECRET_KEY',
   'STRIPE_WEBHOOK_SECRET',
   'CRON_SECRET',
+  'CLERK_WEBHOOK_SECRET',    // Svix signature verification for Clerk webhooks
+  'MITIKUS_ENCRYPTION_KEY',  // AES-256-GCM encryption for SMTP/IMAP passwords
 ] as const
 
 const OPTIONAL = [
@@ -21,7 +23,6 @@ const OPTIONAL = [
   'UPSTASH_REDIS_REST_TOKEN', // Rate limiting
   'SENTRY_DSN',               // Error monitoring
   'RESEND_API_KEY',           // Transactional email
-  'MITIKUS_ENCRYPTION_KEY',   // SMTP/IMAP password encryption
 ] as const
 
 function validateEnv() {
@@ -57,10 +58,12 @@ export const env = {
   STRIPE_WEBHOOK_SECRET:               process.env.STRIPE_WEBHOOK_SECRET!,
   CRON_SECRET:                         process.env.CRON_SECRET!,
 
+  CLERK_WEBHOOK_SECRET:     process.env.CLERK_WEBHOOK_SECRET!,
+  MITIKUS_ENCRYPTION_KEY:   process.env.MITIKUS_ENCRYPTION_KEY!,
+
   ANTHROPIC_API_KEY:        process.env.ANTHROPIC_API_KEY,
   UPSTASH_REDIS_REST_URL:   process.env.UPSTASH_REDIS_REST_URL,
   UPSTASH_REDIS_REST_TOKEN: process.env.UPSTASH_REDIS_REST_TOKEN,
   SENTRY_DSN:               process.env.SENTRY_DSN,
   RESEND_API_KEY:           process.env.RESEND_API_KEY,
-  MITIKUS_ENCRYPTION_KEY:   process.env.MITIKUS_ENCRYPTION_KEY,
 } as const
