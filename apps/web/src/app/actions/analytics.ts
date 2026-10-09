@@ -111,7 +111,9 @@ export async function getWorkspaceAnalytics(
 
   const start = rangeStart(range)
   const dateFilter = { gte: start }
-  const truncUnit = range === 'all' ? 'month' : 'day'
+  // Whitelist to prevent SQL injection if range values ever change
+  const truncUnit: 'month' | 'day' = range === 'all' ? 'month' : 'day'
+  if (truncUnit !== 'month' && truncUnit !== 'day') throw new Error('Invalid truncUnit')
 
   // ── Parallel tier 1: bulk queries ────────────────────────────
   const [

@@ -1,5 +1,6 @@
 import { NextResponse } from 'next/server'
 import Anthropic from '@anthropic-ai/sdk'
+import { checkCronAuth } from '@/lib/cron-auth'
 
 export const runtime = 'nodejs'
 export const maxDuration = 60
@@ -113,10 +114,8 @@ async function commitToGitHub(slug: string, content: string, lang = 'es'): Promi
 }
 
 export async function GET(req: Request): Promise<NextResponse> {
-  const authHeader = req.headers.get('authorization')
-  if (authHeader !== `Bearer ${process.env.CRON_SECRET}`) {
-    return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
-  }
+  const authError = checkCronAuth(req)
+  if (authError) return authError
 
   const anthropicKey = process.env.ANTHROPIC_API_KEY
   const githubToken = process.env.GITHUB_BLOG_TOKEN

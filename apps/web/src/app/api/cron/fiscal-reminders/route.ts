@@ -2,15 +2,14 @@ import { NextResponse } from 'next/server'
 import { db } from '@/lib/db'
 import { getFiscalEvents, type LegalForm } from '@/lib/fiscal-calendar'
 import { sendFiscalReminderEmail } from '@/lib/email'
+import { checkCronAuth } from '@/lib/cron-auth'
 
 const REMIND_AT_DAYS = [7, 3, 1]
 const CALCULABLE     = ['303', '130', '111', '115']
 
 export async function GET(request: Request) {
-  const authHeader = request.headers.get('authorization')
-  if (authHeader !== `Bearer ${process.env.CRON_SECRET}`) {
-    return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
-  }
+  const authError = checkCronAuth(request)
+  if (authError) return authError
 
   const profiles = await db.companyProfile.findMany({
     where: {

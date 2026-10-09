@@ -23,6 +23,9 @@ const OPTIONAL = [
   'UPSTASH_REDIS_REST_TOKEN', // Rate limiting
   'SENTRY_DSN',               // Error monitoring
   'RESEND_API_KEY',           // Transactional email
+  'CLOUDINARY_CLOUD_NAME',    // Image/media uploads
+  'CLOUDINARY_API_KEY',       // Image/media uploads
+  'CLOUDINARY_API_SECRET',    // Image/media uploads
 ] as const
 
 function validateEnv() {
@@ -66,4 +69,7 @@ export const env = {
   UPSTASH_REDIS_REST_TOKEN: process.env.UPSTASH_REDIS_REST_TOKEN,
   SENTRY_DSN:               process.env.SENTRY_DSN,
   RESEND_API_KEY:           process.env.RESEND_API_KEY,
+  CLOUDINARY_CLOUD_NAME:    process.env.CLOUDINARY_CLOUD_NAME,
+  CLOUDINARY_API_KEY:       process.env.CLOUDINARY_API_KEY,
+  CLOUDINARY_API_SECRET:    process.env.CLOUDINARY_API_SECRET,
 } as const

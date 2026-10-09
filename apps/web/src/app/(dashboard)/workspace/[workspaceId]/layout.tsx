@@ -121,7 +121,7 @@ export default async function WorkspaceLayout({ children, params }: Props) {
   ].filter(Boolean) as NavItem[]
 
   // Acordeón Sistema
-  const superadminEmails = (process.env.SUPERADMIN_EMAILS ?? 'borjaprietomark82@gmail.com').split(',').map(e => e.trim())
+  const superadminEmails = (process.env.SUPERADMIN_EMAILS ?? '').split(',').map(e => e.trim()).filter(Boolean)
   const clerkEmail = clerkUser?.emailAddresses?.[0]?.emailAddress ?? ''
   const isSuperadmin = superadminEmails.includes(clerkEmail)
 

@@ -5,7 +5,7 @@ import type { Metadata } from 'next'
 
 export const metadata: Metadata = { title: 'MITIKUS Admin' }
 
-const SUPERADMIN_EMAILS = (process.env.SUPERADMIN_EMAILS ?? 'borjaprietomark82@gmail.com').split(',').map((e) => e.trim())
+const SUPERADMIN_EMAILS = (process.env.SUPERADMIN_EMAILS ?? '').split(',').map((e) => e.trim()).filter(Boolean)
 
 export default async function AdminLayout({ children }: { children: React.ReactNode }) {
   const user = await requireUser()
