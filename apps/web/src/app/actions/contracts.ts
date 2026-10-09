@@ -157,6 +157,7 @@ export async function sendContractToClient(
   workspaceId: string,
   clientName:  string,
   clientEmail: string,
+  clientId?:   string,
 ): Promise<void> {
   const user = await getAuthUserCanCreate()  // send_contract = EDITOR+
   const contract = await db.contract.findFirst({
@@ -169,7 +170,12 @@ export async function sendContractToClient(
 
   await db.contract.updateMany({
     where: { id: contractId, workspaceId },
-    data:  { clientName, clientEmail, status: 'SENT' },
+    data:  {
+      clientName,
+      clientEmail,
+      status: 'SENT',
+      ...(clientId ? { clientId } : {}),
+    },
   })
   await logActivity(workspaceId, 'contract', contractId, user.id, 'sent', { clientEmail: clientEmail ?? '' })
 
