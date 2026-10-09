@@ -3,26 +3,28 @@
 import { useState } from 'react'
 import type { Locale } from '@/i18n/config'
 import { getDashboardTranslations } from '@/i18n/dashboard-translations'
+import { ClientPicker } from './ClientPicker'
+import type { ClientSummary } from '@/app/actions/clients'
 
 interface Props {
-  isOpen:    boolean
-  isSending: boolean
-  onClose:   () => void
-  onSend:    (clientName: string, clientEmail: string) => void
-  locale:    Locale
+  isOpen:      boolean
+  isSending:   boolean
+  workspaceId: string
+  onClose:     () => void
+  onSend:      (clientName: string, clientEmail: string, clientId?: string) => void
+  locale:      Locale
 }
 
-export function SendToClientModal({ isOpen, isSending, onClose, onSend, locale }: Props) {
+export function SendToClientModal({ isOpen, isSending, workspaceId, onClose, onSend, locale }: Props) {
   const t = getDashboardTranslations(locale)
-  const [name,  setName]  = useState('')
-  const [email, setEmail] = useState('')
+  const [client, setClient] = useState<ClientSummary | null>(null)
 
   if (!isOpen) return null
 
   function handleSubmit(e: React.FormEvent) {
     e.preventDefault()
-    if (!name.trim() || !email.trim()) return
-    onSend(name.trim(), email.trim())
+    if (!client?.email) return
+    onSend(client.name, client.email, client.id)
   }
 
   return (
@@ -32,30 +34,21 @@ export function SendToClientModal({ isOpen, isSending, onClose, onSend, locale }
         <form onSubmit={handleSubmit} className="space-y-4">
           <div>
             <label className="text-xs font-medium text-muted-foreground block mb-1">
-              {t.contractsClientName}
+              Cliente
             </label>
-            <input
-              type="text"
-              value={name}
-              onChange={(e) => setName(e.target.value)}
-              placeholder={t.contractsClientNamePlaceholder}
-              required
-              className="w-full rounded-md border border-input bg-background px-3 py-2 text-sm placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-ring"
+            <ClientPicker
+              workspaceId={workspaceId}
+              value={client}
+              onChange={setClient}
             />
           </div>
-          <div>
-            <label className="text-xs font-medium text-muted-foreground block mb-1">
-              {t.contractsClientEmail}
-            </label>
-            <input
-              type="email"
-              value={email}
-              onChange={(e) => setEmail(e.target.value)}
-              placeholder="juan@empresa.com"
-              required
-              className="w-full rounded-md border border-input bg-background px-3 py-2 text-sm placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-ring"
-            />
-          </div>
+
+          {client && !client.email && (
+            <p className="text-xs text-amber-600">
+              Este cliente no tiene email. Añádelo en su ficha antes de enviar.
+            </p>
+          )}
+
           <div className="flex gap-2 pt-2">
             <button
               type="button"
@@ -67,7 +60,7 @@ export function SendToClientModal({ isOpen, isSending, onClose, onSend, locale }
             </button>
             <button
               type="submit"
-              disabled={isSending || !name.trim() || !email.trim()}
+              disabled={isSending || !client?.email}
               className="flex-1 rounded-md bg-primary text-primary-foreground px-4 py-2 text-sm font-medium hover:bg-primary/90 disabled:opacity-50"
             >
               {isSending ? t.contractsSending : t.contractsSend}

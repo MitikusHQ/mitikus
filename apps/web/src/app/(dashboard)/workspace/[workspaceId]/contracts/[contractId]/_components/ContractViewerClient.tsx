@@ -71,11 +71,11 @@ export function ContractViewerClient({ contract, workspaceId, locale }: Props) {
     }
   }
 
-  async function handleSend(clientName: string, clientEmail: string) {
+  async function handleSend(clientName: string, clientEmail: string, clientId?: string) {
     setIsSending(true)
     setSendError(null)
     try {
-      await sendContractToClient(contract.id, workspaceId, clientName, clientEmail)
+      await sendContractToClient(contract.id, workspaceId, clientName, clientEmail, clientId)
       setShowSendModal(false)
       router.refresh()
     } catch {
@@ -191,6 +191,7 @@ export function ContractViewerClient({ contract, workspaceId, locale }: Props) {
       <SendToClientModal
         isOpen={showSendModal}
         isSending={isSending}
+        workspaceId={workspaceId}
         onClose={() => setShowSendModal(false)}
         onSend={handleSend}
         locale={locale}
