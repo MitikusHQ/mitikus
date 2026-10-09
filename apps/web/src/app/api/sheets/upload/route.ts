@@ -11,7 +11,7 @@ type FortuneCell = {
 
 async function xlsxToFortuneSheet(buffer: ArrayBuffer): Promise<{ data: object[]; rawText: string }> {
   const wb = new ExcelJS.Workbook()
-  await wb.xlsx.load(Buffer.from(buffer))
+  await wb.xlsx.load(buffer)
 
   const sheets: object[] = []
   const csvParts: string[] = []
