@@ -66,6 +66,7 @@
     "cloudinary": "^2.10.0",
     "clsx": "^2.1.1",
     "docx": "^9.7.1",
+    "exceljs": "^4.4.0",
     "fast-xml-parser": "^5.11.1",
     "file-type": "^22.1.1",
     "isomorphic-dompurify": "^3.19.0",

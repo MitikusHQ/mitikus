@@ -1,36 +1,44 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { auth } from '@clerk/nextjs/server'
 import { db } from '@/lib/db'
-import * as XLSX from 'xlsx'
+import ExcelJS from 'exceljs'
 
-function parseAddr(addr: string): { r: number; c: number } {
-  const col = addr.replace(/\d/g, '')
-  const row = parseInt(addr.replace(/\D/g, ''), 10) - 1
-  const c = col.split('').reduce((acc, ch) => acc * 26 + ch.charCodeAt(0) - 64, 0) - 1
-  return { r: row, c }
+type FortuneCell = {
+  r: number
+  c: number
+  v: { v: unknown; m: string; ct: { fa: string } }
 }
 
-function xlsxToFortuneSheet(buffer: ArrayBuffer): { data: object[]; rawText: string } {
-  const wb = XLSX.read(buffer, { type: 'array' })
-  const sheets = wb.SheetNames.map((name) => {
-    const ws = wb.Sheets[name]!
-    const celldata: object[] = []
-    Object.entries(ws).forEach(([addr, cell]) => {
-      if (addr.startsWith('!')) return
-      const c = cell as XLSX.CellObject
-      const { r, c: col } = parseAddr(addr)
-      celldata.push({
-        r,
-        c: col,
-        v: { v: c.v, m: String(c.v ?? ''), ct: { fa: 'General' } },
+async function xlsxToFortuneSheet(buffer: ArrayBuffer): Promise<{ data: object[]; rawText: string }> {
+  const wb = new ExcelJS.Workbook()
+  await wb.xlsx.load(Buffer.from(buffer))
+
+  const sheets: object[] = []
+  const csvParts: string[] = []
+
+  wb.eachSheet((ws) => {
+    const celldata: FortuneCell[] = []
+    const csvRows: string[] = []
+
+    ws.eachRow((row, rowIdx) => {
+      const csvCols: string[] = []
+      row.eachCell({ includeEmpty: true }, (cell, colIdx) => {
+        const v = cell.value instanceof Date ? cell.value.toISOString() : cell.value
+        celldata.push({
+          r: rowIdx - 1,
+          c: colIdx - 1,
+          v: { v, m: String(v ?? ''), ct: { fa: 'General' } },
+        })
+        csvCols.push(String(v ?? ''))
       })
+      csvRows.push(csvCols.join(','))
     })
-    return { name, celldata, config: {} }
+
+    sheets.push({ name: ws.name, celldata, config: {} })
+    csvParts.push(csvRows.join('\n'))
   })
-  const rawText = wb.SheetNames
-    .map((name) => XLSX.utils.sheet_to_csv(wb.Sheets[name]!))
-    .join('\n\n')
-  return { data: sheets, rawText }
+
+  return { data: sheets, rawText: csvParts.join('\n\n') }
 }
 
 export async function POST(req: NextRequest): Promise<NextResponse> {
@@ -68,7 +76,7 @@ export async function POST(req: NextRequest): Promise<NextResponse> {
 
   let data: object[], rawText: string
   try {
-    ;({ data, rawText } = xlsxToFortuneSheet(buffer))
+    ;({ data, rawText } = await xlsxToFortuneSheet(buffer))
   } catch {
     return NextResponse.json({ error: 'Failed to convert spreadsheet' }, { status: 422 })
   }
