@@ -37,6 +37,8 @@ const isPublicRoute = createRouteMatcher([
   '/blog',
   '/blog/(.*)',
   '/pricing',
+  '/book/(.*)',
+  '/api/booking/(.*)',
 ])
 
 const isRateLimitedRoute = createRouteMatcher(['/api/(.*)'])

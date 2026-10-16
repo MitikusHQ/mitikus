@@ -1,0 +1,473 @@
+'use server'
+
+import { randomBytes } from 'crypto'
+import { revalidatePath } from 'next/cache'
+import { db } from '@/lib/db'
+import { requireUser } from '@/lib/auth'
+import type { EventVisibility } from '@prisma/client'
+
+// ─── Auth helpers ──────────────────────────────────────────────────────────
+
+async function requireWorkspace(workspaceId: string) {
+  const user = await requireUser()
+  const workspace = await db.workspace.findFirst({
+    where: { id: workspaceId, orgId: user.orgId },
+    select: { id: true, name: true },
+  })
+  if (!workspace) throw new Error('Workspace not found')
+  return { user, workspace }
+}
+
+function isAdminOrAbove(role: string) {
+  return role === 'OWNER' || role === 'ADMIN'
+}
+
+// ─── Types ─────────────────────────────────────────────────────────────────
+
+export interface AvailabilitySettingsData {
+  timezone: string
+  workDays: number[]
+  workStart: string
+  workEnd: string
+  slotDuration: number
+  bufferMinutes: number
+  minNotice: number
+  maxHorizon: number
+  publicEnabled: boolean
+}
+
+export interface TimeSlot {
+  startsAt: string // ISO
+  endsAt: string   // ISO
+}
+
+export interface FreeBusyEntry {
+  userId: string
+  name: string | null
+  avatarUrl: string | null
+  slots: Array<{ startsAt: string; endsAt: string }>
+}
+
+// ─── Availability Settings ─────────────────────────────────────────────────
+
+export async function getAvailabilitySettings(workspaceId: string) {
+  const { user } = await requireWorkspace(workspaceId)
+
+  const settings = await db.availabilitySettings.findUnique({
+    where: { userId_workspaceId: { userId: user.id, workspaceId } },
+    include: { bookingPage: { select: { token: true, active: true } } },
+  })
+
+  return settings
+}
+
+export async function upsertAvailabilitySettings(
+  workspaceId: string,
+  data: AvailabilitySettingsData,
+) {
+  const { user } = await requireWorkspace(workspaceId)
+
+  // Validate inputs
+  const validDurations = [15, 30, 45, 60]
+  if (!validDurations.includes(data.slotDuration)) throw new Error('Invalid slot duration')
+  if (data.bufferMinutes < 0 || data.bufferMinutes > 120) throw new Error('Invalid buffer')
+  if (data.minNotice < 0 || data.minNotice > 10080) throw new Error('Invalid min notice')
+  if (data.maxHorizon < 1 || data.maxHorizon > 365) throw new Error('Invalid horizon')
+  if (!data.workDays.every((d) => d >= 0 && d <= 6)) throw new Error('Invalid work days')
+  if (!/^\d{2}:\d{2}$/.test(data.workStart) || !/^\d{2}:\d{2}$/.test(data.workEnd)) {
+    throw new Error('Invalid time format')
+  }
+
+  const settings = await db.availabilitySettings.upsert({
+    where: { userId_workspaceId: { userId: user.id, workspaceId } },
+    create: { userId: user.id, workspaceId, ...data },
+    update: data,
+  })
+
+  revalidatePath(`/workspace/${workspaceId}/calendar`)
+  return settings
+}
+
+// ─── Booking Page (public link) ────────────────────────────────────────────
+
+export async function getOrCreateBookingPage(workspaceId: string) {
+  const { user } = await requireWorkspace(workspaceId)
+
+  const settings = await db.availabilitySettings.findUnique({
+    where: { userId_workspaceId: { userId: user.id, workspaceId } },
+    include: { bookingPage: true },
+  })
+  if (!settings) throw new Error('Configure availability settings first')
+
+  if (settings.bookingPage) return settings.bookingPage
+
+  // Create new booking page with crypto token
+  const token = randomBytes(24).toString('base64url')
+  const page = await db.bookingPage.create({
+    data: { availabilityId: settings.id, token, active: true },
+  })
+  return page
+}
+
+export async function rotateBookingToken(workspaceId: string) {
+  const { user } = await requireWorkspace(workspaceId)
+
+  const settings = await db.availabilitySettings.findUnique({
+    where: { userId_workspaceId: { userId: user.id, workspaceId } },
+    select: { id: true, bookingPage: { select: { id: true } } },
+  })
+  if (!settings?.bookingPage) throw new Error('No booking page found')
+
+  const token = randomBytes(24).toString('base64url')
+  const page = await db.bookingPage.update({
+    where: { id: settings.bookingPage.id },
+    data: { token, active: true },
+  })
+  return page
+}
+
+export async function setBookingPageActive(workspaceId: string, active: boolean) {
+  const { user } = await requireWorkspace(workspaceId)
+
+  const settings = await db.availabilitySettings.findUnique({
+    where: { userId_workspaceId: { userId: user.id, workspaceId } },
+    select: { bookingPage: { select: { id: true } } },
+  })
+  if (!settings?.bookingPage) throw new Error('No booking page found')
+
+  return db.bookingPage.update({
+    where: { id: settings.bookingPage.id },
+    data: { active },
+  })
+}
+
+// ─── Free/busy calculation ─────────────────────────────────────────────────
+
+/**
+ * Calculates busy slots for a user given a date range.
+ * Respects event visibility: only returns BUSY sentinel for PRIVATE events.
+ */
+export async function getUserBusySlots(
+  userId: string,
+  workspaceId: string,
+  from: Date,
+  to: Date,
+  viewerUserId: string,
+): Promise<Array<{ startsAt: Date; endsAt: Date; title: string | null }>> {
+  const events = await db.calendarEvent.findMany({
+    where: {
+      workspaceId,
+      OR: [{ createdBy: userId }, { assignedTo: userId }],
+      startsAt: { lte: to },
+      AND: [
+        {
+          OR: [
+            { endsAt: { gte: from } },
+            { endsAt: null, startsAt: { gte: from } },
+          ],
+        },
+      ],
+    },
+    select: {
+      startsAt: true,
+      endsAt: true,
+      allDay: true,
+      title: true,
+      visibility: true,
+      createdBy: true,
+    },
+    orderBy: { startsAt: 'asc' },
+  })
+
+  return events.map((e) => {
+    const end = e.endsAt ?? e.startsAt
+    // PRIVATE: only show title to owner
+    const showTitle = e.visibility !== 'PRIVATE' || e.createdBy === viewerUserId
+    return {
+      startsAt: e.startsAt,
+      endsAt: end,
+      title: showTitle ? e.title : null,
+    }
+  })
+}
+
+/**
+ * Returns team free/busy for multiple users.
+ * Caller must be authenticated and in the same workspace.
+ */
+export async function getTeamFreeBusy(
+  workspaceId: string,
+  userIds: string[],
+  fromIso: string,
+  toIso: string,
+): Promise<FreeBusyEntry[]> {
+  const { user } = await requireWorkspace(workspaceId)
+  if (userIds.length === 0 || userIds.length > 20) throw new Error('Invalid userIds count')
+
+  const from = new Date(fromIso)
+  const to = new Date(toIso)
+  if (isNaN(from.getTime()) || isNaN(to.getTime())) throw new Error('Invalid date range')
+
+  // Verify all requested users are in the same org
+  const members = await db.user.findMany({
+    where: { id: { in: userIds }, orgId: user.orgId },
+    select: { id: true, name: true, avatarUrl: true },
+  })
+  const validIds = new Set(members.map((m) => m.id))
+
+  const results: FreeBusyEntry[] = []
+  for (const member of members) {
+    if (!validIds.has(member.id)) continue
+    const slots = await getUserBusySlots(member.id, workspaceId, from, to, user.id)
+    results.push({
+      userId: member.id,
+      name: member.name,
+      avatarUrl: member.avatarUrl,
+      slots: slots.map((s) => ({
+        startsAt: s.startsAt.toISOString(),
+        endsAt: s.endsAt.toISOString(),
+      })),
+    })
+  }
+  return results
+}
+
+// ─── Available slot computation ────────────────────────────────────────────
+
+function timeToMinutes(hhmm: string): number {
+  const [h, m] = hhmm.split(':').map(Number)
+  return (h ?? 0) * 60 + (m ?? 0)
+}
+
+function addMinutes(date: Date, minutes: number): Date {
+  return new Date(date.getTime() + minutes * 60_000)
+}
+
+function rangesOverlap(
+  aStart: Date, aEnd: Date,
+  bStart: Date, bEnd: Date,
+): boolean {
+  return aStart < bEnd && aEnd > bStart
+}
+
+/**
+ * Computes available slots for a single user given their AvailabilitySettings
+ * and their existing busy periods.
+ */
+export async function getAvailableSlots(
+  workspaceId: string,
+  hostUserId: string,
+  fromDate: Date,
+  toDate: Date,
+): Promise<TimeSlot[]> {
+  await requireWorkspace(workspaceId)
+
+  const settings = await db.availabilitySettings.findUnique({
+    where: { userId_workspaceId: { userId: hostUserId, workspaceId } },
+  })
+  if (!settings || !settings.publicEnabled) return []
+
+  const now = new Date()
+  const minNoticeMs = settings.minNotice * 60_000
+  const earliest = new Date(now.getTime() + minNoticeMs)
+  const horizonDate = addMinutes(now, settings.maxHorizon * 24 * 60)
+
+  const rangeFrom = earliest > fromDate ? earliest : fromDate
+  const rangeTo = horizonDate < toDate ? horizonDate : toDate
+
+  if (rangeFrom >= rangeTo) return []
+
+  // Get busy periods for the host
+  const busySlots = await getUserBusySlots(hostUserId, workspaceId, rangeFrom, rangeTo, hostUserId)
+  // Also include confirmed booking requests
+  const bookingPage = await db.bookingPage.findFirst({
+    where: { availability: { userId: hostUserId, workspaceId }, active: true },
+    include: {
+      bookings: {
+        where: { status: 'CONFIRMED', startsAt: { lte: rangeTo }, endsAt: { gte: rangeFrom } },
+        select: { startsAt: true, endsAt: true },
+      },
+    },
+  })
+  const bookingBusy = bookingPage?.bookings ?? []
+
+  const allBusy = [
+    ...busySlots.map((s) => ({ start: s.startsAt, end: s.endsAt })),
+    ...bookingBusy.map((b) => ({ start: b.startsAt, end: b.endsAt })),
+  ]
+
+  const slots: TimeSlot[] = []
+  const slotMs = settings.slotDuration * 60_000
+  const bufferMs = settings.bufferMinutes * 60_000
+
+  // Iterate day by day
+  const cursor = new Date(rangeFrom)
+  cursor.setHours(0, 0, 0, 0)
+
+  while (cursor <= rangeTo) {
+    const dayOfWeek = cursor.getDay()
+    if (settings.workDays.includes(dayOfWeek)) {
+      const dayStart = new Date(cursor)
+      const [sh, sm] = settings.workStart.split(':').map(Number)
+      dayStart.setHours(sh ?? 9, sm ?? 0, 0, 0)
+
+      const dayEnd = new Date(cursor)
+      const [eh, em] = settings.workEnd.split(':').map(Number)
+      dayEnd.setHours(eh ?? 18, em ?? 0, 0, 0)
+
+      let slotStart = dayStart < rangeFrom ? rangeFrom : dayStart
+
+      while (addMinutes(slotStart, settings.slotDuration) <= dayEnd && slotStart <= rangeTo) {
+        const slotEnd = addMinutes(slotStart, settings.slotDuration)
+
+        const isBusy = allBusy.some((b) => rangesOverlap(slotStart, slotEnd, b.start, b.end))
+        if (!isBusy) {
+          slots.push({ startsAt: slotStart.toISOString(), endsAt: slotEnd.toISOString() })
+        }
+
+        slotStart = addMinutes(slotEnd, bufferMs > 0 ? settings.bufferMinutes : 0)
+      }
+    }
+
+    cursor.setDate(cursor.getDate() + 1)
+    if (slots.length >= 200) break // safety cap
+  }
+
+  return slots
+}
+
+// ─── Overlap finder for team meetings ─────────────────────────────────────
+
+export async function findCommonSlots(
+  workspaceId: string,
+  userIds: string[],
+  durationMinutes: number,
+  fromIso: string,
+  toIso: string,
+): Promise<TimeSlot[]> {
+  const { user } = await requireWorkspace(workspaceId)
+  if (userIds.length < 2) throw new Error('Need at least 2 participants')
+
+  const validDurations = [15, 30, 45, 60, 90, 120]
+  if (!validDurations.includes(durationMinutes)) throw new Error('Invalid duration')
+
+  const from = new Date(fromIso)
+  const to = new Date(toIso)
+
+  // Verify all users are in the org
+  const members = await db.user.findMany({
+    where: { id: { in: userIds }, orgId: user.orgId },
+    select: { id: true },
+  })
+  if (members.length !== userIds.length) throw new Error('Invalid user selection')
+
+  // Collect all busy slots per user
+  const allBusy: Array<{ start: Date; end: Date }> = []
+  for (const member of members) {
+    const busy = await getUserBusySlots(member.id, workspaceId, from, to, user.id)
+    allBusy.push(...busy.map((s) => ({ start: s.startsAt, end: s.endsAt })))
+  }
+
+  // Scan for free windows — use 15min resolution
+  const STEP_MS = 15 * 60_000
+  const durationMs = durationMinutes * 60_000
+  const slots: TimeSlot[] = []
+
+  let cursor = new Date(from)
+  while (cursor.getTime() + durationMs <= to.getTime()) {
+    const slotEnd = new Date(cursor.getTime() + durationMs)
+    const isBusy = allBusy.some((b) => rangesOverlap(cursor, slotEnd, b.start, b.end))
+    if (!isBusy) {
+      slots.push({ startsAt: cursor.toISOString(), endsAt: slotEnd.toISOString() })
+      if (slots.length >= 10) break // return first 10 common slots
+      cursor = slotEnd // jump past this slot
+    } else {
+      cursor = new Date(cursor.getTime() + STEP_MS)
+    }
+  }
+
+  return slots
+}
+
+// ─── Create internal meeting with participants ─────────────────────────────
+
+export interface CreateMeetingInput {
+  title: string
+  startsAt: string
+  endsAt: string
+  participantIds: string[]
+  description?: string
+  location?: string
+  visibility?: EventVisibility
+}
+
+export async function createMeetingWithParticipants(
+  workspaceId: string,
+  input: CreateMeetingInput,
+) {
+  const { user } = await requireWorkspace(workspaceId)
+
+  const startsAt = new Date(input.startsAt)
+  const endsAt = new Date(input.endsAt)
+  if (isNaN(startsAt.getTime()) || isNaN(endsAt.getTime())) throw new Error('Invalid dates')
+  if (endsAt <= startsAt) throw new Error('End must be after start')
+  if (!input.title.trim()) throw new Error('Title required')
+
+  // Verify participants are in the same org
+  const participantIds = [...new Set([user.id, ...input.participantIds])]
+  const members = await db.user.findMany({
+    where: { id: { in: participantIds }, orgId: user.orgId },
+    select: { id: true },
+  })
+  if (members.length !== participantIds.length) throw new Error('Invalid participants')
+
+  // Re-check overlap for all participants (atomic guard)
+  for (const memberId of participantIds) {
+    const conflicts = await db.calendarEvent.findFirst({
+      where: {
+        workspaceId,
+        OR: [{ createdBy: memberId }, { assignedTo: memberId }],
+        startsAt: { lt: endsAt },
+        endsAt: { gt: startsAt },
+      },
+      select: { id: true },
+    })
+    if (conflicts) throw new Error(`Scheduling conflict for participant ${memberId}`)
+  }
+
+  const event = await db.calendarEvent.create({
+    data: {
+      workspaceId,
+      title: input.title.trim(),
+      type: 'meeting',
+      startsAt,
+      endsAt,
+      description: input.description?.trim() || null,
+      location: input.location?.trim() || null,
+      createdBy: user.id,
+      assignedTo: user.id,
+      visibility: input.visibility ?? 'TEAM',
+      participants: {
+        create: participantIds.map((uid) => ({
+          userId: uid,
+          role: uid === user.id ? 'ORGANIZER' : 'ATTENDEE',
+          status: uid === user.id ? 'ACCEPTED' : 'PENDING',
+        })),
+      },
+    },
+  })
+
+  revalidatePath(`/workspace/${workspaceId}/calendar`)
+  return event
+}
+
+// ─── Workspace members list (for team pickers) ────────────────────────────
+
+export async function getWorkspaceMembers(workspaceId: string) {
+  const { user } = await requireWorkspace(workspaceId)
+  return db.user.findMany({
+    where: { orgId: user.orgId },
+    select: { id: true, name: true, email: true, avatarUrl: true, jobTitle: true },
+    orderBy: { name: 'asc' },
+  })
+}
