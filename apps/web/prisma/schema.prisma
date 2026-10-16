@@ -308,9 +308,11 @@ model User {
   tasksCreated         Task[]                @relation("TaskCreator")
   taskTagged           TaskTag[]             @relation("TaskTagged")
   taskTagsMade         TaskTag[]             @relation("TaskTagger")
-  calendarEventsCreated CalendarEvent[]      @relation("CalendarEventCreator")
-  calendarEventsAssigned CalendarEvent[]     @relation("CalendarEventAssignee")
-  pushSubscriptions    PushSubscription[]
+  calendarEventsCreated       CalendarEvent[]              @relation("CalendarEventCreator")
+  calendarEventsAssigned      CalendarEvent[]              @relation("CalendarEventAssignee")
+  calendarEventParticipations CalendarEventParticipant[]
+  availabilitySettings        AvailabilitySettings[]
+  pushSubscriptions           PushSubscription[]
   notifications        Notification[]
   documentsUploaded    Document[]
   spreadsheets         Spreadsheet[]
@@ -392,6 +394,7 @@ model Workspace {
   timeEntries          TimeEntry[]
   tasks                Task[]
   calendarEvents       CalendarEvent[]
+  availabilitySettings AvailabilitySettings[]
   documents            Document[]
   spreadsheets         Spreadsheet[]
   pdfs                 Pdf[]
@@ -1642,6 +1645,32 @@ model TaskTag {
 // CALENDARIO — eventos internos del workspace
 // ============================================================
 
+enum EventVisibility {
+  PRIVATE  // solo creador + admins ven detalles
+  BUSY     // compañeros solo ven "ocupado"
+  TITLE    // compañeros ven el título, sin más detalles
+  TEAM     // visibilidad completa para el equipo
+}
+
+enum ParticipantRole {
+  ORGANIZER
+  ATTENDEE
+}
+
+enum InviteStatus {
+  PENDING
+  ACCEPTED
+  DECLINED
+  CANCELLED
+}
+
+enum BookingStatus {
+  PENDING
+  CONFIRMED
+  CANCELLED
+  NO_SHOW
+}
+
 model CalendarEvent {
   id          String   @id @default(cuid())
   workspaceId String
@@ -1657,19 +1686,108 @@ model CalendarEvent {
   clientId    String?
   createdBy   String
   assignedTo  String?
+  // Visibilidad del evento para otros miembros del workspace
+  visibility  EventVisibility @default(BUSY)
   createdAt   DateTime @default(now())
   updatedAt   DateTime @updatedAt
 
-  workspace Workspace @relation(fields: [workspaceId], references: [id], onDelete: Cascade)
-  client    Client?   @relation(fields: [clientId], references: [id], onDelete: SetNull)
-  creator   User      @relation("CalendarEventCreator", fields: [createdBy], references: [id], onDelete: Restrict)
-  assignee  User?     @relation("CalendarEventAssignee", fields: [assignedTo], references: [id], onDelete: SetNull)
+  workspace    Workspace                  @relation(fields: [workspaceId], references: [id], onDelete: Cascade)
+  client       Client?                    @relation(fields: [clientId], references: [id], onDelete: SetNull)
+  creator      User                       @relation("CalendarEventCreator", fields: [createdBy], references: [id], onDelete: Restrict)
+  assignee     User?                      @relation("CalendarEventAssignee", fields: [assignedTo], references: [id], onDelete: SetNull)
+  participants CalendarEventParticipant[]
+  bookingRequest BookingRequest?
 
   @@index([workspaceId, startsAt])
   @@index([clientId])
   @@index([createdBy])
   @@index([assignedTo])
   @@map("calendar_events")
+}
+
+model CalendarEventParticipant {
+  id         String          @id @default(cuid())
+  eventId    String
+  userId     String?         // usuario interno del workspace
+  guestName  String?         // invitado externo
+  guestEmail String?         // invitado externo
+  role       ParticipantRole @default(ATTENDEE)
+  status     InviteStatus    @default(PENDING)
+  createdAt  DateTime        @default(now())
+  updatedAt  DateTime        @updatedAt
+
+  event CalendarEvent @relation(fields: [eventId], references: [id], onDelete: Cascade)
+  user  User?         @relation(fields: [userId], references: [id], onDelete: SetNull)
+
+  @@index([eventId])
+  @@index([userId])
+  @@map("calendar_event_participants")
+}
+
+// ============================================================
+// DISPONIBILIDAD Y RESERVAS
+// ============================================================
+
+model AvailabilitySettings {
+  id            String   @id @default(cuid())
+  userId        String
+  workspaceId   String
+  timezone      String   @default("Europe/Madrid")
+  workDays      Int[]    @default([1, 2, 3, 4, 5]) // 0=Dom…6=Sáb
+  workStart     String   @default("09:00")           // HH:MM
+  workEnd       String   @default("18:00")           // HH:MM
+  slotDuration  Int      @default(30)  // minutos: 15|30|45|60
+  bufferMinutes Int      @default(0)   // pausa entre reuniones
+  minNotice     Int      @default(60)  // antelación mínima en minutos
+  maxHorizon    Int      @default(30)  // horizonte máximo en días
+  publicEnabled Boolean  @default(false)
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+
+  user        User        @relation(fields: [userId], references: [id], onDelete: Cascade)
+  workspace   Workspace   @relation(fields: [workspaceId], references: [id], onDelete: Cascade)
+  bookingPage BookingPage?
+
+  @@unique([userId, workspaceId])
+  @@index([workspaceId])
+  @@map("availability_settings")
+}
+
+model BookingPage {
+  id             String   @id @default(cuid())
+  availabilityId String   @unique
+  token          String   @unique // token criptográfico URL-safe
+  active         Boolean  @default(true)
+  createdAt      DateTime @default(now())
+  updatedAt      DateTime @updatedAt
+
+  availability AvailabilitySettings @relation(fields: [availabilityId], references: [id], onDelete: Cascade)
+  bookings     BookingRequest[]
+
+  @@index([token])
+  @@map("booking_pages")
+}
+
+model BookingRequest {
+  id            String        @id @default(cuid())
+  bookingPageId String
+  eventId       String?       @unique // evento creado en el calendario del anfitrión
+  guestName     String
+  guestEmail    String
+  guestNote     String?
+  startsAt      DateTime
+  endsAt        DateTime
+  status        BookingStatus @default(CONFIRMED)
+  cancelToken   String        @unique // token para cancelación por el invitado
+  createdAt     DateTime      @default(now())
+  updatedAt     DateTime      @updatedAt
+
+  bookingPage BookingPage    @relation(fields: [bookingPageId], references: [id], onDelete: Cascade)
+  event       CalendarEvent? @relation(fields: [eventId], references: [id], onDelete: SetNull)
+
+  @@index([bookingPageId])
+  @@index([bookingPageId, startsAt])
+  @@map("booking_requests")
 }
 
 model PushSubscription {
