@@ -494,15 +494,17 @@ export async function deleteAvailabilityData(
     throw new Error('Unauthorized: only admins or the account owner can delete availability data')
   }
 
-  const settings = await db.availabilitySettings.findUnique({
-    where: { userId_workspaceId: { userId: hostUserId, workspaceId } },
-    include: { bookingPage: { include: { bookings: true } } },
-  })
-  if (!settings) return { cancelledFuture: 0, deletedTotal: 0 }
-
-  const now = new Date()
-
+  // La lectura inicial ocurre dentro de la transacción para evitar la race condition
+  // entre el findUnique y los DELETEs: si otra petición crea BookingPage justo en
+  // ese intervalo, la transacción opera sobre datos frescos y consistentes.
   return db.$transaction(async (tx) => {
+    const settings = await tx.availabilitySettings.findUnique({
+      where: { userId_workspaceId: { userId: hostUserId, workspaceId } },
+      select: { id: true, bookingPage: { select: { id: true } } },
+    })
+    if (!settings) return { cancelledFuture: 0, deletedTotal: 0 }
+
+    const now = new Date()
     let cancelledFuture = 0
     let deletedTotal = 0
 

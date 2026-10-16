@@ -25,6 +25,7 @@ const mockDb = {
   availabilitySettings: { findUnique: vi.fn(), upsert: vi.fn() },
   bookingPage:          { findUnique: vi.fn(), create: vi.fn(), update: vi.fn(), findFirst: vi.fn() },
   calendarEvent:        { findMany: vi.fn() },
+  $transaction:         vi.fn(),
 }
 vi.mock('@/lib/db', () => ({ db: mockDb }))
 
@@ -422,5 +423,224 @@ describe('T4-real — getAvailableSlots nunca expone datos internos de eventos',
     for (const slot of slots) {
       expect(Object.keys(slot)).not.toContain('title')
     }
+  })
+})
+
+// ── deleteAvailabilityData: seguridad, transaccionalidad y política ────────
+
+describe('deleteAvailabilityData', () => {
+  const WS      = 'ws-delete'
+  const HOST    = 'user-host'
+  const ACTOR   = 'user-actor'
+  const PAGE_ID = 'page-del'
+  const SET_ID  = 'settings-del'
+
+  // tx mock: todos los métodos que deleteAvailabilityData usa dentro de $transaction
+  const mockTxDel = {
+    availabilitySettings: {
+      findUnique: vi.fn(),
+      delete: vi.fn(),
+    },
+    bookingPage: {
+      update: vi.fn(),
+      delete: vi.fn(),
+    },
+    bookingRequest: {
+      updateMany: vi.fn(),
+      deleteMany: vi.fn(),
+    },
+  }
+
+  function setupAuth(userId: string, role = 'EDITOR') {
+    mockDb.user.findUnique.mockResolvedValue({
+      id: userId, orgId: 'org-del', clerkId: 'clerk-user-1',
+      name: `User ${userId}`, email: `${userId}@test.com`, role,
+    })
+    mockDb.workspace.findFirst.mockResolvedValue({ id: WS, orgId: 'org-del', name: 'WS del' })
+  }
+
+  function setupTransaction(settingsPayload: unknown) {
+    mockTxDel.availabilitySettings.findUnique.mockResolvedValue(settingsPayload)
+    mockTxDel.bookingPage.update.mockResolvedValue({})
+    mockTxDel.bookingRequest.updateMany.mockResolvedValue({ count: 0 })
+    mockTxDel.bookingRequest.deleteMany.mockResolvedValue({ count: 0 })
+    mockTxDel.bookingPage.delete.mockResolvedValue({})
+    mockTxDel.availabilitySettings.delete.mockResolvedValue({})
+    ;(mockDb as unknown as { $transaction: ReturnType<typeof vi.fn> }).$transaction = vi.fn(
+      (fn: (tx: typeof mockTxDel) => Promise<unknown>) => fn(mockTxDel),
+    )
+  }
+
+  beforeEach(() => {
+    vi.clearAllMocks()
+  })
+
+  // ── Seguridad: autorización denegada ──────────────────────────────────────
+
+  it('lanza Unauthorized si el actor no es admin ni el propio host', async () => {
+    // ACTOR (EDITOR, no admin) intenta borrar datos de HOST
+    setupAuth(ACTOR, 'EDITOR')
+    ;(mockDb as unknown as { $transaction: ReturnType<typeof vi.fn> }).$transaction = vi.fn()
+
+    const { deleteAvailabilityData } = await import('@/app/actions/availability')
+    await expect(deleteAvailabilityData(WS, HOST)).rejects.toThrow('Unauthorized')
+    // La transacción nunca debe ejecutarse
+    expect((mockDb as unknown as { $transaction: ReturnType<typeof vi.fn> }).$transaction).not.toHaveBeenCalled()
+  })
+
+  it('un ADMIN puede borrar datos de otro usuario del workspace', async () => {
+    setupAuth(ACTOR, 'ADMIN')
+    setupTransaction({ id: SET_ID, bookingPage: null })
+
+    const { deleteAvailabilityData } = await import('@/app/actions/availability')
+    const result = await deleteAvailabilityData(WS, HOST)
+    expect(result).toEqual({ cancelledFuture: 0, deletedTotal: 0 })
+  })
+
+  it('el propio host (EDITOR) puede borrar sus propios datos', async () => {
+    setupAuth(HOST, 'EDITOR')
+    setupTransaction({ id: SET_ID, bookingPage: null })
+
+    const { deleteAvailabilityData } = await import('@/app/actions/availability')
+    const result = await deleteAvailabilityData(WS, HOST)
+    expect(result).toEqual({ cancelledFuture: 0, deletedTotal: 0 })
+  })
+
+  // ── Seguridad: intento cross-workspace ────────────────────────────────────
+
+  it('lanza Workspace not found si el workspaceId no pertenece a la org del actor', async () => {
+    mockDb.user.findUnique.mockResolvedValue({
+      id: ACTOR, orgId: 'org-a', clerkId: 'clerk-user-1', role: 'ADMIN',
+    })
+    // workspace pertenece a org-b → findFirst devuelve null
+    mockDb.workspace.findFirst.mockResolvedValue(null)
+
+    const { deleteAvailabilityData } = await import('@/app/actions/availability')
+    await expect(deleteAvailabilityData('ws-org-b', HOST)).rejects.toThrow('Workspace not found')
+  })
+
+  // ── No-op: sin configuración previa ──────────────────────────────────────
+
+  it('devuelve {0,0} si no hay AvailabilitySettings para el host', async () => {
+    setupAuth(HOST, 'OWNER')
+    setupTransaction(null)  // findUnique devuelve null
+
+    const { deleteAvailabilityData } = await import('@/app/actions/availability')
+    const result = await deleteAvailabilityData(WS, HOST)
+    expect(result).toEqual({ cancelledFuture: 0, deletedTotal: 0 })
+    // No se toca nada más
+    expect(mockTxDel.bookingPage.update).not.toHaveBeenCalled()
+    expect(mockTxDel.availabilitySettings.delete).not.toHaveBeenCalled()
+  })
+
+  // ── Orden transaccional ───────────────────────────────────────────────────
+
+  it('ejecuta los pasos en el orden correcto: inactivar → cancelar → borrar requests → borrar page → borrar settings', async () => {
+    setupAuth(HOST, 'OWNER')
+    setupTransaction({
+      id: SET_ID,
+      bookingPage: { id: PAGE_ID },
+    })
+    mockTxDel.bookingRequest.updateMany.mockResolvedValue({ count: 2 })
+    mockTxDel.bookingRequest.deleteMany.mockResolvedValue({ count: 5 })
+
+    const callOrder: string[] = []
+    mockTxDel.bookingPage.update.mockImplementation(async () => { callOrder.push('page.update'); return {} })
+    mockTxDel.bookingRequest.updateMany.mockImplementation(async () => { callOrder.push('request.updateMany'); return { count: 2 } })
+    mockTxDel.bookingRequest.deleteMany.mockImplementation(async () => { callOrder.push('request.deleteMany'); return { count: 5 } })
+    mockTxDel.bookingPage.delete.mockImplementation(async () => { callOrder.push('page.delete'); return {} })
+    mockTxDel.availabilitySettings.delete.mockImplementation(async () => { callOrder.push('settings.delete'); return {} })
+
+    const { deleteAvailabilityData } = await import('@/app/actions/availability')
+    const result = await deleteAvailabilityData(WS, HOST)
+
+    expect(result).toEqual({ cancelledFuture: 2, deletedTotal: 5 })
+    expect(callOrder).toEqual([
+      'page.update',
+      'request.updateMany',
+      'request.deleteMany',
+      'page.delete',
+      'settings.delete',
+    ])
+  })
+
+  // ── Rollback: fallo en paso intermedio ───────────────────────────────────
+
+  it('si bookingPage.delete lanza, la transacción hace rollback completo', async () => {
+    setupAuth(HOST, 'OWNER')
+    setupTransaction({ id: SET_ID, bookingPage: { id: PAGE_ID } })
+
+    // Simular que el borrado de la page falla (e.g. constraint temporal)
+    mockTxDel.bookingPage.delete.mockRejectedValue(new Error('DB constraint error'))
+
+    // La transacción real haría rollback; en el mock, el $transaction propaga el error
+    ;(mockDb as unknown as { $transaction: ReturnType<typeof vi.fn> }).$transaction = vi.fn(
+      async (fn: (tx: typeof mockTxDel) => Promise<unknown>) => {
+        // Simular rollback: ejecutar fn y dejar que el error propague sin persistir nada
+        return fn(mockTxDel)
+      },
+    )
+
+    const { deleteAvailabilityData } = await import('@/app/actions/availability')
+    await expect(deleteAvailabilityData(WS, HOST)).rejects.toThrow('DB constraint error')
+
+    // El settings.delete nunca debe haberse llamado (rollback)
+    expect(mockTxDel.availabilitySettings.delete).not.toHaveBeenCalled()
+  })
+
+  // ── Política de datos: reservas futuras se cancelan antes de borrar ───────
+
+  it('cancela reservas futuras CONFIRMED antes de borrarlas', async () => {
+    setupAuth(HOST, 'OWNER')
+    setupTransaction({ id: SET_ID, bookingPage: { id: PAGE_ID } })
+    mockTxDel.bookingRequest.updateMany.mockResolvedValue({ count: 3 })
+    mockTxDel.bookingRequest.deleteMany.mockResolvedValue({ count: 3 })
+
+    const { deleteAvailabilityData } = await import('@/app/actions/availability')
+    const result = await deleteAvailabilityData(WS, HOST)
+
+    expect(result.cancelledFuture).toBe(3)
+    // updateMany debe llamarse con status CONFIRMED y startsAt > now
+    const updateCall = mockTxDel.bookingRequest.updateMany.mock.calls[0]?.[0] as {
+      where: { bookingPageId: string; status: string; startsAt: { gt: Date } }
+      data: { status: string }
+    }
+    expect(updateCall.where.bookingPageId).toBe(PAGE_ID)
+    expect(updateCall.where.status).toBe('CONFIRMED')
+    expect(updateCall.where.startsAt.gt).toBeInstanceOf(Date)
+    expect(updateCall.data.status).toBe('CANCELLED')
+  })
+
+  it('borra TODAS las reservas (pasadas y futuras) del workspace eliminado', async () => {
+    setupAuth(HOST, 'OWNER')
+    setupTransaction({ id: SET_ID, bookingPage: { id: PAGE_ID } })
+    mockTxDel.bookingRequest.updateMany.mockResolvedValue({ count: 1 })
+    mockTxDel.bookingRequest.deleteMany.mockResolvedValue({ count: 10 })  // 9 pasadas + 1 futura
+
+    const { deleteAvailabilityData } = await import('@/app/actions/availability')
+    const result = await deleteAvailabilityData(WS, HOST)
+
+    expect(result.deletedTotal).toBe(10)
+    const deleteCall = mockTxDel.bookingRequest.deleteMany.mock.calls[0]?.[0] as {
+      where: { bookingPageId: string }
+    }
+    expect(deleteCall.where.bookingPageId).toBe(PAGE_ID)
+  })
+
+  // ── Sin BookingPage: solo borra AvailabilitySettings ─────────────────────
+
+  it('sin BookingPage configurada, solo borra AvailabilitySettings', async () => {
+    setupAuth(HOST, 'OWNER')
+    setupTransaction({ id: SET_ID, bookingPage: null })
+
+    const { deleteAvailabilityData } = await import('@/app/actions/availability')
+    const result = await deleteAvailabilityData(WS, HOST)
+
+    expect(result).toEqual({ cancelledFuture: 0, deletedTotal: 0 })
+    expect(mockTxDel.bookingPage.update).not.toHaveBeenCalled()
+    expect(mockTxDel.bookingRequest.updateMany).not.toHaveBeenCalled()
+    expect(mockTxDel.bookingRequest.deleteMany).not.toHaveBeenCalled()
+    expect(mockTxDel.bookingPage.delete).not.toHaveBeenCalled()
+    expect(mockTxDel.availabilitySettings.delete).toHaveBeenCalledOnce()
   })
 })
