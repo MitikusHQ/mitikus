@@ -1744,8 +1744,8 @@ model AvailabilitySettings {
   createdAt     DateTime @default(now())
   updatedAt     DateTime @updatedAt
 
-  user        User        @relation(fields: [userId], references: [id], onDelete: Cascade)
-  workspace   Workspace   @relation(fields: [workspaceId], references: [id], onDelete: Cascade)
+  user        User        @relation(fields: [userId], references: [id], onDelete: Restrict)
+  workspace   Workspace   @relation(fields: [workspaceId], references: [id], onDelete: Restrict)
   bookingPage BookingPage?
 
   @@unique([userId, workspaceId])
@@ -1761,7 +1761,7 @@ model BookingPage {
   createdAt      DateTime @default(now())
   updatedAt      DateTime @updatedAt
 
-  availability AvailabilitySettings @relation(fields: [availabilityId], references: [id], onDelete: Cascade)
+  availability AvailabilitySettings @relation(fields: [availabilityId], references: [id], onDelete: Restrict)
   bookings     BookingRequest[]
 
   @@index([token])
@@ -1782,7 +1782,7 @@ model BookingRequest {
   createdAt     DateTime      @default(now())
   updatedAt     DateTime      @updatedAt
 
-  bookingPage BookingPage    @relation(fields: [bookingPageId], references: [id], onDelete: Cascade)
+  bookingPage BookingPage    @relation(fields: [bookingPageId], references: [id], onDelete: Restrict)
   event       CalendarEvent? @relation(fields: [eventId], references: [id], onDelete: SetNull)
 
   @@index([bookingPageId])

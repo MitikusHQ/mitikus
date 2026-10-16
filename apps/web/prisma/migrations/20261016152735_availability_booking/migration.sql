@@ -96,10 +96,27 @@ CREATE INDEX "booking_requests_bookingPageId_idx" ON "booking_requests"("booking
 CREATE INDEX "booking_requests_bookingPageId_startsAt_idx" ON "booking_requests"("bookingPageId", "startsAt");
 
 -- AddForeignKey
+--
+-- Política de retención de reservas (aprobada):
+--
+--   calendar_event_participants → events: CASCADE (los participantes no tienen sentido sin el evento)
+--   calendar_event_participants → users:  SET NULL (el guest externo sobrevive si se borra el usuario interno)
+--
+--   availability_settings → users:      RESTRICT  — el borrado de usuario/workspace debe ser explícito
+--   availability_settings → workspaces: RESTRICT    y transaccional; nunca en cascada automática.
+--   booking_pages → availability_settings: RESTRICT — no se puede borrar config con página activa.
+--   booking_requests → booking_pages:    RESTRICT  — las reservas históricas son inmutables desde UI.
+--
+--   booking_requests → calendar_events: SET NULL (la reserva sobrevive aunque se cancele el evento)
+--
+-- Para eliminar un usuario o workspace que tenga disponibilidad configurada, usar la acción
+-- administrativa `deleteAvailabilityData` (availability.ts) que ejecuta el borrado en el orden
+-- correcto: BookingRequest → BookingPage → AvailabilitySettings → usuario/workspace.
+
 ALTER TABLE "calendar_event_participants" ADD CONSTRAINT "calendar_event_participants_eventId_fkey" FOREIGN KEY ("eventId") REFERENCES "calendar_events"("id") ON DELETE CASCADE ON UPDATE CASCADE;
 ALTER TABLE "calendar_event_participants" ADD CONSTRAINT "calendar_event_participants_userId_fkey" FOREIGN KEY ("userId") REFERENCES "users"("id") ON DELETE SET NULL ON UPDATE CASCADE;
-ALTER TABLE "availability_settings" ADD CONSTRAINT "availability_settings_userId_fkey" FOREIGN KEY ("userId") REFERENCES "users"("id") ON DELETE CASCADE ON UPDATE CASCADE;
-ALTER TABLE "availability_settings" ADD CONSTRAINT "availability_settings_workspaceId_fkey" FOREIGN KEY ("workspaceId") REFERENCES "workspaces"("id") ON DELETE CASCADE ON UPDATE CASCADE;
-ALTER TABLE "booking_pages" ADD CONSTRAINT "booking_pages_availabilityId_fkey" FOREIGN KEY ("availabilityId") REFERENCES "availability_settings"("id") ON DELETE CASCADE ON UPDATE CASCADE;
-ALTER TABLE "booking_requests" ADD CONSTRAINT "booking_requests_bookingPageId_fkey" FOREIGN KEY ("bookingPageId") REFERENCES "booking_pages"("id") ON DELETE CASCADE ON UPDATE CASCADE;
+ALTER TABLE "availability_settings" ADD CONSTRAINT "availability_settings_userId_fkey" FOREIGN KEY ("userId") REFERENCES "users"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
+ALTER TABLE "availability_settings" ADD CONSTRAINT "availability_settings_workspaceId_fkey" FOREIGN KEY ("workspaceId") REFERENCES "workspaces"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
+ALTER TABLE "booking_pages" ADD CONSTRAINT "booking_pages_availabilityId_fkey" FOREIGN KEY ("availabilityId") REFERENCES "availability_settings"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
+ALTER TABLE "booking_requests" ADD CONSTRAINT "booking_requests_bookingPageId_fkey" FOREIGN KEY ("bookingPageId") REFERENCES "booking_pages"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
 ALTER TABLE "booking_requests" ADD CONSTRAINT "booking_requests_eventId_fkey" FOREIGN KEY ("eventId") REFERENCES "calendar_events"("id") ON DELETE SET NULL ON UPDATE CASCADE;

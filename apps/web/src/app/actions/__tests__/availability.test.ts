@@ -8,7 +8,7 @@
  *
  * Mocks: @clerk/nextjs/server, @/lib/db, next/cache, @/lib/auth
  */
-import { describe, it, expect, vi, beforeEach } from 'vitest'
+import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest'
 
 // ── Mocks de infraestructura ──────────────────────────────────────────────
 

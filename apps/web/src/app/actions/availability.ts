@@ -461,6 +461,85 @@ export async function createMeetingWithParticipants(
   return event
 }
 
+// ─── Eliminación explícita y transaccional de datos de disponibilidad ────────
+//
+// POLÍTICA DE RETENCIÓN APROBADA:
+//   Las FKs availability_settings→users, availability_settings→workspaces,
+//   booking_pages→availability_settings y booking_requests→booking_pages usan
+//   ON DELETE RESTRICT. Esto impide borrados accidentales desde cualquier flujo
+//   normal de la UI.
+//
+//   Esta función es la ÚNICA vía para eliminar estos datos. Nunca debe ser
+//   invocada desde la UI de configuración normal. Solo debe llamarse desde:
+//     - La acción de cierre/eliminación de cuenta (account deletion flow).
+//     - La acción de eliminación explícita de workspace (por owner o admin).
+//
+//   El flujo transaccional es:
+//     1. Marcar BookingPage como inactiva (deja de aceptar nuevas reservas).
+//     2. Cancelar las BookingRequest futuras con estado CANCELLED y nota de auditoría.
+//     3. Borrar las BookingRequest (ya canceladas o pasadas) en orden.
+//     4. Borrar BookingPage.
+//     5. Borrar AvailabilitySettings.
+//   El borrado del usuario o workspace queda a cargo del flujo que invoca esta función.
+//
+//   Las reservas pasadas confirmadas (endsAt < now) se conservan por defecto.
+//   Si la política de conservación cambia, añadir aquí el archivado o anonimización.
+
+export async function deleteAvailabilityData(
+  workspaceId: string,
+  hostUserId: string,
+): Promise<{ cancelledFuture: number; deletedTotal: number }> {
+  const { user } = await requireWorkspace(workspaceId)
+  if (!isAdminOrAbove(user.role) && user.id !== hostUserId) {
+    throw new Error('Unauthorized: only admins or the account owner can delete availability data')
+  }
+
+  const settings = await db.availabilitySettings.findUnique({
+    where: { userId_workspaceId: { userId: hostUserId, workspaceId } },
+    include: { bookingPage: { include: { bookings: true } } },
+  })
+  if (!settings) return { cancelledFuture: 0, deletedTotal: 0 }
+
+  const now = new Date()
+
+  return db.$transaction(async (tx) => {
+    let cancelledFuture = 0
+    let deletedTotal = 0
+
+    if (settings.bookingPage) {
+      const pageId = settings.bookingPage.id
+
+      // 1. Marcar la página como inactiva
+      await tx.bookingPage.update({
+        where: { id: pageId },
+        data: { active: false },
+      })
+
+      // 2. Cancelar reservas futuras
+      const { count } = await tx.bookingRequest.updateMany({
+        where: { bookingPageId: pageId, status: 'CONFIRMED', startsAt: { gt: now } },
+        data: { status: 'CANCELLED' },
+      })
+      cancelledFuture = count
+
+      // 3. Borrar todas las BookingRequest (futuras ya canceladas + pasadas)
+      const del = await tx.bookingRequest.deleteMany({ where: { bookingPageId: pageId } })
+      deletedTotal = del.count
+
+      // 4. Borrar BookingPage
+      await tx.bookingPage.delete({ where: { id: pageId } })
+    }
+
+    // 5. Borrar AvailabilitySettings
+    await tx.availabilitySettings.delete({
+      where: { userId_workspaceId: { userId: hostUserId, workspaceId } },
+    })
+
+    revalidatePath(`/workspace/${workspaceId}/calendar`)
+    return { cancelledFuture, deletedTotal }
+  })
+}
+
 // ─── Workspace members list (for team pickers) ────────────────────────────
 
 export async function getWorkspaceMembers(workspaceId: string) {
