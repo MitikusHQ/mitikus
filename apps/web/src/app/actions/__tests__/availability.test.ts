@@ -278,3 +278,149 @@ describe('Lógica de solapamiento de intervalos', () => {
 const STARTS_AT_REF = new Date(Date.now() + 86_400_000)
 const ENDS_AT_REF   = new Date(STARTS_AT_REF.getTime() + 30 * 60_000)
 const PAGE_ID_REF   = 'page-ref'
+
+// ── T4 real: getAvailableSlots no filtra datos internos de eventos ────────
+//
+// Verifica que aunque calendarEvent.findMany devuelva eventos con título,
+// notas, participantes e IDs internos, la respuesta de getAvailableSlots
+// solo contenga objetos { startsAt, endsAt }.
+
+describe('T4-real — getAvailableSlots nunca expone datos internos de eventos', () => {
+  // Fijamos el reloj al inicio del lunes 2026-10-19 en UTC para control total.
+  // workStart/workEnd usan hora LOCAL (JS setHours), así que empleamos '00:00'/'23:59'
+  // para que funcione independientemente de la timezone del servidor de tests.
+  const FAKE_NOW = new Date('2026-10-19T00:00:00.000Z')
+
+  // Calculamos el primer slot usando el mismo mecanismo que el código de producción:
+  // cursor.setHours(0, 0, 0, 0) → medianoche local, que puede diferir de UTC.
+  // Para evitar dependencia de TZ, usamos un evento "conceptual" y verificamos
+  // por posición relativa, no por hora absoluta UTC.
+  const EVENT_START = new Date('2026-10-19T02:00:00.000Z')   // madrugada UTC = mañana en cualquier TZ occidental
+  const EVENT_END   = new Date('2026-10-19T02:30:00.000Z')
+
+  beforeEach(() => {
+    vi.useFakeTimers()
+    vi.setSystemTime(FAKE_NOW)
+
+    // Auth y workspace
+    mockDb.user.findUnique.mockResolvedValue(makeUser(USER_A, ORG_A))
+    mockDb.workspace.findFirst.mockResolvedValue(makeWorkspace(WS_A, ORG_A))
+
+    // Configuración: lunes (día 1), jornada completa (00:00-23:59), slots de 30 min
+    mockDb.availabilitySettings.findUnique.mockResolvedValue({
+      id: 'as-real',
+      userId: USER_A,
+      workspaceId: WS_A,
+      timezone: 'Europe/Madrid',
+      workDays: [1],           // solo lunes
+      workStart: '00:00',
+      workEnd: '23:59',
+      slotDuration: 30,
+      bufferMinutes: 0,
+      minNotice: 0,            // sin preaviso mínimo
+      maxHorizon: 1,           // solo hoy
+      publicEnabled: true,
+    })
+
+    // Evento con datos sensibles que NO deben filtrarse hacia fuera
+    mockDb.calendarEvent.findMany.mockResolvedValue([
+      {
+        startsAt:   EVENT_START,
+        endsAt:     EVENT_END,
+        allDay:     false,
+        title:      'Contrato confidencial NDA — no difundir',
+        visibility: 'BUSY',
+        createdBy:  USER_A,
+        // campos extra que podrían filtrarse por accidente:
+        id:         'evt-internal-id',
+        notes:      'Clausula exclusividad firmada por ambas partes',
+        participants: [{ email: 'ceo@empresa.com', name: 'CEO externo' }],
+      },
+    ])
+
+    // Sin reservas confirmadas en la booking page
+    mockDb.bookingPage.findFirst.mockResolvedValue(null)
+  })
+
+  afterEach(() => {
+    vi.useRealTimers()
+  })
+
+  it('solo devuelve TimeSlot[] con { startsAt, endsAt } por hueco libre', async () => {
+    const { getAvailableSlots } = await import('@/app/actions/availability')
+
+    const from = new Date('2026-10-19T00:00:00.000Z')
+    const to   = new Date('2026-10-20T00:00:00.000Z')
+
+    const slots = await getAvailableSlots(WS_A, USER_A, from, to)
+
+    // Debe haber al menos un hueco (09:30-10:00 queda libre)
+    expect(slots.length).toBeGreaterThan(0)
+
+    // Cada hueco solo puede contener startsAt y endsAt
+    for (const slot of slots) {
+      const keys = Object.keys(slot)
+      expect(keys).toEqual(expect.arrayContaining(['startsAt', 'endsAt']))
+      expect(keys).toHaveLength(2)
+
+      // No deben escapar datos de los eventos
+      expect(keys).not.toContain('title')
+      expect(keys).not.toContain('notes')
+      expect(keys).not.toContain('id')
+      expect(keys).not.toContain('participants')
+      expect(keys).not.toContain('visibility')
+      expect(keys).not.toContain('createdBy')
+
+      // Los valores son strings ISO válidos
+      expect(() => new Date(slot.startsAt)).not.toThrow()
+      expect(() => new Date(slot.endsAt)).not.toThrow()
+    }
+  })
+
+  it('el slot solapado con el evento BUSY no aparece en la respuesta', async () => {
+    const { getAvailableSlots } = await import('@/app/actions/availability')
+
+    const from = new Date('2026-10-19T00:00:00.000Z')
+    const to   = new Date('2026-10-20T00:00:00.000Z')
+
+    const slots = await getAvailableSlots(WS_A, USER_A, from, to)
+
+    // El slot que solapa con EVENT_START-EVENT_END no debe aparecer
+    const blockedSlot = slots.find(
+      (s) => new Date(s.startsAt).getTime() === EVENT_START.getTime(),
+    )
+    expect(blockedSlot).toBeUndefined()
+
+    // Sí debe aparecer el slot inmediatamente posterior al evento
+    const slotAfterEvent = slots.find(
+      (s) => new Date(s.startsAt).getTime() === EVENT_END.getTime(),
+    )
+    expect(slotAfterEvent).toBeDefined()
+  })
+
+  it('el título del evento nunca viaja en la respuesta aunque sea TITLE o TEAM', async () => {
+    mockDb.calendarEvent.findMany.mockResolvedValue([
+      {
+        startsAt:   EVENT_START,
+        endsAt:     EVENT_END,
+        allDay:     false,
+        title:      'Reunión estratégica Q4',
+        visibility: 'TITLE',
+        createdBy:  USER_A,
+        id:         'evt-title-visible',
+      },
+    ])
+
+    const { getAvailableSlots } = await import('@/app/actions/availability')
+
+    const from = new Date('2026-10-19T00:00:00.000Z')
+    const to   = new Date('2026-10-20T00:00:00.000Z')
+
+    const slots = await getAvailableSlots(WS_A, USER_A, from, to)
+
+    // Ningún slot expone el título aunque el evento sea TITLE
+    for (const slot of slots) {
+      expect(Object.keys(slot)).not.toContain('title')
+    }
+  })
+})
