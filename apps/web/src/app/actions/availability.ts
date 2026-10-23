@@ -147,7 +147,7 @@ export async function setBookingPageActive(workspaceId: string, active: boolean)
  * Calculates busy slots for a user given a date range.
  * Respects event visibility: only returns BUSY sentinel for PRIVATE events.
  */
-export async function getUserBusySlots(
+async function getUserBusySlots(
   userId: string,
   workspaceId: string,
   from: Date,
@@ -251,8 +251,121 @@ function rangesOverlap(
 }
 
 /**
- * Computes available slots for a single user given their AvailabilitySettings
- * and their existing busy periods.
+ * Pure slot computation — no auth, no DB. Safe to call from public routes.
+ * Respects the host's timezone via Intl.DateTimeFormat.
+ */
+export function computeAvailableSlots(
+  settings: {
+    timezone: string
+    workDays: number[]
+    workStart: string
+    workEnd: string
+    slotDuration: number
+    bufferMinutes: number
+    minNotice: number
+    maxHorizon: number
+    publicEnabled: boolean
+  },
+  busyPeriods: Array<{ start: Date; end: Date }>,
+  fromDate: Date,
+  toDate: Date,
+): TimeSlot[] {
+  if (!settings.publicEnabled) return []
+
+  const now = new Date()
+  const earliest = addMinutes(now, settings.minNotice)
+  const horizon = addMinutes(now, settings.maxHorizon * 24 * 60)
+
+  const rangeFrom = earliest > fromDate ? earliest : fromDate
+  const rangeTo = horizon < toDate ? horizon : toDate
+  if (rangeFrom >= rangeTo) return []
+
+  // Walk day by day in the host's timezone
+  const tz = settings.timezone || 'UTC'
+  const slots: TimeSlot[] = []
+
+  // Start at midnight of rangeFrom in host TZ — returned as UTC Date
+  const tzMidnight = (d: Date): Date => {
+    const parts = new Intl.DateTimeFormat('en-CA', {
+      timeZone: tz, year: 'numeric', month: '2-digit', day: '2-digit',
+    }).formatToParts(d)
+    const y = parts.find((p) => p.type === 'year')!.value
+    const mo = parts.find((p) => p.type === 'month')!.value
+    const dy = parts.find((p) => p.type === 'day')!.value
+    // Parse as UTC midnight of that calendar date in the tz
+    return new Date(`${y}-${mo}-${dy}T00:00:00Z`)
+  }
+
+  // Day-of-week (0=Sun…6=Sat) in host TZ — parse a Sunday-anchored date string
+  const tzDow = (d: Date): number => {
+    // 'en-US' numeric weekday: Sun=1, Mon=2, ... Sat=7  → subtract 1
+    const dow = new Intl.DateTimeFormat('en-US', { timeZone: tz, weekday: 'long' }).format(d)
+    return ['Sunday','Monday','Tuesday','Wednesday','Thursday','Friday','Saturday'].indexOf(dow)
+  }
+
+  // Build a UTC Date representing HH:MM on a given calendar day in the host TZ
+  const tzTime = (dayUTC: Date, hhmm: string): Date => {
+    const parts = new Intl.DateTimeFormat('en-CA', {
+      timeZone: tz, year: 'numeric', month: '2-digit', day: '2-digit',
+    }).formatToParts(dayUTC)
+    const y = parts.find((p) => p.type === 'year')!.value
+    const mo = parts.find((p) => p.type === 'month')!.value
+    const dy = parts.find((p) => p.type === 'day')!.value
+    const offset = tzOffset(tz, dayUTC)
+    return new Date(`${y}-${mo}-${dy}T${hhmm}:00${offset}`)
+  }
+
+  const cursor = tzMidnight(rangeFrom)
+  while (cursor <= rangeTo && slots.length < 200) {
+    const dow = tzDow(cursor)
+    if (settings.workDays.includes(dow)) {
+      const dayStart = tzTime(cursor, settings.workStart ?? '09:00')
+      const dayEnd = tzTime(cursor, settings.workEnd ?? '18:00')
+
+      let slotStart = dayStart < rangeFrom ? rangeFrom : dayStart
+      // Align to slot grid
+      if (slotStart > dayStart) {
+        const offsetMs = slotStart.getTime() - dayStart.getTime()
+        const slotMs = settings.slotDuration * 60_000
+        const remainder = offsetMs % slotMs
+        if (remainder > 0) slotStart = new Date(slotStart.getTime() + (slotMs - remainder))
+      }
+
+      while (slotStart < dayEnd && slotStart < rangeTo) {
+        const slotEnd = addMinutes(slotStart, settings.slotDuration)
+        if (slotEnd > dayEnd) break
+
+        const isBusy = busyPeriods.some((b) => rangesOverlap(slotStart, slotEnd, b.start, b.end))
+        if (!isBusy) {
+          slots.push({ startsAt: slotStart.toISOString(), endsAt: slotEnd.toISOString() })
+        }
+
+        slotStart = addMinutes(slotEnd, settings.bufferMinutes)
+      }
+    }
+    cursor.setUTCDate(cursor.getUTCDate() + 1)
+  }
+
+  return slots
+}
+
+/** Returns "+HH:MM" or "-HH:MM" offset string for a timezone at a given date */
+function tzOffset(tz: string, date: Date): string {
+  const parts = new Intl.DateTimeFormat('en-US', {
+    timeZone: tz, timeZoneName: 'shortOffset',
+  }).formatToParts(date)
+  const offset = parts.find((p) => p.type === 'timeZoneName')?.value ?? 'GMT+0'
+  const match = offset.match(/GMT([+-])(\d+)(?::(\d+))?/)
+  if (!match) return '+00:00'
+  const sign = match[1] ?? '+'
+  const hours = (match[2] ?? '0').padStart(2, '0')
+  const mins = (match[3] ?? '0').padStart(2, '0')
+  return `${sign}${hours}:${mins}`
+}
+
+/**
+ * Computes available slots for a single user — authenticated (internal use).
+ * Public booking pages should use computeAvailableSlots directly.
  */
 export async function getAvailableSlots(
   workspaceId: string,
@@ -261,25 +374,31 @@ export async function getAvailableSlots(
   toDate: Date,
 ): Promise<TimeSlot[]> {
   await requireWorkspace(workspaceId)
+  return getAvailableSlotsInternal(workspaceId, hostUserId, fromDate, toDate)
+}
 
+/**
+ * Internal slot computation — no auth required. Used by public booking routes.
+ */
+export async function getAvailableSlotsInternal(
+  workspaceId: string,
+  hostUserId: string,
+  fromDate: Date,
+  toDate: Date,
+): Promise<TimeSlot[]> {
   const settings = await db.availabilitySettings.findUnique({
     where: { userId_workspaceId: { userId: hostUserId, workspaceId } },
   })
   if (!settings || !settings.publicEnabled) return []
 
   const now = new Date()
-  const minNoticeMs = settings.minNotice * 60_000
-  const earliest = new Date(now.getTime() + minNoticeMs)
-  const horizonDate = addMinutes(now, settings.maxHorizon * 24 * 60)
-
+  const earliest = addMinutes(now, settings.minNotice)
+  const horizon = addMinutes(now, settings.maxHorizon * 24 * 60)
   const rangeFrom = earliest > fromDate ? earliest : fromDate
-  const rangeTo = horizonDate < toDate ? horizonDate : toDate
-
+  const rangeTo = horizon < toDate ? horizon : toDate
   if (rangeFrom >= rangeTo) return []
 
-  // Get busy periods for the host
-  const busySlots = await getUserBusySlots(hostUserId, workspaceId, rangeFrom, rangeTo, hostUserId)
-  // Also include confirmed booking requests
+  const busyCalendar = await getUserBusySlots(hostUserId, workspaceId, rangeFrom, rangeTo, hostUserId)
   const bookingPage = await db.bookingPage.findFirst({
     where: { availability: { userId: hostUserId, workspaceId }, active: true },
     include: {
@@ -289,51 +408,13 @@ export async function getAvailableSlots(
       },
     },
   })
-  const bookingBusy = bookingPage?.bookings ?? []
 
-  const allBusy = [
-    ...busySlots.map((s) => ({ start: s.startsAt, end: s.endsAt })),
-    ...bookingBusy.map((b) => ({ start: b.startsAt, end: b.endsAt })),
+  const busyPeriods = [
+    ...busyCalendar.map((s) => ({ start: s.startsAt, end: s.endsAt })),
+    ...(bookingPage?.bookings ?? []).map((b) => ({ start: b.startsAt, end: b.endsAt })),
   ]
 
-  const slots: TimeSlot[] = []
-  const slotMs = settings.slotDuration * 60_000
-  const bufferMs = settings.bufferMinutes * 60_000
-
-  // Iterate day by day
-  const cursor = new Date(rangeFrom)
-  cursor.setHours(0, 0, 0, 0)
-
-  while (cursor <= rangeTo) {
-    const dayOfWeek = cursor.getDay()
-    if (settings.workDays.includes(dayOfWeek)) {
-      const dayStart = new Date(cursor)
-      const [sh, sm] = settings.workStart.split(':').map(Number)
-      dayStart.setHours(sh ?? 9, sm ?? 0, 0, 0)
-
-      const dayEnd = new Date(cursor)
-      const [eh, em] = settings.workEnd.split(':').map(Number)
-      dayEnd.setHours(eh ?? 18, em ?? 0, 0, 0)
-
-      let slotStart = dayStart < rangeFrom ? rangeFrom : dayStart
-
-      while (addMinutes(slotStart, settings.slotDuration) <= dayEnd && slotStart <= rangeTo) {
-        const slotEnd = addMinutes(slotStart, settings.slotDuration)
-
-        const isBusy = allBusy.some((b) => rangesOverlap(slotStart, slotEnd, b.start, b.end))
-        if (!isBusy) {
-          slots.push({ startsAt: slotStart.toISOString(), endsAt: slotEnd.toISOString() })
-        }
-
-        slotStart = addMinutes(slotEnd, bufferMs > 0 ? settings.bufferMinutes : 0)
-      }
-    }
-
-    cursor.setDate(cursor.getDate() + 1)
-    if (slots.length >= 200) break // safety cap
-  }
-
-  return slots
+  return computeAvailableSlots(settings, busyPeriods, fromDate, toDate)
 }
 
 // ─── Overlap finder for team meetings ─────────────────────────────────────

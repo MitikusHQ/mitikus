@@ -29,12 +29,18 @@ vi.mock('@/lib/auth', () => ({
 
 vi.mock('@/app/actions/availability', () => ({
   getAvailableSlots: vi.fn().mockResolvedValue([]),
+  // Returns the requested slot as valid — tests that need slot_unavailable should override this mock
+  getAvailableSlotsInternal: vi.fn().mockImplementation((_ws, _user, from: Date) =>
+    Promise.resolve([{ startsAt: from.toISOString(), endsAt: new Date(from.getTime() + 30 * 60_000).toISOString() }])
+  ),
+  computeAvailableSlots: vi.fn().mockReturnValue([]),
 }))
 
 // db se reconstruye en cada test para aislamiento
 const mockTx = {
   calendarEvent: { findFirst: vi.fn(), create: vi.fn() },
   bookingRequest: { findFirst: vi.fn(), create: vi.fn() },
+  $executeRaw: vi.fn().mockResolvedValue(1),
 }
 
 const mockDb = {

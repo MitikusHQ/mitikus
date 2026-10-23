@@ -287,17 +287,14 @@ const PAGE_ID_REF   = 'page-ref'
 // solo contenga objetos { startsAt, endsAt }.
 
 describe('T4-real — getAvailableSlots nunca expone datos internos de eventos', () => {
-  // Fijamos el reloj al inicio del lunes 2026-10-19 en UTC para control total.
-  // workStart/workEnd usan hora LOCAL (JS setHours), así que empleamos '00:00'/'23:59'
-  // para que funcione independientemente de la timezone del servidor de tests.
-  const FAKE_NOW = new Date('2026-10-19T00:00:00.000Z')
+  // 2026-10-21 es miércoles (dow=3). Usamos UTC midnight para que el día en Europe/Madrid
+  // (UTC+2 CEST en octubre antes del cambio) sea también el 21.
+  // workDays: [3] = miércoles, workStart/workEnd en hora del anfitrión (Madrid).
+  const FAKE_NOW = new Date('2026-10-21T00:00:00.000Z')
 
-  // Calculamos el primer slot usando el mismo mecanismo que el código de producción:
-  // cursor.setHours(0, 0, 0, 0) → medianoche local, que puede diferir de UTC.
-  // Para evitar dependencia de TZ, usamos un evento "conceptual" y verificamos
-  // por posición relativa, no por hora absoluta UTC.
-  const EVENT_START = new Date('2026-10-19T02:00:00.000Z')   // madrugada UTC = mañana en cualquier TZ occidental
-  const EVENT_END   = new Date('2026-10-19T02:30:00.000Z')
+  // Evento a las 04:00-04:30 Madrid = 02:00-02:30 UTC
+  const EVENT_START = new Date('2026-10-21T02:00:00.000Z')
+  const EVENT_END   = new Date('2026-10-21T02:30:00.000Z')
 
   beforeEach(() => {
     vi.useFakeTimers()
@@ -313,7 +310,7 @@ describe('T4-real — getAvailableSlots nunca expone datos internos de eventos',
       userId: USER_A,
       workspaceId: WS_A,
       timezone: 'Europe/Madrid',
-      workDays: [1],           // solo lunes
+      workDays: [3],           // solo miércoles
       workStart: '00:00',
       workEnd: '23:59',
       slotDuration: 30,
@@ -350,12 +347,12 @@ describe('T4-real — getAvailableSlots nunca expone datos internos de eventos',
   it('solo devuelve TimeSlot[] con { startsAt, endsAt } por hueco libre', async () => {
     const { getAvailableSlots } = await import('@/app/actions/availability')
 
-    const from = new Date('2026-10-19T00:00:00.000Z')
-    const to   = new Date('2026-10-20T00:00:00.000Z')
+    const from = new Date('2026-10-21T00:00:00.000Z')
+    const to   = new Date('2026-10-22T00:00:00.000Z')
 
     const slots = await getAvailableSlots(WS_A, USER_A, from, to)
 
-    // Debe haber al menos un hueco (09:30-10:00 queda libre)
+    // Debe haber al menos un hueco (el evento ocupa 02:00-02:30 UTC, el resto queda libre)
     expect(slots.length).toBeGreaterThan(0)
 
     // Cada hueco solo puede contener startsAt y endsAt
@@ -381,8 +378,8 @@ describe('T4-real — getAvailableSlots nunca expone datos internos de eventos',
   it('el slot solapado con el evento BUSY no aparece en la respuesta', async () => {
     const { getAvailableSlots } = await import('@/app/actions/availability')
 
-    const from = new Date('2026-10-19T00:00:00.000Z')
-    const to   = new Date('2026-10-20T00:00:00.000Z')
+    const from = new Date('2026-10-21T00:00:00.000Z')
+    const to   = new Date('2026-10-22T00:00:00.000Z')
 
     const slots = await getAvailableSlots(WS_A, USER_A, from, to)
 
@@ -414,8 +411,8 @@ describe('T4-real — getAvailableSlots nunca expone datos internos de eventos',
 
     const { getAvailableSlots } = await import('@/app/actions/availability')
 
-    const from = new Date('2026-10-19T00:00:00.000Z')
-    const to   = new Date('2026-10-20T00:00:00.000Z')
+    const from = new Date('2026-10-21T00:00:00.000Z')
+    const to   = new Date('2026-10-22T00:00:00.000Z')
 
     const slots = await getAvailableSlots(WS_A, USER_A, from, to)
 

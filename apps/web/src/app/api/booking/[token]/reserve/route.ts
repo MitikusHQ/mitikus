@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from 'next/server'
 import { randomBytes } from 'crypto'
 import { db } from '@/lib/db'
 import { rateLimit } from '@/lib/rate-limit'
+import { getAvailableSlotsInternal } from '@/app/actions/availability'
 
 // Public route — no Clerk auth required
 export async function POST(
@@ -75,10 +76,23 @@ export async function POST(
 
   const { userId, workspaceId } = page.availability
 
+  // Validate that this slot exists in the host's configured schedule
+  const validSlots = await getAvailableSlotsInternal(workspaceId, userId, startsAt, endsAt)
+  const isValidSlot = validSlots.some(
+    (s) => new Date(s.startsAt).getTime() === startsAt.getTime(),
+  )
+  if (!isValidSlot) {
+    return NextResponse.json({ error: 'slot_unavailable' }, { status: 409 })
+  }
+
   // Atomic conflict check + create
   // We use a Prisma transaction to re-verify availability before inserting
   try {
     const result = await db.$transaction(async (tx) => {
+      // Serialize concurrent bookings per host — advisory lock released on commit/rollback
+      // Safe with connection pooling: pg_advisory_xact_lock is transaction-scoped
+      await tx.$executeRaw`SELECT pg_advisory_xact_lock(hashtext(${userId}))`
+
       // Check no existing CalendarEvent overlaps
       const conflict = await tx.calendarEvent.findFirst({
         where: {

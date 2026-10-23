@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { db } from '@/lib/db'
 import { rateLimit } from '@/lib/rate-limit'
-import { getAvailableSlots } from '@/app/actions/availability'
+import { getAvailableSlotsInternal } from '@/app/actions/availability'
 
 // Public route — no Clerk auth required
 export async function GET(
@@ -56,7 +56,7 @@ export async function GET(
   }
 
   try {
-    const slots = await getAvailableSlots(
+    const slots = await getAvailableSlotsInternal(
       page.availability.workspaceId,
       page.availability.userId,
       from,
