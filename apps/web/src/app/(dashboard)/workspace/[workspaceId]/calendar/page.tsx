@@ -2,7 +2,8 @@ import { notFound } from 'next/navigation'
 import { db } from '@/lib/db'
 import { requireUser } from '@/lib/auth'
 import { getCalendarClientOptions, getCalendarItems } from '@/app/actions/calendar'
-import { CalendarClient } from './_components/CalendarClient'
+import { getAvailabilitySettings, getWorkspaceMembers } from '@/app/actions/availability'
+import { CalendarPageClient } from './_components/CalendarPageClient'
 
 interface Props {
   params: Promise<{ workspaceId: string }>
@@ -23,19 +24,30 @@ export default async function CalendarPage({ params }: Props) {
   if (!workspace) notFound()
 
   const range = monthRange()
-  const [items, clients] = await Promise.all([
+  const [items, clients, availabilityData, members] = await Promise.all([
     getCalendarItems(workspaceId, range.from.toISOString(), range.to.toISOString()),
     getCalendarClientOptions(workspaceId),
+    getAvailabilitySettings(workspaceId),
+    getWorkspaceMembers(workspaceId),
   ])
+
+  const initialBookingPage = availabilityData?.bookingPage ?? null
+  const initialSettings = availabilityData
+    ? (({ bookingPage: _ignored, ...rest }) => rest)(availabilityData)
+    : null
 
   return (
     <div className="mx-auto max-w-6xl px-4 py-6">
-      <CalendarClient
+      <CalendarPageClient
         workspaceId={workspaceId}
+        currentUserId={user.id}
         initialItems={items}
         clients={clients}
         initialFrom={range.from.toISOString()}
         initialTo={range.to.toISOString()}
+        initialSettings={initialSettings}
+        initialBookingPage={initialBookingPage}
+        members={members}
       />
     </div>
   )

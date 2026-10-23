@@ -331,6 +331,17 @@ export async function removeMember(
         where: { id: targetUserId },
         data: { orgId: newOrg.id, role: 'OWNER' },
       })
+      // Deactivate booking pages in all workspaces of this org so no new
+      // bookings can be made for a host who has left the organization.
+      await tx.bookingPage.updateMany({
+        where: {
+          availability: {
+            userId: targetUserId,
+            workspace: { orgId: actor.orgId },
+          },
+        },
+        data: { active: false },
+      })
     })
 
     audit({
