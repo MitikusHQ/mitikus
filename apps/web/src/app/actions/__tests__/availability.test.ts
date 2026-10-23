@@ -446,6 +446,7 @@ describe('deleteAvailabilityData', () => {
       updateMany: vi.fn(),
       findMany: vi.fn(),
       deleteMany: vi.fn(),
+      count: vi.fn().mockResolvedValue(0),
     },
     calendarEvent: {
       deleteMany: vi.fn(),
@@ -464,6 +465,7 @@ describe('deleteAvailabilityData', () => {
     mockTxDel.availabilitySettings.findUnique.mockResolvedValue(settingsPayload)
     mockTxDel.bookingPage.update.mockResolvedValue({})
     mockTxDel.bookingRequest.updateMany.mockResolvedValue({ count: 0 })
+    mockTxDel.bookingRequest.count.mockResolvedValue(0)
     mockTxDel.bookingRequest.findMany.mockResolvedValue(eventIds.map((id) => ({ eventId: id })))
     mockTxDel.bookingRequest.deleteMany.mockResolvedValue({ count: 0 })
     mockTxDel.calendarEvent.deleteMany.mockResolvedValue({ count: eventIds.length })
@@ -497,7 +499,7 @@ describe('deleteAvailabilityData', () => {
 
     const { deleteAvailabilityData } = await import('@/app/actions/availability')
     const result = await deleteAvailabilityData(WS, HOST)
-    expect(result).toEqual({ cancelledFuture: 0, deletedTotal: 0 })
+    expect(result).toEqual({ cancelledFuture: 0, deletedTotal: 0, retainedPast: 0 })
   })
 
   it('el propio host (EDITOR) puede borrar sus propios datos', async () => {
@@ -506,7 +508,7 @@ describe('deleteAvailabilityData', () => {
 
     const { deleteAvailabilityData } = await import('@/app/actions/availability')
     const result = await deleteAvailabilityData(WS, HOST)
-    expect(result).toEqual({ cancelledFuture: 0, deletedTotal: 0 })
+    expect(result).toEqual({ cancelledFuture: 0, deletedTotal: 0, retainedPast: 0 })
   })
 
   // ── Seguridad: intento cross-workspace ────────────────────────────────────
@@ -524,13 +526,13 @@ describe('deleteAvailabilityData', () => {
 
   // ── No-op: sin configuración previa ──────────────────────────────────────
 
-  it('devuelve {0,0} si no hay AvailabilitySettings para el host', async () => {
+  it('devuelve {0,0,0} si no hay AvailabilitySettings para el host', async () => {
     setupAuth(HOST, 'OWNER')
     setupTransaction(null)  // findUnique devuelve null
 
     const { deleteAvailabilityData } = await import('@/app/actions/availability')
     const result = await deleteAvailabilityData(WS, HOST)
-    expect(result).toEqual({ cancelledFuture: 0, deletedTotal: 0 })
+    expect(result).toEqual({ cancelledFuture: 0, deletedTotal: 0, retainedPast: 0 })
     // No se toca nada más
     expect(mockTxDel.bookingPage.update).not.toHaveBeenCalled()
     expect(mockTxDel.availabilitySettings.delete).not.toHaveBeenCalled()
@@ -547,6 +549,7 @@ describe('deleteAvailabilityData', () => {
     const callOrder: string[] = []
     mockTxDel.bookingPage.update.mockImplementation(async () => { callOrder.push('page.update'); return {} })
     mockTxDel.bookingRequest.updateMany.mockImplementation(async () => { callOrder.push('request.updateMany'); return { count: 2 } })
+    mockTxDel.bookingRequest.count.mockImplementation(async () => { callOrder.push('request.count'); return 0 })
     mockTxDel.bookingRequest.findMany.mockImplementation(async () => { callOrder.push('request.findMany'); return [{ eventId: 'evt-1' }, { eventId: 'evt-2' }] })
     mockTxDel.bookingRequest.deleteMany.mockImplementation(async () => { callOrder.push('request.deleteMany'); return { count: 5 } })
     mockTxDel.calendarEvent.deleteMany.mockImplementation(async () => { callOrder.push('event.deleteMany'); return { count: 2 } })
@@ -556,13 +559,14 @@ describe('deleteAvailabilityData', () => {
     const { deleteAvailabilityData } = await import('@/app/actions/availability')
     const result = await deleteAvailabilityData(WS, HOST)
 
-    expect(result).toEqual({ cancelledFuture: 2, deletedTotal: 5 })
+    expect(result).toEqual({ cancelledFuture: 2, deletedTotal: 5, retainedPast: 0 })
     expect(callOrder).toEqual([
       'page.update',
       'request.updateMany',
       'request.findMany',
       'request.deleteMany',
       'event.deleteMany',
+      'request.count',
       'page.delete',
       'settings.delete',
     ])
@@ -637,18 +641,23 @@ describe('deleteAvailabilityData', () => {
     expect(updateCall.data.status).toBe('CANCELLED')
   })
 
-  it('borra TODAS las reservas (pasadas y futuras) del workspace eliminado', async () => {
+  it('retiene reservas pasadas CONFIRMED y borra solo las no retenidas', async () => {
     setupAuth(HOST, 'OWNER')
     setupTransaction({ id: SET_ID, bookingPage: { id: PAGE_ID } })
     mockTxDel.bookingRequest.updateMany.mockResolvedValue({ count: 1 })
-    mockTxDel.bookingRequest.deleteMany.mockResolvedValue({ count: 10 })  // 9 pasadas + 1 futura
+    mockTxDel.bookingRequest.count.mockResolvedValue(3)   // 3 pasadas CONFIRMED retenidas
+    mockTxDel.bookingRequest.deleteMany.mockResolvedValue({ count: 7 })  // solo las no retenidas
 
     const { deleteAvailabilityData } = await import('@/app/actions/availability')
     const result = await deleteAvailabilityData(WS, HOST)
 
-    expect(result.deletedTotal).toBe(10)
+    expect(result.deletedTotal).toBe(7)
+    expect(result.retainedPast).toBe(3)
+    // BookingPage y AvailabilitySettings NO se borran cuando hay historial retenido
+    expect(mockTxDel.bookingPage.delete).not.toHaveBeenCalled()
+    expect(mockTxDel.availabilitySettings.delete).not.toHaveBeenCalled()
     const deleteCall = mockTxDel.bookingRequest.deleteMany.mock.calls[0]?.[0] as {
-      where: { bookingPageId: string }
+      where: { bookingPageId: string; NOT: unknown }
     }
     expect(deleteCall.where.bookingPageId).toBe(PAGE_ID)
   })
@@ -662,7 +671,7 @@ describe('deleteAvailabilityData', () => {
     const { deleteAvailabilityData } = await import('@/app/actions/availability')
     const result = await deleteAvailabilityData(WS, HOST)
 
-    expect(result).toEqual({ cancelledFuture: 0, deletedTotal: 0 })
+    expect(result).toEqual({ cancelledFuture: 0, deletedTotal: 0, retainedPast: 0 })
     expect(mockTxDel.bookingPage.update).not.toHaveBeenCalled()
     expect(mockTxDel.bookingRequest.updateMany).not.toHaveBeenCalled()
     expect(mockTxDel.bookingRequest.deleteMany).not.toHaveBeenCalled()
