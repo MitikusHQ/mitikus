@@ -2,6 +2,7 @@ import { headers } from 'next/headers'
 import { NextResponse } from 'next/server'
 import { Webhook } from 'svix'
 import { db } from '@/lib/db'
+import { deleteAvailabilityDataForUser } from '@/lib/availability-internal'
 import { classifyEmail } from '@/lib/email-classification'
 import { getOrCreateSubscription } from '@/lib/billing/subscription-service'
 import { trackEvent } from '@/lib/product-analytics'
@@ -129,6 +130,11 @@ export async function POST(req: Request) {
   }
 
   if (evt.type === 'user.deleted') {
+    const dbUser = await db.user.findUnique({
+      where: { clerkId: evt.data.id },
+      select: { id: true },
+    })
+
     // Anonimizar datos PII sin borrar el registro — preserva audit trail y FK constraints
     await db.user.updateMany({
       where: { clerkId: evt.data.id },
@@ -138,6 +144,16 @@ export async function POST(req: Request) {
         trialPlan:  'blocked',
       },
     })
+
+    if (dbUser) {
+      // Await cleanup so serverless execution cannot end before it completes.
+      try {
+        await deleteAvailabilityDataForUser(dbUser.id)
+      } catch (err) {
+        console.error('[webhook:user.deleted] availability cleanup failed', err)
+        // Cleanup failure must not change the successful PII removal response.
+      }
+    }
   }
 
   return NextResponse.json({ success: true })
