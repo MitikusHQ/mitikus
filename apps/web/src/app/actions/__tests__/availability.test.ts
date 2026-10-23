@@ -444,6 +444,10 @@ describe('deleteAvailabilityData', () => {
     },
     bookingRequest: {
       updateMany: vi.fn(),
+      findMany: vi.fn(),
+      deleteMany: vi.fn(),
+    },
+    calendarEvent: {
       deleteMany: vi.fn(),
     },
   }
@@ -456,11 +460,13 @@ describe('deleteAvailabilityData', () => {
     mockDb.workspace.findFirst.mockResolvedValue({ id: WS, orgId: 'org-del', name: 'WS del' })
   }
 
-  function setupTransaction(settingsPayload: unknown) {
+  function setupTransaction(settingsPayload: unknown, eventIds: string[] = []) {
     mockTxDel.availabilitySettings.findUnique.mockResolvedValue(settingsPayload)
     mockTxDel.bookingPage.update.mockResolvedValue({})
     mockTxDel.bookingRequest.updateMany.mockResolvedValue({ count: 0 })
+    mockTxDel.bookingRequest.findMany.mockResolvedValue(eventIds.map((id) => ({ eventId: id })))
     mockTxDel.bookingRequest.deleteMany.mockResolvedValue({ count: 0 })
+    mockTxDel.calendarEvent.deleteMany.mockResolvedValue({ count: eventIds.length })
     mockTxDel.bookingPage.delete.mockResolvedValue({})
     mockTxDel.availabilitySettings.delete.mockResolvedValue({})
     ;(mockDb as unknown as { $transaction: ReturnType<typeof vi.fn> }).$transaction = vi.fn(
@@ -532,19 +538,18 @@ describe('deleteAvailabilityData', () => {
 
   // ── Orden transaccional ───────────────────────────────────────────────────
 
-  it('ejecuta los pasos en el orden correcto: inactivar → cancelar → borrar requests → borrar page → borrar settings', async () => {
+  it('ejecuta los pasos en el orden correcto: inactivar → cancelar → capturar eventIds → borrar requests → borrar events → borrar page → borrar settings', async () => {
     setupAuth(HOST, 'OWNER')
-    setupTransaction({
-      id: SET_ID,
-      bookingPage: { id: PAGE_ID },
-    })
+    setupTransaction({ id: SET_ID, bookingPage: { id: PAGE_ID } }, ['evt-1', 'evt-2'])
     mockTxDel.bookingRequest.updateMany.mockResolvedValue({ count: 2 })
     mockTxDel.bookingRequest.deleteMany.mockResolvedValue({ count: 5 })
 
     const callOrder: string[] = []
     mockTxDel.bookingPage.update.mockImplementation(async () => { callOrder.push('page.update'); return {} })
     mockTxDel.bookingRequest.updateMany.mockImplementation(async () => { callOrder.push('request.updateMany'); return { count: 2 } })
+    mockTxDel.bookingRequest.findMany.mockImplementation(async () => { callOrder.push('request.findMany'); return [{ eventId: 'evt-1' }, { eventId: 'evt-2' }] })
     mockTxDel.bookingRequest.deleteMany.mockImplementation(async () => { callOrder.push('request.deleteMany'); return { count: 5 } })
+    mockTxDel.calendarEvent.deleteMany.mockImplementation(async () => { callOrder.push('event.deleteMany'); return { count: 2 } })
     mockTxDel.bookingPage.delete.mockImplementation(async () => { callOrder.push('page.delete'); return {} })
     mockTxDel.availabilitySettings.delete.mockImplementation(async () => { callOrder.push('settings.delete'); return {} })
 
@@ -555,10 +560,34 @@ describe('deleteAvailabilityData', () => {
     expect(callOrder).toEqual([
       'page.update',
       'request.updateMany',
+      'request.findMany',
       'request.deleteMany',
+      'event.deleteMany',
       'page.delete',
       'settings.delete',
     ])
+  })
+
+  it('borra CalendarEvents vinculados a las reservas incluyendo participantes (cascade)', async () => {
+    setupAuth(HOST, 'OWNER')
+    setupTransaction({ id: SET_ID, bookingPage: { id: PAGE_ID } }, ['evt-abc', 'evt-xyz'])
+
+    const { deleteAvailabilityData } = await import('@/app/actions/availability')
+    await deleteAvailabilityData(WS, HOST)
+
+    expect(mockTxDel.calendarEvent.deleteMany).toHaveBeenCalledWith({
+      where: { id: { in: ['evt-abc', 'evt-xyz'] }, workspaceId: WS },
+    })
+  })
+
+  it('no llama a calendarEvent.deleteMany si no hay reservas con eventId', async () => {
+    setupAuth(HOST, 'OWNER')
+    setupTransaction({ id: SET_ID, bookingPage: { id: PAGE_ID } }, [])
+
+    const { deleteAvailabilityData } = await import('@/app/actions/availability')
+    await deleteAvailabilityData(WS, HOST)
+
+    expect(mockTxDel.calendarEvent.deleteMany).not.toHaveBeenCalled()
   })
 
   // ── Rollback: fallo en paso intermedio ───────────────────────────────────

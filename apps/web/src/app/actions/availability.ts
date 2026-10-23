@@ -578,7 +578,7 @@ export async function deleteAvailabilityData(
   // La lectura inicial ocurre dentro de la transacción para evitar la race condition
   // entre el findUnique y los DELETEs: si otra petición crea BookingPage justo en
   // ese intervalo, la transacción opera sobre datos frescos y consistentes.
-  return db.$transaction(async (tx) => {
+  const result = await db.$transaction(async (tx) => {
     const settings = await tx.availabilitySettings.findUnique({
       where: { userId_workspaceId: { userId: hostUserId, workspaceId } },
       select: { id: true, bookingPage: { select: { id: true } } },
@@ -605,22 +605,39 @@ export async function deleteAvailabilityData(
       })
       cancelledFuture = count
 
-      // 3. Borrar todas las BookingRequest (futuras ya canceladas + pasadas)
+      // 3. Capturar eventIds ANTES de borrar reservas — BookingRequest.eventId es SetNull
+      const bookingsWithEvents = await tx.bookingRequest.findMany({
+        where: { bookingPageId: pageId, eventId: { not: null } },
+        select: { eventId: true },
+      })
+      const eventIds = bookingsWithEvents.map((b) => b.eventId as string)
+
+      // 4. Borrar todas las BookingRequest
       const del = await tx.bookingRequest.deleteMany({ where: { bookingPageId: pageId } })
       deletedTotal = del.count
 
-      // 4. Borrar BookingPage
+      // 5. Borrar CalendarEvents de booking (EventParticipant se borra por cascade)
+      if (eventIds.length > 0) {
+        await tx.calendarEvent.deleteMany({
+          where: { id: { in: eventIds }, workspaceId },
+        })
+      }
+
+      // 6. Borrar BookingPage
       await tx.bookingPage.delete({ where: { id: pageId } })
     }
 
-    // 5. Borrar AvailabilitySettings
+    // 7. Borrar AvailabilitySettings
     await tx.availabilitySettings.delete({
       where: { userId_workspaceId: { userId: hostUserId, workspaceId } },
     })
 
-    revalidatePath(`/workspace/${workspaceId}/calendar`)
     return { cancelledFuture, deletedTotal }
   })
+
+  // revalidatePath fuera de la transacción — solo se ejecuta tras commit exitoso
+  revalidatePath(`/workspace/${workspaceId}/calendar`)
+  return result
 }
 
 // ─── Workspace members list (for team pickers) ────────────────────────────
