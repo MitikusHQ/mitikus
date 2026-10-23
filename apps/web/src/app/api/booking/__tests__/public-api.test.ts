@@ -40,6 +40,13 @@ vi.mock('@/app/actions/availability', () => ({
 const mockTx = {
   calendarEvent: { findFirst: vi.fn(), create: vi.fn() },
   bookingRequest: { findFirst: vi.fn(), create: vi.fn() },
+  bookingPage: {
+    findUnique: vi.fn().mockResolvedValue({
+      active: true,
+      availability: { workspace: { orgId: 'org-test' }, userId: 'user-test-1' },
+    }),
+  },
+  user: { findFirst: vi.fn().mockResolvedValue({ id: 'user-test-1' }) },
   $executeRaw: vi.fn().mockResolvedValue(1),
 }
 

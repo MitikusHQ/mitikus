@@ -93,6 +93,19 @@ export async function POST(
       // Safe with connection pooling: pg_advisory_xact_lock is transaction-scoped
       await tx.$executeRaw`SELECT pg_advisory_xact_lock(hashtext(${userId}))`
 
+      // Re-verify page is still active (guards against concurrent removeMember)
+      const activePage = await tx.bookingPage.findUnique({
+        where: { id: page.id },
+        select: { active: true, availability: { select: { workspace: { select: { orgId: true } }, userId: true } } },
+      })
+      if (!activePage?.active) throw new Error('SLOT_TAKEN')
+      // Verify host still belongs to the workspace org
+      const hostStillMember = await tx.user.findFirst({
+        where: { id: userId, orgId: activePage.availability.workspace.orgId },
+        select: { id: true },
+      })
+      if (!hostStillMember) throw new Error('SLOT_TAKEN')
+
       // Check no existing CalendarEvent overlaps
       const conflict = await tx.calendarEvent.findFirst({
         where: {
