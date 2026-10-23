@@ -2,12 +2,75 @@
 
 import { auth } from '@clerk/nextjs/server'
 import { redirect } from 'next/navigation'
+import { revalidatePath } from 'next/cache'
 import { db } from '@/lib/db'
+import { requireUser } from '@/lib/auth'
+import { deleteAvailabilityData } from '@/app/actions/availability'
 import { checkEntitlement } from '@/lib/billing/entitlements'
 import { can } from '@/lib/permissions'
 import { trackWorkspaceCreated } from '@/lib/pmf-analytics'
 
 export type WorkspaceActionState = { error: string } | null
+
+async function requireWorkspace(workspaceId: string) {
+  const user = await requireUser()
+  const workspace = await db.workspace.findFirst({
+    where: { id: workspaceId, orgId: user.orgId },
+    select: { id: true },
+  })
+  if (!workspace) throw new Error('Workspace no encontrado')
+  return { user, workspace }
+}
+
+export async function deleteWorkspace(workspaceId: string): Promise<{ error: string } | null> {
+  try {
+    const { user } = await requireWorkspace(workspaceId)
+    if (!can(user, 'delete_workspace')) {
+      return { error: 'Solo el propietario puede eliminar el workspace.' }
+    }
+
+    const hosts = await db.availabilitySettings.findMany({
+      where: { workspaceId },
+      select: { userId: true },
+    })
+    // This helper commits separately; its cleanup cannot be rolled back below.
+    for (const host of hosts) {
+      await deleteAvailabilityData(workspaceId, host.userId)
+    }
+
+    await db.$transaction(async (tx) => {
+      // Permanent workspace deletion also removes historical bookings retained
+      // by deleteAvailabilityData. These three relations use RESTRICT.
+      await tx.bookingRequest.deleteMany({
+        where: { bookingPage: { availability: { workspaceId } } },
+      })
+      await tx.bookingPage.deleteMany({ where: { availability: { workspaceId } } })
+      await tx.availabilitySettings.deleteMany({ where: { workspaceId } })
+
+      // These workspace identifiers have no FK to Workspace.
+      await tx.aIUsage.deleteMany({ where: { workspaceId } })
+      await tx.registrySearch.deleteMany({ where: { workspaceId } })
+      await tx.auditLog.deleteMany({ where: { workspaceId } })
+      await tx.productEvent.deleteMany({ where: { workspaceId } })
+      await tx.businessMemoryLog.deleteMany({ where: { workspaceId } })
+      const rooms = await tx.guestRoom.findMany({
+        where: { workspaceId }, select: { token: true },
+      })
+      await tx.guestEvent.deleteMany({ where: { token: { in: rooms.map((room) => room.token) } } })
+
+      // Break the folder tree's NO ACTION self-reference before cascading.
+      await tx.folder.updateMany({ where: { workspaceId }, data: { parentId: null } })
+      // All remaining Workspace FKs use CASCADE, including dependent children.
+      await tx.workspace.delete({ where: { id: workspaceId } })
+    })
+  } catch {
+    return { error: 'No se ha podido eliminar el workspace. Inténtalo de nuevo.' }
+  }
+
+  revalidatePath('/')
+  return null
+}
+
 export type WorkspaceWithProfileState =
   | { error: string; workspaceId?: never }
   | { workspaceId: string; error?: never }

@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from 'react'
 import { useRouter } from 'next/navigation'
+import { DeleteWorkspaceButton } from './DeleteWorkspaceButton'
 import { ImageUploader } from '@/app/_components/ImageUploader'
 import { updateWorkspaceBranding } from '@/app/actions/branding'
 import { testEmailSettings, updateEmailSettings, updateCompanyLocation } from '@/app/actions/fiscal'
@@ -700,6 +701,18 @@ export function WorkspaceSettingsClient({
             : (locale === 'es' ? 'Descargar ZIP' : 'Download ZIP')}
         </button>
       </section>
+
+      {isOwner && (
+        <section className="rounded-xl border border-destructive/40 bg-card p-6 space-y-4">
+          <div>
+            <h2 className="font-semibold text-base tracking-tight text-destructive">Zona de peligro</h2>
+            <p className="text-sm text-muted-foreground mt-1">
+              Eliminar el workspace borra todos sus datos de forma permanente. Esta acción no se puede deshacer.
+            </p>
+          </div>
+          <DeleteWorkspaceButton workspaceId={workspace.id} workspaceName={name} />
+        </section>
+      )}
 
       {/* Save */}
       <div className="flex justify-end">

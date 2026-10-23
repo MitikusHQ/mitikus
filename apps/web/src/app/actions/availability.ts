@@ -557,19 +557,23 @@ export async function createMeetingWithParticipants(
 //
 //   El flujo transaccional es:
 //     1. Marcar BookingPage como inactiva (deja de aceptar nuevas reservas).
-//     2. Cancelar las BookingRequest futuras con estado CANCELLED y nota de auditoría.
-//     3. Borrar las BookingRequest (ya canceladas o pasadas) en orden.
-//     4. Borrar BookingPage.
-//     5. Borrar AvailabilitySettings.
+//     2. Cancelar las BookingRequest confirmadas futuras (startsAt > now).
+//     3. Capturar los eventIds de las reservas que se van a borrar.
+//     4. Borrar las reservas salvo las CONFIRMED con endsAt <= now.
+//     5. Borrar solo los CalendarEvents vinculados a las reservas borradas.
+//     6. Si quedan reservas históricas, conservar BookingPage inactiva y
+//        AvailabilitySettings: ambas relaciones son obligatorias y RESTRICT.
+//        En caso contrario, borrar BookingPage y AvailabilitySettings.
 //   El borrado del usuario o workspace queda a cargo del flujo que invoca esta función.
 //
-//   Las reservas pasadas confirmadas (endsAt < now) se conservan por defecto.
+//   Las reservas pasadas confirmadas (endsAt <= now) y sus eventos se conservan
+//   con sus vínculos intactos. retainedPast indica cuántas reservas se conservan.
 //   Si la política de conservación cambia, añadir aquí el archivado o anonimización.
 
 export async function deleteAvailabilityData(
   workspaceId: string,
   hostUserId: string,
-): Promise<{ cancelledFuture: number; deletedTotal: number }> {
+): Promise<{ cancelledFuture: number; deletedTotal: number; retainedPast: number }> {
   const { user } = await requireWorkspace(workspaceId)
   if (!isAdminOrAbove(user.role) && user.id !== hostUserId) {
     throw new Error('Unauthorized: only admins or the account owner can delete availability data')
@@ -583,11 +587,12 @@ export async function deleteAvailabilityData(
       where: { userId_workspaceId: { userId: hostUserId, workspaceId } },
       select: { id: true, bookingPage: { select: { id: true } } },
     })
-    if (!settings) return { cancelledFuture: 0, deletedTotal: 0 }
+    if (!settings) return { cancelledFuture: 0, deletedTotal: 0, retainedPast: 0 }
 
     const now = new Date()
     let cancelledFuture = 0
     let deletedTotal = 0
+    let retainedPast = 0
 
     if (settings.bookingPage) {
       const pageId = settings.bookingPage.id
@@ -605,15 +610,20 @@ export async function deleteAvailabilityData(
       })
       cancelledFuture = count
 
-      // 3. Capturar eventIds ANTES de borrar reservas — BookingRequest.eventId es SetNull
+      const bookingsToDelete = {
+        bookingPageId: pageId,
+        NOT: { status: 'CONFIRMED' as const, endsAt: { lte: now } },
+      }
+
+      // 3. Capturar solo los eventIds de las reservas que se van a borrar
       const bookingsWithEvents = await tx.bookingRequest.findMany({
-        where: { bookingPageId: pageId, eventId: { not: null } },
+        where: { ...bookingsToDelete, eventId: { not: null } },
         select: { eventId: true },
       })
       const eventIds = bookingsWithEvents.map((b) => b.eventId as string)
 
-      // 4. Borrar todas las BookingRequest
-      const del = await tx.bookingRequest.deleteMany({ where: { bookingPageId: pageId } })
+      // 4. Conservar las reservas pasadas confirmadas y borrar el resto
+      const del = await tx.bookingRequest.deleteMany({ where: bookingsToDelete })
       deletedTotal = del.count
 
       // 5. Borrar CalendarEvents de booking (EventParticipant se borra por cascade)
@@ -623,16 +633,23 @@ export async function deleteAvailabilityData(
         })
       }
 
-      // 6. Borrar BookingPage
-      await tx.bookingPage.delete({ where: { id: pageId } })
+      // 6. Las reservas históricas requieren conservar la página y su configuración
+      retainedPast = await tx.bookingRequest.count({
+        where: { bookingPageId: pageId, status: 'CONFIRMED', endsAt: { lte: now } },
+      })
+      if (retainedPast === 0) {
+        await tx.bookingPage.delete({ where: { id: pageId } })
+      }
     }
 
-    // 7. Borrar AvailabilitySettings
-    await tx.availabilitySettings.delete({
-      where: { userId_workspaceId: { userId: hostUserId, workspaceId } },
-    })
+    // 7. Borrar AvailabilitySettings solo si no sostiene reservas históricas
+    if (retainedPast === 0) {
+      await tx.availabilitySettings.delete({
+        where: { userId_workspaceId: { userId: hostUserId, workspaceId } },
+      })
+    }
 
-    return { cancelledFuture, deletedTotal }
+    return { cancelledFuture, deletedTotal, retainedPast }
   })
 
   // revalidatePath fuera de la transacción — solo se ejecuta tras commit exitoso
