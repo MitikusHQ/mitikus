@@ -255,7 +255,7 @@ function rangesOverlap(
  * Pure slot computation — no auth, no DB. Safe to call from public routes.
  * Respects the host's timezone via Intl.DateTimeFormat.
  */
-export function computeAvailableSlots(
+export async function computeAvailableSlots(
   settings: {
     timezone: string
     workDays: number[]
@@ -270,7 +270,7 @@ export function computeAvailableSlots(
   busyPeriods: Array<{ start: Date; end: Date }>,
   fromDate: Date,
   toDate: Date,
-): TimeSlot[] {
+): Promise<TimeSlot[]> {
   if (!settings.publicEnabled) return []
 
   const now = new Date()
@@ -415,7 +415,7 @@ export async function getAvailableSlotsInternal(
     ...(bookingPage?.bookings ?? []).map((b) => ({ start: b.startsAt, end: b.endsAt })),
   ]
 
-  return computeAvailableSlots(settings, busyPeriods, fromDate, toDate)
+  return await computeAvailableSlots(settings, busyPeriods, fromDate, toDate)
 }
 
 // ─── Overlap finder for team meetings ─────────────────────────────────────

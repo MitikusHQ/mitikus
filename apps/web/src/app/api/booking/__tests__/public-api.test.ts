@@ -33,7 +33,7 @@ vi.mock('@/app/actions/availability', () => ({
   getAvailableSlotsInternal: vi.fn().mockImplementation((_ws, _user, from: Date) =>
     Promise.resolve([{ startsAt: from.toISOString(), endsAt: new Date(from.getTime() + 30 * 60_000).toISOString() }])
   ),
-  computeAvailableSlots: vi.fn().mockReturnValue([]),
+  computeAvailableSlots: vi.fn().mockResolvedValue([]),
 }))
 
 // db se reconstruye en cada test para aislamiento
